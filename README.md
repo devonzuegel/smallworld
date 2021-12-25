@@ -36,3 +36,12 @@ lein figwheel
 ### open local URL
 
 http://localhost:3001
+
+# setup
+
+install dependencies:
+
+1. `lein install`
+2. install postgres: https://postgresapp.com (database)
+3. install postbird: https://github.com/Paxa/postbird (GUI)
+4. create local postgres db called `smallworld-local`

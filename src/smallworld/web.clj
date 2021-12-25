@@ -8,24 +8,22 @@
             [clojure.pprint :as pp]
             [cheshire.core :refer [generate-string]]
             [twttr.auth :refer [env->UserCredentials]]
-            ;; [ajax.core :as ajax]
-            ;; [cljs.core.async :as async]
+            [yesql.core :refer [defqueries]]
             [environ.core :refer [env]]))
 
-;; (defn handler [response]
-;;   print "(:body response)")
+; Define a database connection spec. (This is standard clojure.java.jdbc.)
+(def db-spec {:classname "org.postgresql.Driver"
+              :subprotocol "postgresql"
+              :subname "//localhost:5432/smallworld-local"
+              :user "devonzuegel"})
 
-;; (defn x []
-;;   (ajax/GET "/friends" {:handler handler
-;;                         :host "http://localhost:3001"})
-;;   ;
-;;   )
-
+; Import the SQL query as a function.
+(defqueries "queries/users.sql" {:connection db-spec})
 
 ;; TODO: ask Sebas why I get "Hello World" when I refresh the Heroku page but
 ;; "hello small world!" when I hard refresh. Note – when I refresh OR hard-refresh
 ;; in Incognito mode, I just get "hello small world!" as I expect. So maybe it's
-;; a cache thing? But whyyy?
+;; a cache thing?  or a chrome extension thing?  but whyyy?
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
