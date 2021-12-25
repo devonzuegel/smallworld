@@ -32,7 +32,7 @@ note: you'll do most of your work in the main server that you started previously
 ```clojure
 lein figwheel
 ```
-### to start (TODO)
-```
-(figwheel-up)
-```
+
+### open local URL
+
+http://localhost:3001

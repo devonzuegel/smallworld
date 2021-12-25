@@ -13,14 +13,15 @@
                  [twttr "3.2.3"]
                  [cheshire "5.10.1"]
                  [ring/ring-jetty-adapter "1.7.1"]
-                 [cljs-ajax "0.7.5"]
                  [ring/ring-ssl "0.3.0"]
                  [environ "1.1.0"]]
   :plugins [[lein-environ "1.1.0" :hooks false]
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.19"]]
   :figwheel {:css-dirs ["resources/public/css"]
-             :server-port 3450}
+             :server-port 3450
+            ;;  :ring-handler smallworld.web/app ;; run the backend too
+             :nrepl-port 7888}
   :uberjar-name "smallworld.jar"
   :profiles {:dev {:dependencies [[cider/piggieback "0.4.1"]
                                   [figwheel-sidecar "0.5.18"]

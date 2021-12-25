@@ -34,10 +34,10 @@
 ; read credentials from environment variables, namely:
 ; CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, and ACCESS_TOKEN_SECRET
 (def creds        (env->UserCredentials))
+(def friends      (atom ()))
 (def result_count 200) ;; 200 is the max allowed by the Twitter API
 (def screen-name  "sebasbensu")
-(def friends (atom ()))
-(def filename "dev/friends-sebasbensu.edn")
+(def filename     "dev/friends-sebasbensu.edn")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
