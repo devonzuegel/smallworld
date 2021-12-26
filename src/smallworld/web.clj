@@ -36,7 +36,7 @@
 ;; (def friends      (atom ()))
 ;; (def result_count 200) ;; 200 is the max allowed by the Twitter API
 (def screen-name  "sebasbensu")
-(def filename     "dev/friends-sebasbensu.edn")
+(def filename     "friends-sebasbensu.edn")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -46,7 +46,7 @@
 ;;     (spit filename result)))
 
 (defn read-from-file []
-  (read-string (slurp filename)))
+  (read-string (slurp (clojure.java.io/resource filename))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
