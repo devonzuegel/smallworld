@@ -6,7 +6,7 @@
   :clean-targets ^{:protect false} [:target-path "out" "resources/public/js"]
   :min-lein-version "2.5.3"
   :repl-options {:init-ns dev.repl}
-  :dependencies [[org.clojure/clojure "1.10.1"]
+  :dependencies [[org.clojure/clojure "1.10.3"]
                  [org.clojure/clojurescript "1.10.520"]
                  [reagent "0.9.0-rc1"]
                  [compojure "1.6.1"]
@@ -44,6 +44,7 @@
                                                     :source-map true}}]}}
              :uberjar {:env {:production true}
                        :source-paths ["src"]
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :aot :all
                        :prep-tasks ["compile" ["cljsbuild" "once"]]
                        :cljsbuild {:builds [{:id "production"

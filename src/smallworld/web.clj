@@ -110,5 +110,5 @@
 (defn stop! []
   (.stop @server*))
 
-(defn -main [& [port]]
-  (start! port))
+(defn -main [& args]
+  (start! (Integer/parseInt (System/getenv "PORT"))))
