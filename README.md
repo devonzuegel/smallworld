@@ -50,6 +50,17 @@ install dependencies:
 
 note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
 
-```sh
-heroku deploy:jar target/smallworld.jar --app desolate-bayou-27806
-```
+1. build a production version
+   ```sh
+   lein uberjar
+   ```
+
+2. optional: run the jar locally to make sure it works, and open it at http://localhost:8080
+   ```sh
+   java -jar target/smallworld.jar
+   ```
+
+3. deploy the jar to heroku
+   ```sh
+   heroku deploy:jar target/smallworld.jar --app desolate-bayou-27806
+   ```
