@@ -15,6 +15,7 @@
                  [ring/ring-jetty-adapter "1.7.1"]
                  [ring/ring-ssl "0.3.0"]
                  [yesql "0.5.3"]
+                 [clj-fuzzy "0.4.1"]
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [environ "1.1.0"]]
   :plugins [[lein-environ "1.1.0" :hooks false]
