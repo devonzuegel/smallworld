@@ -64,3 +64,9 @@ note: instead of heroku's usual `git push heroku` deployment patter, we use the 
    ```sh
    heroku deploy:jar target/smallworld.jar --app desolate-bayou-27806
    ```
+
+# designs
+
+| ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
+| -                                 | -                                                | -                                         |
+|                                   |                                                  |                                           |
