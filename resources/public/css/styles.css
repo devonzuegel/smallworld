@@ -29,8 +29,9 @@ body {
   justify-content: space-between;
   position: fixed;
   width: 100%;
-  background: #114927;
+  background: #013917;
   top: 0;
+  z-index: 1;
 }
 .logo {
   display: flex;
@@ -106,4 +107,15 @@ th {
 }
 tr:nth-child(even) {
   background: #11492799;
+}
+/*****************************************/
+/**** sticky footer **********************/
+/*****************************************/
+.sticky-footer {
+  position: fixed;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  color: white;
+  text-align: center;
 }
