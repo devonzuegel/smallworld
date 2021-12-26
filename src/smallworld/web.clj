@@ -7,6 +7,7 @@
             [ring.adapter.jetty :as jetty]
             [twttr.api :as api]
             [clojure.pprint :as pp]
+            [clojure.data.json :as json]
             [cheshire.core :refer [generate-string]]
             [twttr.auth :refer [env->UserCredentials]]
             [yesql.core :refer [defqueries]]
@@ -101,6 +102,25 @@
                   :ba         {:lat 34.6037 :lng 58.3816}
                   :montevideo {:lat 34.9011 :lng 56.1645}})
 
+(def raw-result (slurp (str "https://dev.virtualearth.net/REST/v1/Locations/"
+                            (java.net.URLEncoder/encode "miami" "UTF-8")
+                            "?key="
+                            (java.net.URLEncoder/encode (System/getenv "BING_MAPS_API_KEY") "UTF-8"))))
+
+;; if you need to make the locations more precise in the future, use the bbox
+;; (bounding box) ratehr than just the coordinates
+(defn get-coordinates-out-of-raw-result [raw-result]
+  (let [result      (json/read-str raw-result)
+        status-code (get result "statusCode")
+        coordinates (get-in result ["resourceSets" 0 "resources" 0 "geocodePoints" 0 "coordinates"])
+        coordinates {:lat (first coordinates) :lng (second coordinates)}]
+    (if (= 200 status-code) (do
+                              (print "all good!")
+                              coordinates)
+        (print "houston, we have a problem..."))))
+
+(get-coordinates-out-of-raw-result raw-result)
+
 (defroutes app
   (GET "/friends" []
     (generate-string
@@ -112,13 +132,11 @@
             #_(select-keys friend [:name :screen_name :location]))
           friends-from-storage)))
 
-  (GET "/" []
-    (slurp (io/resource "public/index.html")))
+  (GET "/" [] (slurp (io/resource "public/index.html")))
 
   (route/resources "/")
 
-  (ANY "*" []
-    (route/not-found "<h1>404 Not found</h1>")))
+  (ANY "*" [] (route/not-found "<h1>404 Not found</h1>")))
 
 (defonce server* (atom nil))
 
