@@ -7,9 +7,10 @@
 (def by-id goog.dom.getElement)
 
 (defn app-container []
-  [:div
+  [:div.container
    [:h1 {}
     "hello small world!!!!!!!!"]
+   [:p "foo bar"]
    [:pre @friends]])
 
 (r/render-component [app-container] (by-id "app"))

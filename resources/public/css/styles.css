@@ -1,0 +1,18 @@
+* {
+  background-color: #013917;
+  color: #d9d3cc;
+  font-family: 'Inria Sans', sans-serif;
+}
+
+h1 {
+  font-family: 'Inria Serif', serif;
+  font-weight: 300;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  margin-top: 100px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inria+Serif:wght@400;700&family=Inter:wght@200;300;400;500;600;700;800;900&display=swap');

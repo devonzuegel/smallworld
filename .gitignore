@@ -17,4 +17,4 @@ dev/devons-friends.edn
 .calva/
 figwheel_server.log
 .rebel_readline_history
-resources/public
+resources/public/js
