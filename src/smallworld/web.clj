@@ -1,4 +1,5 @@
 (ns smallworld.web
+  (:gen-class)
   (:require [compojure.core :refer [defroutes GET ANY]]
             [compojure.handler :refer [site]]
             [compojure.route :as route]
@@ -31,50 +32,50 @@
 
 ; read credentials from environment variables, namely:
 ; CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, and ACCESS_TOKEN_SECRET
-(def creds        (env->UserCredentials))
-(def friends      (atom ()))
-(def result_count 200) ;; 200 is the max allowed by the Twitter API
+;; (def creds        (env->UserCredentials))
+;; (def friends      (atom ()))
+;; (def result_count 200) ;; 200 is the max allowed by the Twitter API
 (def screen-name  "sebasbensu")
 (def filename     "dev/friends-sebasbensu.edn")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn store-to-file [data]
-  (let [result (with-out-str (pr data))]
-    (spit filename result)))
+;; (defn store-to-file [data]
+;;   (let [result (with-out-str (pr data))]
+;;     (spit filename result)))
 
 (defn read-from-file []
   (read-string (slurp filename)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn fetch-friends-from-twitter-api []
-  (loop [cursor nil
-         result-so-far []]
-    (let [api-response    (api/friends-list creds :params {:screen_name screen-name
-                                                           :count       result_count
-                                                           :cursor      cursor})
-          page-of-friends (:users api-response)
-          new-result      (concat result-so-far page-of-friends)
-          screen-names    (map :screen_name (:users api-response))
-          next-cursor     (:next_cursor api-response)]
+;; (defn fetch-friends-from-twitter-api []
+;;   (loop [cursor nil
+;;          result-so-far []]
+;;     (let [api-response    (api/friends-list creds :params {:screen_name screen-name
+;;                                                            :count       result_count
+;;                                                            :cursor      cursor})
+;;           page-of-friends (:users api-response)
+;;           new-result      (concat result-so-far page-of-friends)
+;;           screen-names    (map :screen_name (:users api-response))
+;;           next-cursor     (:next_cursor api-response)]
 
-      (comment
-        (pp/pprint "(first screen-names): " (first screen-names))
-        (pp/pprint "(count screen-names): " (count screen-names))
-        (pp/pprint "next-cursor:          " next-cursor)
-        (pp/pprint "friends count so far: " (count result-so-far))
-        (pp/pprint "----------------------------------------"))
+;;       (comment
+;;         (pp/pprint "(first screen-names): " (first screen-names))
+;;         (pp/pprint "(count screen-names): " (count screen-names))
+;;         (pp/pprint "next-cursor:          " next-cursor)
+;;         (pp/pprint "friends count so far: " (count result-so-far))
+;;         (pp/pprint "----------------------------------------"))
 
-      (if (= next-cursor 0)
-        ;; return final result if Twitter returns a cursor of 0
-        new-result
-        ;; else, recur by appending the page to the result so far
-        (recur next-cursor new-result)))))
+;;       (if (= next-cursor 0)
+;;         ;; return final result if Twitter returns a cursor of 0
+;;         new-result
+;;         ;; else, recur by appending the page to the result so far
+;;         (recur next-cursor new-result)))))
 
-;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
-;; (store-to-file (fetch-friends-from-twitter-api))
+;; ;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
+;; ;; (store-to-file (fetch-friends-from-twitter-api))
 
 (def friends-from-storage (read-from-file)) ;; TODO: store this in their local storage
 (def n-friends (count (map :screen_name friends-from-storage)))

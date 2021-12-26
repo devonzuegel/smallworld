@@ -9,7 +9,7 @@
 (defn app-container []
   [:div
    [:h1 {}
-    "hello small world!"]
+    "hello small world!!!!!!!!"]
    [:pre @friends]])
 
 (r/render-component [app-container] (by-id "app"))

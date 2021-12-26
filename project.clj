@@ -25,6 +25,7 @@
             ;;  :ring-handler smallworld.web/app ;; run the backend too
              :nrepl-port 7888}
   :uberjar-name "smallworld.jar"
+  :main ^:skip-aot smallworld.web
   :profiles {:dev {:dependencies [[cider/piggieback "0.4.1"]
                                   [figwheel-sidecar "0.5.18"]
                                   ;; [binaryage/devtools "0.9.10"]
@@ -43,6 +44,7 @@
                                                     :source-map true}}]}}
              :uberjar {:env {:production true}
                        :source-paths ["src"]
+                       :aot :all
                        :prep-tasks ["compile" ["cljsbuild" "once"]]
                        :cljsbuild {:builds [{:id "production"
                                              :source-paths ["src"]

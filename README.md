@@ -37,7 +37,7 @@ lein figwheel
 
 http://localhost:3001
 
-# setup
+# local setup
 
 install dependencies:
 
@@ -45,3 +45,11 @@ install dependencies:
 2. install postgres: https://postgresapp.com (database)
 3. install postbird: https://github.com/Paxa/postbird (GUI)
 4. create local postgres db called `smallworld-local`
+
+# deploy to heroku
+
+note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
+
+```sh
+heroku deploy:jar target/smallworld.jar --app desolate-bayou-27806
+```
