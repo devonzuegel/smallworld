@@ -3,7 +3,6 @@
             [goog.dom]))
 
 (defonce friends (r/atom []))
-(defonce count- (r/atom 1))
 
 (def by-id goog.dom/getElement)
 
@@ -17,38 +16,35 @@
     [:span.links-spacer "·"]
     [:a "log out " [:b "@username"]]]])
 
-(def friend-row-headers ["" "name" "screen_name" "location"])
+(def friend-row-headers ["" "name" "handle" "location"])
 
 (defn friend-row [i friend]
-  [:tr {:key i}
-   [:td i]
-   [:td (:name friend)]
-   [:td [:a {:href (str "http://twitter.com/" (:screen_name friend))}
-         (str "@" (:screen_name friend))]]
-   [:td (:location friend)]])
+  (let [twitter-handle (:screen_name friend)
+        twitter-link   (str "http://twitter.com/" twitter-handle)]
+    [:tr {:key i}
+     [:td i]
+     [:td (:name friend)]
+     [:td [:a {:href twitter-link} (str "@" twitter-handle)]]
+     [:td (:location friend)]]))
 
 (defn app-container []
   [:div
    (nav)
    [:div.container
-    [:pre "@count:"]
-    [:pre @count-]
+
+    [:pre "count"]
+    [:pre (count @friends)]
     [:hr]
+
     [:table
      [:tbody
       [:tr
-       (map-indexed (fn [i header] [:th header]) friend-row-headers)]
+       (map-indexed (fn [i header] [:th {:key i} header]) friend-row-headers)]
       (map-indexed friend-row @friends)]]]])
 
 (r/render-component [app-container] (by-id "app"))
 
 (-> (.fetch js/window "/friends")
     (.then #(.json %))
-    (.then (fn [result]
-             (let [result (js->clj result :keywordize-keys true)]
-               (js/console.log "friends count:  ")
-               (js/console.log (count result))
-               (js/console.log "friends: ")
-               (js/console.log result)
-               (swap! friends concat result)
-               (swap! count- inc)))))
+    (.then #(js->clj % :keywordize-keys true))
+    (.then #(swap! friends concat %)))
