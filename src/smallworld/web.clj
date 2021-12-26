@@ -81,12 +81,35 @@
 (def n-friends (count (map :screen_name friends-from-storage)))
 (str "@" screen-name " is following " n-friends " accounts")
 
+; Haversine formula
+; a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+; c = 2 ⋅ atan2( √a, √(1−a) )
+; d = R ⋅ c
+; where φ is latitude, λ is longitude, R is earth’s radius (mean radius = 6,371km);
+(defn haversine
+  "Implementation of Haversine formula. Takes two sets of latitude/longitude pairs and returns the shortest great circle distance between them (in km)"
+  [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
+  (let [R 6378.137 ; Radius of Earth in km
+        dlat (Math/toRadians (- lat2 lat1))
+        dlon (Math/toRadians (- lon2 lon1))
+        lat1 (Math/toRadians lat1)
+        lat2 (Math/toRadians lat2)
+        a (+ (* (Math/sin (/ dlat 2)) (Math/sin (/ dlat 2))) (* (Math/sin (/ dlon 2)) (Math/sin (/ dlon 2)) (Math/cos lat1) (Math/cos lat2)))]
+    (* R 2 (Math/asin (Math/sqrt a)))))
+
+(def coordinates {:sf         {:lat 37.7749 :lng 122.4194}
+                  :ba         {:lat 34.6037 :lng 58.3816}
+                  :montevideo {:lat 34.9011 :lng 56.1645}})
+
 (defroutes app
-  (GET "/test" [] "the app has now been renamed to smallworld!!!!!!!!")
   (GET "/friends" []
     (generate-string
      (map (fn [friend]
-            (select-keys friend [:name :screen_name :location]))
+            {:name        (:name friend)
+             :screen_name (:screen_name friend)
+             :location    (:location friend)
+             :distance    (haversine (:sf coordinates) (:ba coordinates))}
+            #_(select-keys friend [:name :screen_name :location]))
           friends-from-storage)))
 
   (GET "/" []

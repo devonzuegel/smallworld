@@ -47,7 +47,7 @@
       [:tr
        (map-indexed (fn [i header] [:th {:key i} header]) friend-row-headers)]
       (map-indexed friend-row (sort-by #(* -1 (location-name-similarity %))
-                                    @friends))]]]])
+                                       @friends))]]]])
 
 (r/render-component [app-container] (by-id "app"))
 
