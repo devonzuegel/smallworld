@@ -18,7 +18,15 @@
     [:span.links-spacer "·"]
     [:a "log out " [:b "@username"]]]])
 
-(def friend-row-headers ["" "name" "handle" "location" "similarity"])
+(defn music []
+  [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
+            :width "100%"
+            :height "80"
+            :frameBorder "0"
+            :allowfullscreen ""
+            :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
+
+(def friend-row-headers ["" "name" "handle" "location" "distance" #_"similarity"])
 
 (defn location-name-similarity [friend]
   (fuzzy/jaro-winkler (.toLowerCase (:location friend))
@@ -32,7 +40,8 @@
      [:td (:name friend)]
      [:td [:a {:href twitter-link} (str "@" twitter-handle)]]
      [:td (:location friend)]
-     [:td (location-name-similarity friend)]]))
+     [:td (:distance friend)]
+     #_[:td (location-name-similarity friend)]]))
 
 (defn app-container []
   [:div
@@ -47,7 +56,9 @@
       [:tr
        (map-indexed (fn [i header] [:th {:key i} header]) friend-row-headers)]
       (map-indexed friend-row (sort-by #(* -1 (location-name-similarity %))
-                                       @friends))]]]])
+                                       @friends))]]]
+
+   [:div.sticky-footer (music)]])
 
 (r/render-component [app-container] (by-id "app"))
 
