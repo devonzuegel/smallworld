@@ -1,18 +1,66 @@
-* {
+@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inria+Serif:wght@400;700&family=Inter:wght@200;300;400;500;600;700;800;900&display=swap');
+
+html {
   background-color: #013917;
   color: #d9d3cc;
-  font-family: 'Inria Sans', sans-serif;
+  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", monospace;
 }
 
-h1 {
-  font-family: 'Inria Serif', serif;
-  font-weight: 300;
+body {
+  margin: 0;
 }
+
+/*****************************************/
+/**** nav ********************************/
+/*****************************************/
+
+.nav {
+  margin-bottom: 64px;
+  border-bottom: 1px solid #d9d3cc77;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-globe {
+  display: inline-block;
+  border: 2px solid #d9d3ccaa;
+  height: 30px;
+  width: 30px;
+  border-radius: 50px;
+  background: #d9d3cc33;
+}
+
+.logo-text {
+  display: inline-block;
+  font-family: 'Inria Serif', serif;
+  font-size: 24px;
+  line-height: 0.9em;
+  margin: 12px;
+  max-width: 80px;
+}
+
+.links {
+  display: flex;
+}
+
+.links-spacer {
+  margin: 0 16px;
+  color: #d9d3cc77;
+}
+
+/*****************************************/
+/**** container **************************/
+/*****************************************/
 
 .container {
   max-width: 700px;
   margin: auto;
-  margin-top: 100px;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inria+Serif:wght@400;700&family=Inter:wght@200;300;400;500;600;700;800;900&display=swap');
