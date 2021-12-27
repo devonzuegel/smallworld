@@ -1,18 +1,27 @@
-(ns smallworld.memoize)
+(ns smallworld.memoize
+  (:refer-clojure :exclude [memoize]))
 
-(defonce cache (atom {}))
+(defprotocol ICache
+  (update! [this request-key value])
+  (read!   [this request-key]))
 
-(defn expensive-fn [request-str] 123)
+(extend-protocol ICache
+  clojure.lang.Atom
+  (update! [this request-key value] (swap! this #(assoc % request-key value)))
+  (read!   [this request-key]       (get @this request-key)))
 
-(defn test [request-str]
-  ;; check if we've seen the request before
-  (if (nil? (get @cache request-str))
+(defn my-memoize [expensive-fn cache]
+  (fn [request-key]
+    (assert (string? request-key)
+            "my-memoize requires the request key to be a string")
 
-    (let [result (expensive-fn request-str)]
-      (println "fetch the result for the first time! " result)
-      (swap! cache #(assoc % request-str result))
-      result)
+    (if (nil? (read! cache request-key)) ;; check if we've seen the request before
+      
+      (let [result (expensive-fn request-key)]
+        (println "fetch the result for the first time! " result)
+        (update! cache request-key result)
+        result)
 
-    (let [result (get @cache request-str)]
-      (println "retrieving stored result: " result)
-      result)))
+      (let [result (read! cache request-key)]
+        (println "retrieving stored result: " result)
+        result))))
