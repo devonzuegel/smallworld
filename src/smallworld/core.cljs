@@ -1,6 +1,7 @@
 (ns smallworld.core
   (:require [reagent.core :as r]
             [clj-fuzzy.metrics :as fuzzy]
+            [clojure.pprint :as pp]
             [goog.dom]))
 
 (defonce friends (r/atom []))
@@ -42,7 +43,7 @@
      [:td (:location friend)]
      [:td (pr-str (:coordinates friend))]
      [:td (:distance friend)]
-     [:td (pr-str friend)]
+     [:td [:pre (prn-str )]]
      #_[:td (location-name-similarity friend)]]))
 
 (defn app-container []
@@ -57,9 +58,11 @@
      [:tbody
       [:tr
        (map-indexed (fn [i header] [:th {:key i} header]) friend-row-headers)]
-      (map-indexed friend-row (sort-by #(* -1 (location-name-similarity %))
+      (map-indexed friend-row (sort-by #(if (nil? (:distance %))
+                                          9999999999999999
+                                          (:distance %))
                                        @friends))]]]
-   
+
    #_[:div.sticky-footer (music)]])
 
 (r/render-component [app-container] (by-id "app"))

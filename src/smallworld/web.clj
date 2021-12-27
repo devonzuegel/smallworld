@@ -90,6 +90,8 @@
 (defn haversine
   "Implementation of Haversine formula. Takes two sets of latitude/longitude pairs and returns the shortest great circle distance between them (in km)"
   [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
+  (when (some nil? [lon1 lat1 lon2 lat2])
+    (throw (Exception. "coordinates {:lat, :lng} must not be nil")))
   (let [R 6378.137 ; Radius of Earth in km
         dlat (Math/toRadians (- lat2 lat1))
         dlon (Math/toRadians (- lon2 lon1))
@@ -98,11 +100,11 @@
         a (+ (* (Math/sin (/ dlat 2)) (Math/sin (/ dlat 2))) (* (Math/sin (/ dlon 2)) (Math/sin (/ dlon 2)) (Math/cos lat1) (Math/cos lat2)))]
     (* R 2 (Math/asin (Math/sqrt a)))))
 
-(def coordinates {:sf         {:lat 37.78007888793945,   :lng -122.42015838623047}
-                  :ba         {:lat -34.607566833496094, :lng -58.43708801269531}
-                  :montevideo {:lat -34.90589141845703,  :lng -56.19131088256836}
-                  :london     {:lat 51.500152587890625,  :lng -0.12623600661754608}
-                  :miami      {:lat 25.775083541870117,  :lng -80.1947021484375}})
+(def stored-coordinates {:sf         {:lat 37.78007888793945,   :lng -122.42015838623047}
+                         :ba         {:lat -34.607566833496094, :lng -58.43708801269531}
+                         :montevideo {:lat -34.90589141845703,  :lng -56.19131088256836}
+                         :london     {:lat 51.500152587890625,  :lng -0.12623600661754608}
+                         :miami      {:lat 25.775083541870117,  :lng -80.1947021484375}})
 
 ;; if you need to make the locations more precise in the future, use the bbox
 ;; (bounding box) ratehr than just the coordinates
@@ -114,7 +116,6 @@
     (if (= 200 status-code) coordinates
         (print "houston, we have a problem..."))))
 
-
 (defn get-coordinates-from-city [city-str]
   (if (empty? city-str)
     nil ; return nil coordinates if no city string is given
@@ -124,27 +125,39 @@
         (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
             slurp
             extract-coordinates))
-      (catch java.io.IOException e (str "caught exception: " (.getMessage e)))
-      (finally nil))))
+      (catch Throwable e
+        (println "\ncaught exception: " (.getMessage e))
+        nil))))
+
+(defn coordinates-not-defined [coords]
+  (or (nil? coords)
+      (some nil? (vals coords))))
+
+(defn get-distance-between-coordinates [coords1 coords2]
+  (if (or (coordinates-not-defined coords1)
+          (coordinates-not-defined coords2))
+    nil
+    (haversine coords1 coords2)))
 
 (defn get-relevant-friend-data [friend]
-  (let [coordinates (:coordinates friend)]
+  (let [friend-coordinates (:coordinates friend)  ;; (get-coordinates-from-city (:location friend))
+        my-coordinates     (:ba stored-coordinates)]
     {:name        (:name friend)
      :screen_name (:screen_name friend)
      :location    (:location friend)
-     :distance    (if (empty? coordinates) ; TODO: broken somewhere here
-                    nil
-                    (haversine (:ba coordinates) coordinates))
-     :coordinates coordinates
-   ;;  :coordinates (get-coordinates-from-city (:location friend))
-     }))
+     :coordinates friend-coordinates
+     :distance    (get-distance-between-coordinates friend-coordinates
+                                                    my-coordinates)}))
+
+;; (def x friends-from-storage)
+;; (def with-coords (map get-relevant-friend-data x))
+;; (store-to-file with-coords)
+;; (pp/pprint with-coords)
 
 (defroutes app
   (GET "/friends" []
-    (generate-string
-     (map get-relevant-friend-data friends-from-storage)
-      ;;  (store-to-file _______)
-     ))
+    (generate-string (map get-relevant-friend-data
+                          friends-from-storage)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
 
