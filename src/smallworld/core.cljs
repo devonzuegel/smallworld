@@ -23,10 +23,10 @@
             :width "100%"
             :height "80"
             :frameBorder "0"
-            :allowfullscreen ""
+            :allowFullScreen ""
             :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
 
-(def friend-row-headers ["" "name" "handle" "location" "distance" #_"similarity"])
+(def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance"])
 
 (defn location-name-similarity [friend]
   (fuzzy/jaro-winkler (.toLowerCase (:location friend))
@@ -40,7 +40,9 @@
      [:td (:name friend)]
      [:td [:a {:href twitter-link} (str "@" twitter-handle)]]
      [:td (:location friend)]
+     [:td (pr-str (:coordinates friend))]
      [:td (:distance friend)]
+     [:td (pr-str friend)]
      #_[:td (location-name-similarity friend)]]))
 
 (defn app-container []
@@ -57,8 +59,8 @@
        (map-indexed (fn [i header] [:th {:key i} header]) friend-row-headers)]
       (map-indexed friend-row (sort-by #(* -1 (location-name-similarity %))
                                        @friends))]]]
-
-   [:div.sticky-footer (music)]])
+   
+   #_[:div.sticky-footer (music)]])
 
 (r/render-component [app-container] (by-id "app"))
 

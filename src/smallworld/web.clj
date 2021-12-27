@@ -42,9 +42,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defn store-to-file [data]
-;;   (let [result (with-out-str (pr data))]
-;;     (spit filename result)))
+(defn store-to-file [data]
+  (let [result (with-out-str (pr data))]
+    (spit filename result)))
 
 (defn read-from-file []
   (read-string (slurp (clojure.java.io/resource filename))))
@@ -98,39 +98,53 @@
         a (+ (* (Math/sin (/ dlat 2)) (Math/sin (/ dlat 2))) (* (Math/sin (/ dlon 2)) (Math/sin (/ dlon 2)) (Math/cos lat1) (Math/cos lat2)))]
     (* R 2 (Math/asin (Math/sqrt a)))))
 
-(def coordinates {:sf         {:lat 37.7749 :lng 122.4194}
-                  :ba         {:lat 34.6037 :lng 58.3816}
-                  :montevideo {:lat 34.9011 :lng 56.1645}})
-
-(def raw-result (slurp (str "https://dev.virtualearth.net/REST/v1/Locations/"
-                            (java.net.URLEncoder/encode "miami" "UTF-8")
-                            "?key="
-                            (java.net.URLEncoder/encode (System/getenv "BING_MAPS_API_KEY") "UTF-8"))))
+(def coordinates {:sf         {:lat 37.78007888793945,   :lng -122.42015838623047}
+                  :ba         {:lat -34.607566833496094, :lng -58.43708801269531}
+                  :montevideo {:lat -34.90589141845703,  :lng -56.19131088256836}
+                  :london     {:lat 51.500152587890625,  :lng -0.12623600661754608}
+                  :miami      {:lat 25.775083541870117,  :lng -80.1947021484375}})
 
 ;; if you need to make the locations more precise in the future, use the bbox
 ;; (bounding box) ratehr than just the coordinates
-(defn get-coordinates-out-of-raw-result [raw-result]
+(defn extract-coordinates [raw-result]
   (let [result      (json/read-str raw-result)
         status-code (get result "statusCode")
         coordinates (get-in result ["resourceSets" 0 "resources" 0 "geocodePoints" 0 "coordinates"])
         coordinates {:lat (first coordinates) :lng (second coordinates)}]
-    (if (= 200 status-code) (do
-                              (print "all good!")
-                              coordinates)
+    (if (= 200 status-code) coordinates
         (print "houston, we have a problem..."))))
 
-(get-coordinates-out-of-raw-result raw-result)
+
+(defn get-coordinates-from-city [city-str]
+  (if (empty? city-str)
+    nil ; return nil coordinates if no city string is given
+    (try
+      (let [city    (java.net.URLEncoder/encode city-str "UTF-8")
+            api-key (java.net.URLEncoder/encode (System/getenv "BING_MAPS_API_KEY") "UTF-8")]
+        (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
+            slurp
+            extract-coordinates))
+      (catch java.io.IOException e (str "caught exception: " (.getMessage e)))
+      (finally nil))))
+
+(defn get-relevant-friend-data [friend]
+  (let [coordinates (:coordinates friend)]
+    {:name        (:name friend)
+     :screen_name (:screen_name friend)
+     :location    (:location friend)
+     :distance    (if (empty? coordinates) ; TODO: broken somewhere here
+                    nil
+                    (haversine (:ba coordinates) coordinates))
+     :coordinates coordinates
+   ;;  :coordinates (get-coordinates-from-city (:location friend))
+     }))
 
 (defroutes app
   (GET "/friends" []
     (generate-string
-     (map (fn [friend]
-            {:name        (:name friend)
-             :screen_name (:screen_name friend)
-             :location    (:location friend)
-             :distance    (haversine (:sf coordinates) (:ba coordinates))}
-            #_(select-keys friend [:name :screen_name :location]))
-          friends-from-storage)))
+     (map get-relevant-friend-data friends-from-storage)
+      ;;  (store-to-file _______)
+     ))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
 
