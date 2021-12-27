@@ -25,10 +25,10 @@
      (if (= ::not-found (read! cache request-key)) ;; check if we've seen the request before
 
        (let [result (expensive-fn request-key)]
-         (println "🟢 fetch for first time: " request-key " → " result)
+        ;;  (println "🟢 fetch for first time: " request-key " → " result)
          (update! cache request-key result)
          result)
 
        (let [result (read! cache request-key)]
-         (println "🟡 retrieving stored result: " request-key " → " result)
+        ;;  (println "🟡 retrieving stored result: " request-key " → " result)
          result)))))

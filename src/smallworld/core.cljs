@@ -27,7 +27,7 @@
 ;;             :allowFullScreen ""
 ;;             :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
 
-(def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance"])
+(def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance" "profile_image_url_large"])
 
 (defn location-name-similarity [friend]
   (fuzzy/jaro-winkler (.toLowerCase (:location friend))
@@ -43,6 +43,7 @@
      [:td (:location friend)]
      [:td (pr-str (:coordinates friend))]
      [:td (:distance friend)]
+     [:td (:profile_image_url_large friend)]
      [:td [:pre (prn-str)]]
      #_[:td (location-name-similarity friend)]]))
 

@@ -5,38 +5,15 @@
             [compojure.route :as route]
             [clojure.java.io :as io]
             [ring.adapter.jetty :as jetty]
-            [twttr.api :as api]
-            [clojure.pprint :as pp]
+            ;; [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [clojure.data.json :as json]
             [cheshire.core :refer [generate-string]]
-            [twttr.auth :refer [env->UserCredentials]]
-            [yesql.core :refer [defqueries]]
             [environ.core :refer [env]]))
 
-;; ; Define a database connection spec. (This is standard clojure.java.jdbc.)
-;; (def db-spec {:classname "org.postgresql.Driver"
-;;               :subprotocol "postgresql"
-;;               :subname "//localhost:5432/smallworld-local"
-;;               :user "devonzuegel"})
-
-;; ; Import the SQL query as a function.
-;; (defqueries "queries/users.sql" {:connection db-spec})
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; read credentials from environment variables, namely:
-; CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, and ACCESS_TOKEN_SECRET
-  ;; (def creds        (env->UserCredentials))
-  ;; (def friends      (atom ()))
-  ;; (def result_count 200) ;; 200 is the max allowed by the Twitter API
-(def screen-name        "sebasbensu")
-(def filenames {:sebas-friends "friends-sebasbensu.edn"
+(def filenames {:sebas-friends        "friends-sebasbensu.edn"
+                :sebas-friends-full   "friends-sebasbensu--full-from-twitter.edn"
                 :memoized-coordinates "memoized-coordinates.edn"})
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn store-to-file [filename data]
   (let [result (with-out-str (pr data))]
@@ -44,35 +21,6 @@
 
 (defn read-from-file [filename]
   (read-string (slurp (clojure.java.io/resource filename))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;; (defn fetch-friends-from-twitter-api []
-  ;;   (loop [cursor nil
-  ;;          result-so-far []]
-  ;;     (let [api-response    (api/friends-list creds :params {:screen_name screen-name
-  ;;                                                            :count       result_count
-  ;;                                                            :cursor      cursor})
-  ;;           page-of-friends (:users api-response)
-  ;;           new-result      (concat result-so-far page-of-friends)
-  ;;           screen-names    (map :screen_name (:users api-response))
-  ;;           next-cursor     (:next_cursor api-response)]  
-
-  ;;       (comment
-  ;;         (pp/pprint "(first screen-names): " (first screen-names))
-  ;;         (pp/pprint "(count screen-names): " (count screen-names))
-  ;;         (pp/pprint "next-cursor:          " next-cursor)
-  ;;         (pp/pprint "friends count so far: " (count result-so-far))
-  ;;         (pp/pprint "----------------------------------------"))  
-
-  ;;       (if (= next-cursor 0)
-  ;;         ;; return final result if Twitter returns a cursor of 0
-  ;;         new-result
-  ;;         ;; else, recur by appending the page to the result so far
-  ;;         (recur next-cursor new-result)))))  
-
-  ;; ;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
-  ;; ;; (store-to-file ((:sebas-friends filenames) fetch-friends-from-twitter-api))
 
 (def friends-from-storage (read-from-file (:sebas-friends filenames))) ;; TODO: store this in their local storage
 
@@ -138,22 +86,30 @@
     (haversine coords1 coords2)))
 
 (defn get-relevant-friend-data [friend]
-  (let [friend-coordinates (memoized-coordinates-from-city (:location friend))
-        my-coordinates     (:ba stored-coordinates)]
-    {:name        (:name friend)
-     :screen_name (:screen_name friend)
-     :location    (:location friend)
-     :coordinates friend-coordinates
-     :distance    (get-distance-between-coordinates friend-coordinates
-                                                    my-coordinates)}))
+  (let [friend-coords (memoized-coordinates-from-city (:location friend))
+        my-coords     (:ba stored-coordinates)]
+    {:name                    (:name friend)
+     :screen_name             (:screen_name friend)
+     :location                (:location friend)
+     :profile_image_url_large (clojure.string/replace (:profile_image_url_large friend) "_normal" "")
+     :coordinates             friend-coords
+     :distance                (get-distance-between-coordinates friend-coords my-coords)}))
 
 ;; (def x friends-from-storage)
 ;; (def with-coords (map get-relevant-friend-data x))
 ;; (store-to-file with-coords)
 ;; (pp/pprint with-coords)
 
+#_(store-to-file "friends-sebasbensu-new.edn"
+                 (map get-relevant-friend-data friends-from-storage))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defroutes app ; order matters in this function!
-  (GET "/friends" [] (generate-string (map get-relevant-friend-data friends-from-storage)))
+  (GET "/friends" [] (generate-string
+                      (map get-relevant-friend-data friends-from-storage)))
   (GET "/" []        (slurp (io/resource "public/index.html")))
   (route/resources "/")
   (ANY "*" []        (route/not-found "<h1>404 Not found</h1>")))
