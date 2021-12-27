@@ -7,6 +7,7 @@
             [ring.adapter.jetty :as jetty]
             [twttr.api :as api]
             [clojure.pprint :as pp]
+            [smallworld.memoize :as m]
             [clojure.data.json :as json]
             [cheshire.core :refer [generate-string]]
             [twttr.auth :refer [env->UserCredentials]]
@@ -120,6 +121,9 @@
         (println "\ncaught exception: " (.getMessage e))
         nil))))
 
+(def coordinates-cache (atom {}))
+(def memoized-coordinates-from-city (m/my-memoize get-coordinates-from-city coordinates-cache))
+
 (defn coordinates-not-defined? [coords]
   (or (nil? coords)
       (some nil? (vals coords))))
@@ -131,7 +135,7 @@
     (haversine coords1 coords2)))
 
 (defn get-relevant-friend-data [friend]
-  (let [friend-coordinates (:coordinates friend)  ;; (get-coordinates-from-city (:location friend))
+  (let [friend-coordinates (memoized-coordinates-from-city (:location friend))
         my-coordinates     (:ba stored-coordinates)]
     {:name        (:name friend)
      :screen_name (:screen_name friend)

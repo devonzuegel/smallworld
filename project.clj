@@ -30,7 +30,7 @@
   :profiles {:dev {:dependencies [[cider/piggieback "0.4.1"]
                                   [figwheel-sidecar "0.5.18"]
                                   ;; [binaryage/devtools "0.9.10"]
-                                  ]
+                              ]
                    :source-paths ["src" "dev"]
                    :cljsbuild {:builds [{:id "dev"
                                          :source-paths ["src"]

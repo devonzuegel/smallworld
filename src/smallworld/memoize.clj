@@ -8,20 +8,21 @@
 (extend-protocol ICache
   clojure.lang.Atom
   (update! [this request-key value] (swap! this #(assoc % request-key value)))
-  (read!   [this request-key]       (get @this request-key)))
+  (read!   [this request-key]       (get @this request-key ::not-found)))
 
-(defn my-memoize [expensive-fn cache]
-  (fn [request-key]
-    (assert (string? request-key)
-            "my-memoize requires the request key to be a string")
+(defn my-memoize
+  ([expensive-fn cache]
+   (fn [request-key]
+     (assert (string? request-key)
+             "my-memoize requires the request key to be a string")
 
-    (if (nil? (read! cache request-key)) ;; check if we've seen the request before
+     (if (= ::not-found (read! cache request-key)) ;; check if we've seen the request before
 
-      (let [result (expensive-fn request-key)]
-        (println "fetch the result for the first time! " result)
-        (update! cache request-key result)
-        result)
+       (let [result (expensive-fn request-key)]
+         (println "🟢 fetch for first time: " request-key " → " result)
+         (update! cache request-key result)
+         result)
 
-      (let [result (read! cache request-key)]
-        (println "retrieving stored result: " result)
-        result))))
+       (let [result (read! cache request-key)]
+         (println "🟡 retrieving stored result: " request-key " → " result)
+         result)))))

@@ -19,13 +19,13 @@
     [:span.links-spacer "·"]
     [:a "log out " [:b "@username"]]]])
 
-(defn music []
-  [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
-            :width "100%"
-            :height "80"
-            :frameBorder "0"
-            :allowFullScreen ""
-            :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
+;; (defn music []
+;;   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
+;;             :width "100%"
+;;             :height "80"
+;;             :frameBorder "0"
+;;             :allowFullScreen ""
+;;             :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
 
 (def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance"])
 
