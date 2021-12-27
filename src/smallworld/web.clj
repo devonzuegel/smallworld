@@ -14,14 +14,14 @@
             [yesql.core :refer [defqueries]]
             [environ.core :refer [env]]))
 
-; Define a database connection spec. (This is standard clojure.java.jdbc.)
-(def db-spec {:classname "org.postgresql.Driver"
-              :subprotocol "postgresql"
-              :subname "//localhost:5432/smallworld-local"
-              :user "devonzuegel"})
+;; ; Define a database connection spec. (This is standard clojure.java.jdbc.)
+;; (def db-spec {:classname "org.postgresql.Driver"
+;;               :subprotocol "postgresql"
+;;               :subname "//localhost:5432/smallworld-local"
+;;               :user "devonzuegel"})
 
-; Import the SQL query as a function.
-(defqueries "queries/users.sql" {:connection db-spec})
+;; ; Import the SQL query as a function.
+;; (defqueries "queries/users.sql" {:connection db-spec})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,17 +31,18 @@
   ;; (def creds        (env->UserCredentials))
   ;; (def friends      (atom ()))
   ;; (def result_count 200) ;; 200 is the max allowed by the Twitter API
-(def screen-name  "sebasbensu")
-(def filename     "friends-sebasbensu.edn")
+(def screen-name        "sebasbensu")
+(def filenames {:sebas-friends "friends-sebasbensu.edn"
+                :memoized-coordinates "memoized-coordinates.edn"})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn store-to-file [data]
+(defn store-to-file [filename data]
   (let [result (with-out-str (pr data))]
     (spit filename result)))
 
-(defn read-from-file []
+(defn read-from-file [filename]
   (read-string (slurp (clojure.java.io/resource filename))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -71,17 +72,17 @@
   ;;         (recur next-cursor new-result)))))  
 
   ;; ;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
-  ;; ;; (store-to-file (fetch-friends-from-twitter-api))
+  ;; ;; (store-to-file ((:sebas-friends filenames) fetch-friends-from-twitter-api))
 
-(def friends-from-storage (read-from-file)) ;; TODO: store this in their local storage
+(def friends-from-storage (read-from-file (:sebas-friends filenames))) ;; TODO: store this in their local storage
 
-; Haversine formula
-; a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
-; c = 2 ⋅ atan2( √a, √(1−a) )
-; d = R ⋅ c
-; where φ is latitude, λ is longitude, R is earth’s radius (mean radius = 6,371km);
-; "Implementation of Haversine formula. Takes two sets of latitude/longitude pairs and returns the shortest great circle distance between them (in km)"
 (defn haversine [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
+  ; Haversine formula
+  ; a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+  ; c = 2 ⋅ atan2( √a, √(1−a) )
+  ; d = R ⋅ c
+  ; where φ is latitude, λ is longitude, R is earth’s radius (mean radius = 6,371km);
+  ; "Implementation of Haversine formula. Takes two sets of latitude/longitude pairs and returns the shortest great circle distance between them (in km)"
   (assert (every? some? [lon1 lat1 lon2 lat2]) "coordinates {:lat, :lng} must not be nil")
   (let [R 6378.137 ; radius of Earth in km
         dlat (Math/toRadians (- lat2 lat1))
@@ -121,8 +122,8 @@
         (println "\ncaught exception: " (.getMessage e))
         nil))))
 
-(def coordinates-cache (atom {}))
-;; (def coordinates-cache (atom (read-string (slurp "memoized-coordinates.edn"))))
+;; (def coordinates-cache (atom {}))
+(def coordinates-cache (atom (read-string (slurp "resources/memoized-coordinates.edn"))))
 ;; (def coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
 (def memoized-coordinates-from-city (m/my-memoize get-coordinates-from-city coordinates-cache))
 
@@ -137,7 +138,7 @@
     (haversine coords1 coords2)))
 
 (defn get-relevant-friend-data [friend]
-  (let [friend-coordinates (:coordinates friend) ;; (memoized-coordinates-from-city (:location friend))
+  (let [friend-coordinates (memoized-coordinates-from-city (:location friend))
         my-coordinates     (:ba stored-coordinates)]
     {:name        (:name friend)
      :screen_name (:screen_name friend)

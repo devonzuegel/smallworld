@@ -23,7 +23,7 @@ body {
 /*****************************************/
 .nav {
   margin-bottom: 64px;
-  border-bottom: 1px solid #d9d3cc33;
+  border-bottom: 2px solid #d9d3cc33;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -75,10 +75,11 @@ body {
 }
 pre {
   white-space: pre-wrap;
+  font-family: 'Roboto Mono', monospace;
 }
 hr {
-  border-bottom: 1px solid #d9d3cc33;
-  margin: 24px 0;
+  border-bottom: 2px solid #d9d3cc33;
+  margin: 16px 0;
 }
 a {
   color: white;
@@ -90,6 +91,14 @@ a:hover {
   opacity: 1;
   transition: all 50ms ease-out;
   // border-bottom: 3px solid #ffffff44;
+}
+.location-info {
+  font-size: 1.2em;
+}
+.location {
+  background-color: #002a0e;
+  padding: 2px 6px 4px 6px;
+  border-radius: 4px;
 }
 
 /*****************************************/
