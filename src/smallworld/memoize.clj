@@ -16,7 +16,7 @@
             "my-memoize requires the request key to be a string")
 
     (if (nil? (read! cache request-key)) ;; check if we've seen the request before
-      
+
       (let [result (expensive-fn request-key)]
         (println "fetch the result for the first time! " result)
         (update! cache request-key result)

@@ -22,20 +22,14 @@
 ; Import the SQL query as a function.
 (defqueries "queries/users.sql" {:connection db-spec})
 
-;; TODO: ask Sebas why I get "Hello World" when I refresh the Heroku page but
-;; "hello small world!" when I hard refresh. Note – when I refresh OR hard-refresh
-;; in Incognito mode, I just get "hello small world!" as I expect. So maybe it's
-;; a cache thing?  or a chrome extension thing?  but whyyy?
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; read credentials from environment variables, namely:
 ; CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, and ACCESS_TOKEN_SECRET
-;; (def creds        (env->UserCredentials))
-;; (def friends      (atom ()))
-;; (def result_count 200) ;; 200 is the max allowed by the Twitter API
+  ;; (def creds        (env->UserCredentials))
+  ;; (def friends      (atom ()))
+  ;; (def result_count 200) ;; 200 is the max allowed by the Twitter API
 (def screen-name  "sebasbensu")
 (def filename     "friends-sebasbensu.edn")
 
@@ -51,36 +45,34 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defn fetch-friends-from-twitter-api []
-;;   (loop [cursor nil
-;;          result-so-far []]
-;;     (let [api-response    (api/friends-list creds :params {:screen_name screen-name
-;;                                                            :count       result_count
-;;                                                            :cursor      cursor})
-;;           page-of-friends (:users api-response)
-;;           new-result      (concat result-so-far page-of-friends)
-;;           screen-names    (map :screen_name (:users api-response))
-;;           next-cursor     (:next_cursor api-response)]
+  ;; (defn fetch-friends-from-twitter-api []
+  ;;   (loop [cursor nil
+  ;;          result-so-far []]
+  ;;     (let [api-response    (api/friends-list creds :params {:screen_name screen-name
+  ;;                                                            :count       result_count
+  ;;                                                            :cursor      cursor})
+  ;;           page-of-friends (:users api-response)
+  ;;           new-result      (concat result-so-far page-of-friends)
+  ;;           screen-names    (map :screen_name (:users api-response))
+  ;;           next-cursor     (:next_cursor api-response)]  
 
-;;       (comment
-;;         (pp/pprint "(first screen-names): " (first screen-names))
-;;         (pp/pprint "(count screen-names): " (count screen-names))
-;;         (pp/pprint "next-cursor:          " next-cursor)
-;;         (pp/pprint "friends count so far: " (count result-so-far))
-;;         (pp/pprint "----------------------------------------"))
+  ;;       (comment
+  ;;         (pp/pprint "(first screen-names): " (first screen-names))
+  ;;         (pp/pprint "(count screen-names): " (count screen-names))
+  ;;         (pp/pprint "next-cursor:          " next-cursor)
+  ;;         (pp/pprint "friends count so far: " (count result-so-far))
+  ;;         (pp/pprint "----------------------------------------"))  
 
-;;       (if (= next-cursor 0)
-;;         ;; return final result if Twitter returns a cursor of 0
-;;         new-result
-;;         ;; else, recur by appending the page to the result so far
-;;         (recur next-cursor new-result)))))
+  ;;       (if (= next-cursor 0)
+  ;;         ;; return final result if Twitter returns a cursor of 0
+  ;;         new-result
+  ;;         ;; else, recur by appending the page to the result so far
+  ;;         (recur next-cursor new-result)))))  
 
-;; ;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
-;; ;; (store-to-file (fetch-friends-from-twitter-api))
+  ;; ;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
+  ;; ;; (store-to-file (fetch-friends-from-twitter-api))
 
 (def friends-from-storage (read-from-file)) ;; TODO: store this in their local storage
-(def n-friends (count (map :screen_name friends-from-storage)))
-(str "@" screen-name " is following " n-friends " accounts")
 
 ; Haversine formula
 ; a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
@@ -106,7 +98,7 @@
                          :miami      {:lat 25.775083541870117,  :lng -80.1947021484375}})
 
 ;; if you need to make the locations more precise in the future, use the bbox
-;; (bounding box) ratehr than just the coordinates
+;; (bounding box) rather than just the coordinates
 (defn extract-coordinates [raw-result]
   (let [result      (json/read-str raw-result)
         status-code (get result "statusCode")
@@ -128,13 +120,13 @@
         (println "\ncaught exception: " (.getMessage e))
         nil))))
 
-(defn coordinates-not-defined [coords]
+(defn coordinates-not-defined? [coords]
   (or (nil? coords)
       (some nil? (vals coords))))
 
 (defn get-distance-between-coordinates [coords1 coords2]
-  (if (or (coordinates-not-defined coords1)
-          (coordinates-not-defined coords2))
+  (if (or (coordinates-not-defined? coords1)
+          (coordinates-not-defined? coords2))
     nil
     (haversine coords1 coords2)))
 
@@ -153,25 +145,18 @@
 ;; (store-to-file with-coords)
 ;; (pp/pprint with-coords)
 
-(defroutes app
-  (GET "/friends" []
-    (generate-string (map get-relevant-friend-data
-                          friends-from-storage)))
-
-  (GET "/" [] (slurp (io/resource "public/index.html")))
-
+(defroutes app ; order matters in this function!
+  (GET "/friends" [] (generate-string (map get-relevant-friend-data friends-from-storage)))
+  (GET "/" []        (slurp (io/resource "public/index.html")))
   (route/resources "/")
-
-  (ANY "*" [] (route/not-found "<h1>404 Not found</h1>")))
+  (ANY "*" []        (route/not-found "<h1>404 Not found</h1>")))
 
 (defonce server* (atom nil))
 
 (defn start! [port]
   (some-> @server* (.stop))
   (let [port (Integer. (or port (env :port) 5000))
-        server
-        (jetty/run-jetty (site #'app)
-                         {:port port :join? false})]
+        server (jetty/run-jetty (site #'app) {:port port :join? false})]
     (reset! server* server)))
 
 (defn stop! []
