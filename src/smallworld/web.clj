@@ -122,6 +122,8 @@
         nil))))
 
 (def coordinates-cache (atom {}))
+;; (def coordinates-cache (atom (read-string (slurp "memoized-coordinates.edn"))))
+;; (def coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
 (def memoized-coordinates-from-city (m/my-memoize get-coordinates-from-city coordinates-cache))
 
 (defn coordinates-not-defined? [coords]
@@ -135,7 +137,7 @@
     (haversine coords1 coords2)))
 
 (defn get-relevant-friend-data [friend]
-  (let [friend-coordinates (memoized-coordinates-from-city (:location friend))
+  (let [friend-coordinates (:coordinates friend) ;; (memoized-coordinates-from-city (:location friend))
         my-coordinates     (:ba stored-coordinates)]
     {:name        (:name friend)
      :screen_name (:screen_name friend)

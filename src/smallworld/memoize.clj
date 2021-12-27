@@ -10,6 +10,12 @@
   (update! [this request-key value] (swap! this #(assoc % request-key value)))
   (read!   [this request-key]       (get @this request-key ::not-found)))
 
+(extend-protocol ICache
+  java.io.File
+  ; assume that the client has given me a file that exists
+  (update! [this request-key value] (spit this (assoc (read-string (slurp this)) request-key value)))
+  (read!   [this request-key]       (get (read-string (slurp this)) request-key ::not-found)))
+
 (defn my-memoize
   ([expensive-fn cache]
    (fn [request-key]
