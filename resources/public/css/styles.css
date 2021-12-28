@@ -130,19 +130,23 @@ tr:nth-child(even) {
   border-radius: 60px;
   border: 3px solid #d9d3cc44;
 }
+.friend img:hover {
+  border: 3px solid #d9d3cc55;
+  transition: all 50ms ease-out;
+}
 .friend .right-section {
   margin-left: 12px;
   padding-bottom: 12px;
 }
-.friend .right-section .name {
+.friend .right-section a .name {
   font-size: 1.2em;
   font-weight: bold;
 }
-.friend .right-section .handle {
+.friend .right-section a .handle {
   opacity: 0.6;
   margin-left: 12px;
 }
-.friend:hover .right-section .handle {
+.friend:hover .right-section a .handle {
   opacity: 0.7;
 }
 .coordinates {

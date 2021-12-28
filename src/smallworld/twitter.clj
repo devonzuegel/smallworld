@@ -47,3 +47,14 @@
 
 ;; ;; ;; Don't run this too often! You will hit the Twitter rate limit very quickly.
 ;; ;; (store-to-file ((:sebas-friends filenames) fetch-friends-from-twitter-api))
+
+
+
+;; ;; put this back into frontend.clj
+;; (defn music []
+;;   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
+;;             :width "100%"
+;;             :height "80"
+;;             :frameBorder "0"
+;;             :allowFullScreen ""
+;;             :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])

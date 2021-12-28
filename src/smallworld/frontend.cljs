@@ -5,9 +5,14 @@
             [goog.dom]))
 
 (defonce friends (r/atom []))
-(defonce my-location "Argentina, Buenos Aires")
-
-(def by-id goog.dom/getElement)
+(def current-user
+  {:name "Devon in Buenos Aires"
+   :screen_name "devonzuegel"
+   :location "Miami Beach"
+   :profile_image_url_large "http://pbs.twimg.com/profile_images/1360636520655331329/9mpyJLkK.jpg"
+   :coordinates {:lat 25.775083541870117
+                 :lng -80.1947021484375}
+   :distance 7102.906300799643})
 
 (defn nav []
   [:div.nav
@@ -17,21 +22,13 @@
    [:div.links
     [:a "about"]
     [:span.links-spacer "·"]
-    [:a "log out " [:b "@username"]]]])
-
-;; (defn music []
-;;   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
-;;             :width "100%"
-;;             :height "80"
-;;             :frameBorder "0"
-;;             :allowFullScreen ""
-;;             :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
+    [:a "log out " [:b "@" (:screen_name current-user)]]]])
 
 (def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance" "profile_image_url_large"])
 
 (defn location-name-similarity [friend]
   (fuzzy/jaro-winkler (.toLowerCase (:location friend))
-                      (.toLowerCase my-location)))
+                      (.toLowerCase (:location current-user))))
 
 (defn friend-row [i friend]
   (let [twitter-handle (:screen_name friend)
@@ -59,61 +56,61 @@
     (:distance friend)))
 
 (defn app-container []
-(let [friends-sorted-by-distance (sort-by get-distance @friends)
-      friends-close-by (filter (closer-than 1000) friends-sorted-by-distance)]
-  [:div
-   (nav)
-   [:div.container
-    [:br]
+  (let [friends-sorted-by-distance (sort-by get-distance @friends)
+        friends-close-by (filter (closer-than 1000) friends-sorted-by-distance)]
+    [:div
+     (nav)
+     [:div.container
+      [:br]
 
-    [:p.location-info "friends based near " [:span.location my-location] ":"]
-    [:hr]
+      [:p.location-info "friends based near " [:span.location (:location current-user)] ":"]
+      [:hr]
 
-    (map-indexed
-     (fn [k friend]
-       (let [twitter-pic    (:profile_image_url_large friend)
-             twitter-name   (:name friend)
-             twitter-handle (:screen_name friend)
-             twitter-link   (str "http://twitter.com/" twitter-handle)
-             location       (:location friend)
-             twitter-href   {:href twitter-link :target "_blank"}
-             format-coord   #(clojure.pprint/cl-format nil "~,2f" %)
-             lat            (format-coord (:lat (:coordinates friend)))
-             lng            (format-coord (:lng (:coordinates friend)))]
-         [:div.friend
-          [:a twitter-href
-           [:img {:src twitter-pic :key k}]]
-          [:div.right-section
-           [:a.top twitter-href
-            [:span.name twitter-name]
-            [:span.handle "@" twitter-handle]]
-           [:div.bottom
-            [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
-                 :target "_blank"}
-             [:span.location location]
-             [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
-     friends-close-by)
+      (map-indexed
+       (fn [k friend]
+         (let [twitter-pic    (:profile_image_url_large friend)
+               twitter-name   (:name friend)
+               twitter-handle (:screen_name friend)
+               twitter-link   (str "http://twitter.com/" twitter-handle)
+               location       (:location friend)
+               twitter-href   {:href twitter-link :target "_blank"}
+               format-coord   #(clojure.pprint/cl-format nil "~,2f" %)
+               lat            (format-coord (:lat (:coordinates friend)))
+               lng            (format-coord (:lng (:coordinates friend)))]
+           [:div.friend
+            [:a twitter-href
+             [:img {:src twitter-pic :key k}]]
+            [:div.right-section
+             [:a.top twitter-href
+              [:span.name twitter-name]
+              [:span.handle "@" twitter-handle]]
+             [:div.bottom
+              [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
+                   :target "_blank"}
+               [:span.location location]
+               [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
+       friends-close-by)
 
-    [:br] [:br] [:br] [:br]
+      [:br] [:br] [:br] [:br]
 
-    [:p.location-info "friends who may be near " [:span.location my-location] " right now:"]
-    [:hr]
-    [:table
-     [:tbody
-      [:tr table-header]
-      (map-indexed friend-row friends-close-by)]]
-    [:br] [:br] [:br] [:br]
+      [:p.location-info "friends who may be near " [:span.location (:location current-user)] " right now:"]
+      [:hr]
+      [:table
+       [:tbody
+        [:tr table-header]
+        (map-indexed friend-row friends-close-by)]]
+      [:br] [:br] [:br] [:br]
 
-    [:p.location-info "all of your friends with their locations:"]
-    [:hr]
-    [:table
-     [:tbody
-      [:tr table-header]
-      (map-indexed friend-row friends-sorted-by-distance)]]]
+      [:p.location-info "all of your friends with their locations:"]
+      [:hr]
+      [:table
+       [:tbody
+        [:tr table-header]
+        (map-indexed friend-row friends-sorted-by-distance)]]]
 
-   #_[:div.sticky-footer (music)]]))
+     #_[:div.sticky-footer (music)]]))
 
-(r/render-component [app-container] (by-id "app"))
+(r/render-component [app-container] (goog.dom/getElement "app"))
 
 (-> (.fetch js/window "/friends")
     (.then #(.json %))
