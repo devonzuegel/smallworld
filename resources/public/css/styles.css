@@ -94,7 +94,7 @@ a:hover {
 .location-info {
   font-size: 1.2em;
 }
-.location {
+.location-info .location {
   background-color: #002a0e;
   padding: 2px 6px 4px 6px;
   border-radius: 4px;
@@ -132,6 +132,7 @@ tr:nth-child(even) {
 }
 .friend .right-section {
   margin-left: 12px;
+  padding-bottom: 12px;
 }
 .friend .right-section .name {
   font-size: 1.2em;
@@ -139,10 +140,18 @@ tr:nth-child(even) {
 }
 .friend .right-section .handle {
   opacity: 0.6;
+  margin-left: 12px;
 }
 .friend:hover .right-section .handle {
   opacity: 0.7;
 }
+.coordinates {
+  font-family: "Roboto Mono", monospace;
+  font-size: 0.8em;
+  margin-left: 12px;
+  opacity: 0.7;
+}
+.coordinates .coord {}
 
 /*****************************************/
 /**** sticky footer **********************/

@@ -76,21 +76,24 @@
              twitter-handle (:screen_name friend)
              twitter-link   (str "http://twitter.com/" twitter-handle)
              location       (:location friend)
-             twitter-href   {:href twitter-link :target "_blank"}]
-        [:div.friend
-         [:a twitter-href
-          [:img {:src twitter-pic :key k}]]
-         [:div.right-section
-          [:a.name twitter-href twitter-name]
-          [:div
-           [:a.handle twitter-href "@" twitter-handle]
-           [:span " · " location]]]]))
+             twitter-href   {:href twitter-link :target "_blank"}
+             format-coord   #(clojure.pprint/cl-format nil "~,2f" %)
+             lat            (format-coord (:lat (:coordinates friend)))
+             lng            (format-coord (:lng (:coordinates friend)))]
+         [:div.friend
+          [:a twitter-href
+           [:img {:src twitter-pic :key k}]]
+          [:div.right-section
+           [:a.top twitter-href
+            [:span.name twitter-name]
+            [:span.handle "@" twitter-handle]]
+           [:div.bottom
+            [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
+                 :target "_blank"}
+             [:span.location location]
+             [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
      friends-close-by)
 
-    [:table
-     [:tbody
-      [:tr table-header]
-      (map-indexed friend-row friends-close-by)]]
     [:br] [:br] [:br] [:br]
 
     [:p.location-info "friends who may be near " [:span.location my-location] " right now:"]
