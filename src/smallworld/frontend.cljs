@@ -6,14 +6,24 @@
             [goog.dom]))
 
 (defonce friends (r/atom []))
-(def current-user
-  {:name "Devon in Buenos Aires"
-   :screen_name "devonzuegel"
-   :location "Miami Beach"
-   :profile_image_url_large "http://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
-   :coordinates {:lat 25.775083541870117
-                 :lng -80.1947021484375}
-   :distance 7102.906300799643})
+(defonce current-user (r/atom {:name nil
+                               :screen_name nil
+                               :location nil
+                               :profile_image_url_large nil
+                               :name-location {:location nil :coordinates nil :distance nil}
+                               :main-location {:location nil :coordinates nil :distance nil}}))
+
+(defn fetch [route callback]
+  (-> (.fetch js/window route)
+      (.then #(.json %))
+      (.then #(js->clj % :keywordize-keys true))
+      (.then (fn [result]
+               (println route ":")
+               (println result)
+               (callback result)))))
+
+(fetch "/friends" #(reset! friends %))
+(fetch "/current-user" #(reset! current-user %))
 
 (defn nav []
   [:div.nav
@@ -23,13 +33,13 @@
    [:div.links
     [:a "about"]
     [:span.links-spacer "·"]
-    [:a "log out " [:b "@" (:screen_name current-user)]]]])
+    [:a "log out " [:b "@" (:screen_name @current-user)]]]])
 
 (def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance" "profile_image_url_large"])
 
 (defn location-name-similarity [friend]
   (fuzzy/jaro-winkler (.toLowerCase (:location friend))
-                      (.toLowerCase (:location current-user))))
+                      (.toLowerCase (:location @current-user))))
 
 (defn friend-row [i friend]
   (let [twitter-handle (:screen_name friend)
@@ -79,11 +89,14 @@
         [:span.location location]
         [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
 
+; TODO: duplicated from backend
 (defn location-from-name [name]
   (let [split-name (str/split name #" in ")]
     (if (= 1 (count split-name))
       nil
       (last split-name))))
+
+(defn preify [obj] (with-out-str (pp/pprint obj)))
 
 (defn app-container []
   (let [friends-sorted-by-distance (sort-by get-distance @friends)
@@ -91,22 +104,26 @@
     [:div
      (nav)
      [:div.container
-      [:br] (Friend nil current-user)
+      [:pre (preify @current-user)]
+      [:hr]
+      [:pre (preify @friends)]
+      [:hr]
+      [:br] (Friend nil @current-user)
       [:div.location-info
-       [:p "your current location: " [:span.location (or (location-from-name (:name current-user))
-                                                         (:location current-user))]]
-       [:p "you are based in: " [:span.location (:location current-user)]]]
+       [:p "your current location: " [:span.location (or (location-from-name (:name @current-user))
+                                                         (:location @current-user))]]
+       [:p "you are based in: " [:span.location (:location @current-user)]]]
 
       [:hr] [:br]
 
-      [:p.location-info "friends based near " [:span.location (:location current-user)] ":"]
+      [:p.location-info "friends based near " [:span.location (:location @current-user)] ":"]
       [:hr]
 
       (map-indexed Friend friends-close-by)
 
       [:br] [:br] [:br] [:br]
 
-      [:p.location-info "friends who may be near " [:span.location (:location current-user)] " right now:"]
+      [:p.location-info "friends who may be near " [:span.location (:location @current-user)] " right now:"]
       [:hr]
       [:table
        [:tbody
@@ -125,10 +142,3 @@
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
 
-(-> (.fetch js/window "/friends")
-    (.then #(.json %))
-    (.then #(js->clj % :keywordize-keys true))
-    (.then (fn [result]
-             (println "result:")
-             (println result)
-             (reset! friends result))))

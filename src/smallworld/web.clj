@@ -12,6 +12,15 @@
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
 
+(def current-user
+  {:name "Devon in Buenos Aires"
+   :screen_name "devonzuegel"
+   :location "Miami Beach"
+   :profile_image_url_large "http://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
+   :coordinates {:lat 25.775083541870117
+                 :lng -80.1947021484375}
+   :distance 7102.906300799643})
+
 (def filenames {:sebas-friends        "friends-sebasbensu.edn"
                 :sebas-friends-full   "friends-sebasbensu--full-from-twitter.edn"
                 :memoized-coordinates "memoized-coordinates.edn"})
@@ -80,7 +89,7 @@
   (or (nil? coords)
       (some nil? (vals coords))))
 
-(defn get-distance-between-coordinates [coords1 coords2]
+(defn distance-btwn-coordinates [coords1 coords2]
   (if (or (coordinates-not-defined? coords1)
           (coordinates-not-defined? coords2))
     nil
@@ -89,15 +98,29 @@
 (defn normal-img-to-full-size [friend]
   (str/replace (:profile_image_url_large friend) "_normal" ""))
 
+(defn location-from-name [name]
+  (let [split-name (str/split name #" in ")]
+    (if (= 1 (count split-name))
+      nil
+      (last split-name))))
+
+;; "main-location" refers to the location set in the Twitter :location field
+;; "name-location" refers to the location described in their Twitter :name (which may be nil)
 (defn get-relevant-friend-data [friend]
-  (let [friend-coords (memoized-coordinates-from-city (:location friend))
-        my-coords     (:ba stored-coordinates)]
-    {:name                    (:name friend)
-     :screen_name             (:screen_name friend)
-     :location                (:location friend)
-     :profile_image_url_large (normal-img-to-full-size friend)
-     :coordinates             friend-coords
-     :distance                (get-distance-between-coordinates friend-coords my-coords)}))
+  (let [friend-main-location        (:location friend)
+        friend-name-location        (location-from-name (:name friend))
+        friend-main-location-coords (memoized-coordinates-from-city friend-main-location)
+        friend-name-location-coords (when friend-name-location (memoized-coordinates-from-city friend-name-location))
+        my-coords                   (:ba stored-coordinates)]
+    {:name                      (:name friend)
+     :screen_name               (:screen_name friend)
+     :profile_image_url_large   (normal-img-to-full-size friend)
+     :name-location {:location    friend-name-location
+                     :coordinates friend-name-location-coords
+                     :distance    (distance-btwn-coordinates friend-name-location-coords my-coords)}
+     :main-location {:location    friend-main-location
+                     :coordinates friend-main-location-coords
+                     :distance    (distance-btwn-coordinates friend-main-location-coords my-coords)}}))
 
 ;; (def x friends-from-storage)
 ;; (def with-coords (map get-relevant-friend-data x))
@@ -112,11 +135,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defroutes app ; order matters in this function!
-  (GET "/friends" [] (generate-string
-                      (map get-relevant-friend-data friends-from-storage)))
-  (GET "/" []        (slurp (io/resource "public/index.html")))
+  (GET "/friends" []      (generate-string (map get-relevant-friend-data friends-from-storage)))
+  (GET "/current-user" [] (generate-string (get-relevant-friend-data current-user)))
+
+  (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
-  (ANY "*" []        (route/not-found "<h1>404 Not found</h1>")))
+  (ANY "*" [] (route/not-found "<h1>404 Not found</h1>")))
 
 (defonce server* (atom nil))
 
