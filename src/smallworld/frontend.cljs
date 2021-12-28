@@ -74,7 +74,7 @@
                twitter-link   (str "http://twitter.com/" twitter-handle)
                location       (:location friend)
                twitter-href   {:href twitter-link :target "_blank"}
-               format-coord   #(clojure.pprint/cl-format nil "~,2f" %)
+               format-coord   #(pp/cl-format nil "~,2f" %)
                lat            (format-coord (:lat (:coordinates friend)))
                lng            (format-coord (:lng (:coordinates friend)))]
            [:div.friend

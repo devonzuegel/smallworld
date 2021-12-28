@@ -126,4 +126,11 @@
   (.stop @server*))
 
 (defn -main [& args]
-  (start! (Integer/parseInt (System/getenv "PORT"))))
+  (let [default-port 8080
+        port (System/getenv "PORT")
+        port (if (nil? port)
+               (do (println "PORT not defined. Defaulting to" default-port)
+                   default-port)
+               (Integer/parseInt port))]
+    (println "\nSmall World is running on" (str "http://localhost:" port) "\n")
+    (start! port)))
