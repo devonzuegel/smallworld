@@ -8,6 +8,7 @@
             ;; [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [clojure.data.json :as json]
+            [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
 
@@ -85,13 +86,16 @@
     nil
     (haversine coords1 coords2)))
 
+(defn normal-img-to-full-size [friend]
+  (str/replace (:profile_image_url_large friend) "_normal" ""))
+
 (defn get-relevant-friend-data [friend]
   (let [friend-coords (memoized-coordinates-from-city (:location friend))
         my-coords     (:ba stored-coordinates)]
     {:name                    (:name friend)
      :screen_name             (:screen_name friend)
      :location                (:location friend)
-     :profile_image_url_large (clojure.string/replace (:profile_image_url_large friend) "_normal" "")
+     :profile_image_url_large (normal-img-to-full-size friend)
      :coordinates             friend-coords
      :distance                (get-distance-between-coordinates friend-coords my-coords)}))
 
