@@ -58,24 +58,30 @@
 (def table-header (map-indexed (fn [i header] [:th {:key i} header])
                                friend-row-headers))
 
-(defn closer-than [distance] #(and (< (:distance %) distance)
-                                   (not (nil? (:distance %)))))
+(defn get-smallest-distance [friend]
+  (let [x (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
+                                   (get-in friend [:distance :name-name])
+                                   (get-in friend [:distance :name-main])
+                                   (get-in friend [:distance :main-name])
+                                   (get-in friend [:distance :main-main])]))]
+    (println "distance: " x)
+    x))
 
-(defn get-distance [friend]
-  (if (nil? (:distance (:main-location @current-user)))
-    9999999999999999 ; if distance couldn't be calculated, treat as very distant
-    (:distance friend)))
+(defn closer-than [max-distance] #(let [smallest-distance (get-smallest-distance %)]
+                                    (and (< smallest-distance max-distance)
+                                         (not (nil? smallest-distance)))))
+
+(def round-two-decimals #(pp/cl-format nil "~,2f" %))
 
 (defn Friend [k friend]
   (let [twitter-pic    (:profile_image_url_large friend)
         twitter-name   (:name friend)
         twitter-handle (:screen_name friend)
         twitter-link   (str "http://twitter.com/" twitter-handle)
-        location       (:location friend)
+        location       (:main-location friend)
         twitter-href   {:href twitter-link :target "_blank"}
-        format-coord   #(pp/cl-format nil "~,2f" %)
-        lat            (format-coord (:lat (:coordinates friend)))
-        lng            (format-coord (:lng (:coordinates friend)))]
+        lat            (round-two-decimals (:lat (:main-coords friend)))
+        lng            (round-two-decimals (:lng (:main-coords friend)))]
     [:div.friend
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
@@ -83,6 +89,7 @@
       [:a.top twitter-href
        [:span.name twitter-name]
        [:span.handle "@" twitter-handle]]
+      [:span.name " dist: " (round-two-decimals (get-smallest-distance friend))]
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :target "_blank"}
@@ -99,30 +106,33 @@
 (defn preify [obj] (with-out-str (pp/pprint obj)))
 
 (defn app-container []
-  (let [friends-sorted-by-distance (sort-by get-distance @friends)
-        friends-close-by (filter (closer-than 1000) friends-sorted-by-distance)]
+  (let [friends-sorted-by-distance (sort-by get-smallest-distance @friends)
+        friends-close-by           (filter (closer-than 1000) friends-sorted-by-distance)
+        main-location              (:main-location @current-user)
+        name-location              (:name-location @current-user)]
     [:div
      (nav)
      [:div.container
       [:pre (preify @current-user)]
-      [:hr]
-      [:pre (preify @friends)]
+      ;; [:hr]
+      ;; [:pre (preify @friends)]
       [:hr]
       [:br] (Friend nil @current-user)
+
       [:div.location-info
-       [:p "your current location: " [:span.location (:location (:name-location @current-user))]]
-       [:p "you are based in: " [:span.location (:location (:main-location @current-user))]]]
+       [:p "your current location: " [:span.location name-location]]
+       [:p "you are based in: "      [:span.location main-location]]]
 
       [:hr] [:br]
 
-      [:p.location-info "friends based near " [:span.location (:location (:main-location @current-user))] ":"]
+      [:p.location-info "friends based near " [:span.location main-location] " and " [:span.location name-location] ":"]
       [:hr]
 
-      (map-indexed Friend friends-close-by)
+      [:div.friends (map-indexed Friend friends-close-by)]
 
       [:br] [:br] [:br] [:br]
 
-      [:p.location-info "friends who may be near " [:span.location (:location @current-user)] " right now:"]
+      [:p.location-info "friends who may be near " [:span.location main-location] " right now:"]
       [:hr]
       [:table
        [:tbody

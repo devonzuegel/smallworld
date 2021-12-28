@@ -125,10 +125,10 @@
                 :name-name (distance-btwn-coordinates friend-name-coords current-name-coords)
                 :main-main (distance-btwn-coordinates friend-main-coords current-main-coords)
                 :main-name (distance-btwn-coordinates friend-main-coords current-name-coords)}
-     :friend-main-location friend-main-location
-     :friend-name-location friend-name-location
-     :friend-main-coords friend-main-coords
-     :friend-name-coords friend-name-coords}))
+     :main-location friend-main-location
+     :name-location friend-name-location
+     :main-coords friend-main-coords
+     :name-coords friend-name-coords}))
 
 ;; (def x friends-from-storage)
 ;; (def with-coords (map get-relevant-friend-data x))
