@@ -96,13 +96,6 @@
         [:span.location location]
         [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
 
-; TODO: duplicated from backend
-(defn location-from-name [name]
-  (let [split-name (str/split name #" in ")]
-    (if (= 1 (count split-name))
-      nil
-      (last split-name))))
-
 (defn preify [obj] (with-out-str (pp/pprint obj)))
 
 (defn app-container []
