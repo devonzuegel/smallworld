@@ -35,7 +35,7 @@
                    :cljsbuild {:builds [{:id "dev"
                                          :source-paths ["src"]
                                          :figwheel true
-                                         :compiler {:main "smallworld.core"
+                                         :compiler {:main "smallworld.frontend"
                                                     ;; :preloads [devtools.preload]
                                                     :asset-path "js/out"
                                                     :output-to "resources/public/js/main.js"
@@ -51,7 +51,7 @@
                        :cljsbuild {:builds [{:id "production"
                                              :source-paths ["src"]
                                              :jar true
-                                             :compiler {:main "smallworld.core"
+                                             :compiler {:main "smallworld.frontend"
                                                         :asset-path "js/out"
                                                         :output-to "resources/public/js/main.js"
                                                         :output-dir "resources/public/js/out"

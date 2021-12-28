@@ -1,4 +1,4 @@
-(ns smallworld.core
+(ns smallworld.frontend
   (:require [reagent.core :as r]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
