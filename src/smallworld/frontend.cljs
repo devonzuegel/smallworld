@@ -62,7 +62,7 @@
                                    (not (nil? (:distance %)))))
 
 (defn get-distance [friend]
-  (if (nil? (:distance friend))
+  (if (nil? (:distance (:main-location @current-user)))
     9999999999999999 ; if distance couldn't be calculated, treat as very distant
     (:distance friend)))
 
@@ -110,13 +110,12 @@
       [:hr]
       [:br] (Friend nil @current-user)
       [:div.location-info
-       [:p "your current location: " [:span.location (or (location-from-name (:name @current-user))
-                                                         (:location @current-user))]]
-       [:p "you are based in: " [:span.location (:location @current-user)]]]
+       [:p "your current location: " [:span.location (:location (:name-location @current-user))]]
+       [:p "you are based in: " [:span.location (:location (:main-location @current-user))]]]
 
       [:hr] [:br]
 
-      [:p.location-info "friends based near " [:span.location (:location @current-user)] ":"]
+      [:p.location-info "friends based near " [:span.location (:location (:main-location @current-user))] ":"]
       [:hr]
 
       (map-indexed Friend friends-close-by)

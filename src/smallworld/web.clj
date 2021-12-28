@@ -104,23 +104,31 @@
       nil
       (last split-name))))
 
-;; "main-location" refers to the location set in the Twitter :location field
+;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
 (defn get-relevant-friend-data [friend]
-  (let [friend-main-location        (:location friend)
-        friend-name-location        (location-from-name (:name friend))
-        friend-main-location-coords (memoized-coordinates-from-city friend-main-location)
-        friend-name-location-coords (when friend-name-location (memoized-coordinates-from-city friend-name-location))
-        my-coords                   (:ba stored-coordinates)]
+  (let [; locations as strings
+        friend-main-location  (:location friend)
+        friend-name-location  (location-from-name (:name friend))
+        current-main-location (:location current-user)
+        current-name-location (location-from-name (:name current-user))
+        ; locations as coordinates
+        friend-main-coords  (memoized-coordinates-from-city (or friend-main-location ""))
+        friend-name-coords  (memoized-coordinates-from-city (or friend-name-location ""))
+        current-main-coords (memoized-coordinates-from-city (or current-main-location ""))
+        current-name-coords (memoized-coordinates-from-city (or current-name-location ""))]
+
     {:name                      (:name friend)
      :screen_name               (:screen_name friend)
      :profile_image_url_large   (normal-img-to-full-size friend)
-     :name-location {:location    friend-name-location
-                     :coordinates friend-name-location-coords
-                     :distance    (distance-btwn-coordinates friend-name-location-coords my-coords)}
-     :main-location {:location    friend-main-location
-                     :coordinates friend-main-location-coords
-                     :distance    (distance-btwn-coordinates friend-main-location-coords my-coords)}}))
+     :distance {:name-main (distance-btwn-coordinates friend-name-coords current-main-coords)
+                :name-name (distance-btwn-coordinates friend-name-coords current-name-coords)
+                :main-main (distance-btwn-coordinates friend-main-coords current-main-coords)
+                :main-name (distance-btwn-coordinates friend-main-coords current-name-coords)}
+     :friend-main-location friend-main-location
+     :friend-name-location friend-name-location
+     :friend-main-coords friend-main-coords
+     :friend-name-coords friend-name-coords}))
 
 ;; (def x friends-from-storage)
 ;; (def with-coords (map get-relevant-friend-data x))
