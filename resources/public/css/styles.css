@@ -87,7 +87,7 @@ a {
   // border-bottom: 3px solid #ffffff22;
 }
 a:hover {
-  color: white;
+  color: #f5f0eb;
   transition: all 50ms ease-out;
   // border-bottom: 3px solid #ffffff44;
 }
@@ -125,12 +125,17 @@ tr:nth-child(even) {
   display: flex;
   align-items: center;
 }
-.friend img {
+.friend .twitter-pic,
+.friend .twitter-pic img  {
   height: 60px;
+  width: 60px;
   border-radius: 60px;
+}
+  .friend .twitter-pic {
+  background-color: #d9d3cc22;
   border: 3px solid #d9d3cc44;
 }
-.friend img:hover {
+.friend .twitter-pic:hover {
   border: 3px solid #d9d3cc55;
   transition: all 50ms ease-out;
 }
@@ -155,7 +160,6 @@ tr:nth-child(even) {
   margin-left: 12px;
   opacity: 0.7;
 }
-.coordinates .coord {}
 
 /*****************************************/
 /**** sticky footer **********************/

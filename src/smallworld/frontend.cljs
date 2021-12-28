@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
+            [clojure.string :as str]
             [goog.dom]))
 
 (defonce friends (r/atom []))
@@ -9,7 +10,7 @@
   {:name "Devon in Buenos Aires"
    :screen_name "devonzuegel"
    :location "Miami Beach"
-   :profile_image_url_large "http://pbs.twimg.com/profile_images/1360636520655331329/9mpyJLkK.jpg"
+   :profile_image_url_large "http://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
    :coordinates {:lat 25.775083541870117
                  :lng -80.1947021484375}
    :distance 7102.906300799643})
@@ -55,41 +56,53 @@
     9999999999999999 ; if distance couldn't be calculated, treat as very distant
     (:distance friend)))
 
+(defn Friend [k friend]
+  (let [twitter-pic    (:profile_image_url_large friend)
+        twitter-name   (:name friend)
+        twitter-handle (:screen_name friend)
+        twitter-link   (str "http://twitter.com/" twitter-handle)
+        location       (:location friend)
+        twitter-href   {:href twitter-link :target "_blank"}
+        format-coord   #(pp/cl-format nil "~,2f" %)
+        lat            (format-coord (:lat (:coordinates friend)))
+        lng            (format-coord (:lng (:coordinates friend)))]
+    [:div.friend
+     [:a twitter-href
+      [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
+     [:div.right-section
+      [:a.top twitter-href
+       [:span.name twitter-name]
+       [:span.handle "@" twitter-handle]]
+      [:div.bottom
+       [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
+            :target "_blank"}
+        [:span.location location]
+        [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
+
+(defn location-from-name [name]
+  (let [split-name (str/split name #" in ")]
+    (if (= 1 (count split-name))
+      nil
+      (last split-name))))
+
 (defn app-container []
   (let [friends-sorted-by-distance (sort-by get-distance @friends)
         friends-close-by (filter (closer-than 1000) friends-sorted-by-distance)]
     [:div
      (nav)
      [:div.container
-      [:br]
+      [:br] (Friend nil current-user)
+      [:div.location-info
+       [:p "your current location: " [:span.location (or (location-from-name (:name current-user))
+                                                         (:location current-user))]]
+       [:p "you are based in: " [:span.location (:location current-user)]]]
+
+      [:hr] [:br]
 
       [:p.location-info "friends based near " [:span.location (:location current-user)] ":"]
       [:hr]
 
-      (map-indexed
-       (fn [k friend]
-         (let [twitter-pic    (:profile_image_url_large friend)
-               twitter-name   (:name friend)
-               twitter-handle (:screen_name friend)
-               twitter-link   (str "http://twitter.com/" twitter-handle)
-               location       (:location friend)
-               twitter-href   {:href twitter-link :target "_blank"}
-               format-coord   #(pp/cl-format nil "~,2f" %)
-               lat            (format-coord (:lat (:coordinates friend)))
-               lng            (format-coord (:lng (:coordinates friend)))]
-           [:div.friend
-            [:a twitter-href
-             [:img {:src twitter-pic :key k}]]
-            [:div.right-section
-             [:a.top twitter-href
-              [:span.name twitter-name]
-              [:span.handle "@" twitter-handle]]
-             [:div.bottom
-              [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
-                   :target "_blank"}
-               [:span.location location]
-               [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
-       friends-close-by)
+      (map-indexed Friend friends-close-by)
 
       [:br] [:br] [:br] [:br]
 
