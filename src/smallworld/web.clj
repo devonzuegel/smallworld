@@ -71,7 +71,7 @@
         nil))))
 
 ;; (def coordinates-cache (atom {}))
-(def coordinates-cache (atom (read-string (slurp "resources/memoized-coordinates.edn"))))
+(def coordinates-cache (atom (read-string (slurp (clojure.java.io/resource "memoized-coordinates.edn")))))
 ;; (def coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
 (def memoized-coordinates-from-city (m/my-memoize get-coordinates-from-city coordinates-cache))
 
