@@ -68,6 +68,25 @@
 
     [:p.location-info "friends based near " [:span.location my-location] ":"]
     [:hr]
+
+    (map-indexed
+     (fn [k friend]
+       (let [twitter-pic    (:profile_image_url_large friend)
+             twitter-name   (:name friend)
+             twitter-handle (:screen_name friend)
+             twitter-link   (str "http://twitter.com/" twitter-handle)
+             location       (:location friend)
+             twitter-href   {:href twitter-link :target "_blank"}]
+        [:div.friend
+         [:a twitter-href
+          [:img {:src twitter-pic :key k}]]
+         [:div.right-section
+          [:a.name twitter-href twitter-name]
+          [:div
+           [:a.handle twitter-href "@" twitter-handle]
+           [:span " · " location]]]]))
+     friends-close-by)
+
     [:table
      [:tbody
       [:tr table-header]

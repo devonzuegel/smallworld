@@ -82,13 +82,12 @@ hr {
   margin: 16px 0;
 }
 a {
-  color: white;
-  opacity: 0.8;
+  color: #d9d3cc;
   text-decoration: none;
   // border-bottom: 3px solid #ffffff22;
 }
 a:hover {
-  opacity: 1;
+  color: white;
   transition: all 50ms ease-out;
   // border-bottom: 3px solid #ffffff44;
 }
@@ -118,6 +117,33 @@ th {
 tr:nth-child(even) {
   background: #11492799;
 }
+/*****************************************/
+/**** friend *****************************/
+/*****************************************/
+.friend {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+.friend img {
+  height: 60px;
+  border-radius: 60px;
+  border: 3px solid #d9d3cc44;
+}
+.friend .right-section {
+  margin-left: 12px;
+}
+.friend .right-section .name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.friend .right-section .handle {
+  opacity: 0.6;
+}
+.friend:hover .right-section .handle {
+  opacity: 0.7;
+}
+
 /*****************************************/
 /**** sticky footer **********************/
 /*****************************************/
