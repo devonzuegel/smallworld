@@ -101,48 +101,63 @@
         [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]
        [:pre (preify friend)]]]]))
 
+(defn get-close-friends [distance-key max-distance]
+  (->> @friends
+       (sort-by #(get-in % [:distance distance-key]))
+       (filter (closer-than max-distance distance-key))))
+
 (defn app-container []
-  (let [friends-sorted-by-distance (sort-by #(get-in % [:distance :main-main]) @friends)
-        ;; friends-sorted-by-distance (sort-by #(min (get-in % [:distance :main-main])
-        friends-close-by           (filter (closer-than 200 :main-main) friends-sorted-by-distance)
+  (let [friends-sorted-by-distance (->> @friends ; TODO: remove me when no longer used
+                                        (sort-by #(get-in % [:distance :main-main])))
         main-location              (:main-location @current-user)
         name-location              (:name-location @current-user)]
     [:div
      (nav)
      [:div.container
-      [:pre (preify @current-user)]
-      ;; [:hr]
-      ;; [:pre (preify @friends)]
-      [:hr]
       [:br] (Friend nil @current-user)
 
       [:div.location-info
-       [:p "your current location: " [:span.location name-location]]
-       [:p "you are based in: "      [:span.location main-location]]]
+       [:p "you are based in: "      [:span.location main-location]]
+       [:p "your current location: " [:span.location name-location]]]
 
       [:hr] [:br]
 
-      [:p.location-info "friends based near " [:span.location main-location] ":"]
-      [:hr]
-
-      [:div.friends (map-indexed Friend friends-close-by)]
+      ;; [:p.location-info "main-main – friends based near " [:span.location main-location] ":"]
+      [:p.location-info "main-main: " (count (get-close-friends :main-main 100))] [:hr]
+      [:div.friends (map-indexed Friend (get-close-friends :main-main 100))]
 
       [:br] [:br] [:br] [:br]
 
-      [:p.location-info "friends who may be near " [:span.location main-location] " right now:"]
-      [:hr]
-      [:table
-       [:tbody
-        [:tr table-header]
-        (map-indexed friend-row friends-close-by)]]
+      [:p.location-info "main-name: " (count (get-close-friends :main-name 100))] [:hr]
+      [:div.friends (map-indexed Friend (get-close-friends :main-name 100))]
+
       [:br] [:br] [:br] [:br]
 
-      [:p.location-info "all of your friends with their locations:"]
-      [:hr]
-      [:table
-       [:tbody
-        [:tr table-header]
-        (map-indexed friend-row friends-sorted-by-distance)]]]
+      [:p.location-info "name-name: " (count (get-close-friends :name-name 100))] [:hr]
+      [:div.friends (map-indexed Friend (get-close-friends :name-name 100))]
+
+      [:br] [:br] [:br] [:br]
+
+      [:p.location-info "name-main: " (count (get-close-friends :name-main 100))] [:hr]
+      [:div.friends (map-indexed Friend (get-close-friends :name-main 100))]
+
+      [:br] [:br] [:br] [:br]
+
+      ;; [:p.location-info "friends who may be near " [:span.location main-location] " right now:"]
+      ;; [:hr]
+      ;; [:table
+      ;;  [:tbody
+      ;;   [:tr table-header]
+      ;;   (map-indexed friend-row friends-main-main)]]
+      ;; [:br] [:br] [:br] [:br]
+
+      ;; [:p.location-info "all of your friends with their locations:"]
+      ;; [:hr]
+      ;; [:table
+      ;;  [:tbody
+      ;;   [:tr table-header]
+      ;;   (map-indexed friend-row friends-sorted-by-distance)]]
+      ]
 
      #_[:div.sticky-footer (music)]]))
 
