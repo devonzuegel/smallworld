@@ -121,10 +121,10 @@
     {:name                      (:name friend)
      :screen_name               (:screen_name friend)
      :profile_image_url_large   (normal-img-to-full-size friend)
-     :distance {:name-main (distance-btwn-coordinates friend-name-coords current-main-coords)
-                :name-name (distance-btwn-coordinates friend-name-coords current-name-coords)
-                :main-main (distance-btwn-coordinates friend-main-coords current-main-coords)
-                :main-name (distance-btwn-coordinates friend-main-coords current-name-coords)}
+     :distance {:name-main (distance-btwn-coordinates current-name-coords friend-main-coords)
+                :name-name (distance-btwn-coordinates current-name-coords friend-name-coords)
+                :main-main (distance-btwn-coordinates current-main-coords friend-main-coords)
+                :main-name (distance-btwn-coordinates current-main-coords friend-name-coords)}
      :main-location friend-main-location
      :name-location friend-name-location
      :main-coords friend-main-coords

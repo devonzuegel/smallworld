@@ -76,6 +76,9 @@ body {
 pre {
   white-space: pre-wrap;
   font-family: 'Roboto Mono', monospace;
+  overflow: hidden;
+  border: 1px solid yellow;
+  width: 400px;
 }
 hr {
   border-bottom: 2px solid #d9d3cc33;

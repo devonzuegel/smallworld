@@ -67,11 +67,15 @@
     (println "distance: " x)
     x))
 
-(defn closer-than [max-distance] #(let [smallest-distance (get-smallest-distance %)]
-                                    (and (< smallest-distance max-distance)
-                                         (not (nil? smallest-distance)))))
+(defn closer-than [max-distance dist-key]
+  (fn [friend]
+    (let [smallest-distance (get-in friend [:distance dist-key])]
+      (and (< smallest-distance max-distance)
+           (not (nil? smallest-distance))))))
 
 (def round-two-decimals #(pp/cl-format nil "~,2f" %))
+
+(defn preify [obj] (with-out-str (pp/pprint obj)))
 
 (defn Friend [k friend]
   (let [twitter-pic    (:profile_image_url_large friend)
@@ -89,18 +93,18 @@
       [:a.top twitter-href
        [:span.name twitter-name]
        [:span.handle "@" twitter-handle]]
-      [:span.name " dist: " (round-two-decimals (get-smallest-distance friend))]
+      ;; [:span.name " dist: " (round-two-decimals (get-smallest-distance friend))]
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :target "_blank"}
         [:span.location location]
-        [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]]]]))
-
-(defn preify [obj] (with-out-str (pp/pprint obj)))
+        [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]
+       [:pre (preify friend)]]]]))
 
 (defn app-container []
-  (let [friends-sorted-by-distance (sort-by get-smallest-distance @friends)
-        friends-close-by           (filter (closer-than 1000) friends-sorted-by-distance)
+  (let [friends-sorted-by-distance (sort-by #(get-in % [:distance :main-main]) @friends)
+        ;; friends-sorted-by-distance (sort-by #(min (get-in % [:distance :main-main])
+        friends-close-by           (filter (closer-than 200 :main-main) friends-sorted-by-distance)
         main-location              (:main-location @current-user)
         name-location              (:name-location @current-user)]
     [:div
@@ -118,7 +122,7 @@
 
       [:hr] [:br]
 
-      [:p.location-info "friends based near " [:span.location main-location] " and " [:span.location name-location] ":"]
+      [:p.location-info "friends based near " [:span.location main-location] ":"]
       [:hr]
 
       [:div.friends (map-indexed Friend friends-close-by)]
