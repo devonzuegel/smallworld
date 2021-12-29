@@ -13,10 +13,10 @@
             [environ.core :refer [env]]))
 
 (def current-user
-  {:name "Devon in Buenos Aires"
-   :screen_name "devonzuegel"
+  {:name "Sebastian Bensusan"
+   :screen_name "sebasbensu"
    :location "Miami Beach"
-   :profile_image_url_large "http://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
+   :profile_image_url_large "http://pbs.twimg.com/profile_images/659458812106141696/Li3DkPr0.jpg"
    :coordinates {:lat 25.775083541870117
                  :lng -80.1947021484375}
    :distance 7102.906300799643})

@@ -99,7 +99,7 @@
             :target "_blank"}
         [:span.location location]
         [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]
-       [:pre (preify friend)]]]]))
+       #_[:pre (preify friend)]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
