@@ -106,6 +106,17 @@
        (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
+(defn render-friends-list [friends-list-key]
+  (let [friends-list (get-close-friends friends-list-key 100)
+        list-count   (count friends-list)]
+    [:<>
+     [:p.location-info friends-list-key ": " list-count]
+     [:hr]
+     (if (> list-count 0)
+       [:div.friends (map-indexed Friend friends-list)]
+       [:div.no-friends-found "no friends found"])
+     [:br] [:br] [:br]]))
+
 (defn app-container []
   (let [friends-sorted-by-distance (->> @friends ; TODO: remove me when no longer used
                                         (sort-by #(get-in % [:distance :main-main])))
@@ -118,30 +129,21 @@
 
       [:div.location-info
        [:p "you are based in: "      [:span.location main-location]]
-       [:p "your current location: " [:span.location name-location]]]
+       (when name-location
+         [:p "your current location: " [:span.location name-location]])]
 
       [:hr] [:br]
 
       ;; [:p.location-info "main-main – friends based near " [:span.location main-location] ":"]
-      [:p.location-info "main-main: " (count (get-close-friends :main-main 100))] [:hr]
-      [:div.friends (map-indexed Friend (get-close-friends :main-main 100))]
+      (when-not (empty? main-location)
+        [:<>
+         (render-friends-list :main-main)
+         (render-friends-list :main-name)])
 
-      [:br] [:br] [:br] [:br]
-
-      [:p.location-info "main-name: " (count (get-close-friends :main-name 100))] [:hr]
-      [:div.friends (map-indexed Friend (get-close-friends :main-name 100))]
-
-      [:br] [:br] [:br] [:br]
-
-      [:p.location-info "name-name: " (count (get-close-friends :name-name 100))] [:hr]
-      [:div.friends (map-indexed Friend (get-close-friends :name-name 100))]
-
-      [:br] [:br] [:br] [:br]
-
-      [:p.location-info "name-main: " (count (get-close-friends :name-main 100))] [:hr]
-      [:div.friends (map-indexed Friend (get-close-friends :name-main 100))]
-
-      [:br] [:br] [:br] [:br]
+      (when-not (empty? name-location)
+        [:<>
+         (render-friends-list :name-name)
+         (render-friends-list :name-main)])
 
       ;; [:p.location-info "friends who may be near " [:span.location main-location] " right now:"]
       ;; [:hr]
@@ -149,7 +151,6 @@
       ;;  [:tbody
       ;;   [:tr table-header]
       ;;   (map-indexed friend-row friends-main-main)]]
-      ;; [:br] [:br] [:br] [:br]
 
       ;; [:p.location-info "all of your friends with their locations:"]
       ;; [:hr]
