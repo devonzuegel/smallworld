@@ -1,16 +1,50 @@
 (ns smallworld.web
   (:gen-class)
+  #_{:clj-kondo/ignore [:deprecated-var]}
   (:require [compojure.core :refer [defroutes GET ANY]]
             [compojure.handler :refer [site]]
             [compojure.route :as route]
             [clojure.java.io :as io]
             [ring.adapter.jetty :as jetty]
+            []
+            [oauth.twitter :as oauth]
             ;; [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [clojure.data.json :as json]
             [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
+
+(def consumer-key (System/getenv "CONSUMER_KEY"))
+(def consumer-secret (System/getenv "CONSUMER_SECRET"))
+;; (def access-token (System/getenv "ACCESS_TOKEN"))
+;; (def access-token-secret (System/getenv "ACCESS_TOKEN_SECRET"))
+
+(def request-token (oauth/oauth-request-token consumer-key consumer-secret))
+(oauth/oauth-authorize (:oauth-token request-token)) ;; make this a route that a button hits
+(def oauth-callback-url "http://127.0.0.1/?oauth_token=-A0bKwAAAAAAjUbLAAABfh3g4tA&oauth_verifier=CDGswwYjTs8EpgQeb7D6yd5Anm1VtAPj")
+(def uri (.getQuery (java.net.URI. oauth-callback-url))) ;; ring server will handle this for me
+(def oauth-callback-query-params (keywordize-keys (ring.util.codec/form-decode uri)))
+(def access-token
+  (oauth/oauth-access-token
+   consumer-key
+   (:oauth_token oauth-callback-query-params)
+   (:oauth_verifier oauth-callback-query-params)))
+(def client
+  (oauth/oauth-client
+   consumer-key
+   consumer-secret
+   (:oauth-token access-token)
+   (:oauth-token-secret access-token)))
+(client
+ {:method :get
+  :url "https://api.twitter.com/1.1/favorites/list.json"})
+
+;; (client
+;;  {:method :post
+;;   :url "http://api.twitter.com/1/statuses/update.json"
+;;   :body (str  "status=setting%20up%20my%20twitter%20私のさえずりを設定する")})
+
 
 (def current-user
   {:name "Sebastian Bensusan in Buenos Aires"

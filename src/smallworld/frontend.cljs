@@ -3,6 +3,7 @@
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             [clojure.string :as str]
+            [oauth.twitter :as oauth]
             [goog.dom]))
 
 (defonce friends (r/atom []))

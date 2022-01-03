@@ -12,6 +12,7 @@
                  [compojure "1.6.1"]
                  [twttr "3.2.3"]
                  [cheshire "5.10.1"]
+                 [oauth-clj "0.1.16"]
                  [ring/ring-jetty-adapter "1.7.1"]
                  [ring/ring-ssl "0.3.0"]
                  [yesql "0.5.3"]
@@ -30,7 +31,7 @@
   :profiles {:dev {:dependencies [[cider/piggieback "0.4.1"]
                                   [figwheel-sidecar "0.5.18"]
                                   ;; [binaryage/devtools "0.9.10"]
-                              ]
+                                  ]
                    :source-paths ["src" "dev"]
                    :cljsbuild {:builds [{:id "dev"
                                          :source-paths ["src"]
