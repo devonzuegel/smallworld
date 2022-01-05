@@ -134,35 +134,25 @@
      :main-coords friend-main-coords
      :name-coords friend-name-coords}))
 
-;; (def x friends-from-storage)
-;; (def with-coords (map get-relevant-friend-data x))
-;; (store-to-file with-coords)
-;; (pp/pprint with-coords)
-
-#_(store-to-file "friends-sebasbensu-new.edn"
-                 (map get-relevant-friend-data friends-from-storage))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def consumer-key (System/getenv "CONSUMER_KEY"))
 (def consumer-secret (System/getenv "CONSUMER_SECRET"))
 (def request-token (oauth/oauth-request-token consumer-key consumer-secret))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defonce access-tokens (atom {}))
+
 (def friends-cache (clojure.java.io/file "resources/memoized-friends.edn"))
 (defn --fetch-friends [user-id] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens user-id)
           client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
-      (loop [cursor -1
+      (loop [cursor -1  ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
              result-so-far []]
         (let [api-response  (client {:method :get :url "https://api.twitter.com/1.1/friends/list.json"
                                      :body (str "count=200"
-                                                "&cursor=" (str cursor) ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
+                                                "&cursor=" (str cursor)
                                                 "&skip_status=false"
                                                 "&include_user_entities=true")})
               page-of-friends (:users api-response)
@@ -187,8 +177,11 @@
       :failed)))
 (def memoized-friends (m/my-memoize --fetch-friends friends-cache))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defroutes app ; order matters in this function!
-  ;; (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
   (GET "/current-user"     [] (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth-authorize"  [] (oauth/oauth-authorize (:oauth-token request-token)))
   (GET "/oauth-authorized" [:as req] (let [oauth-token    (get-in req [:params :oauth_token])
@@ -203,6 +196,7 @@
                                         (with-out-str (pp/pprint req))
                                         "</pre>")))
 
+; (GET "/friends" [] (generate-string (map get-relevant-friend-data friends-from-storage)))
   (GET "/friends" [] (let [user-id (:user-id current-user)]
                        (str "<pre>" (with-out-str (pp/pprint (memoized-friends user-id))) "</pre>")))
 
