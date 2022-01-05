@@ -18,6 +18,7 @@
 (def current-user
   {:name "Sebastian Bensusan in Buenos Aires"
    :screen_name "sebasbensu"
+   :user-id "14058982"
    :location "Miami Beach"
    :profile_image_url_large "http://pbs.twimg.com/profile_images/659458812106141696/Li3DkPr0.jpg"
    :coordinates {:lat 25.775083541870117
@@ -162,7 +163,7 @@
 ;;   (oauth/access-token consumer request_token (:oauth_verifier request_token)))
 
 ;; (defn auth-redirect-uri "URI the user should be directed to when authenticating with Twitter" []
-;;   (log/info "successfully authenticated as" user_id screen_name))
+;;   (log/info "successfully authenticated as" user-id screen_name))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -176,45 +177,61 @@
 ;; (def oauth-callback-url "http://127.0.0.1/?oauth_token=-A0bKwAAAAAAjUbLAAABfh3g4tA&oauth_verifier=CDGswwYjTs8EpgQeb7D6yd5Anm1VtAPj")
 ;; (def uri (.getQuery (java.net.URI. oauth-callback-url))) ;; ring server will handle this for me
 ;; (def oauth-callback-query-params (keywordize-keys (ring.util.codec/form-decode uri)))
-
 ;; (def access-token
 ;;   (oauth/oauth-access-token
 ;;    consumer-key
 ;;    (:oauth_token oauth-callback-query-params)
 ;;    (:oauth_verifier oauth-callback-query-params)))
-;; (def client
-;;   (oauth/oauth-client
-;;    consumer-key
-;;    consumer-secret
-;;    (:oauth-token access-token)
-;;    (:oauth-token-secret access-token)))
-;; (client
-;;  {:method :get
-;;   :url "https://api.twitter.com/1.1/favorites/list.json"})
 
-;; (client
-;;  {:method :post
-;;   :url "http://api.twitter.com/1/statuses/update.json"
-;;   :body (str  "status=setting%20up%20my%20twitter%20私のさえずりを設定する")})
+(comment
+  (def client
+    (oauth/oauth-client
+     consumer-key
+     consumer-secret
+     (:oauth-token access-token)
+     (:oauth-token-secret access-token)))
+  (client
+   {:method :get
+    :url "https://api.twitter.com/1.1/favorites/list.json"})
+
+  (client
+   {:method :post
+    :url "http://api.twitter.com/1/statuses/update.json"
+    :body (str  "status=setting%20up%20my%20twitter%20私のさえずりを設定する")}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; this variable is in-memory; if the server gets restarted on the same machine, then it'll have
+;; access to the old data.  if you restart the server from the repl, it's fine;  but if you
+;; restart the java jar (as the heroku procfile does), then it'll blow this away.
+(defonce access-tokens (atom {}))
+
 (defroutes app ; order matters in this function!
   (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
   (GET "/current-user"     [] (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth-authorize"  [] (oauth/oauth-authorize (:oauth-token request-token)))
-  (GET "/oauth-authorized" [:as req] (str
-                                      "<pre>oauth_token: "
-                                      (with-out-str (pp/pprint (get-in req [:params :oauth_token])))
-                                      "</pre><hr/>"
-                                      "<pre>oauth_verifier: "
-                                      (with-out-str (pp/pprint (get-in req [:params :oauth_verifier])))
-                                      "</pre><hr/>"
-                                      "<pre>"
-                                      (with-out-str (pp/pprint req))
-                                      "</pre>"))
+  (GET "/oauth-authorized" [:as req]
+    (let [oauth-token    (get-in req [:params :oauth_token])
+          oauth-verifier (get-in req [:params :oauth_verifier])
+          access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
+      ;; (reset! access-tokens access-token)
+      (swap! access-tokens assoc (:user-id current-user) access-token)
+      (str
+       "<pre>access-token: "
+       (with-out-str (pp/pprint access-token))
+       "</pre><hr/><pre>"
+       (with-out-str (pp/pprint req))
+       "</pre>")))
+  (GET "/access-token" [] (let [user-id  (:user-id current-user)]
+                            (str
+                             "<pre>(get (:user-id current-user) @access-tokens): "
+                             (with-out-str (pp/pprint (get @access-tokens user-id)))
+                             "</pre>"
+                             "<pre>"
+                             (with-out-str (pp/pprint @access-tokens))
+                             "</pre>")))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
