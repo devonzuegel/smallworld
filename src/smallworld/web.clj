@@ -6,8 +6,9 @@
             [compojure.route :as route]
             [clojure.java.io :as io]
             [ring.adapter.jetty :as jetty]
+            ;; [oauth.client :as oauth]
             [oauth.twitter :as oauth]
-            ;; [clojure.pprint :as pp]
+            [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [clojure.data.json :as json]
             [clojure.string :as str]
@@ -140,20 +141,42 @@
 #_(store-to-file "friends-sebasbensu-new.edn"
                  (map get-relevant-friend-data friends-from-storage))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Twitter Oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; Twitter Oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (def consumer-key (System/getenv "CONSUMER_KEY"))
-;; (def consumer-secret (System/getenv "CONSUMER_SECRET"))
+;; (def request-token-uri "https://api.twitter.com/oauth/request_token")
+;; (def access-token-uri  "https://api.twitter.com/oauth/access_token")
+;; (def authorize-uri     "https://api.twitter.com/oauth/authenticate")
+
+;; (defn oauth-callback-uri "generate the Twitter oauth request callback URI" [{:keys [headers]}]
+;;   (str (headers "x-forwarded-proto") "://" (headers "host") "/oauth-callback"))
+
+;; (defn fetch-request-token "Fetches a request token" [request]
+;;   (->> request
+;;        oauth-callback-uri
+;;        (oauth/request-token consumer)
+;;        :oauth_token))
+
+;; (defn fetch-access-token "Fetches an access token" [request_token]
+;;   (oauth/access-token consumer request_token (:oauth_verifier request_token)))
+
+;; (defn auth-redirect-uri "URI the user should be directed to when authenticating with Twitter" []
+;;   (log/info "successfully authenticated as" user_id screen_name))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def consumer-key (System/getenv "CONSUMER_KEY"))
+(def consumer-secret (System/getenv "CONSUMER_SECRET"))
 ;; (def access-token (System/getenv "ACCESS_TOKEN"))
 ;; (def access-token-secret (System/getenv "ACCESS_TOKEN_SECRET"))
+(def request-token (oauth/oauth-request-token consumer-key consumer-secret))
 
-;; (def request-token (oauth/oauth-request-token consumer-key consumer-secret))
 ;; (oauth/oauth-authorize (:oauth-token request-token)) ;; make this a route that a button hits
 ;; (def oauth-callback-url "http://127.0.0.1/?oauth_token=-A0bKwAAAAAAjUbLAAABfh3g4tA&oauth_verifier=CDGswwYjTs8EpgQeb7D6yd5Anm1VtAPj")
 ;; (def uri (.getQuery (java.net.URI. oauth-callback-url))) ;; ring server will handle this for me
 ;; (def oauth-callback-query-params (keywordize-keys (ring.util.codec/form-decode uri)))
+
 ;; (def access-token
 ;;   (oauth/oauth-access-token
 ;;    consumer-key
@@ -179,13 +202,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defroutes app ; order matters in this function!
-  (GET "/friends"         [] (generate-string (map get-relevant-friend-data friends-from-storage)))
-  (GET "/current-user"    [] (generate-string (get-relevant-friend-data current-user)))
-  ;; (GET "/oauth-authorize" [] (oauth/oauth-authorize (:oauth-token request-token)))
+  (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
+  (GET "/current-user"     [] (generate-string (get-relevant-friend-data current-user)))
+  (GET "/oauth-authorize"  [] (oauth/oauth-authorize (:oauth-token request-token)))
+  (GET "/oauth-authorized" [:as req] (str
+                                      "<pre>oauth_token: "
+                                      (with-out-str (pp/pprint (get-in req [:params :oauth_token])))
+                                      "</pre><hr/>"
+                                      "<pre>oauth_verifier: "
+                                      (with-out-str (pp/pprint (get-in req [:params :oauth_verifier])))
+                                      "</pre><hr/>"
+                                      "<pre>"
+                                      (with-out-str (pp/pprint req))
+                                      "</pre>"))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
-  (ANY "*" [] (route/not-found "<h1>404 Not found</h1>")))
+  (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
 
 (defonce server* (atom nil))
 
