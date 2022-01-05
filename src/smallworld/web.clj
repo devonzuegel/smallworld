@@ -183,22 +183,6 @@
 ;;    (:oauth_token oauth-callback-query-params)
 ;;    (:oauth_verifier oauth-callback-query-params)))
 
-(comment
-  (def client
-    (oauth/oauth-client
-     consumer-key
-     consumer-secret
-     (:oauth-token access-token)
-     (:oauth-token-secret access-token)))
-  (client
-   {:method :get
-    :url "https://api.twitter.com/1.1/favorites/list.json"})
-
-  (client
-   {:method :post
-    :url "http://api.twitter.com/1/statuses/update.json"
-    :body (str  "status=setting%20up%20my%20twitter%20私のさえずりを設定する")}))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -207,6 +191,9 @@
 ;; access to the old data.  if you restart the server from the repl, it's fine;  but if you
 ;; restart the java jar (as the heroku procfile does), then it'll blow this away.
 (defonce access-tokens (atom {}))
+
+(comment
+  1)
 
 (defroutes app ; order matters in this function!
   (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
@@ -232,6 +219,25 @@
                              "<pre>"
                              (with-out-str (pp/pprint @access-tokens))
                              "</pre>")))
+
+  (GET "/favorites" [] (let [access-token (get @access-tokens (:user-id current-user))
+                             client (oauth/oauth-client consumer-key
+                                                        consumer-secret
+                                                        (:oauth-token access-token)
+                                                        (:oauth-token-secret access-token))
+                             response (client {:method :get
+                                               :url "https://api.twitter.com/1.1/favorites/list.json"})]
+                         (with-out-str (pp/pprint (map #(:text %) response)))))
+
+  (GET "/favorites" [] (let [access-token (get @access-tokens (:user-id current-user))
+                             client (oauth/oauth-client consumer-key
+                                                        consumer-secret
+                                                        (:oauth-token access-token)
+                                                        (:oauth-token-secret access-token))
+                             response (client {:method :get
+                                               :url "https://api.twitter.com/1.1/friends/list.json"})]
+                         (with-out-str (pp/pprint response))))
+
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
