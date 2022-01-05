@@ -152,16 +152,12 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; this variable is in-memory; if the server gets restarted on the same machine, then it'll have
-;; access to the old data.  if you restart the server from the repl, it's fine;  but if you
-;; restart the java jar (as the heroku procfile does), then it'll blow this away.
 (defonce access-tokens (atom {}))
-(def friends-cache (atom {}))
+(def friends-cache (clojure.java.io/file "resources/memoized-friends.edn"))
 (defn --fetch-friends [user-id] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens user-id)
           client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
-
       (loop [cursor -1
              result-so-far []]
         (let [api-response  (client {:method :get :url "https://api.twitter.com/1.1/friends/list.json"
