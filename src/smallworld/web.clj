@@ -156,9 +156,28 @@
 ;; access to the old data.  if you restart the server from the repl, it's fine;  but if you
 ;; restart the java jar (as the heroku procfile does), then it'll blow this away.
 (defonce access-tokens (atom {}))
+(def friends-cache (atom {}))
+(defn get-friends [user-id] ;; TODO: update this function to handle the pagination
+  (try
+    (let [access-token (get @access-tokens user-id)
+          client (oauth/oauth-client consumer-key
+                                     consumer-secret
+                                     (:oauth-token access-token)
+                                     (:oauth-token-secret access-token))]
+      ;; GET https://api.twitter.com/1.1/friends/list.json?cursor=-1&screen_name=twitterapi&skip_status=true&include_user_entities=false
+      (client {:method :get :url "https://api.twitter.com/1.1/friends/list.json"
+               :body (str "count=200"
+                          "&cursor=-1" ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
+                          "&screen_name=" user-id
+                          "&skip_status=false"
+                          "&include_user_entities=true")}))
+    (catch Throwable e
+      (println "caught exception:\n" (.getMessage e) "when getting friends for user-id:" user-id)
+      :failed)))
+(def memoized-friends (m/my-memoize get-friends friends-cache))
 
 (defroutes app ; order matters in this function!
-  (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
+  ;; (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
   (GET "/current-user"     [] (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth-authorize"  [] (oauth/oauth-authorize (:oauth-token request-token)))
   (GET "/oauth-authorized" [:as req] (let [oauth-token    (get-in req [:params :oauth_token])
@@ -172,33 +191,9 @@
                                         "</pre><hr/><pre>"
                                         (with-out-str (pp/pprint req))
                                         "</pre>")))
-  (GET "/access-token" [] (let [user-id  (:user-id current-user)]
-                            (str
-                             "<pre>(get (:user-id current-user) @access-tokens): "
-                             (with-out-str (pp/pprint (get @access-tokens user-id)))
-                             "</pre>"
-                             "<pre>"
-                             (with-out-str (pp/pprint @access-tokens))
-                             "</pre>")))
 
-  (GET "/favorites" [] (let [access-token (get @access-tokens (:user-id current-user))
-                             client (oauth/oauth-client consumer-key
-                                                        consumer-secret
-                                                        (:oauth-token access-token)
-                                                        (:oauth-token-secret access-token))
-                             response (client {:method :get
-                                               :url "https://api.twitter.com/1.1/favorites/list.json"})]
-                         (with-out-str (pp/pprint (map #(:text %) response)))))
-
-  (GET "/favorites" [] (let [access-token (get @access-tokens (:user-id current-user))
-                             client (oauth/oauth-client consumer-key
-                                                        consumer-secret
-                                                        (:oauth-token access-token)
-                                                        (:oauth-token-secret access-token))
-                             response (client {:method :get
-                                               :url "https://api.twitter.com/1.1/friends/list.json"})]
-                         (with-out-str (pp/pprint response))))
-
+  (GET "/friends" [] (let [user-id (:user-id current-user)]
+                       (str "<pre>" (with-out-str (pp/pprint (memoized-friends user-id))) "</pre>")))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")

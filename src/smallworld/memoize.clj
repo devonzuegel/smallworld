@@ -18,16 +18,22 @@
 (defn my-memoize
   ([expensive-fn cache]
    (fn [request-key]
-     (assert (string? request-key)
-             "my-memoize requires the request key to be a string")
+     (assert (string? request-key) "my-memoize requires the request key to be a string")
 
-     (if (= ::not-found (read! cache request-key)) ;; check if we've seen the request before
+     (if (= ::not-found (read! cache request-key))
 
+       ;; if we haven't seen the request before, then we need to compute the value
        (let [result (expensive-fn request-key)]
-        ;;  (println "🟢 fetch for first time: " request-key " → " result)
-         (update! cache request-key result)
-         result)
+         (if (= :failed result)
+           ;; if the expensive function failed, don't cache the result
+           (do (println "🔴 failed to fetch result for:" request-key)
+               :failed)
+           ;; if the expensive function succeeded, cache the result
+           (do (println "🟢 fetch for first time:" request-key "→" result)
+               (update! cache request-key result)
+               result)))
 
+       ;; if we've seen the request before, then just return the cached value
        (let [result (read! cache request-key)]
-        ;;  (println "🟡 retrieving stored result: " request-key " → " result)
+         (println "🟡 retrieving stored result:" request-key "→" result)
          result)))))
