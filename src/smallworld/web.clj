@@ -157,7 +157,7 @@
 ;; restart the java jar (as the heroku procfile does), then it'll blow this away.
 (defonce access-tokens (atom {}))
 (def friends-cache (atom {}))
-(defn fetch-friends [user-id] ;; TODO: update this function to handle the pagination
+(defn --fetch-friends [user-id] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens user-id)
           client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
@@ -165,47 +165,31 @@
       (loop [cursor -1
              result-so-far []]
         (let [api-response  (client {:method :get :url "https://api.twitter.com/1.1/friends/list.json"
-                                     :body (str "count=2"
+                                     :body (str "count=200"
                                                 "&cursor=" (str cursor) ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
                                                 "&skip_status=false"
                                                 "&include_user_entities=true")})
               page-of-friends (:users api-response)
               new-result      (concat result-so-far page-of-friends)
-              screen-names    (map :screen_name (:users api-response))
-              next-cursor     (:next_cursor api-response)]
+              screen-names    (map :screen-name (:users api-response))
+              next-cursor     (:next-cursor api-response)]
 
-          (pp/pprint "api-response:")
-          (pp/pprint (keys api-response))
+          (println "api-response:         " (keys api-response))
+          (println "(first screen-names): " (first screen-names))
+          (println "(count screen-names): " (count screen-names))
+          (println "next-cursor:          " next-cursor)
+          (println "friends count so far: " (count result-so-far))
+          (println "----------------------------------------")
 
-          (pp/pprint "result-so-far:")
-          (pp/pprint result-so-far)
-
-          (pp/pprint "(first screen-names): ")
-          (pp/pprint (first screen-names))
-
-          (pp/pprint "(count screen-names): ")
-          (pp/pprint (count screen-names))
-
-          (pp/pprint "next-cursor:          ")
-          (pp/pprint next-cursor)
-
-          (pp/pprint "friends count so far: ")
-          (pp/pprint (count result-so-far))
-
-          (pp/pprint "----------------------------------------")
-          #_(comment)
-
-          new-result
-          #_(if (or (= next-cursor 0) (> next-cursor 3)) ;; TODO: remove the > 3 bit
-            ;; return final result if Twitter returns a cursor of 0
-              new-result
-            ;; else, recur by appending the page to the result so far
-              (recur next-cursor new-result)))))
+          (if (= next-cursor 0)
+            new-result ;; return final result if Twitter returns a cursor of 0
+            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+            ))))
     (catch Throwable e
+      (println "🔴 caught exception when getting friends for user-id:" user-id)
       (println (pr-str e))
-      ;; (println "caught exception:\n" (.getMessage e) "when getting friends for user-id:" user-id)
       :failed)))
-(def memoized-friends (m/my-memoize fetch-friends friends-cache))
+(def memoized-friends (m/my-memoize --fetch-friends friends-cache))
 
 (defroutes app ; order matters in this function!
   ;; (GET "/friends"          [] (generate-string (map get-relevant-friend-data friends-from-storage)))
