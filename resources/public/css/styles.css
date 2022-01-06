@@ -36,6 +36,7 @@ body {
   display: flex;
   align-items: center;
   margin-left: 16px;
+  cursor: pointer;
 }
 .logo-globe {
   display: inline-block;
@@ -60,6 +61,42 @@ body {
 .links-spacer {
   margin: 0 16px;
   color: #d9d3cc33;
+}
+
+/******************************************************************************/
+/**** animate******************************************************************/
+/******************************************************************************/
+.globe-loader {
+  font-size: 2rem;
+  position: fixed;
+  position: relative;
+  margin-right: 4px;
+}
+.globe-loader > i {
+  display: block;
+  position: absolute;
+  font-size: 0.37em;
+  height: 50%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(-45deg);
+  transform-origin: center bottom;
+  animation: loader-spin 2.5s 3 ease-in-out;
+}
+.logo:hover .globe-loader > i {
+  animation: loader-spin 2.5s infinite ease-in-out;
+}
+.globe-loader > i::before {
+  position: relative;
+  top: -1.26em;
+}
+@keyframes loader-spin {
+  from {
+    transform: translateX(-50%) rotate(-45deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(0.875turn);
+  }
 }
 /*****************************************/
 /**** content ****************************/

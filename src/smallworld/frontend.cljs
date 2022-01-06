@@ -25,10 +25,11 @@
 (fetch "/friends" #(reset! friends %))
 (fetch "/current-user" #(reset! current-user %))
 
+
 (defn nav []
   [:div.nav
    [:div.logo
-    [:div.logo-globe]
+    [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]]
     [:div.logo-text "small world"]]
    [:div.links
     [:a "about"]
@@ -154,7 +155,7 @@
             (render-friends-list :name-name)
             (render-friends-list :name-main)])])
 
-      [:div.sticky-footer (music)]
+      #_[:div.sticky-footer (music)]
 
       ;; [:p.location-info "friends who may be near " [:span.location main-location] " right now:"]
       ;; [:hr]
