@@ -3,7 +3,9 @@
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             [clojure.string :as str]
-            [goog.dom]))
+            [goog.dom]
+            [goog.dom.classlist :as gc]))
+
 
 (defonce friends (r/atom :loading))
 (defonce current-user (r/atom {:name nil ;; TODO: handle loading state
@@ -18,18 +20,33 @@
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-               (println route ":")
-               (println result)
+               #_(println route ":")
+               #_(println result)
                (callback result)))))
+
 
 (fetch "/friends" #(reset! friends %))
 (fetch "/current-user" #(reset! current-user %))
 
+(defn animated-globe []
+  (js/setTimeout
+   (fn [] (let [elem (goog.dom/getElement "logo-animation")
+                rm-animation-class #(gc/toggle elem "classToBeAdded")]
+            (.addEventListener elem "webkitAnimationIteration" rm-animation-class) ;; for Chrome
+            (.addEventListener elem "animationiteration" rm-animation-class) ;; for Firefox
+            (.addEventListener elem "MSAnimationIteration" rm-animation-class) ;; for IE
+            (.addEventListener elem "animationiteration" rm-animation-class)))
+   1000) ;; give time to load the animation
+
+  [:div#logo-animation
+   [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]]])
 
 (defn nav []
+
   [:div.nav
    [:div.logo
-    [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]]
+    (animated-globe)
+
     [:div.logo-text "small world"]]
    [:div.links
     [:a "about"]

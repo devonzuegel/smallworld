@@ -72,6 +72,9 @@ body {
   position: relative;
   margin-right: 4px;
 }
+.classToBeAdded {
+  border: 3px solid red;
+}
 .globe-loader > i {
   display: block;
   position: absolute;
@@ -82,6 +85,7 @@ body {
   transform: translateX(-50%) rotate(-45deg);
   transform-origin: center bottom;
   animation: loader-spin 2.5s 3 ease-in-out;
+  animation: loader-spin 2.5s infinite ease-in-out;
 }
 .logo:hover .globe-loader > i {
   animation: loader-spin 2.5s infinite ease-in-out;
