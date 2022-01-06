@@ -112,7 +112,7 @@
         twitter-href   {:href twitter-link :target "_blank"}
         lat            (round-two-decimals (:lat (:main-coords friend)))
         lng            (round-two-decimals (:lng (:main-coords friend)))]
-    [:div.friend
+    [:div.friend {:key twitter-name}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
      [:div.right-section
