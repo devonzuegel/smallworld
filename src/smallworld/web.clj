@@ -195,6 +195,12 @@
       :failed)))
 (def memoized-friends (m/my-memoize --fetch-friends friends-cache))
 
+(def friends-cache-relevant-data (atom {}))
+(defn --fetch-friends-relevant-data [user-id]
+  (let [friends (memoized-friends user-id)]
+    (generate-string (map get-relevant-friend-data friends))))
+(def memoized-friends-relevant-data (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -213,16 +219,7 @@
                                         "</pre><hr/><pre>"
                                         (with-out-str (pp/pprint req))
                                         "</pre>")))
-
-; (GET "/friends" [] (generate-string (map get-relevant-friend-data friends-from-storage)))
-  (GET "/friends" [] (let [user-id (:user-id current-user)
-                           friends (memoized-friends user-id)]
-                       (generate-string (map get-relevant-friend-data friends))
-                       #_(->> (:user-id current-user)
-                              memoized-friends
-                              (take 5)
-                              (map get-relevant-friend-data)
-                              generate-string)))
+  (GET "/friends" [] (memoized-friends-relevant-data (:user-id current-user)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")

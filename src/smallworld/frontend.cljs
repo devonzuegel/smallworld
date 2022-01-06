@@ -5,7 +5,7 @@
             [clojure.string :as str]
             [goog.dom]))
 
-(defonce friends (r/atom []))
+(defonce friends (r/atom [])) ;; TODO: start with :loading & render waiting state accordingly
 (defonce current-user (r/atom {:name nil
                                :screen-name nil
                                :location nil
