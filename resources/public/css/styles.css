@@ -64,7 +64,7 @@ body {
 }
 
 /******************************************************************************/
-/**** animate******************************************************************/
+/**** animated logo ************************************************************/
 /******************************************************************************/
 .globe-loader {
   font-size: 2rem;
@@ -85,16 +85,16 @@ body {
   left: 50%;
   transform: translateX(-50%) rotate(-45deg);
   transform-origin: center bottom;
-  animation: loader-spin 2.5s 3 ease-in-out;
+  animation: airplane-spin 2.5s 3 ease-in-out;
 }
 .logo:hover .globe-loader > i {
-  animation: loader-spin 2.5s infinite ease-in-out;
+  animation: airplane-spin 2.5s infinite ease-in-out;
 }
 .globe-loader > i::before {
   position: relative;
   top: -1.26em;
 }
-@keyframes loader-spin {
+@keyframes airplane-spin {
   from {
     transform: translateX(-50%) rotate(-45deg);
   }
@@ -102,9 +102,32 @@ body {
     transform: translateX(-50%) rotate(0.875turn);
   }
 }
-/*****************************************/
-/**** content ****************************/
-/*****************************************/
+/******************************************************************************/
+/**** animated loader *********************************************************/
+/******************************************************************************/
+.loader {
+  animation: loader-spin 1s infinite linear;
+  width: 50px;
+  height: 50px;
+  opacity: 0.6;
+}
+.loader path {
+  -ms-transform: scale(0.5, 0.5); /* IE 9 */
+  -webkit-transform: scale(0.5, 0.5); /* Safari */
+  transform: scale(0.5, 0.5);
+}
+@keyframes loader-spin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/******************************************************************************/
+/**** content *****************************************************************/
+/******************************************************************************/
 .container {
   // max-width: 700px;
   margin: auto;

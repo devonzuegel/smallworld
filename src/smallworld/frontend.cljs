@@ -42,6 +42,11 @@
     (js/setTimeout handle-hover 1000))
   [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]])
 
+(defn loading-animation []
+  [:svg.loader
+   [:path {:fill "#fff"
+           :d "M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"}]])
+
 (defn nav []
 
   [:div.nav
@@ -159,10 +164,10 @@
          [:p "your current location: " [:span.location name-location]])]
 
       [:hr] [:br]
+
       (if (= :loading @friends)
-        [:div.loading "loading..."]
+        (loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
         [:<>
-      ;; [:p.location-info "main-main – friends based near " [:span.location main-location] ":"]
          (when-not (empty? main-location)
            [:<>
             (render-friends-list :main-main)
