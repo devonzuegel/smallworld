@@ -158,7 +158,6 @@
 
 (def consumer-key (System/getenv "CONSUMER_KEY"))
 (def consumer-secret (System/getenv "CONSUMER_SECRET"))
-(def request-token (oauth/oauth-request-token consumer-key consumer-secret))
 (defonce access-tokens (atom {}))
 
 (def friends-cache (clojure.java.io/file "resources/memoized-friends.edn"))
@@ -207,7 +206,8 @@
 
 (defroutes app ; order matters in this function!
   (GET "/current-user"     [] (generate-string (get-relevant-friend-data current-user)))
-  (GET "/oauth-authorize"  [] (oauth/oauth-authorize (:oauth-token request-token)))
+  (GET "/oauth-authorize"  [] (let [request-token (oauth/oauth-request-token consumer-key consumer-secret)]
+                                (oauth/oauth-authorize (:oauth-token request-token))))
   (GET "/oauth-authorized" [:as req] (let [oauth-token    (get-in req [:params :oauth_token])
                                            oauth-verifier (get-in req [:params :oauth_verifier])
                                            access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
