@@ -29,23 +29,18 @@
 (fetch "/current-user" #(reset! current-user %))
 
 (defn animated-globe []
-  (js/setTimeout
-   (fn [] (let [elem (goog.dom/getElement "logo-animation")
-                rm-animation-class #(gc/add elem "no-animation")]
-            (.addEventListener
-             elem "mouseover"
-             (fn [] (gc/remove elem "no-animation")))
-            (.addEventListener
-             elem "mouseout"
-             (fn []
-               (.addEventListener elem "webkitAnimationIteration" rm-animation-class) ;; for Chrome
-               (.addEventListener elem "animationiteration" rm-animation-class) ;; for Firefox
-               (.addEventListener elem "MSAnimationIteration" rm-animation-class) ;; for IE
-               (.addEventListener elem "animationiteration" rm-animation-class)))))
-   1000) ;; give time to load the animation
-
-  [:div
-   [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]]])
+  (let [handle-hover (fn [] (let [elem (goog.dom/getElement "logo-animation")
+                                  start-animation #(gc/remove elem "no-animation")
+                                  stop-animation #(gc/add elem "no-animation")
+                                  stop-after-iteration #((.addEventListener elem "webkitAnimationIteration" stop-animation) ;; for Chrome
+                                                         (.addEventListener elem "animationiteration" stop-animation) ;; for Firefox
+                                                         (.addEventListener elem "MSAnimationIteration" stop-animation) ;; for IE
+                                                         (.addEventListener elem "animationiteration" stop-animation))]
+                              (.addEventListener elem "mouseover" start-animation)
+                              (.addEventListener elem "mouseout" stop-after-iteration)))]
+    ;; give time to load the animation
+    (js/setTimeout handle-hover 1000))
+  [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]])
 
 (defn nav []
 
