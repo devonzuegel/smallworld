@@ -26,14 +26,14 @@
        (let [result (expensive-fn request-key)]
          (if (= :failed result)
            ;; if the expensive function failed, don't cache the result
-           (do (println "🔴 failed to fetch result for:" request-key)
+           (do #_(println "🔴 failed to fetch result for:" request-key)
                :failed)
            ;; if the expensive function succeeded, cache the result
-           (do (println "🟢 fetch for first time:" request-key "→" result)
+           (do #_(println "🟢 fetch for first time:" request-key #_"→" #_result)
                (update! cache request-key result)
                result)))
 
        ;; if we've seen the request before, then just return the cached value
        (let [result (read! cache request-key)]
-         (println "🟡 retrieving stored result:" request-key "→" result)
+         #_(println "🟡 retrieving stored result:" request-key #_"→" #_result)
          result)))))

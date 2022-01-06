@@ -3,12 +3,11 @@
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             [clojure.string :as str]
-            [oauth.twitter :as oauth]
             [goog.dom]))
 
 (defonce friends (r/atom []))
 (defonce current-user (r/atom {:name nil
-                               :screen_name nil
+                               :screen-name nil
                                :location nil
                                :profile_image_url_large nil
                                :name-location {:location nil :coordinates nil :distance nil}
@@ -34,7 +33,7 @@
    [:div.links
     [:a "about"]
     [:span.links-spacer "·"]
-    [:a "log out " [:b "@" (:screen_name @current-user)]]]])
+    [:a "log out " [:b "@" (:screen-name @current-user)]]]])
 
 (def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance" "profile_image_url_large"])
 
@@ -43,7 +42,7 @@
                       (.toLowerCase (:location @current-user))))
 
 (defn friend-row [i friend]
-  (let [twitter-handle (:screen_name friend)
+  (let [twitter-handle (:screen-name friend)
         twitter-link   (str "http://twitter.com/" twitter-handle)]
     [:tr {:key i}
      [:td i]
@@ -81,7 +80,7 @@
 (defn Friend [k friend]
   (let [twitter-pic    (:profile_image_url_large friend)
         twitter-name   (:name friend)
-        twitter-handle (:screen_name friend)
+        twitter-handle (:screen-name friend)
         twitter-link   (str "http://twitter.com/" twitter-handle)
         location       (:main-location friend)
         twitter-href   {:href twitter-link :target "_blank"}
@@ -119,14 +118,13 @@
      [:br] [:br] [:br]]))
 
 (defn app-container []
-  (let [friends-sorted-by-distance (->> @friends ; TODO: remove me when no longer used
-                                        (sort-by #(get-in % [:distance :main-main])))
-        main-location              (:main-location @current-user)
-        name-location              (:name-location @current-user)]
+  (let [main-location (:main-location @current-user)
+        name-location (:name-location @current-user)]
     [:div
      (nav)
      [:div.container
-      [:br] (Friend nil @current-user)
+      ;; [:pre "(prn-str @current-user):"] [:pre (prn-str @current-user)] [:br] [:br] 
+      (Friend nil @current-user)
 
       [:div.location-info
        [:p "you are based in: "      [:span.location main-location]]

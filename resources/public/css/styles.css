@@ -11,8 +11,7 @@
 html {
   background-color: #013917;
   color: #d9d3cc;
-  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
 }
 body {
   margin: 0;
@@ -78,7 +77,7 @@ pre {
   font-family: 'Roboto Mono', monospace;
   overflow: hidden;
   border: 1px solid yellow;
-  width: 400px;
+  width: 600px;
   font-size: 0.6em;
 }
 hr {
@@ -132,7 +131,7 @@ tr:nth-child(even) {
   margin-bottom: 24px;
   display: flex;
   align-items: center;
-  width: 500px;
+  width: 400px;
 }
 .friend .twitter-pic,
 .friend .twitter-pic img {

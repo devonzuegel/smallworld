@@ -16,11 +16,11 @@
             [environ.core :refer [env]]))
 
 (def current-user
-  {:name "Sebastian Bensusan in Buenos Aires"
-   :screen_name "sebasbensu"
+  {:name "Devon Zuegel ☀️ in Buenos Aires"
+   :screen-name "devonzuegel"
    :user-id "14058982"
    :location "Miami Beach"
-   :profile_image_url_large "http://pbs.twimg.com/profile_images/659458812106141696/Li3DkPr0.jpg"
+   :profile-image-url-https "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
    :coordinates {:lat 25.775083541870117
                  :lng -80.1947021484375}
    :distance 7102.906300799643})
@@ -72,11 +72,17 @@
         (print "houston, we have a problem..."))))
 
 (defn get-coordinates-from-city [city-str]
-  (if (empty? city-str)
-    nil ; return nil coordinates if no city string is given
+  (if (or (empty? city-str) (nil? city-str))
+    (do (println "")
+        (println "city-str:" city-str)
+        nil ; return nil coordinates if no city string is given
+        )
     (try
-      (let [city    (java.net.URLEncoder/encode city-str "UTF-8")
+      (let [city    (java.net.URLEncoder/encode city-str "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
             api-key (java.net.URLEncoder/encode (System/getenv "BING_MAPS_API_KEY") "UTF-8")]
+        (println "city:" city)
+        (println "api-key:" api-key)
+        (println "")
         (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
             slurp
             extract-coordinates))
@@ -94,17 +100,23 @@
       (some nil? (vals coords))))
 
 (defn distance-btwn-coordinates [coords1 coords2]
+  (println "coords1:" coords1)
+  (println "coords2:" coords2)
+  (println "")
   (if (or (coordinates-not-defined? coords1)
           (coordinates-not-defined? coords2))
     nil
     (haversine coords1 coords2)))
 
 (defn normal-img-to-full-size [friend]
-  (str/replace (:profile_image_url_large friend) "_normal" ""))
+  (let [original-url (:profile-image-url-https friend)]
+    (if (nil? original-url)
+      nil
+      (str/replace original-url "_normal" ""))))
 
 (defn location-from-name [name]
   (let [split-name (str/split name #" in ")]
-    (if (= 1 (count split-name))
+    (if (= 1 (count (or split-name "")))
       nil
       (last split-name))))
 
@@ -122,17 +134,23 @@
         current-main-coords (memoized-coordinates-from-city (or current-main-location ""))
         current-name-coords (memoized-coordinates-from-city (or current-name-location ""))]
 
-    {:name                      (:name friend)
-     :screen_name               (:screen_name friend)
-     :profile_image_url_large   (normal-img-to-full-size friend)
+    (println " friend-main-location:" friend-main-location)
+    (println " friend-name-location:" friend-name-location)
+    (println "current-main-location:" current-main-location)
+    (println "current-name-location:" current-name-location)
+
+    {:name                    (:name friend)
+     :screen-name             (:screen-name friend)
+     :user-id                 :TODO ;; TODO: generate this in the db
+     :profile_image_url_large (normal-img-to-full-size friend)
      :distance {:name-main (distance-btwn-coordinates current-name-coords friend-main-coords)
                 :name-name (distance-btwn-coordinates current-name-coords friend-name-coords)
                 :main-main (distance-btwn-coordinates current-main-coords friend-main-coords)
                 :main-name (distance-btwn-coordinates current-main-coords friend-name-coords)}
      :main-location friend-main-location
      :name-location friend-name-location
-     :main-coords friend-main-coords
-     :name-coords friend-name-coords}))
+     :main-coords   friend-main-coords
+     :name-coords   friend-name-coords}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -157,15 +175,15 @@
                                                 "&include_user_entities=true")})
               page-of-friends (:users api-response)
               new-result      (concat result-so-far page-of-friends)
-              screen-names    (map :screen-name (:users api-response))
+           ;; screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
-          (println "api-response:         " (keys api-response))
-          (println "(first screen-names): " (first screen-names))
-          (println "(count screen-names): " (count screen-names))
-          (println "next-cursor:          " next-cursor)
-          (println "friends count so far: " (count result-so-far))
-          (println "----------------------------------------")
+          ;; (println "api-response:         " (keys api-response))
+          ;; (println "(first screen-names): " (first screen-names))
+          ;; (println "(count screen-names): " (count screen-names))
+          ;; (println "next-cursor:          " next-cursor)
+          ;; (println "friends count so far: " (count result-so-far))
+          ;; (println "----------------------------------------")
 
           (if (= next-cursor 0)
             new-result ;; return final result if Twitter returns a cursor of 0
@@ -197,8 +215,14 @@
                                         "</pre>")))
 
 ; (GET "/friends" [] (generate-string (map get-relevant-friend-data friends-from-storage)))
-  (GET "/friends" [] (let [user-id (:user-id current-user)]
-                       (str "<pre>" (with-out-str (pp/pprint (memoized-friends user-id))) "</pre>")))
+  (GET "/friends" [] (let [user-id (:user-id current-user)
+                           friends (memoized-friends user-id)]
+                       (generate-string (map get-relevant-friend-data friends))
+                       #_(->> (:user-id current-user)
+                              memoized-friends
+                              (take 5)
+                              (map get-relevant-friend-data)
+                              generate-string)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
