@@ -5,8 +5,8 @@
             [clojure.string :as str]
             [goog.dom]))
 
-(defonce friends (r/atom [])) ;; TODO: start with :loading & render waiting state accordingly
-(defonce current-user (r/atom {:name nil
+(defonce friends (r/atom :loading))
+(defonce current-user (r/atom {:name nil ;; TODO: handle loading state
                                :screen-name nil
                                :location nil
                                :profile_image_url_large nil
@@ -140,17 +140,19 @@
          [:p "your current location: " [:span.location name-location]])]
 
       [:hr] [:br]
-
+      (if (= :loading @friends)
+        [:div.loading "loading..."]
+        [:<>
       ;; [:p.location-info "main-main – friends based near " [:span.location main-location] ":"]
-      (when-not (empty? main-location)
-        [:<>
-         (render-friends-list :main-main)
-         (render-friends-list :main-name)])
+         (when-not (empty? main-location)
+           [:<>
+            (render-friends-list :main-main)
+            (render-friends-list :main-name)])
 
-      (when-not (empty? name-location)
-        [:<>
-         (render-friends-list :name-name)
-         (render-friends-list :name-main)])
+         (when-not (empty? name-location)
+           [:<>
+            (render-friends-list :name-name)
+            (render-friends-list :name-main)])])
 
       [:div.sticky-footer (music)]
 
