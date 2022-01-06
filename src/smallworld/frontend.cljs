@@ -31,20 +31,26 @@
 (defn animated-globe []
   (js/setTimeout
    (fn [] (let [elem (goog.dom/getElement "logo-animation")
-                rm-animation-class #(gc/toggle elem "classToBeAdded")]
-            (.addEventListener elem "webkitAnimationIteration" rm-animation-class) ;; for Chrome
-            (.addEventListener elem "animationiteration" rm-animation-class) ;; for Firefox
-            (.addEventListener elem "MSAnimationIteration" rm-animation-class) ;; for IE
-            (.addEventListener elem "animationiteration" rm-animation-class)))
+                rm-animation-class #(gc/add elem "no-animation")]
+            (.addEventListener
+             elem "mouseover"
+             (fn [] (gc/remove elem "no-animation")))
+            (.addEventListener
+             elem "mouseout"
+             (fn []
+               (.addEventListener elem "webkitAnimationIteration" rm-animation-class) ;; for Chrome
+               (.addEventListener elem "animationiteration" rm-animation-class) ;; for Firefox
+               (.addEventListener elem "MSAnimationIteration" rm-animation-class) ;; for IE
+               (.addEventListener elem "animationiteration" rm-animation-class)))))
    1000) ;; give time to load the animation
 
-  [:div#logo-animation
+  [:div
    [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]]])
 
 (defn nav []
 
   [:div.nav
-   [:div.logo
+   [:div#logo-animation.logo
     (animated-globe)
 
     [:div.logo-text "small world"]]

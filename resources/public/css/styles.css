@@ -72,8 +72,9 @@ body {
   position: relative;
   margin-right: 4px;
 }
-.classToBeAdded {
-  border: 3px solid red;
+.no-animation,
+.no-animation * {
+  animation: none !important;
 }
 .globe-loader > i {
   display: block;
