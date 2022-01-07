@@ -207,22 +207,23 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn start-oauth-flow []
+  (let [request-token (oauth/oauth-request-token consumer-key consumer-secret)]
+    (oauth/oauth-authorize (:oauth-token request-token))
+    nil))
+
+(defn store-fetched-access-token [req]
+  (let [oauth-token    (get-in req [:params :oauth_token])
+        oauth-verifier (get-in req [:params :oauth_verifier])
+        access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
+    (swap! access-tokens assoc (:user-id current-user) access-token)
+    "you've successfully authorized Small World to access your Twitter account!"))
+
 (defroutes app ; order matters in this function!
-  (GET "/current-user"     [] (generate-string (get-relevant-friend-data current-user)))
-  (GET "/oauth" [] (let [request-token (oauth/oauth-request-token consumer-key consumer-secret)]
-                     (oauth/oauth-authorize (:oauth-token request-token))))
-  (GET "/authorized" [:as req] (let [oauth-token    (get-in req [:params :oauth_token])
-                                     oauth-verifier (get-in req [:params :oauth_verifier])
-                                     access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
-                                        ;; (reset! access-tokens access-token)
-                                 (swap! access-tokens assoc (:user-id current-user) access-token)
-                                 (str
-                                  "<pre>access-token: "
-                                  (with-out-str (pp/pprint access-token))
-                                  "</pre><hr/><pre>"
-                                  (with-out-str (pp/pprint req))
-                                  "</pre>")))
-  (GET "/friends" [] (memoized-friends-relevant-data (:user-id current-user)))
+  (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
+  (GET "/oauth"        []        (start-oauth-flow))
+  (GET "/authorized"   [:as req] (store-fetched-access-token req))
+  (GET "/friends"      []        (memoized-friends-relevant-data (:user-id current-user)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
