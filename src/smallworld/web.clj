@@ -6,9 +6,9 @@
             [compojure.route :as route]
             [clojure.java.io :as io]
             [ring.adapter.jetty :as jetty]
-            ;; [oauth.client :as oauth]
+            [ring.util.response :as response]
             [oauth.twitter :as oauth]
-            [clojure.pprint :as pp]
+            ;; [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [clojure.data.json :as json]
             [clojure.string :as str]
@@ -208,9 +208,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn start-oauth-flow []
-  (let [request-token (oauth/oauth-request-token consumer-key consumer-secret)]
-    (oauth/oauth-authorize (:oauth-token request-token))
-    nil))
+  (let [request-token (oauth/oauth-request-token consumer-key consumer-secret)
+        redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
+    (response/redirect redirect-url)))
 
 (defn store-fetched-access-token [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
