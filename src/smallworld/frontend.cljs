@@ -20,8 +20,8 @@
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-               #_(println route ":")
-               #_(println result)
+               (println route ":")
+               (println result)
                (callback result)))))
 
 
