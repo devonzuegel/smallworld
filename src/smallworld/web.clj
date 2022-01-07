@@ -73,21 +73,21 @@
 
 (defn get-coordinates-from-city [city-str]
   (if (or (empty? city-str) (nil? city-str))
-    (do (println "")
-        (println "city-str:" city-str)
-        nil ; return nil coordinates if no city string is given
+    (do #_(println "")
+        #_(println "city-str:" city-str)
+        nil ; return nil coordinates if no city string is given TODO: return :no-result
         )
     (try
       (let [city    (java.net.URLEncoder/encode city-str "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
             api-key (java.net.URLEncoder/encode (System/getenv "BING_MAPS_API_KEY") "UTF-8")]
-        (println "city:" city)
-        (println "api-key:" api-key)
-        (println "")
+        #_(println "city:" city)
+        #_(println "api-key:" api-key)
+        #_(println "")
         (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
             slurp
             extract-coordinates))
       (catch Throwable e
-        (println "\ncaught exception: " (.getMessage e))
+        #_(println "\ncaught exception: " (.getMessage e))
         nil))))
 
 
@@ -103,9 +103,9 @@
       (some nil? (vals coords))))
 
 (defn distance-btwn-coordinates [coords1 coords2]
-  (println "coords1:" coords1)
-  (println "coords2:" coords2)
-  (println "")
+  #_(println "coords1:" coords1)
+  #_(println "coords2:" coords2)
+  #_(println "")
   (if (or (coordinates-not-defined? coords1)
           (coordinates-not-defined? coords2))
     nil
@@ -137,10 +137,10 @@
         current-main-coords (memoized-coordinates (or current-main-location ""))
         current-name-coords (memoized-coordinates (or current-name-location ""))]
 
-    (println " friend-main-location:" friend-main-location)
-    (println " friend-name-location:" friend-name-location)
-    (println "current-main-location:" current-main-location)
-    (println "current-name-location:" current-name-location)
+    ;; (println " friend-main-location:" friend-main-location)
+    ;; (println " friend-name-location:" friend-name-location)
+    ;; (println "current-main-location:" current-main-location)
+    ;; (println "current-name-location:" current-name-location)
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
