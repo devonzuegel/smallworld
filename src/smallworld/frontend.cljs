@@ -147,7 +147,8 @@
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
        [:div.no-friends-found "no friends found"])
-     [:br] [:br] [:br]]))
+    ;;  [:br] [:br] [:br]
+     ]))
 
 (defn app-container []
   (let [main-location (:main-location @current-user)
@@ -165,10 +166,6 @@
 
       [:hr] [:br]
 
-      [:pr "@friends: " (pr-str @friends)]
-
-      [:hr] [:br]
-
       (if (= :loading @friends)
         (loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
         [:<>
@@ -181,6 +178,10 @@
            [:<>
             (render-friends-list :name-name)
             (render-friends-list :name-main)])])
+
+      [:hr] [:br]
+
+      [:pr "@friends: " (pr-str @friends)]
 
       #_[:div.sticky-footer (music)]
 

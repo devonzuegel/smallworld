@@ -199,11 +199,11 @@
           (println "----------------------------------------")
           (println "============================================================ end")
 
-          new-result ;; TODO: undo me once I've solved the Oauth issues
-          #_(if (= next-cursor 0)
-              new-result ;; return final result if Twitter returns a cursor of 0
-              (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-              ))))
+          #_new-result ;; TODO: undo me once I've solved the Oauth issues
+          (if (= next-cursor 0)
+            new-result ;; return final result if Twitter returns a cursor of 0
+            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+            ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for user-id:" user-id)
       (println (pr-str e))
