@@ -160,7 +160,7 @@
 (def consumer-secret (System/getenv "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
-(def friends-cache (clojure.java.io/file "resources/memoized-friends.edn"))
+(def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 (defn --fetch-friends [user-id] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens user-id)

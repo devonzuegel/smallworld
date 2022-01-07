@@ -13,10 +13,12 @@
 (extend-protocol ICache
   java.io.File
   (update! [this request-key value]
-    (.createNewFile this) ;; creates a new file iff it doesn't exist
+    (when (.createNewFile this) ;; creates new file & returns true iff it doesn't exist
+      (spit this "{}"))
     (spit this (assoc (read-string (slurp this)) request-key value)))
-  (read!   [this request-key]
-    (.createNewFile this) ;; creates a new file iff it doesn't exist
+  (read! [this request-key]
+    (when (.createNewFile this) ;; creates new file & returns true iff it doesn't exist
+      (spit this "{}"))
     (get (read-string (slurp this)) request-key ::not-found)))
 
 (defn my-memoize
