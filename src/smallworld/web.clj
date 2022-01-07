@@ -90,10 +90,13 @@
         (println "\ncaught exception: " (.getMessage e))
         nil))))
 
-;; (def coordinates-cache (atom {}))
-(def coordinates-cache (atom (read-string (slurp (clojure.java.io/file "memoized-coordinates.edn")))))
-;; (def coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
-(def memoized-coordinates-from-city (m/my-memoize get-coordinates-from-city coordinates-cache))
+
+(def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+(def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
+(def coordinates-cache (atom {}))
+(def memoized-coordinates (m/my-memoize
+                           (fn [city-str] (-memoized-coordinates city-str))
+                           coordinates-cache))
 
 (defn coordinates-not-defined? [coords]
   (or (nil? coords)
@@ -129,10 +132,10 @@
         current-main-location (:location current-user)
         current-name-location (location-from-name (:name current-user))
         ; locations as coordinates
-        friend-main-coords  (memoized-coordinates-from-city (or friend-main-location ""))
-        friend-name-coords  (memoized-coordinates-from-city (or friend-name-location ""))
-        current-main-coords (memoized-coordinates-from-city (or current-main-location ""))
-        current-name-coords (memoized-coordinates-from-city (or current-name-location ""))]
+        friend-main-coords  (memoized-coordinates (or friend-main-location ""))
+        friend-name-coords  (memoized-coordinates (or friend-name-location ""))
+        current-main-coords (memoized-coordinates (or current-main-location ""))
+        current-name-coords (memoized-coordinates (or current-name-location ""))]
 
     (println " friend-main-location:" friend-main-location)
     (println " friend-name-location:" friend-name-location)
