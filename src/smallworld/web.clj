@@ -163,13 +163,24 @@
 (def consumer-secret (System/getenv "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
-(def friends-cache (clojure.java.io/file "memoized-friends.edn"))
+;; (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
+(def friends-cache (atom {}))
 (defn --fetch-friends [user-id] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens user-id)
           client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
-      (loop [cursor -1  ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
+      (println "============================================================== start")
+      (println "access-token: ---------------------------------------------")
+      (println access-token)
+      (println "client: ---------------------------------------------------")
+      (println client)
+      (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
              result-so-far []]
+
+        (println "cursor: -------------------------------------------------")
+        (println cursor)
+        (println "result-so-far: ------------------------------------------")
+        (println result-so-far)
         (let [api-response  (client {:method :get :url "https://api.twitter.com/1.1/friends/list.json"
                                      :body (str "count=200"
                                                 "&cursor=" (str cursor)
@@ -177,20 +188,22 @@
                                                 "&include_user_entities=true")})
               page-of-friends (:users api-response)
               new-result      (concat result-so-far page-of-friends)
-           ;; screen-names    (map :screen-name (:users api-response))
+              screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
-          ;; (println "api-response:         " (keys api-response))
-          ;; (println "(first screen-names): " (first screen-names))
-          ;; (println "(count screen-names): " (count screen-names))
-          ;; (println "next-cursor:          " next-cursor)
-          ;; (println "friends count so far: " (count result-so-far))
-          ;; (println "----------------------------------------")
+          (println "api-response:         " (keys api-response))
+          (println "(first screen-names): " (first screen-names))
+          (println "(count screen-names): " (count screen-names))
+          (println "next-cursor:          " next-cursor)
+          (println "friends count so far: " (count result-so-far))
+          (println "----------------------------------------")
+          (println "============================================================ end")
 
-          (if (= next-cursor 0)
-            new-result ;; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-            ))))
+          new-result ;; TODO: undo me once I've solved the Oauth issues
+          #_(if (= next-cursor 0)
+              new-result ;; return final result if Twitter returns a cursor of 0
+              (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+              ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for user-id:" user-id)
       (println (pr-str e))
