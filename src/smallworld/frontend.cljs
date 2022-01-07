@@ -165,6 +165,10 @@
 
       [:hr] [:br]
 
+      [:pr "@friends: " (pr-str @friends)]
+
+      [:hr] [:br]
+
       (if (= :loading @friends)
         (loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
         [:<>
