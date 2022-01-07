@@ -29,6 +29,11 @@
                 :sebas-friends-full   "friends-sebasbensu--full-from-twitter.edn"
                 :memoized-coordinates "memoized-coordinates.edn"})
 
+(defn get-environment-var [key]
+  (let [value (System/getenv key)]
+    (when (nil? value) (throw (Throwable. (str "Environment variable not set: " key))))
+    value))
+
 (defn store-to-file [filename data]
   (let [result (with-out-str (pr data))]
     (spit filename result)))
@@ -74,24 +79,26 @@
 (defn get-coordinates-from-city [city-str]
   (if (or (empty? city-str) (nil? city-str))
     (do #_(println "")
-        #_(println "city-str:" city-str)
+        (println "city-str:" city-str)
         nil ; return nil coordinates if no city string is given TODO: return :no-result
         )
     (try
-      (let [city    (java.net.URLEncoder/encode city-str "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
-            api-key (java.net.URLEncoder/encode (System/getenv "BING_MAPS_API_KEY") "UTF-8")]
-        #_(println "city:" city)
-        #_(println "api-key:" api-key)
-        #_(println "")
+      (let [city    (java.net.URLEncoder/encode (or city-str "") "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
+            api-key (java.net.URLEncoder/encode (get-environment-var "BING_MAPS_API_KEY") "UTF-8")]
+        (println "city:" city)
+        (println "api-key:" api-key)
+        (println "")
         (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
             slurp
             extract-coordinates))
       (catch Throwable e
-        #_(println "\ncaught exception: " (.getMessage e))
+        (println "\ncaught exception (get-coordinates-from-city): ")
+        (println e)
         nil))))
 
 
-(def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+;; (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+(def -coordinates-cache (atom {}))
 (def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
@@ -159,12 +166,12 @@
 ;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def consumer-key (System/getenv "CONSUMER_KEY"))
-(def consumer-secret (System/getenv "CONSUMER_SECRET"))
+(def consumer-key (get-environment-var "CONSUMER_KEY"))
+(def consumer-secret (get-environment-var "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
-;; (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
-(def friends-cache (atom {}))
+(def friends-cache (clojure.java.io/file "memoized-friends.edn"))
+;; (def friends-cache (atom {}))
 (defn --fetch-friends [user-id] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens user-id)
@@ -199,11 +206,11 @@
           (println "----------------------------------------")
           (println "============================================================ end")
 
-          #_new-result ;; TODO: undo me once I've solved the Oauth issues
-          (if (= next-cursor 0)
-            new-result ;; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-            ))))
+          new-result ;; TODO: undo me once I've solved the Oauth issues
+          #_(if (= next-cursor 0)
+              new-result ;; return final result if Twitter returns a cursor of 0
+              (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+              ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for user-id:" user-id)
       (println (pr-str e))

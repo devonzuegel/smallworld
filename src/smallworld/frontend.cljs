@@ -181,7 +181,7 @@
 
       [:hr] [:br]
 
-      [:pr "@friends: " (pr-str @friends)]
+      [:pre "@friends: " (pr-str @friends)]
 
       #_[:div.sticky-footer (music)]
 
