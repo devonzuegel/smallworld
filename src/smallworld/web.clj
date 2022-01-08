@@ -232,17 +232,19 @@
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
     (response/redirect redirect-url)))
 
-(defn store-fetched-access-token [req]
+(defn store-fetched-access-token-then-redirect-home [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
     (swap! access-tokens assoc (:user-id current-user) access-token)
-    "you've successfully authorized Small World to access your Twitter account!"))
+    (println "@" (:screen-name current-user) " (user-id: " (:user-id current-user)
+             ") has successfully authorized Small World to access their Twitter account")
+    (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
   (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth"        []        (start-oauth-flow))
-  (GET "/authorized"   [:as req] (store-fetched-access-token req))
+  (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
   (GET "/friends"      []        (memoized-friends-relevant-data (:user-id current-user)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
