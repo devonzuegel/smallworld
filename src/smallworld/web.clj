@@ -258,7 +258,9 @@
     (reset! server* server)))
 
 (defn stop! []
-  (.stop @server*))
+  (if @server*
+    (.stop @server*)
+    (println "@server* is nil – no server to stop")))
 
 (defn -main [& args]
   (let [default-port 8080

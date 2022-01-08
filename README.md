@@ -1,5 +1,7 @@
 # Small World
-### start/restart the server
+
+### start the repl (frontend hot-reloading + server)
+### start/restart the app
 1. start a repl
    - in your terminal: `lein repl`
 
@@ -10,7 +12,7 @@
    - command in VSCode: `Calva: load current file and dependencies`
 
 4. stop whatever server is running and then start one: 
-   - in Calva: `(use 'smallworld.web :reload) (stop!) (start! 3001)`
+   - in Calva: `(restart-server)`
 
 ### update code running on the server
 you have two options:
@@ -24,8 +26,8 @@ you have two options:
    - pros: faster
    - cons: more likely that you forget to evaluate a dependency that's needed and the whole thing doesn't actually update as you expect
 
-### start the frontend hot-reloading
-run this in a separate terminal to get hot-reloading to work.
+### start *just* the frontend hot-reloading
+run this in a separate terminal to get hot-reloading to work.  you probably won't use this often, as `lein repl` starts the frontend hot-reloadingn as well as the server.
 
 note: you'll do most of your work in the main server that you started previously, the server that _this_ step starts is just for hot-reloading.
 
