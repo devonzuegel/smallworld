@@ -57,7 +57,9 @@
    [:div.links
     [:a "about"]
     [:span.links-spacer "·"]
-    [:a "log out " [:b "@" (:screen-name @current-user)]]]])
+    (if (nil? (:screen-name @current-user))
+      [:a {:href "/oauth"} "log in"]
+      [:a "log out " [:b "@" (:screen-name @current-user)]])]])
 
 (defn music []
   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
