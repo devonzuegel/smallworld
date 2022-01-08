@@ -152,20 +152,23 @@
 (def consumer-secret (get-environment-var "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
+(def access-token (get @access-tokens "devonzuegel"))
+(def client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token)))
+
 (def users-cache (atom {}))
-(defn --fetch-user-data [screen-name]
-  (let [access-token (get @access-tokens (get @access-tokens screen-name))
-        client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))
-        api-response (client {:method :get
-                              :url (str "https://api.twitter.com/2/users/by/username/:username" screen-name)
-                              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})]
-    api-response))
+(defn fetch-current-user-data []
+  (let [;;
+        access-token (get @access-tokens "devonzuegel")
+        client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
+    (client {:method :get
+             :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
+             :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
 
 (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 ;; (def friends-cache (atom {}))
-(defn --fetch-friends [user-id] ;; use the memoized version of this function!
+(defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (try
-    (let [access-token (get @access-tokens user-id)
+    (let [access-token (get @access-tokens screen-name)
           client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
       (println "============================================================== start")
       (println "access-token: ---------------------------------------------")
@@ -204,14 +207,14 @@
               (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
               ))))
     (catch Throwable e
-      (println "🔴 caught exception when getting friends for user-id:" user-id)
+      (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (println (pr-str e))
       :failed)))
 (def memoized-friends (m/my-memoize --fetch-friends friends-cache))
 
 (def friends-cache-relevant-data (atom {}))
-(defn --fetch-friends-relevant-data [user-id]
-  (let [friends (memoized-friends user-id)]
+(defn --fetch-friends-relevant-data [screen-name]
+  (let [friends (memoized-friends screen-name)]
     (generate-string (map get-relevant-friend-data friends))))
 (def memoized-friends-relevant-data (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
@@ -228,17 +231,17 @@
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
-    (swap! access-tokens assoc (:user-id current-user) access-token)
+    (swap! access-tokens assoc (:screen-name current-user) access-token)
     (println (str "@" (:screen-name current-user) " (user-id: " (:user-id current-user) ") "
                   "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
-  ;; (GET "/current-user" []        (generate-string (--fetch-user-data "devonzuegel")))
-  (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
+  (GET "/current-user" []        (generate-string (fetch-current-user-data)))
+  ;; (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth"        []        (start-oauth-flow))
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
-  (GET "/friends"      []        (memoized-friends-relevant-data (:user-id current-user)))
+  (GET "/friends"      []        (memoized-friends-relevant-data (:screen-name current-user)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
