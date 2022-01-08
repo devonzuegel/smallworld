@@ -15,6 +15,7 @@
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
 
+;; TODO: fetch this from the Twitter client
 (def current-user
   {:name "Devon Zuegel ☀️ in Buenos Aires"
    :screen-name "devonzuegel"
@@ -25,23 +26,10 @@
                  :lng -80.1947021484375}
    :distance 7102.906300799643})
 
-(def filenames {:sebas-friends        "friends-sebasbensu.edn"
-                :sebas-friends-full   "friends-sebasbensu--full-from-twitter.edn"
-                :memoized-coordinates "memoized-coordinates.edn"})
-
 (defn get-environment-var [key]
   (let [value (System/getenv key)]
     (when (nil? value) (throw (Throwable. (str "Environment variable not set: " key))))
     value))
-
-(defn store-to-file [filename data]
-  (let [result (with-out-str (pr data))]
-    (spit filename result)))
-
-(defn read-from-file [filename]
-  (read-string (slurp (clojure.java.io/resource filename))))
-
-(def friends-from-storage (read-from-file (:sebas-friends filenames))) ;; TODO: store this in their local storage
 
 (defn haversine [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
   ; Haversine formula
@@ -59,12 +47,6 @@
         a (+ (* (Math/sin (/ dlat 2)) (Math/sin (/ dlat 2)))
              (* (Math/sin (/ dlon 2)) (Math/sin (/ dlon 2)) (Math/cos lat1) (Math/cos lat2)))]
     (* R 2 (Math/asin (Math/sqrt a)))))
-
-(def stored-coordinates {:sf         {:lat 37.78007888793945,   :lng -122.42015838623047}
-                         :ba         {:lat -34.607566833496094, :lng -58.43708801269531}
-                         :montevideo {:lat -34.90589141845703,  :lng -56.19131088256836}
-                         :london     {:lat 51.500152587890625,  :lng -0.12623600661754608}
-                         :miami      {:lat 25.775083541870117,  :lng -80.1947021484375}})
 
 ;; if you need to make the locations more precise in the future, use the bbox
 ;; (bounding box) rather than just the coordinates
@@ -97,8 +79,8 @@
         nil))))
 
 
-;; (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
-(def -coordinates-cache (atom {}))
+(def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+;; (def -coordinates-cache (atom {}))
 (def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
@@ -170,6 +152,15 @@
 (def consumer-secret (get-environment-var "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
+(def users-cache (atom {}))
+(defn --fetch-user-data [screen-name]
+  (let [access-token (get @access-tokens (get @access-tokens screen-name))
+        client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))
+        api-response (client {:method :get
+                              :url (str "https://api.twitter.com/2/users/by/username/:username" screen-name)
+                              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})]
+    api-response))
+
 (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 ;; (def friends-cache (atom {}))
 (defn --fetch-friends [user-id] ;; use the memoized version of this function!
@@ -188,7 +179,8 @@
         (println cursor)
         (println "result-so-far: ------------------------------------------")
         (println result-so-far)
-        (let [api-response  (client {:method :get :url "https://api.twitter.com/1.1/friends/list.json"
+        (let [api-response  (client {:method :get
+                                     :url "https://api.twitter.com/1.1/friends/list.json"
                                      :body (str "count=200"
                                                 "&cursor=" (str cursor)
                                                 "&skip_status=false"
@@ -237,11 +229,12 @@
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
     (swap! access-tokens assoc (:user-id current-user) access-token)
-    (println "@" (:screen-name current-user) " (user-id: " (:user-id current-user)
-             ") has successfully authorized Small World to access their Twitter account")
+    (println (str "@" (:screen-name current-user) " (user-id: " (:user-id current-user) ") "
+                  "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
+  ;; (GET "/current-user" []        (generate-string (--fetch-user-data "devonzuegel")))
   (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth"        []        (start-oauth-flow))
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
