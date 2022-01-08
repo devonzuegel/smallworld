@@ -237,7 +237,7 @@
     (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
-  (GET "/current-user" []        (generate-string (fetch-current-user-data)))
+  (GET "/current-user" []        (generate-string (get-relevant-friend-data (fetch-current-user-data))))
   ;; (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth"        []        (start-oauth-flow))
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
