@@ -106,8 +106,10 @@
       nil
       (str/replace original-url "_normal" ""))))
 
+;; TODO: instead of doing this messy split thing, get a list of city/country names & see if they're in this string
 (defn location-from-name [name]
-  (let [split-name (str/split name #" in ")]
+  (let [name (clojure.string/replace name #" soon!" "")
+        split-name (str/split name #" in ")]
     (if (= 1 (count (or split-name "")))
       nil
       (last split-name))))
