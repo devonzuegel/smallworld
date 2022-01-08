@@ -106,19 +106,25 @@
       nil
       (last split-name))))
 
+;; (defn f [a & {:keys [b] :or {b "default"}}]
+;;   (println a)
+;;   (println b))
+
 ;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
-(defn get-relevant-friend-data [friend]
-  (let [; locations as strings
+(defn get-relevant-friend-data [friend & {:keys [current-user?] :or {current-user? false}}]
+  (let [current-user-relevant-data (when (not current-user?)
+                                     (get-relevant-friend-data current-user :current-user? true))
+        ; locations as strings
         friend-main-location  (:location friend)
         friend-name-location  (location-from-name (:name friend))
-        current-main-location (:location current-user)
-        current-name-location (location-from-name (:name current-user))
+        current-main-location (when (not current-user?) (:location current-user-relevant-data))
+        current-name-location (when (not current-user?) (location-from-name (:name current-user-relevant-data)))
         ; locations as coordinates
         friend-main-coords  (memoized-coordinates (or friend-main-location ""))
         friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-        current-main-coords (memoized-coordinates (or current-main-location ""))
-        current-name-coords (memoized-coordinates (or current-name-location ""))]
+        current-main-coords (when (not current-user?) (memoized-coordinates (or current-main-location "")))
+        current-name-coords (when (not current-user?) (memoized-coordinates (or current-name-location "")))]
 
     ;; (println " friend-main-location:" friend-main-location)
     ;; (println " friend-name-location:" friend-name-location)
@@ -129,10 +135,11 @@
      :screen-name             (:screen-name friend)
      :user-id                 :TODO ;; TODO: generate this in the db
      :profile_image_url_large (normal-img-to-full-size friend)
-     :distance {:name-main (distance-btwn-coordinates current-name-coords friend-main-coords)
-                :name-name (distance-btwn-coordinates current-name-coords friend-name-coords)
-                :main-main (distance-btwn-coordinates current-main-coords friend-main-coords)
-                :main-name (distance-btwn-coordinates current-main-coords friend-name-coords)}
+     :distance (when (not current-user?)
+                 {:name-main (distance-btwn-coordinates current-name-coords friend-main-coords)
+                  :name-name (distance-btwn-coordinates current-name-coords friend-name-coords)
+                  :main-main (distance-btwn-coordinates current-main-coords friend-main-coords)
+                  :main-name (distance-btwn-coordinates current-main-coords friend-name-coords)})
      :main-location friend-main-location
      :name-location friend-name-location
      :main-coords   friend-main-coords
@@ -227,14 +234,13 @@
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
     (swap! access-tokens assoc "devonzuegel" access-token)
-    (println (str "@" "devonzuegel" " (user-id: " (:user-id current-user) ") "
+    (println (str "@" "devonzuegel" " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
   (GET "/current-user" []        (generate-string (get-relevant-friend-data (or (memoized-user-data "devonzuegel")
                                                                                 {}))))
-  ;; (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth"        []        (start-oauth-flow))
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
   (GET "/friends"      []        (memoized-friends-relevant-data "devonzuegel"))
