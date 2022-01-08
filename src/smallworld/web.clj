@@ -16,15 +16,7 @@
             [environ.core :refer [env]]))
 
 ;; TODO: fetch this from the Twitter client
-(def current-user
-  {:name "Devon Zuegel ☀️ in Buenos Aires"
-   :screen-name "devonzuegel"
-   :user-id "14058982"
-   :location "Miami Beach"
-   :profile-image-url-https "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
-   :coordinates {:lat 25.775083541870117
-                 :lng -80.1947021484375}
-   :distance 7102.906300799643})
+(def current-user (atom {}))
 
 (defn get-environment-var [key]
   (let [value (System/getenv key)]
@@ -108,7 +100,7 @@
 
 ;; TODO: instead of doing this messy split thing, get a list of city/country names & see if they're in this string
 (defn location-from-name [name]
-  (let [name (clojure.string/replace name #" soon!" "")
+  (let [name (or name "")
         split-name (str/split name #" in ")]
     (if (= 1 (count (or split-name "")))
       nil
@@ -154,17 +146,18 @@
 (def consumer-secret (get-environment-var "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
-(def access-token (get @access-tokens "devonzuegel"))
-(def client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token)))
+;; (def access-token (get @access-tokens "devonzuegel"))
+;; (def client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token)))
 
 (def users-cache (atom {}))
-(defn fetch-current-user-data []
+(defn fetch-current-user-data [screen-name]
   (let [;;
-        access-token (get @access-tokens "devonzuegel")
+        access-token (get @access-tokens screen-name)
         client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
     (client {:method :get
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
+(def memoized-user-data (m/my-memoize fetch-current-user-data users-cache))
 
 (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 ;; (def friends-cache (atom {}))
@@ -233,17 +226,18 @@
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
-    (swap! access-tokens assoc (:screen-name current-user) access-token)
-    (println (str "@" (:screen-name current-user) " (user-id: " (:user-id current-user) ") "
+    (swap! access-tokens assoc "devonzuegel" access-token)
+    (println (str "@" "devonzuegel" " (user-id: " (:user-id current-user) ") "
                   "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
-  (GET "/current-user" []        (generate-string (get-relevant-friend-data (fetch-current-user-data))))
+  (GET "/current-user" []        (generate-string (get-relevant-friend-data (or (memoized-user-data "devonzuegel")
+                                                                                {}))))
   ;; (GET "/current-user" []        (generate-string (get-relevant-friend-data current-user)))
   (GET "/oauth"        []        (start-oauth-flow))
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
-  (GET "/friends"      []        (memoized-friends-relevant-data (:screen-name current-user)))
+  (GET "/friends"      []        (memoized-friends-relevant-data "devonzuegel"))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
