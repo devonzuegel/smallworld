@@ -142,7 +142,7 @@
        (filter (closer-than max-distance distance-key))))
 
 (defn render-friends-list [friends-list-key]
-  (let [friends-list (get-close-friends friends-list-key 10000000)
+  (let [friends-list (get-close-friends friends-list-key 100)
         list-count   (count friends-list)]
     [:<>
      [:p.location-info friends-list-key ": " list-count]

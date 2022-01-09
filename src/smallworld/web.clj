@@ -101,6 +101,9 @@
 ;; TODO: instead of doing this messy split thing, get a list of city/country names & see if they're in this string
 (defn location-from-name [name]
   (let [name (or name "")
+        name (clojure.string/replace name #"they/them" "")
+        name (clojure.string/replace name #"she/her" "")
+        name (clojure.string/replace name #"he/him" "")
         split-name (str/split name #" in ")]
     (if (= 1 (count (or split-name "")))
       nil
@@ -232,7 +235,7 @@
 
 (def friends-cache-relevant-data (atom {}))
 (defn --fetch-friends-relevant-data [screen-name]
-  (map get-relevant-friend-data (take 3 (memoized-friends screen-name))))
+  (map get-relevant-friend-data (take 30 (memoized-friends screen-name))))
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
