@@ -137,11 +137,12 @@
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
-       (sort-by #(get-in % [:distance distance-key]))
+       (sort-by #(do (println (:screen-name %) "– distance:" (get-in % [:distance distance-key]))
+                     (get-in % [:distance distance-key])))
        (filter (closer-than max-distance distance-key))))
 
 (defn render-friends-list [friends-list-key]
-  (let [friends-list (get-close-friends friends-list-key 100)
+  (let [friends-list (get-close-friends friends-list-key 10000000)
         list-count   (count friends-list)]
     [:<>
      [:p.location-info friends-list-key ": " list-count]

@@ -71,8 +71,8 @@
         nil))))
 
 
-(def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
-;; (def -coordinates-cache (atom {}))
+;; (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+(def -coordinates-cache (atom {}))
 (def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
@@ -113,8 +113,7 @@
 ;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
 (defn get-relevant-friend-data [friend & {:keys [current-user?] :or {current-user? false}}]
-  (let [current-user-relevant-data (when (not current-user?)
-                                     (get-relevant-friend-data current-user :current-user? true))
+  (let [current-user-relevant-data current-user
         ; locations as strings
         friend-main-location  (:location friend)
         friend-name-location  (location-from-name (:name friend))
@@ -123,13 +122,26 @@
         ; locations as coordinates
         friend-main-coords  (memoized-coordinates (or friend-main-location ""))
         friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-        current-main-coords (when (not current-user?) (memoized-coordinates (or current-main-location "")))
-        current-name-coords (when (not current-user?) (memoized-coordinates (or current-name-location "")))]
+        current-main-coords (when (not current-user?) (:main-coords @current-user))
+        current-name-coords (when (not current-user?) (:name-coords @current-user))]
 
     ;; (println " friend-main-location:" friend-main-location)
     ;; (println " friend-name-location:" friend-name-location)
     ;; (println "current-main-location:" current-main-location)
     ;; (println "current-name-location:" current-name-location)
+
+    (println "---------------------------------------------------")
+    (println "current-user?:             " current-user?)
+    (println "@current-user:")
+    (println @current-user)
+    (println "current-user-relevant-data:" current-user-relevant-data)
+    (println "current-main-location:     " current-main-location)
+    (println "current-name-location:     " current-name-location)
+    (println "(:name friend):            " (:name friend))
+    (println "current-name-coords:       " current-name-coords)
+    (println "current-main-coords:       " current-main-coords)
+    (println "friend-main-coords:        " friend-main-coords)
+    (println "friend-main-coords:        " friend-name-coords)
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
@@ -216,9 +228,9 @@
 
 (def friends-cache-relevant-data (atom {}))
 (defn --fetch-friends-relevant-data [screen-name]
-  (let [friends (memoized-friends screen-name)]
-    (generate-string (map get-relevant-friend-data friends))))
-(def memoized-friends-relevant-data (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
+  (map get-relevant-friend-data (take 3 (memoized-friends screen-name))))
+(def memoized-friends-relevant-data
+  (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -239,11 +251,12 @@
     (response/redirect "/")))
 
 (defroutes app ; order matters in this function!
-  (GET "/current-user" []        (generate-string (get-relevant-friend-data (or (memoized-user-data "devonzuegel")
-                                                                                {}))))
+  (GET "/current-user" []        (let [data (get-relevant-friend-data (or (memoized-user-data "devonzuegel") {}))]
+                                   (reset! current-user data)
+                                   (generate-string data)))
   (GET "/oauth"        []        (start-oauth-flow))
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
-  (GET "/friends"      []        (memoized-friends-relevant-data "devonzuegel"))
+  (GET "/friends"      []        (generate-string (memoized-friends-relevant-data "devonzuegel")))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
