@@ -161,18 +161,19 @@
 ;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def consumer-key (get-environment-var "CONSUMER_KEY"))
-(def consumer-secret (get-environment-var "CONSUMER_SECRET"))
 (defonce access-tokens (atom {}))
 
 ;; (def access-token (get @access-tokens "devonzuegel"))
-;; (def client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token)))
+;; (def client (oauth/oauth-client (get-environment-var "CONSUMER_KEY") (get-environment-var "CONSUMER_SECRET") (:oauth-token access-token) (:oauth-token-secret access-token)))
 
 (def users-cache (atom {}))
 (defn fetch-current-user-data [screen-name]
   (let [;;
         access-token (get @access-tokens screen-name)
-        client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
+        client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
+                                   (get-environment-var "CONSUMER_SECRET")
+                                   (:oauth-token access-token)
+                                   (:oauth-token-secret access-token))]
     (client {:method :get
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
@@ -183,7 +184,10 @@
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens screen-name)
-          client (oauth/oauth-client consumer-key consumer-secret (:oauth-token access-token) (:oauth-token-secret access-token))]
+          client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
+                                     (get-environment-var "CONSUMER_SECRET")
+                                     (:oauth-token access-token)
+                                     (:oauth-token-secret access-token))]
       (println "============================================================== start")
       (println "access-token: ---------------------------------------------")
       (println access-token)
@@ -237,14 +241,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn start-oauth-flow []
-  (let [request-token (oauth/oauth-request-token consumer-key consumer-secret)
+  (let [request-token (oauth/oauth-request-token (get-environment-var "CONSUMER_KEY")
+                                                 (get-environment-var "CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
     (response/redirect redirect-url)))
 
 (defn store-fetched-access-token-then-redirect-home [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
-        access-token   (oauth/oauth-access-token consumer-key oauth-token oauth-verifier)]
+        access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY")
+                                                 oauth-token oauth-verifier)]
     (swap! access-tokens assoc "devonzuegel" access-token)
     (println (str "@" "devonzuegel" " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
