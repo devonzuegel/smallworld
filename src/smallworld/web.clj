@@ -71,8 +71,8 @@
         nil))))
 
 
-;; (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
-(def -coordinates-cache (atom {}))
+(def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+;; (def -coordinates-cache (atom {}))
 (def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
