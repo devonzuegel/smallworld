@@ -10,14 +10,14 @@
             [oauth.twitter :as oauth]
             ;; [clojure.pprint :as pp]
             [smallworld.memoize :as m]
-            [smallworld.current-user :as curr-user]
+            [smallworld.current-user :as cu]
             [clojure.data.json :as json]
             [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
 
 ;; TODO: fetch this from the Twitter client
-(def current-user (atom curr-user/default-state))
+(def current-user (atom cu/default-state))
 
 (defn get-environment-var [key]
   (let [value (System/getenv key)]
@@ -256,19 +256,22 @@
         access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY")
                                                  oauth-token oauth-verifier)]
     (swap! access-tokens assoc "devonzuegel" access-token)
+    (reset! current-user (get-relevant-friend-data (memoized-user-data "devonzuegel")))
     (println (str "@" "devonzuegel" " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
 (defn logout []
-  (reset! current-user curr-user/default-state)
+  (reset! current-user cu/default-state)
   @current-user)
 
 (defroutes app ; order matters in this function!
-  (GET "/current-user" []        (let [data (get-relevant-friend-data (or (memoized-user-data "devonzuegel")
-                                                                          curr-user/default-state))]
-                                   (reset! current-user data)
-                                   (generate-string data)))
+  (GET "/current-user" []        (do
+                                   (println "\ncurrent-user:" @current-user "\n")
+                                   (generate-string @current-user
+                                                    #_(if (= @current-user cu/default-state)
+                                                        cu/default-state
+                                                        (get-relevant-friend-data (memoized-user-data "devonzuegel"))))))
   (GET "/login"        []        (start-oauth-flow))
   (GET "/logout"       []        (generate-string (logout))) ;; TODO: make the default state of the atom here match the one in the frontend
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))

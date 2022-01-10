@@ -15,13 +15,16 @@
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-               (println route ":")
-               (println result)
+              ;;  (println route ":")
+              ;;  (println result)
                (callback result)))))
 
 
 (fetch "/friends" #(reset! friends %))
-(fetch "/current-user" #(reset! current-user %))
+(fetch "/current-user" #(do
+                          (js/console.log "current-user (from /current-user):")
+                          (js/console.log (pr-str %))
+                          (reset! current-user %)))
 
 (defn animated-globe []
   (let [handle-hover (fn [] (let [elem (goog.dom/getElement "logo-animation")
@@ -37,14 +40,17 @@
     (js/setTimeout handle-hover 1000))
   [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]])
 
-(defn loading-animation []
+(defn simple-loading-animation []
   [:svg.loader
    [:path {:fill "#fff"
            :d "M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"}]])
 
 (defn logout []
-  (fetch "/logout" #(reset! current-user %))
-  (js/alert "logging out!"))
+  (reset! current-user {})
+  (fetch "/logout" #(do
+                      (js/console.log "current-user (from /logout):")
+                      (js/console.log (pr-str %))
+                      (reset! current-user %))))
 
 (defn nav []
 
@@ -152,7 +158,7 @@
      ]))
 
 (defn loading-screen []
-  [:div.center-vh (loading-animation)])
+  [:div.center-vh (simple-loading-animation)])
 
 (defn logged-out-screen []
   [:div.welcome.center-vh
@@ -177,7 +183,7 @@
       [:hr] [:br]
 
       (if (= :loading @friends)
-        (loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
+        (simple-loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
         [:<>
          (when-not (empty? main-location)
            [:<>
