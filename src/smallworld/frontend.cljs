@@ -1,19 +1,14 @@
 (ns smallworld.frontend
   (:require [reagent.core :as r]
+            [smallworld.current-user :as cu]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             [clojure.string :as str]
             [goog.dom]
             [goog.dom.classlist :as gc]))
 
-
+(defonce current-user (r/atom :loading))
 (defonce friends (r/atom :loading))
-(defonce current-user (r/atom {:name nil ;; TODO: handle loading state
-                               :screen-name nil
-                               :location nil
-                               :profile_image_url_large nil
-                               :name-location {:location nil :coordinates nil :distance nil}
-                               :main-location {:location nil :coordinates nil :distance nil}}))
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
@@ -47,6 +42,10 @@
    [:path {:fill "#fff"
            :d "M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"}]])
 
+(defn logout []
+  (fetch "/logout" #(reset! current-user %))
+  (js/alert "logging out!"))
+
 (defn nav []
 
   [:div.nav
@@ -58,8 +57,8 @@
     [:a "about"]
     [:span.links-spacer "·"]
     (if (nil? (:screen-name @current-user))
-      [:a {:href "/oauth"} "log in"]
-      [:a "log out " [:b "@" (:screen-name @current-user)]])]])
+      [:a#login {:href "/login"} "log in"]
+      [:a {:href "#" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])]])
 
 (defn music []
   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
@@ -86,7 +85,6 @@
      [:td (pr-str (:coordinates friend))]
      [:td (:distance friend)]
      [:td (:profile_image_url_large friend)]
-     [:td [:pre (prn-str)]]
      #_[:td (location-name-similarity friend)]]))
 
 (def table-header (map-indexed (fn [i header] [:th {:key i} header])
@@ -153,15 +151,24 @@
     ;;  [:br] [:br] [:br]
      ]))
 
-(defn app-container []
-  (let [main-location (:main-location @current-user)
-        name-location (:name-location @current-user)]
-    [:div
-     (nav)
-     [:div.container
-      ;; [:pre "(prn-str @current-user):"] [:pre (prn-str @current-user)] [:br] [:br] 
-      (Friend nil @current-user)
+(defn loading-screen []
+  [:div.center-vh (loading-animation)])
 
+(defn logged-out-screen []
+  [:div.welcome.center-vh
+   [:h2 "welcome to Small World!"]
+   [:div#logo-animation.logo (animated-globe)]
+   [:h1 [:a#login-btn {:href "login"} "log in"] " to connect with your friends"]])
+
+(defn logged-in-screen []
+  [:<>
+   (nav)
+   (let [main-location (:main-location @current-user)
+         name-location (:name-location @current-user)]
+     [:div.container
+      [:pre "@current-user:\n" (preify @current-user)] [:br] [:br]
+
+      (Friend nil @current-user)
       [:div.location-info
        [:p "you are based in: "      [:span.location main-location]]
        (when name-location
@@ -182,26 +189,14 @@
             (render-friends-list :name-name)
             (render-friends-list :name-main)])])
 
-      [:hr] [:br]
+      ;; for debugging:
+      [:pre "@friends:\n" (preify @friends)]])])
 
-      [:pre "@friends: " (pr-str @friends)]
-
-      #_[:div.sticky-footer (music)]
-
-      ;; [:p.location-info "friends who may be near " [:span.location main-location] " right now:"]
-      ;; [:hr]
-      ;; [:table
-      ;;  [:tbody
-      ;;   [:tr table-header]
-      ;;   (map-indexed friend-row friends-main-main)]]
-
-      ;; [:p.location-info "all of your friends with their locations:"]
-      ;; [:hr]
-      ;; [:table
-      ;;  [:tbody
-      ;;   [:tr table-header]
-      ;;   (map-indexed friend-row friends-sorted-by-distance)]]
-      ]]))
+(defn app-container []
+  (condp = @current-user
+    :loading (loading-screen)
+    cu/default-state (logged-out-screen)
+    (logged-in-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
 
