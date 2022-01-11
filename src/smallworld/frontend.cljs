@@ -102,7 +102,7 @@
                                    (get-in friend [:distance :name-main])
                                    (get-in friend [:distance :main-name])
                                    (get-in friend [:distance :main-main])]))]
-    (println "distance: " x)
+    ;; (println "distance: " x)
     x))
 
 (defn closer-than [max-distance dist-key]
@@ -141,7 +141,7 @@
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
-       (sort-by #(do (println (:screen-name %) "– distance:" (get-in % [:distance distance-key]))
+       (sort-by #(do #_(println (:screen-name %) "– distance:" (get-in % [:distance distance-key]))
                      (get-in % [:distance distance-key])))
        (filter (closer-than max-distance distance-key))))
 
@@ -162,10 +162,10 @@
 
 (defn logged-out-screen []
   [:div.welcome.center-vh
-   [:h1 "welcome to Small World!"]
+   [:h1 "welcome to Small World"]
    [:div#logo-animation.logo (animated-globe)]
    [:h2
-    [:a#login-btn {:href "login"} "sign in"]
+    [:a#login-btn {:href "login"} "sign in " [:span.arrow "→"]]
     [:br] "to connect with friends"]])
 
 (defn logged-in-screen []
@@ -198,7 +198,7 @@
             (render-friends-list :name-main)])])
 
       ;; for debugging:
-      [:pre "@friends:\n" (preify @friends)]])])
+      #_[:pre "@friends:\n" (preify @friends)]])])
 
 (defn app-container []
   (condp = @current-user

@@ -236,7 +236,7 @@
 
 (def friends-cache-relevant-data (atom {}))
 (defn --fetch-friends-relevant-data [screen-name]
-  (map get-relevant-friend-data (take 30 (memoized-friends screen-name))))
+  (map get-relevant-friend-data (memoized-friends screen-name)))
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 

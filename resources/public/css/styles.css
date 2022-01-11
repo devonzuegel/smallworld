@@ -276,9 +276,13 @@ tr:nth-child(even) {
   background-color: #e7e2de;
   transition: background-color 100ms ease-out;
 }
+.welcome a#login-btn .arrow {
+  margin-top: 4px;
+  font-size: 0.9em;
+}
 .welcome h1 {
   font-size: 4em;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
 }
 .welcome h2 {
@@ -291,6 +295,6 @@ tr:nth-child(even) {
   -ms-transform: scale(6); /* IE 9 */
   -webkit-transform: scale(6); /* Safari */
   transform: scale(6);
-  margin: 180px 0 150px 0;
+  margin: 160px 0 150px 0;
   opacity: 0.25;
 }
