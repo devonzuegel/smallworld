@@ -63,7 +63,7 @@
     [:a "about"]
     [:span.links-spacer "·"]
     (if (nil? (:screen-name @current-user))
-      [:a#login {:href "/login"} "log in"]
+      [:a#login {:href "/login"} "sign in"]
       [:a {:href "#" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])]])
 
 (defn music []
@@ -162,9 +162,11 @@
 
 (defn logged-out-screen []
   [:div.welcome.center-vh
-   [:h2 "welcome to Small World!"]
+   [:h1 "welcome to Small World!"]
    [:div#logo-animation.logo (animated-globe)]
-   [:h1 [:a#login-btn {:href "login"} "log in"] " to connect with your friends"]])
+   [:h2
+    [:a#login-btn {:href "login"} "sign in"]
+    [:br] "to connect with friends"]])
 
 (defn logged-in-screen []
   [:<>
