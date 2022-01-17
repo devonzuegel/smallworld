@@ -167,7 +167,7 @@
 
 (defonce access-tokens (atom {}))
 
-;; (def access-token (get @access-tokens "devonzuegel"))
+;; (def access-token (get @access-tokens screen-name--hardcoded))
 ;; (def client (oauth/oauth-client (get-environment-var "CONSUMER_KEY") (get-environment-var "CONSUMER_SECRET") (:oauth-token access-token) (:oauth-token-secret access-token)))
 
 (def users-cache (atom {}))
@@ -244,6 +244,8 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def screen-name--hardcoded "devonzuegel")
+
 (defn start-oauth-flow []
   (let [request-token (oauth/oauth-request-token (get-environment-var "CONSUMER_KEY")
                                                  (get-environment-var "CONSUMER_SECRET"))
@@ -255,9 +257,9 @@
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY")
                                                  oauth-token oauth-verifier)]
-    (swap! access-tokens assoc "devonzuegel" access-token)
-    (reset! current-user (get-relevant-friend-data (memoized-user-data "devonzuegel")))
-    (println (str "@" "devonzuegel" " (user-id: " "TODO" ") "
+    (swap! access-tokens assoc screen-name--hardcoded access-token)
+    (reset! current-user (get-relevant-friend-data (memoized-user-data screen-name--hardcoded)))
+    (println (str "@" screen-name--hardcoded " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
@@ -271,11 +273,11 @@
                                    (generate-string @current-user
                                                     #_(if (= @current-user cu/default-state)
                                                         cu/default-state
-                                                        (get-relevant-friend-data (memoized-user-data "devonzuegel"))))))
+                                                        (get-relevant-friend-data (memoized-user-data screen-name--hardcoded))))))
   (GET "/login"        []        (start-oauth-flow))
   (GET "/logout"       []        (generate-string (logout))) ;; TODO: make the default state of the atom here match the one in the frontend
   (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
-  (GET "/friends"      []        (generate-string (memoized-friends-relevant-data "devonzuegel")))
+  (GET "/friends"      []        (generate-string (memoized-friends-relevant-data screen-name--hardcoded)))
 
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")

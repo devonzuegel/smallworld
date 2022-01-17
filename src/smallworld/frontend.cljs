@@ -198,7 +198,7 @@
             (render-friends-list :name-main)])])
 
       ;; for debugging:
-      #_[:pre "@friends:\n" (preify @friends)]])])
+      [:pre "count @friends:\n" (count @friends)]])])
 
 (defn app-container []
   (condp = @current-user
