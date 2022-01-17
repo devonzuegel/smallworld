@@ -167,20 +167,18 @@
 
 (defonce access-tokens (atom {}))
 
-;; (def access-token (get @access-tokens screen-name--hardcoded))
-;; (def client (oauth/oauth-client (get-environment-var "CONSUMER_KEY") (get-environment-var "CONSUMER_SECRET") (:oauth-token access-token) (:oauth-token-secret access-token)))
-
 (def users-cache (atom {}))
-(defn fetch-current-user-data [screen-name]
-  (let [;;
-        access-token (get @access-tokens screen-name)
-        client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
+(defn fetch-current-user-data--with-access-token [access-token]
+  (let [client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
                                    (get-environment-var "CONSUMER_SECRET")
                                    (:oauth-token access-token)
                                    (:oauth-token-secret access-token))]
     (client {:method :get
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
+(defn fetch-current-user-data [screen-name]
+  (let [access-token (get @access-tokens screen-name)]
+    (fetch-current-user-data--with-access-token access-token)))
 (def memoized-user-data (m/my-memoize fetch-current-user-data users-cache))
 
 (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
@@ -244,22 +242,22 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def screen-name--hardcoded "devonzuegel")
-
 (defn start-oauth-flow []
   (let [request-token (oauth/oauth-request-token (get-environment-var "CONSUMER_KEY")
                                                  (get-environment-var "CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
-    (response/redirect redirect-url)))
+    (response/redirect redirect-url))) ;; redirects to /authorized
 
 (defn store-fetched-access-token-then-redirect-home [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY")
-                                                 oauth-token oauth-verifier)]
-    (swap! access-tokens assoc screen-name--hardcoded access-token)
-    (reset! current-user (get-relevant-friend-data (memoized-user-data screen-name--hardcoded)))
-    (println (str "@" screen-name--hardcoded " (user-id: " "TODO" ") "
+                                                 oauth-token oauth-verifier)
+        current-user-data (get-relevant-friend-data
+                           (fetch-current-user-data--with-access-token access-token))]
+    (reset! current-user current-user-data)
+    (swap! access-tokens assoc (:screen-name current-user-data) access-token)
+    (println (str "@" (:screen-name current-user-data) " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
     (response/redirect "/")))
 
@@ -275,7 +273,9 @@
 
   ;; app data endpoints
   (GET "/current-user" [] (generate-string @current-user))
-  (GET "/friends"      [] (generate-string (memoized-friends-relevant-data screen-name--hardcoded)))
+  (GET "/friends"      [] (generate-string (if (= cu/default-state @current-user)
+                                             []
+                                             (memoized-friends-relevant-data (:screen-name @current-user)))))
 
   ;; general resources
   (GET "/" [] (slurp (io/resource "public/index.html")))

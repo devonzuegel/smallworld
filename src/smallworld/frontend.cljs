@@ -15,11 +15,11 @@
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-              ;;  (println route ":")
-              ;;  (println result)
+               (println route ":")
+               (println result)
                (callback result)))))
 
-
+;; TODO: only fetch friends if current-user is set
 (fetch "/friends" #(reset! friends %))
 (fetch "/current-user" #(do
                           (js/console.log "current-user (from /current-user):")
