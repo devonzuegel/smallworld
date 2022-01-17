@@ -195,10 +195,11 @@
          (when-not (empty? name-location)
            [:<>
             (render-friends-list :name-name)
-            (render-friends-list :name-main)])])
+            (render-friends-list :name-main)])
 
-      ;; for debugging:
-      [:pre "count @friends:\n" (count @friends)]])])
+         ;; for debugging:
+         (when (seq? @friends)
+           [:pre "count @friends:\n" (count @friends)])])])])
 
 (defn app-container []
   (condp = @current-user
