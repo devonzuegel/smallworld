@@ -268,17 +268,16 @@
   @current-user)
 
 (defroutes app ; order matters in this function!
-  (GET "/current-user" []        (do
-                                   (println "\ncurrent-user:" @current-user "\n")
-                                   (generate-string @current-user
-                                                    #_(if (= @current-user cu/default-state)
-                                                        cu/default-state
-                                                        (get-relevant-friend-data (memoized-user-data screen-name--hardcoded))))))
-  (GET "/login"        []        (start-oauth-flow))
-  (GET "/logout"       []        (generate-string (logout))) ;; TODO: make the default state of the atom here match the one in the frontend
-  (GET "/authorized"   [:as req] (store-fetched-access-token-then-redirect-home req))
-  (GET "/friends"      []        (generate-string (memoized-friends-relevant-data screen-name--hardcoded)))
+  ;; oauth endpoints
+  (GET "/login"      []        (start-oauth-flow))
+  (GET "/authorized" [:as req] (store-fetched-access-token-then-redirect-home req))
+  (GET "/logout"     []        (generate-string (logout)))
 
+  ;; app data endpoints
+  (GET "/current-user" [] (generate-string @current-user))
+  (GET "/friends"      [] (generate-string (memoized-friends-relevant-data screen-name--hardcoded)))
+
+  ;; general resources
   (GET "/" [] (slurp (io/resource "public/index.html")))
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
