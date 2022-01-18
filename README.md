@@ -2,16 +2,19 @@
 
 ### start the repl (frontend hot-reloading + server)
 ### start/restart the app
-1. start a repl
+1. set the environment variables
+   - in your terminal: `source bin/set-env-variables.sh`
+
+2. start a repl
    - in your terminal: `lein repl`
 
-2. connect your Calva repl in VSCode to the repl running in the terminal
+3. connect your Calva repl in VSCode to the repl running in the terminal
    - command in VSCode: `Calva: Connect to a running REPL server in the project`
 
-3. load your code into the repl
+4. load your code into the repl
    - command in VSCode: `Calva: load current file and dependencies`
 
-4. stop whatever server is running and then start one: 
+5. stop whatever server is running and then start one: 
    - in Calva: `(restart-server)`
 
 ### update code running on the server

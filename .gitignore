@@ -18,3 +18,4 @@ dev/devons-friends.edn
 figwheel_server.log
 .rebel_readline_history
 resources/public/js
+bin/set-env-variables.sh
