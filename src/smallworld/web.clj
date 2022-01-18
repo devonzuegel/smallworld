@@ -172,8 +172,8 @@
 (def users-cache (atom {}))
 ;; TODO: make it so this --with-access-token works with memoization too
 (defn fetch-current-user--with-access-token [access-token]
-  (let [client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
-                                   (get-environment-var "CONSUMER_SECRET")
+  (let [client (oauth/oauth-client (get-environment-var "TWITTER_CONSUMER_KEY")
+                                   (get-environment-var "TWITTER_CONSUMER_SECRET")
                                    (:oauth-token access-token)
                                    (:oauth-token-secret access-token))]
     (client {:method :get
@@ -189,8 +189,8 @@
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens screen-name)
-          client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
-                                     (get-environment-var "CONSUMER_SECRET")
+          client (oauth/oauth-client (get-environment-var "TWITTER_CONSUMER_KEY")
+                                     (get-environment-var "TWITTER_CONSUMER_SECRET")
                                      (:oauth-token access-token)
                                      (:oauth-token-secret access-token))]
       (println "============================================================== start")
@@ -247,8 +247,8 @@
 
 ;; step 1
 (defn start-oauth-flow []
-  (let [request-token (oauth/oauth-request-token (get-environment-var "CONSUMER_KEY")
-                                                 (get-environment-var "CONSUMER_SECRET"))
+  (let [request-token (oauth/oauth-request-token (get-environment-var "TWITTER_CONSUMER_KEY")
+                                                 (get-environment-var "TWITTER_CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
     (response/redirect redirect-url))) ;; redirects to /authorized
 
@@ -256,7 +256,7 @@
 (defn store-fetched-access-token-then-redirect-home [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
-        access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY") oauth-token oauth-verifier)
+        access-token   (oauth/oauth-access-token (get-environment-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
         current-user   (get-relevant-friend-data (fetch-current-user--with-access-token access-token))
         screen-name    (:screen-name current-user)]
     (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
@@ -286,14 +286,6 @@
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
 
-(def app-handler (-> devons-app
-                     (compojure.handler/site {:session
-                                              {:cookie-name "small-world-session"
-                                               :store (cookie/cookie-store {:key "a 16-byte secret"})}})
-                    ;;  (msession/wrap-session) ;; TODO: set this as env variable
-                                  ;; logger
-                     ))
-
 (defn logger [handler]
   (fn [request]
     (println "\n=======================================================")
@@ -306,11 +298,18 @@
       (println "=======================================================\n")
       response)))
 
+(def app-handler (-> devons-app
+                     (compojure.handler/site {:session
+                                              {:cookie-name "small-world-session"
+                                               :store (cookie/cookie-store
+                                                       {:key (get-environment-var "COOKIE_STORE_SECRET_KEY")})}})
+                     logger))
+
 (defonce server* (atom nil))
 
 (defn start! [port]
   (some-> @server* (.stop))
-  (let [port (Integer. (or port (env :port) 5000))
+  (let [port (Integer. (or port (get-environment-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
     (reset! server* server)))
 
@@ -319,9 +318,6 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-(compojure.handler/site {:session
-                         {:cookie-name "small-world-session"
-                          :store (cookie/cookie-store {:key "a 16-byte secret"})}})
 (defn -main [& args]
   (let [default-port 8080
         port (System/getenv "PORT")
