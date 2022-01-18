@@ -1,12 +1,14 @@
 (ns smallworld.frontend
   (:require [reagent.core :as r]
             [smallworld.current-user :as cu]
+            [smallworld.session-storage :as session-storage]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             [clojure.string :as str]
             [goog.dom]
             [goog.dom.classlist :as gc]))
 
+(defonce storage session-storage/local-storage)
 (defonce current-user (r/atom :loading))
 (defonce friends (r/atom :loading))
 
@@ -16,15 +18,12 @@
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
                (println route ":")
-               (println result)
+               (pp/pprint result)
                (callback result)))))
 
 ;; TODO: only fetch friends if current-user is set
 (fetch "/friends" #(reset! friends %))
-(fetch "/current-user" #(do
-                          (js/console.log "current-user (from /current-user):")
-                          (js/console.log (pr-str %))
-                          (reset! current-user %)))
+(fetch "/session" #(reset! current-user %))
 
 (defn animated-globe []
   (let [handle-hover (fn [] (let [elem (goog.dom/getElement "logo-animation")
@@ -46,11 +45,7 @@
            :d "M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"}]])
 
 (defn logout []
-  (reset! current-user {})
-  (fetch "/logout" #(do
-                      (js/console.log "current-user (from /logout):")
-                      (js/console.log (pr-str %))
-                      (reset! current-user %))))
+  (fetch "/logout" #(reset! current-user {})))
 
 (defn nav []
 
@@ -64,7 +59,7 @@
     [:span.links-spacer "·"]
     (if (nil? (:screen-name @current-user))
       [:a#login {:href "/login"} "sign in"]
-      [:a {:href "#" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])]])
+      [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])]])
 
 (defn music []
   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"

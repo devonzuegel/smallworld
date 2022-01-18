@@ -2,13 +2,15 @@
   (:gen-class)
   #_{:clj-kondo/ignore [:deprecated-var]}
   (:require [compojure.core :refer [defroutes GET ANY]]
-            [compojure.handler :refer [site]]
+            [compojure.handler]
             [compojure.route :as route]
             [clojure.java.io :as io]
             [ring.adapter.jetty :as jetty]
             [ring.util.response :as response]
+            [ring.middleware.session.cookie :as cookie]
+            [ring.middleware.session :as msession] ;; documentation: https://www.baeldung.com/clojure-ring
             [oauth.twitter :as oauth]
-            ;; [clojure.pprint :as pp]
+            [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [smallworld.current-user :as cu]
             [clojure.data.json :as json]
@@ -168,7 +170,8 @@
 (defonce access-tokens (atom {}))
 
 (def users-cache (atom {}))
-(defn fetch-current-user-data--with-access-token [access-token]
+;; TODO: make it so this --with-access-token works with memoization too
+(defn fetch-current-user--with-access-token [access-token]
   (let [client (oauth/oauth-client (get-environment-var "CONSUMER_KEY")
                                    (get-environment-var "CONSUMER_SECRET")
                                    (:oauth-token access-token)
@@ -176,10 +179,10 @@
     (client {:method :get
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
-(defn fetch-current-user-data [screen-name]
+(defn fetch-current-user [screen-name]
   (let [access-token (get @access-tokens screen-name)]
-    (fetch-current-user-data--with-access-token access-token)))
-(def memoized-user-data (m/my-memoize fetch-current-user-data users-cache))
+    (fetch-current-user--with-access-token access-token)))
+(def memoized-user-data (m/my-memoize fetch-current-user users-cache))
 
 (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 ;; (def friends-cache (atom {}))
@@ -242,37 +245,38 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; step 1
 (defn start-oauth-flow []
   (let [request-token (oauth/oauth-request-token (get-environment-var "CONSUMER_KEY")
                                                  (get-environment-var "CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
     (response/redirect redirect-url))) ;; redirects to /authorized
 
+;; step 2
 (defn store-fetched-access-token-then-redirect-home [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
-        access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY")
-                                                 oauth-token oauth-verifier)
-        current-user-data (get-relevant-friend-data
-                           (fetch-current-user-data--with-access-token access-token))]
-    (reset! current-user current-user-data)
-    (swap! access-tokens assoc (:screen-name current-user-data) access-token)
-    (println (str "@" (:screen-name current-user-data) " (user-id: " "TODO" ") "
+        access-token   (oauth/oauth-access-token (get-environment-var "CONSUMER_KEY") oauth-token oauth-verifier)
+        current-user   (get-relevant-friend-data (fetch-current-user--with-access-token access-token))
+        screen-name    (:screen-name current-user)]
+    (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
+    (println (str "@" screen-name " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
-    (response/redirect "/")))
+    (assoc (response/redirect "/") :session {:current-user current-user
+                                             :access-token access-token})))
 
-(defn logout []
-  (reset! current-user cu/default-state)
-  @current-user)
+(defn logout [req]
+  (assoc (response/redirect "/logged-out") :session {}))
 
-(defroutes app ; order matters in this function!
-  ;; oauth endpoints
-  (GET "/login"      []        (start-oauth-flow))
-  (GET "/authorized" [:as req] (store-fetched-access-token-then-redirect-home req))
-  (GET "/logout"     []        (generate-string (logout)))
+;; app is function that takes a request, and returns a response
+(defroutes devons-app ; order matters in this function!
+  ;; oauth & session endpoints
+  (GET "/login"      []  (start-oauth-flow))
+  (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
+  (GET "/session"    req (generate-string (get-in req [:session :current-user] {})))
+  (GET "/logout"     req (logout req))
 
   ;; app data endpoints
-  (GET "/current-user" [] (generate-string @current-user))
   (GET "/friends"      [] (generate-string (if (= cu/default-state @current-user)
                                              []
                                              (memoized-friends-relevant-data (:screen-name @current-user)))))
@@ -282,12 +286,32 @@
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
 
+(def app-handler (-> devons-app
+                     (compojure.handler/site {:session
+                                              {:cookie-name "small-world-session"
+                                               :store (cookie/cookie-store {:key "a 16-byte secret"})}})
+                    ;;  (msession/wrap-session) ;; TODO: set this as env variable
+                                  ;; logger
+                     ))
+
+(defn logger [handler]
+  (fn [request]
+    (println "\n=======================================================")
+    (println "request:")
+    (pp/pprint request)
+    (println "")
+    (let [response (handler request)]
+      (println "response:")
+      (pp/pprint response)
+      (println "=======================================================\n")
+      response)))
+
 (defonce server* (atom nil))
 
 (defn start! [port]
   (some-> @server* (.stop))
   (let [port (Integer. (or port (env :port) 5000))
-        server (jetty/run-jetty (site #'app) {:port port :join? false})]
+        server (jetty/run-jetty #'app-handler {:port port :join? false})]
     (reset! server* server)))
 
 (defn stop! []
@@ -295,6 +319,9 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
+(compojure.handler/site {:session
+                         {:cookie-name "small-world-session"
+                          :store (cookie/cookie-store {:key "a 16-byte secret"})}})
 (defn -main [& args]
   (let [default-port 8080
         port (System/getenv "PORT")
