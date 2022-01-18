@@ -54,12 +54,11 @@
     (animated-globe)
 
     [:div.logo-text "small world"]]
-   [:div.links
-    [:a "about"]
-    [:span.links-spacer "·"]
-    (if (nil? (:screen-name @current-user))
-      [:a#login {:href "/login"} "sign in"]
-      [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])]])
+   [:a "about"]
+   [:span.links-spacer "·"]
+   (if (nil? (:screen-name @current-user))
+     [:a#login {:href "/login"} "sign in"]
+     [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])])
 
 (defn music []
   [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"

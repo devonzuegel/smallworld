@@ -18,8 +18,7 @@ body {
   margin: 0;
 }
 #app {
-  width: 100vw;
-  height: 100vh;
+  overflow-x: hidden;
 }
 /*****************************************/
 /**** nav ********************************/
@@ -31,10 +30,11 @@ body {
   align-items: center;
   justify-content: space-between;
   position: fixed;
-  width: 100%;
   background: #013917;
   top: 0;
   z-index: 1;
+  width: -webkit-fill-available;
+  padding-right: 22px;
 }
 .logo {
   display: flex;
@@ -58,12 +58,8 @@ body {
   margin: 10px 12px;
   max-width: 80px;
 }
-.links {
-  display: flex;
-  margin-right: 24px;
-}
 .links-spacer {
-  margin: 0 16px;
+  margin: 0 4px;
   color: #d9d3cc33;
 }
 
