@@ -246,11 +246,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; step 1
+;; in prod: this will redirect to https://small-world-friends.herokuapp.com/authorized,
+;;          the 'Callback URL' set up at https://developer.twitter.com/en/apps/9258522
+;; in dev:  this will redirect to http://localhost:3001/authorized,
+;;          the 'Callback URL' set up at https://developer.twitter.com/en/apps/9258699
 (defn start-oauth-flow []
   (let [request-token (oauth/oauth-request-token (get-environment-var "TWITTER_CONSUMER_KEY")
                                                  (get-environment-var "TWITTER_CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
-    (response/redirect redirect-url))) ;; redirects to /authorized
+    (response/redirect redirect-url)))
 
 ;; step 2
 (defn store-fetched-access-token-then-redirect-home [req]
