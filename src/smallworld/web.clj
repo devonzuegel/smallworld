@@ -132,18 +132,18 @@
     ;; (println "current-main-location:" current-main-location)
     ;; (println "current-name-location:" current-name-location)
 
-    (println "---------------------------------------------------")
-    (println "current-user?:             " current-user?)
-    (println "@current-user:")
-    (println @current-user)
-    (println "current-user-relevant-data:" current-user-relevant-data)
-    (println "current-main-location:     " current-main-location)
-    (println "current-name-location:     " current-name-location)
-    (println "(:name friend):            " (:name friend))
-    (println "current-name-coords:       " current-name-coords)
-    (println "current-main-coords:       " current-main-coords)
-    (println "friend-main-coords:        " friend-main-coords)
-    (println "friend-main-coords:        " friend-name-coords)
+    ;; (println "---------------------------------------------------")
+    ;; (println "current-user?:             " current-user?)
+    ;; (println "@current-user:")
+    ;; (println @current-user)
+    ;; (println "current-user-relevant-data:" current-user-relevant-data)
+    ;; (println "current-main-location:     " current-main-location)
+    ;; (println "current-name-location:     " current-name-location)
+    ;; (println "(:name friend):            " (:name friend))
+    ;; (println "current-name-coords:       " current-name-coords)
+    ;; (println "current-main-coords:       " current-main-coords)
+    ;; (println "friend-main-coords:        " friend-main-coords)
+    ;; (println "friend-main-coords:        " friend-name-coords)
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
@@ -277,9 +277,10 @@
   (GET "/logout"     req (logout req))
 
   ;; app data endpoints
-  (GET "/friends"      [] (generate-string (if (= cu/default-state @current-user)
-                                             []
-                                             (memoized-friends-relevant-data (:screen-name @current-user)))))
+  (GET "/friends" req (let [-current-user (get-in req [:session :current-user] cu/default-state)]
+                        (generate-string (if (= cu/default-state -current-user)
+                                           []
+                                           (memoized-friends-relevant-data (:screen-name -current-user))))))
 
   ;; general resources
   (GET "/" [] (slurp (io/resource "public/index.html")))
@@ -291,7 +292,7 @@
                                               {:cookie-name "small-world-session"
                                                :store (cookie/cookie-store
                                                        {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})
-                     util/server-logger))
+                     #_util/server-logger))
 
 (defonce server* (atom nil))
 
