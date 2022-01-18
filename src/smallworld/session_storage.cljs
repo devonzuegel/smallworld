@@ -1,5 +1,7 @@
 (ns smallworld.session-storage)
 
+;; TODO: remove this file if I don't end up using it
+
 ;; adapted from https://github.com/netpyoung/cljs-storage
 ;; TODO: consider using https://github.com/alandipert/storage-atom instead
 
