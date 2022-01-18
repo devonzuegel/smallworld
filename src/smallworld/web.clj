@@ -12,6 +12,7 @@
             [oauth.twitter :as oauth]
             [clojure.pprint :as pp]
             [smallworld.memoize :as m]
+            [smallworld.util :as util]
             [smallworld.current-user :as cu]
             [clojure.data.json :as json]
             [clojure.string :as str]
@@ -20,11 +21,6 @@
 
 ;; TODO: fetch this from the Twitter client
 (def current-user (atom cu/default-state))
-
-(defn get-environment-var [key]
-  (let [value (System/getenv key)]
-    (when (nil? value) (throw (Throwable. (str "Environment variable not set: " key))))
-    value))
 
 (defn haversine [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
   ; Haversine formula
@@ -61,7 +57,7 @@
         )
     (try
       (let [city    (java.net.URLEncoder/encode (or city-str "") "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
-            api-key (java.net.URLEncoder/encode (get-environment-var "BING_MAPS_API_KEY") "UTF-8")]
+            api-key (java.net.URLEncoder/encode (util/get-env-var "BING_MAPS_API_KEY") "UTF-8")]
         (println "city:" city)
         (println "api-key:" api-key)
         (println "")
@@ -172,8 +168,8 @@
 (def users-cache (atom {}))
 ;; TODO: make it so this --with-access-token works with memoization too
 (defn fetch-current-user--with-access-token [access-token]
-  (let [client (oauth/oauth-client (get-environment-var "TWITTER_CONSUMER_KEY")
-                                   (get-environment-var "TWITTER_CONSUMER_SECRET")
+  (let [client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                   (util/get-env-var "TWITTER_CONSUMER_SECRET")
                                    (:oauth-token access-token)
                                    (:oauth-token-secret access-token))]
     (client {:method :get
@@ -189,8 +185,8 @@
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens screen-name)
-          client (oauth/oauth-client (get-environment-var "TWITTER_CONSUMER_KEY")
-                                     (get-environment-var "TWITTER_CONSUMER_SECRET")
+          client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                     (util/get-env-var "TWITTER_CONSUMER_SECRET")
                                      (:oauth-token access-token)
                                      (:oauth-token-secret access-token))]
       (println "============================================================== start")
@@ -251,8 +247,8 @@
 ;; in dev:  this will redirect to http://localhost:3001/authorized,
 ;;          the 'Callback URL' set up at https://developer.twitter.com/en/apps/9258699
 (defn start-oauth-flow []
-  (let [request-token (oauth/oauth-request-token (get-environment-var "TWITTER_CONSUMER_KEY")
-                                                 (get-environment-var "TWITTER_CONSUMER_SECRET"))
+  (let [request-token (oauth/oauth-request-token (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                                 (util/get-env-var "TWITTER_CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
     (response/redirect redirect-url)))
 
@@ -260,7 +256,7 @@
 (defn store-fetched-access-token-then-redirect-home [req]
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
-        access-token   (oauth/oauth-access-token (get-environment-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
+        access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
         current-user   (get-relevant-friend-data (fetch-current-user--with-access-token access-token))
         screen-name    (:screen-name current-user)]
     (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
@@ -290,30 +286,18 @@
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
 
-(defn logger [handler]
-  (fn [request]
-    (println "\n=======================================================")
-    (println "request:")
-    (pp/pprint request)
-    (println "")
-    (let [response (handler request)]
-      (println "response:")
-      (pp/pprint response)
-      (println "=======================================================\n")
-      response)))
-
 (def app-handler (-> devons-app
                      (compojure.handler/site {:session
                                               {:cookie-name "small-world-session"
                                                :store (cookie/cookie-store
-                                                       {:key (get-environment-var "COOKIE_STORE_SECRET_KEY")})}})
-                     logger))
+                                                       {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})
+                     util/server-logger))
 
 (defonce server* (atom nil))
 
 (defn start! [port]
   (some-> @server* (.stop))
-  (let [port (Integer. (or port (get-environment-var "PORT") 5000))
+  (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
     (reset! server* server)))
 
