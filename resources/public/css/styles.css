@@ -10,6 +10,7 @@
 }
 html {
   background-color: #013917;
+  background-image: url(../az-subtle.png);
   color: #d9d3cc;
   font-size: 14px;
   font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
@@ -36,6 +37,17 @@ body {
   z-index: 1;
   width: -webkit-fill-available;
   padding-right: 22px;
+}
+.nav::before {
+  content: '';
+  background-image: url(../washi.png);
+  background-size: tile;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  opacity: 0.3;
 }
 .logo {
   display: flex;
