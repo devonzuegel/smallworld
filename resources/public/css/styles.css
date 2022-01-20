@@ -59,9 +59,17 @@ body {
   margin: 10px 12px;
   max-width: 80px;
 }
+.fill-nav-space {
+  flex-grow: 1;
+}
 .links-spacer {
-  margin: 0 4px;
-  color: #d9d3cc33;
+  margin: 0 16px;
+  color: #d9d3cc55;
+}
+@media screen and (max-width: 768px) {
+  .links-spacer {
+    margin: 0 8px;
+  }
 }
 
 /******************************************************************************/

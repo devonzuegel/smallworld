@@ -54,6 +54,7 @@
     (animated-globe)
 
     [:div.logo-text "small world"]]
+   [:span.fill-nav-space]
    [:a "about"]
    [:span.links-spacer "·"]
    (if (nil? (:screen-name @current-user))
