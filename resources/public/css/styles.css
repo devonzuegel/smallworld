@@ -1,3 +1,312 @@
+@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inria+Serif:wght@400;700&family=Inter:wght@200;300;400;500;600;700;800;900&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+html {
+  background-color: #013917;
+  color: #d9d3cc;
+  font-size: 14px;
+  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+}
+body {
+  margin: 0;
+}
+#app {
+  overflow-x: hidden;
+  height: 100vh;
+}
+/*****************************************/
+/**** nav ********************************/
+/*****************************************/
+.nav {
+  margin-bottom: 64px;
+  border-bottom: 2px solid #d9d3cc33;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  background: #013917;
+  top: 0;
+  z-index: 1;
+  width: -webkit-fill-available;
+  padding-right: 22px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+  cursor: pointer;
+}
+.logo-globe {
+  display: inline-block;
+  border: 2px solid #d9d3ccaa;
+  height: 30px;
+  width: 30px;
+  border-radius: 50px;
+  background: #d9d3cc33;
+}
+.logo-text {
+  display: inline-block;
+  font-family: 'Inria Serif', serif;
+  font-size: 22px;
+  line-height: 0.9em;
+  margin: 10px 12px;
+  max-width: 80px;
+}
+.fill-nav-space {
+  flex-grow: 1;
+}
+.links-spacer {
+  margin: 0 16px;
+  color: #d9d3cc55;
+}
+@media screen and (max-width: 768px) {
+  .links-spacer {
+    margin: 0 8px;
+  }
+}
+
+/******************************************************************************/
+/**** animated logo ************************************************************/
+/******************************************************************************/
+.globe-loader {
+  font-size: 2rem;
+  position: fixed;
+  position: relative;
+  margin-right: 4px;
+}
+.no-animation,
+.no-animation * {
+  animation: none !important;
+}
+.globe-loader > i {
+  display: block;
+  position: absolute;
+  font-size: 0.37em;
+  height: 50%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(-45deg);
+  transform-origin: center bottom;
+  animation: airplane-spin 2.5s 3 ease-in-out;
+}
+.logo:hover .globe-loader > i {
+  animation: airplane-spin 2.5s infinite ease-in-out;
+}
+.globe-loader > i::before {
+  position: relative;
+  top: -1.26em;
+}
+@keyframes airplane-spin {
+  from {
+    transform: translateX(-50%) rotate(-45deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(0.875turn);
+  }
+}
+/******************************************************************************/
+/**** animated loader *********************************************************/
+/******************************************************************************/
+.loader {
+  animation: loader-spin 1s infinite linear;
+  width: 50px;
+  height: 50px;
+  opacity: 0.6;
+}
+.loader path {
+  -ms-transform: scale(0.5, 0.5); /* IE 9 */
+  -webkit-transform: scale(0.5, 0.5); /* Safari */
+  transform: scale(0.5, 0.5);
+}
+@keyframes loader-spin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/******************************************************************************/
+/**** content *****************************************************************/
+/******************************************************************************/
+.container {
+  // max-width: 700px;
+  margin: auto;
+  margin-top: 80px;
+  padding: 20px;
+  margin-bottom: 100px;
+}
+pre {
+  white-space: pre-wrap;
+  font-family: 'Roboto Mono', monospace;
+  overflow: hidden;
+  background-color: #ffffff11;
+  padding: 8px;
+  font-size: 0.6em;
+}
+hr {
+  border-bottom: 2px solid #d9d3cc33;
+  margin: 16px 0;
+}
+a {
+  color: #d9d3cc;
+  text-decoration: none;
+  // border-bottom: 3px solid #ffffff22;
+}
+a:hover {
+  color: #f5f0eb;
+  transition: all 50ms ease-out;
+  // border-bottom: 3px solid #ffffff44;
+}
+.location-info {
+  font-size: 1.2em;
+}
+.location-info .location {
+  background-color: #002a0e;
+  padding: 2px 6px 4px 6px;
+  border-radius: 4px;
+}
+/*****************************************/
+/**** table ******************************/
+/*****************************************/
+table {
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  opacity: 0.8;
+}
+td,
+th {
+  padding: 3px 8px;
+}
+tr:nth-child(even) {
+  background: #11492799;
+}
+/*****************************************/
+/**** friend *****************************/
+/*****************************************/
+.friends {
+  display: flex;
+  flex-wrap: wrap;
+}
+.friend {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  width: 440px;
+}
+.friend .twitter-pic,
+.friend .twitter-pic img {
+  height: 60px;
+  width: 60px;
+  border-radius: 60px;
+}
+.friend .twitter-pic {
+  background-color: #d9d3cc22;
+  border: 3px solid #d9d3cc44;
+}
+.friend .twitter-pic:hover {
+  border: 3px solid #d9d3cc55;
+  transition: all 50ms ease-out;
+}
+.friend .right-section {
+  margin-left: 12px;
+  padding-bottom: 12px;
+}
+.friend .right-section a .name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.friend .right-section a .handle {
+  opacity: 0.6;
+  margin-left: 12px;
+}
+.friend:hover .right-section a .handle {
+  opacity: 0.7;
+}
+.coordinates {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.8em;
+  margin-left: 12px;
+  opacity: 0.7;
+}
+.no-friends-found {
+  font-size: 1.2em;
+  margin-bottom: 24px;
+  opacity: 0.7;
+}
+/******************************************************************************/
+/**** sticky footer ***********************************************************/
+/******************************************************************************/
+.sticky-footer {
+  position: fixed;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  color: white;
+  text-align: center;
+}
+/******************************************************************************/
+/**** welcome *****************************************************************/
+/******************************************************************************/
+.center-vh {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.welcome a#login-btn {
+  font-weight: bolder !important;
+  color: #013917;
+  border-radius: 100px;
+  padding: 1px 24px 8px;
+  margin-bottom: 8px;
+  background-color: #d9d3cc;
+  transition: background-color 100ms ease-out;
+  font-size: 1.5em;
+}
+.welcome a#login-btn:hover {
+  background-color: #e7e2de;
+  transition: background-color 100ms ease-out;
+}
+.welcome a#login-btn .arrow {
+  margin-top: 4px;
+  font-size: 0.9em;
+}
+.welcome h1 {
+  font-size: 4em;
+  font-weight: 700;
+  text-align: center;
+}
+.welcome h2 {
+  font-size: 2.4em;
+  font-weight: 500;
+  text-align: center;
+  line-height: 2em;
+}
+.welcome #logo-animation {
+  -ms-transform: scale(6); /* IE 9 */
+  -webkit-transform: scale(6); /* Safari */
+  transform: scale(6);
+  margin: 160px 0 150px 0;
+  opacity: 0.25;
+}
+
+/******************************************************************************/
+/**** Mapbox ******************************************************************/
+/******************************************************************************/
 #map-goes-here {
   border: 3px solid green;
   height: 100vh;
@@ -5,309 +314,3 @@
   width: 100vw;
   width: 500px;
 }
-
-// @import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inria+Serif:wght@400;700&family=Inter:wght@200;300;400;500;600;700;800;900&display=swap');
-// * {
-//   margin: 0;
-//   padding: 0;
-//   border: 0;
-//   outline: 0;
-//   font-size: 100%;
-//   vertical-align: baseline;
-//   background: transparent;
-// }
-// html {
-//   background-color: #013917;
-//   color: #d9d3cc;
-//   font-size: 14px;
-//   font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
-// }
-// body {
-//   margin: 0;
-// }
-// #app {
-//   overflow-x: hidden;
-//   height: 100vh;
-// }
-// /*****************************************/
-// /**** nav ********************************/
-// /*****************************************/
-// .nav {
-//   margin-bottom: 64px;
-//   border-bottom: 2px solid #d9d3cc33;
-//   display: flex;
-//   align-items: center;
-//   justify-content: space-between;
-//   position: fixed;
-//   background: #013917;
-//   top: 0;
-//   z-index: 1;
-//   width: -webkit-fill-available;
-//   padding-right: 22px;
-// }
-// .logo {
-//   display: flex;
-//   align-items: center;
-//   margin-left: 16px;
-//   cursor: pointer;
-// }
-// .logo-globe {
-//   display: inline-block;
-//   border: 2px solid #d9d3ccaa;
-//   height: 30px;
-//   width: 30px;
-//   border-radius: 50px;
-//   background: #d9d3cc33;
-// }
-// .logo-text {
-//   display: inline-block;
-//   font-family: 'Inria Serif', serif;
-//   font-size: 22px;
-//   line-height: 0.9em;
-//   margin: 10px 12px;
-//   max-width: 80px;
-// }
-// .fill-nav-space {
-//   flex-grow: 1;
-// }
-// .links-spacer {
-//   margin: 0 16px;
-//   color: #d9d3cc55;
-// }
-// @media screen and (max-width: 768px) {
-//   .links-spacer {
-//     margin: 0 8px;
-//   }
-// }
-
-// /******************************************************************************/
-// /**** animated logo ************************************************************/
-// /******************************************************************************/
-// .globe-loader {
-//   font-size: 2rem;
-//   position: fixed;
-//   position: relative;
-//   margin-right: 4px;
-// }
-// .no-animation,
-// .no-animation * {
-//   animation: none !important;
-// }
-// .globe-loader > i {
-//   display: block;
-//   position: absolute;
-//   font-size: 0.37em;
-//   height: 50%;
-//   top: 0;
-//   left: 50%;
-//   transform: translateX(-50%) rotate(-45deg);
-//   transform-origin: center bottom;
-//   animation: airplane-spin 2.5s 3 ease-in-out;
-// }
-// .logo:hover .globe-loader > i {
-//   animation: airplane-spin 2.5s infinite ease-in-out;
-// }
-// .globe-loader > i::before {
-//   position: relative;
-//   top: -1.26em;
-// }
-// @keyframes airplane-spin {
-//   from {
-//     transform: translateX(-50%) rotate(-45deg);
-//   }
-//   to {
-//     transform: translateX(-50%) rotate(0.875turn);
-//   }
-// }
-// /******************************************************************************/
-// /**** animated loader *********************************************************/
-// /******************************************************************************/
-// .loader {
-//   animation: loader-spin 1s infinite linear;
-//   width: 50px;
-//   height: 50px;
-//   opacity: 0.6;
-// }
-// .loader path {
-//   -ms-transform: scale(0.5, 0.5); /* IE 9 */
-//   -webkit-transform: scale(0.5, 0.5); /* Safari */
-//   transform: scale(0.5, 0.5);
-// }
-// @keyframes loader-spin {
-//   from {
-//     transform: rotate(0);
-//   }
-//   to {
-//     transform: rotate(360deg);
-//   }
-// }
-
-// /******************************************************************************/
-// /**** content *****************************************************************/
-// /******************************************************************************/
-// .container {
-//   // max-width: 700px;
-//   margin: auto;
-//   margin-top: 80px;
-//   padding: 20px;
-//   margin-bottom: 100px;
-// }
-// pre {
-//   white-space: pre-wrap;
-//   font-family: 'Roboto Mono', monospace;
-//   overflow: hidden;
-//   background-color: #ffffff11;
-//   padding: 8px;
-//   font-size: 0.6em;
-// }
-// hr {
-//   border-bottom: 2px solid #d9d3cc33;
-//   margin: 16px 0;
-// }
-// a {
-//   color: #d9d3cc;
-//   text-decoration: none;
-//   // border-bottom: 3px solid #ffffff22;
-// }
-// a:hover {
-//   color: #f5f0eb;
-//   transition: all 50ms ease-out;
-//   // border-bottom: 3px solid #ffffff44;
-// }
-// .location-info {
-//   font-size: 1.2em;
-// }
-// .location-info .location {
-//   background-color: #002a0e;
-//   padding: 2px 6px 4px 6px;
-//   border-radius: 4px;
-// }
-// /*****************************************/
-// /**** table ******************************/
-// /*****************************************/
-// table {
-//   border-collapse: collapse;
-// }
-// th {
-//   text-align: left;
-//   opacity: 0.8;
-// }
-// td,
-// th {
-//   padding: 3px 8px;
-// }
-// tr:nth-child(even) {
-//   background: #11492799;
-// }
-// /*****************************************/
-// /**** friend *****************************/
-// /*****************************************/
-// .friends {
-//   display: flex;
-//   flex-wrap: wrap;
-// }
-// .friend {
-//   margin-bottom: 24px;
-//   display: flex;
-//   align-items: center;
-//   width: 440px;
-// }
-// .friend .twitter-pic,
-// .friend .twitter-pic img {
-//   height: 60px;
-//   width: 60px;
-//   border-radius: 60px;
-// }
-// .friend .twitter-pic {
-//   background-color: #d9d3cc22;
-//   border: 3px solid #d9d3cc44;
-// }
-// .friend .twitter-pic:hover {
-//   border: 3px solid #d9d3cc55;
-//   transition: all 50ms ease-out;
-// }
-// .friend .right-section {
-//   margin-left: 12px;
-//   padding-bottom: 12px;
-// }
-// .friend .right-section a .name {
-//   font-size: 1.2em;
-//   font-weight: bold;
-// }
-// .friend .right-section a .handle {
-//   opacity: 0.6;
-//   margin-left: 12px;
-// }
-// .friend:hover .right-section a .handle {
-//   opacity: 0.7;
-// }
-// .coordinates {
-//   font-family: 'Roboto Mono', monospace;
-//   font-size: 0.8em;
-//   margin-left: 12px;
-//   opacity: 0.7;
-// }
-// .no-friends-found {
-//   font-size: 1.2em;
-//   margin-bottom: 24px;
-//   opacity: 0.7;
-// }
-// /******************************************************************************/
-// /**** sticky footer ***********************************************************/
-// /******************************************************************************/
-// .sticky-footer {
-//   position: fixed;
-//   left: 0;
-//   bottom: -4px;
-//   width: 100%;
-//   color: white;
-//   text-align: center;
-// }
-// /******************************************************************************/
-// /**** welcome *****************************************************************/
-// /******************************************************************************/
-// .center-vh {
-//   margin: auto;
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   position: relative;
-//   top: 50%;
-//   transform: translateY(-50%);
-// }
-// .welcome a#login-btn {
-//   font-weight: bolder !important;
-//   color: #013917;
-//   border-radius: 100px;
-//   padding: 1px 24px 8px;
-//   margin-bottom: 8px;
-//   background-color: #d9d3cc;
-//   transition: background-color 100ms ease-out;
-//   font-size: 1.5em;
-// }
-// .welcome a#login-btn:hover {
-//   background-color: #e7e2de;
-//   transition: background-color 100ms ease-out;
-// }
-// .welcome a#login-btn .arrow {
-//   margin-top: 4px;
-//   font-size: 0.9em;
-// }
-// .welcome h1 {
-//   font-size: 4em;
-//   font-weight: 700;
-//   text-align: center;
-// }
-// .welcome h2 {
-//   font-size: 2.4em;
-//   font-weight: 500;
-//   text-align: center;
-//   line-height: 2em;
-// }
-// .welcome #logo-animation {
-//   -ms-transform: scale(6); /* IE 9 */
-//   -webkit-transform: scale(6); /* Safari */
-//   transform: scale(6);
-//   margin: 160px 0 150px 0;
-//   opacity: 0.25;
-// }

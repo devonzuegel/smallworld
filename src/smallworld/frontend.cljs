@@ -228,30 +228,24 @@
                        :zoom 9)
                  500)
 
-
-
-(defn app-container []
-  [:div "yooo"]
-
-  ;; (defn MapRender
-  ;;   []
-  ;;   (let [ref (r/useRef nil)
-  ;;         [map setMap] (r/useState nil)]
-  ;;     (r/useEffect
-  ;;      (fn []
-  ;;        (when (and (.-current ref) (not map))
-  ;;          (let [map
-  ;;                (new
-  ;;                 (.-Map mapboxgl)
-  ;;                 #js
-  ;;                  {:container (.-current ref)
-  ;;                   :style "mapbox://styles/mapbox/streets-v11"
-  ;;                   :center #js [0 0]
-  ;;                   :zoom 1})]
-  ;;            (setMap map))))
-  ;;      #js [ref map])
-  ;;     [:div {:className "map-container", :ref ref}]))
-
+;; (defn MapRender
+;;   []
+;;   (let [ref (r/useRef nil)
+;;         [map setMap] (r/useState nil)]
+;;     (r/useEffect
+;;      (fn []
+;;        (when (and (.-current ref) (not map))
+;;          (let [map
+;;                (new
+;;                 (.-Map mapboxgl)
+;;                 #js
+;;                  {:container (.-current ref)
+;;                   :style "mapbox://styles/mapbox/streets-v11"
+;;                   :center #js [0 0]
+;;                   :zoom 1})]
+;;            (setMap map))))
+;;      #js [ref map])
+;;     [:div {:className "map-container", :ref ref}]))
 
 ;; mapboxgl.accessToken = '<your access token here>';
 ;; const map = new mapboxgl.Map({
@@ -273,12 +267,11 @@
   ;;   my-map)
 
 
+(defn app-container []
+  (condp = @current-user
+    :loading (loading-screen)
+    cu/default-state (logged-out-screen)
+    (logged-in-screen)))
 
-  ;; [:div "replace me with map!"]
-  #_(condp = @current-user
-      :loading (loading-screen)
-      cu/default-state (logged-out-screen)
-      (logged-in-screen)))
-
-;; (r/render-component [app-container] (goog.dom/getElement "app"))
+(r/render-component [app-container] (goog.dom/getElement "app"))
 
