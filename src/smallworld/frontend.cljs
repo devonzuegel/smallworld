@@ -197,29 +197,19 @@
          (when (seq? @friends)
            [:pre "count @friends:\n" (count @friends)])])])])
 
-(set! (.-accessToken js/mapboxgl)
-      "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA")
-      ;; "pk.eyJ1IjoiaGV5emsiLCJhIjoiY2l2Z2J5NmdyMDE3YzJ4bG1kYWNsd2FkcyJ9.wDoOVs2uTd8x-cftHb63jA")
 
-;; (.createElement js/document "div")
-(def my-map (new js/mapboxgl.Map
-                 #js {:container "map-goes-here"
-                      ;; :key "pk.eyJ1IjoiaGV5emsiLCJhIjoiY2l2Z2J5NmdyMDE3YzJ4bG1kYWNsd2FkcyJ9.wDoOVs2uTd8x-cftHb63jA"
-                      ;; :style "mapbox://styles/mapbox/streets-v11"
-                      ;; :style "mapbox://styles/mapbox/outdoors-v11"
-                      ;; :style "https://s3.amazonaws.com/flnassets/mbstyle.json"
-                      ;; :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
-                      ;; :style "https://api.mapbox.com/styles/v1/devonzuegel/ckyn7uof70x1e14ppotxarzhc/wmts?access_token=pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                      ;; :style "./mapbox-style-frank.json"
-                      ;; :key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                      ;; :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
+(def mapbox-config {:frank-lloyd-wright {:key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                                         :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
+                                        ;;  :style "./mapbox-style-frank.json"
+                                         }
+                    :curios-bright {:key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                                    :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}})
 
-                      ;; Curios bright
-                      :key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                      :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"
+;; (def mapbox-style :frank-lloyd-wright)
+(def mapbox-style :curios-bright)
 
-                      :center #js[74.5, 40] ;; TODO: center on user's location
-                      :zoom 1}))
+(set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :key]))
+
 ;; const marker = new mapgl.Marker(map, {
 ;;     coordinates: [55.31878, 25.23584],
 ;; });
@@ -268,12 +258,35 @@
   ;;   ;; (print my-map)
   ;;   my-map)
 
+(defn render-map []
+  (r/create-class
+   {:component-did-mount (fn [component]
+                          ;;  (let [node (r/dom-node comp)]
+                           (js/console.log "component:")
+                           (js/console.log component)
+                           (js/console.log "(js/document.getElementById 'new-map-container')")
+                           (js/console.log (js/document.getElementById "new-map-container"))
+                            ;;  (println "node:     " node)
+                            ;;  (println "creating map...")
+                           (new js/mapboxgl.Map
+                                #js{:container "new-map-container"
+                                    :key (get-in mapbox-config [mapbox-style :key])
+                                    :style (get-in mapbox-config [mapbox-style :style])
+                                    :attributionControl false ;; remove the Mapbox copyright symbol
+                                    :center #js[74.5, 40] ;; TODO: center on user's location
+                                    :zoom 1})
+                            ;;  )
+                           )
+    :reagent-render (fn [] [:div#new-map-container])}))
+
 
 (defn app-container []
-  (condp = @current-user
-    :loading (loading-screen)
-    cu/default-state (logged-out-screen)
-    (logged-in-screen)))
+  (render-map)
+
+  #_(condp = @current-user
+      :loading (loading-screen)
+      cu/default-state (logged-out-screen)
+      (logged-in-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
 

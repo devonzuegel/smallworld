@@ -307,10 +307,11 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
-#map-goes-here {
-  border: 3px solid green;
-  height: 100vh;
-  height: 300px;
-  width: 100vw;
-  width: 500px;
+#map-goes-here,
+#new-map-container {
+  height: 400px;
+  width: 100%;
+}
+.mapboxgl-ctrl-logo {
+  display: none !important;
 }
