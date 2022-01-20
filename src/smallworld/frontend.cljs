@@ -10,7 +10,25 @@
             [goog.dom.classlist :as gc]))
 
 (defonce storage session-storage/local-storage)
-(defonce current-user (r/atom :loading))
+(defonce current-user
+  (r/atom {:profile_image_url_large
+           "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
+           :main-coords {:lat 25.792236328125
+                         :lng -80.13484954833984}
+           :name-location nil
+           :name "Devon ☀️ (HARDCODED)"
+           :user-id "TODO"
+           :screen-name "devonzuegel"
+           :main-location "Miami Beach"
+           :name-coords nil
+           :distance
+           {:name-main nil
+            :name-name nil
+            :main-main nil
+            :main-name nil}})
+
+  #_(r/atom :loading))
+
 (defonce friends (r/atom :loading))
 
 (defn fetch [route callback]
@@ -24,7 +42,7 @@
 
 ;; TODO: only fetch friends if current-user is set
 (fetch "/friends" #(reset! friends %))
-(fetch "/session" #(reset! current-user %))
+;; (fetch "/session" #(reset! current-user %))
 
 (defn animated-globe []
   (let [handle-hover (fn [] (let [elem (goog.dom/getElement "logo-animation")
