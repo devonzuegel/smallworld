@@ -18,8 +18,8 @@
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-               (println route ":")
-               (pp/pprint result)
+              ;;  (println route ":")
+              ;;  (pp/pprint result)
                (callback result)))))
 
 ;; TODO: only fetch friends if current-user is set
@@ -197,18 +197,29 @@
          (when (seq? @friends)
            [:pre "count @friends:\n" (count @friends)])])])])
 
-;; js/mapbox.accessToken "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-
 (set! (.-accessToken js/mapboxgl)
-      "pk.eyJ1IjoiaGV5emsiLCJhIjoiY2l2Z2J5NmdyMDE3YzJ4bG1kYWNsd2FkcyJ9.wDoOVs2uTd8x-cftHb63jA")
+      "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA")
+      ;; "pk.eyJ1IjoiaGV5emsiLCJhIjoiY2l2Z2J5NmdyMDE3YzJ4bG1kYWNsd2FkcyJ9.wDoOVs2uTd8x-cftHb63jA")
 
 ;; (.createElement js/document "div")
 (def my-map (new js/mapboxgl.Map
                  #js {:container "map-goes-here"
+                      ;; :key "pk.eyJ1IjoiaGV5emsiLCJhIjoiY2l2Z2J5NmdyMDE3YzJ4bG1kYWNsd2FkcyJ9.wDoOVs2uTd8x-cftHb63jA"
                       ;; :style "mapbox://styles/mapbox/streets-v11"
-                      :style "https://s3.amazonaws.com/flnassets/mbstyle.json"
-                      :center #js[-74.5, 40]
-                      :zoom 9}))
+                      ;; :style "mapbox://styles/mapbox/outdoors-v11"
+                      ;; :style "https://s3.amazonaws.com/flnassets/mbstyle.json"
+                      ;; :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
+                      ;; :style "https://api.mapbox.com/styles/v1/devonzuegel/ckyn7uof70x1e14ppotxarzhc/wmts?access_token=pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                      ;; :style "./mapbox-style-frank.json"
+                      ;; :key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                      ;; :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
+
+                      ;; Curios bright
+                      :key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                      :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"
+
+                      :center #js[74.5, 40] ;; TODO: center on user's location
+                      :zoom 1}))
 ;; const marker = new mapgl.Marker(map, {
 ;;     coordinates: [55.31878, 25.23584],
 ;; });
@@ -219,15 +230,6 @@
 ;;      :style "mapbox://styles/mapbox/streets-v11"
 ;;      :center [-74.5, 40]
 ;;      :zoom 9)
-
-#_(js/setTimeout #(new js/mapboxgl.Map
-                    ;;  :container (js/document.getElementById container-id)
-                       :container container-id
-                       :style "mapbox://styles/mapbox/streets-v11"
-                       :center [-74.5, 40]
-                       :zoom 9)
-                 500)
-
 ;; (defn MapRender
 ;;   []
 ;;   (let [ref (r/useRef nil)
