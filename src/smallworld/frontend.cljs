@@ -4,7 +4,8 @@
             [smallworld.session-storage :as session-storage]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
-            [clojure.string :as str]
+            ;; [clojure.string :as str]
+            [cljsjs.mapbox]
             [goog.dom]
             [goog.dom.classlist :as gc]))
 
@@ -196,11 +197,88 @@
          (when (seq? @friends)
            [:pre "count @friends:\n" (count @friends)])])])])
 
-(defn app-container []
-  (condp = @current-user
-    :loading (loading-screen)
-    cu/default-state (logged-out-screen)
-    (logged-in-screen)))
+;; js/mapbox.accessToken "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
 
-(r/render-component [app-container] (goog.dom/getElement "app"))
+(set! (.-accessToken js/mapboxgl)
+      "pk.eyJ1IjoiaGV5emsiLCJhIjoiY2l2Z2J5NmdyMDE3YzJ4bG1kYWNsd2FkcyJ9.wDoOVs2uTd8x-cftHb63jA")
+
+;; (.createElement js/document "div")
+(def my-map (new js/mapboxgl.Map
+                 #js {:container "map-goes-here"
+                      ;; :style "mapbox://styles/mapbox/streets-v11"
+                      :style "https://s3.amazonaws.com/flnassets/mbstyle.json"
+                      :center #js[-74.5, 40]
+                      :zoom 9}))
+;; const marker = new mapgl.Marker(map, {
+;;     coordinates: [55.31878, 25.23584],
+;; });
+
+
+;; (new js/mapboxgl.Map
+;;      :container container-id
+;;      :style "mapbox://styles/mapbox/streets-v11"
+;;      :center [-74.5, 40]
+;;      :zoom 9)
+
+#_(js/setTimeout #(new js/mapboxgl.Map
+                    ;;  :container (js/document.getElementById container-id)
+                       :container container-id
+                       :style "mapbox://styles/mapbox/streets-v11"
+                       :center [-74.5, 40]
+                       :zoom 9)
+                 500)
+
+
+
+(defn app-container []
+  [:div "yooo"]
+
+  ;; (defn MapRender
+  ;;   []
+  ;;   (let [ref (r/useRef nil)
+  ;;         [map setMap] (r/useState nil)]
+  ;;     (r/useEffect
+  ;;      (fn []
+  ;;        (when (and (.-current ref) (not map))
+  ;;          (let [map
+  ;;                (new
+  ;;                 (.-Map mapboxgl)
+  ;;                 #js
+  ;;                  {:container (.-current ref)
+  ;;                   :style "mapbox://styles/mapbox/streets-v11"
+  ;;                   :center #js [0 0]
+  ;;                   :zoom 1})]
+  ;;            (setMap map))))
+  ;;      #js [ref map])
+  ;;     [:div {:className "map-container", :ref ref}]))
+
+
+;; mapboxgl.accessToken = '<your access token here>';
+;; const map = new mapboxgl.Map({
+;;     container: 'map', // container ID
+;;     style: 'mapbox://styles/mapbox/streets-v11', // style URL
+;;     center: [-74.5, 40], // starting position [lng, lat]
+;;     zoom: 9 // starting zoom
+;; });
+
+;; js/mapbox.accessToken "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+  ;; (let [my-div [:div "my-div"]
+  ;;       my-map (new js/mapboxgl.Map
+  ;;                   :container my-div
+  ;;                   :style "mapbox://styles/mapbox/streets-v11"
+  ;;                   :center [-74.5, 40]
+  ;;                   :zoom 9)]
+  ;;   ;; (print "my-map:")
+  ;;   ;; (print my-map)
+  ;;   my-map)
+
+
+
+  ;; [:div "replace me with map!"]
+  #_(condp = @current-user
+      :loading (loading-screen)
+      cu/default-state (logged-out-screen)
+      (logged-in-screen)))
+
+;; (r/render-component [app-container] (goog.dom/getElement "app"))
 
