@@ -346,17 +346,6 @@ tr:nth-child(even) {
 #smallworld-map-container .mapboxgl-map {
   border-top: 1px solid #d9d3cc;
 }
-/* TODO: consider removing this if the element ends up not getting integrated */
-#map-grabber {
-  width: 200px;
-  height: 140px;
-  background-image: url(../art-nouveau-handle-2.png);
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.35;
-  cursor: pointer;
-  margin-bottom: 8px;
-}
 #smallworld-map {
   height: 100%;
   width: 100%;
