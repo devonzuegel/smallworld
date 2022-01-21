@@ -3,8 +3,8 @@
   <head>
     <title>Small World</title>
 
-    <!-- set the favicon -->
-    <link rel="shortcut icon" type="image/jpg" href="globe-favicon.png" />
+    <!-- set the favicon (dark/light mode handled in JS below) -->
+    <link rel="shortcut icon" type="image/x-icon" href="earth-favicon-green.ico" id="favicon" />
 
     <!-- tell the browser do not mess with scaling -->
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
@@ -28,5 +28,20 @@
 
     <!-- Javascript (compiled from Clojurescript) -->
     <script src="js/main.js" type="text/javascript"></script>
+
+    <!-- reset the favicon according to dark/light mode -->
+    <script type="text/javascript">
+      const changeFavicon = () => {
+        const faviconElem = document.getElementById('favicon')
+        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (isDarkMode) {
+          faviconElem.href = './earth-favicon-white.ico'
+        } else {
+          faviconElem.href = './earth-favicon-green.ico'
+        }
+      }
+      changeFavicon()
+      setInterval(changeFavicon, 1000)
+    </script>
   </body>
 </html>
