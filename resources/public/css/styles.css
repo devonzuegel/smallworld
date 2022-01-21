@@ -27,7 +27,7 @@ body {
 /*****************************************/
 .nav {
   margin-bottom: 64px;
-  border-bottom: 2px solid #d9d3cc33;
+  border-bottom: 1px solid #d9d3cc22;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -47,7 +47,7 @@ body {
   right: 0px;
   bottom: 0px;
   left: 0px;
-  opacity: 0.3;
+  opacity: 0.26;
 }
 .logo {
   display: flex;
@@ -319,9 +319,46 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
-#map-goes-here,
-#new-map-container {
-  height: 400px;
+#smallworld-map-container {
+  height: 100px;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#smallworld-map-container .expand-me {
+  background: white;
+  background: #efeaef;
+  font-weight: bolder;
+  font-size: 1.2rem;
+  color: #013917;
+  border: 1px solid #01391766;
+  padding: 6px 16px 8px 16px;
+  border-radius: 16px;
+  z-index: 1;
+  cursor: pointer;
+  transform: translateY(50%);
+}
+#smallworld-map-container .mapboxgl-map {
+  border-top: 1px solid #d9d3cc;
+}
+/* TODO: consider removing this if the element ends up not getting integrated */
+#map-grabber {
+  width: 200px;
+  height: 140px;
+  background-image: url(../art-nouveau-handle-2.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.35;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+#smallworld-map {
+  height: 100%;
   width: 100%;
 }
 .mapboxgl-ctrl-logo {

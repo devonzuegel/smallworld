@@ -153,50 +153,8 @@
     ;;  [:br] [:br] [:br]
      ]))
 
-(defn loading-screen []
-  [:div.center-vh (simple-loading-animation)])
-
-(defn logged-out-screen []
-  [:div.welcome.center-vh
-   [:h1 "welcome to Small World"]
-   [:div#logo-animation.logo (animated-globe)]
-   [:h2
-    [:a#login-btn {:href "login"} "sign in " [:span.arrow "→"]]
-    [:br] "to connect with friends"]])
-
-(defn logged-in-screen []
-  [:<>
-   (nav)
-   (let [main-location (:main-location @current-user)
-         name-location (:name-location @current-user)]
-     [:div.container
-      [:pre "@current-user:\n" (preify @current-user)] [:br] [:br]
-
-      (Friend nil @current-user)
-      [:div.location-info
-       [:p "you are based in: "      [:span.location main-location]]
-       (when name-location
-         [:p "your current location: " [:span.location name-location]])]
-
-      [:hr] [:br]
-
-      (if (= :loading @friends)
-        (simple-loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
-        [:<>
-         (when-not (empty? main-location)
-           [:<>
-            (render-friends-list :main-main)
-            (render-friends-list :main-name)])
-
-         (when-not (empty? name-location)
-           [:<>
-            (render-friends-list :name-name)
-            (render-friends-list :name-main)])
-
-         ;; for debugging:
-         (when (seq? @friends)
-           [:pre "count @friends:\n" (count @friends)])])])])
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def mapbox-config {:frank-lloyd-wright {:key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
@@ -258,35 +216,74 @@
   ;;   ;; (print my-map)
   ;;   my-map)
 
-(defn render-map []
+(defn RenderMap []
   (r/create-class
-   {:component-did-mount (fn [component]
-                          ;;  (let [node (r/dom-node comp)]
-                           (js/console.log "component:")
-                           (js/console.log component)
-                           (js/console.log "(js/document.getElementById 'new-map-container')")
-                           (js/console.log (js/document.getElementById "new-map-container"))
-                            ;;  (println "node:     " node)
-                            ;;  (println "creating map...")
+   {:component-did-mount (fn []
                            (new js/mapboxgl.Map
-                                #js{:container "new-map-container"
+                                #js{:container "smallworld-map"
                                     :key (get-in mapbox-config [mapbox-style :key])
                                     :style (get-in mapbox-config [mapbox-style :style])
                                     :attributionControl false ;; remove the Mapbox copyright symbol
                                     :center #js[74.5, 40] ;; TODO: center on user's location
-                                    :zoom 1})
-                            ;;  )
-                           )
-    :reagent-render (fn [] [:div#new-map-container])}))
+                                    :zoom 1}))
+    :reagent-render (fn [] [:div#smallworld-map])}))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn loading-screen []
+  [:div.center-vh (simple-loading-animation)])
+
+(defn logged-out-screen []
+  [:div.welcome.center-vh
+   [:h1 "welcome to Small World"]
+   [:div#logo-animation.logo (animated-globe)]
+   [:h2
+    [:a#login-btn {:href "login"} "sign in " [:span.arrow "→"]]
+    [:br] "to connect with friends"]])
+
+(defn logged-in-screen []
+  [:<>
+   (nav)
+   (let [main-location (:main-location @current-user)
+         name-location (:name-location @current-user)]
+     [:div.container
+      (Friend nil @current-user)
+      [:div.location-info
+       [:p "you are based in: "      [:span.location main-location]]
+       (when name-location
+         [:p "your current location: " [:span.location name-location]])]
+
+      [:hr] [:br]
+
+      (if (= :loading @friends)
+        (simple-loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
+        [:<>
+         (when-not (empty? main-location)
+           [:<>
+            (render-friends-list :main-main)
+            (render-friends-list :main-name)])
+
+         (when-not (empty? name-location)
+           [:<>
+            (render-friends-list :name-name)
+            (render-friends-list :name-main)])
+
+         [:div#smallworld-map-container
+          [:a.expand-me {:on-click #(js/alert "hi!")} "expand map"]
+          [RenderMap]]
+
+         ;; for debugging:
+         [:pre "@current-user:\n" (preify @current-user)] [:br] [:br]
+         (when (seq? @friends)
+           [:pre "count @friends:\n" (count @friends)])])])])
 
 (defn app-container []
-  (render-map)
 
-  #_(condp = @current-user
-      :loading (loading-screen)
-      cu/default-state (logged-out-screen)
-      (logged-in-screen)))
+  (condp = @current-user
+    :loading (loading-screen)
+    cu/default-state (logged-out-screen)
+    (logged-in-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
 
