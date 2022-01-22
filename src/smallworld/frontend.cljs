@@ -9,24 +9,7 @@
             [goog.dom.classlist :as gc]))
 
 (defonce current-user (r/atom :loading))
-#_(defonce current-user
-    (r/atom {:profile_image_url_large
-             "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
-             :main-coords {:lat 25.792236328125
-                           :lng -80.13484954833984}
-             :name-location nil
-             :name "Devon ☀️ (HARDCODED)"
-             :user-id "TODO"
-             :screen-name "devonzuegel"
-             :main-location "Miami Beach"
-             :name-coords nil
-             :distance
-             {:name-main nil
-              :name-name nil
-              :main-main nil
-              :main-name nil}}))
-
-(defonce friends (r/atom :loading))
+(defonce friends      (r/atom :loading))
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
@@ -156,11 +139,11 @@
                      (get-in % [:distance distance-key])))
        (filter (closer-than max-distance distance-key))))
 
-(defn render-friends-list [friends-list-key]
+(defn render-friends-list [friends-list-key verb location-name]
   (let [friends-list (get-close-friends friends-list-key 100)
         list-count   (count friends-list)]
     [:<>
-     [:p.location-info friends-list-key ": " list-count]
+     [:p.location-info list-count " friends say they " [:b verb] " near " location-name ":"]
      [:hr]
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
@@ -276,25 +259,25 @@
         [:<>
          (when-not (empty? main-location)
            [:<>
-            (render-friends-list :main-main)
-            (render-friends-list :main-name)])
+            (render-friends-list :main-main "live" main-location)
+            (render-friends-list :main-name "are" main-location)])
 
          (when-not (empty? name-location)
            [:<>
-            (render-friends-list :name-name)
-            (render-friends-list :name-main)])
+            (render-friends-list :name-name "live" main-location)
+            (render-friends-list :name-main "are" main-location)])
 
          [:div#smallworld-map-container
           [:a.expand-me {:on-click #(js/alert "hi!")} "expand map"]
           [RenderMap]]
 
-         ;; for debugging:
-         [:pre "@current-user:\n\n"  (preify @current-user)]
-         [:br]
-         [:pre "count @friends:  " (try (count @friends)
-                                        (catch js/Error e (str @friends)))]
-         [:br]
-         [:pre "@friends:\n\n"       (preify @friends)]
+        ;;  ;; for debugging:
+        ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
+        ;;  [:br]
+        ;;  [:pre "count @friends:  " (try (count @friends)
+        ;;                                 (catch js/Error e (str @friends)))]
+        ;;  [:br]
+        ;;  [:pre "@friends:\n\n"       (preify @friends)]
          [:br]
          [:br]])])])
 

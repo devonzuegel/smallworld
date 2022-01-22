@@ -24,14 +24,15 @@
 (defn my-memoize
   ([expensive-fn cache]
    (fn [& [request-key & optional-args :as all-args]]
-     (println "")
-     (println "all-args:")
-     (println all-args)
-     (println "")
-     (println "optional-args:")
-     (println (or optional-args "  no optional args"))
-     (println "")
      (assert (string? request-key) "my-memoize requires the request key to be a string")
+
+    ;;  (println "")
+    ;;  (println "all-args:")
+    ;;  (println all-args)
+    ;;  (println "")
+    ;;  (println "optional-args:")
+    ;;  (println (or optional-args "  no optional args"))
+    ;;  (println "")
 
      (if (= ::not-found (read! cache request-key))
 
