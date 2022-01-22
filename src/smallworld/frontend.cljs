@@ -1,7 +1,6 @@
 (ns smallworld.frontend
   (:require [reagent.core :as r]
             [smallworld.current-user :as cu]
-            [smallworld.session-storage :as session-storage]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             ;; [clojure.string :as str]
@@ -9,24 +8,23 @@
             [goog.dom]
             [goog.dom.classlist :as gc]))
 
-(defonce storage session-storage/local-storage)
-(defonce current-user (r/atom :loading)
-;; (defonce current-user
-;;   (r/atom {:profile_image_url_large
-;;            "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
-;;            :main-coords {:lat 25.792236328125
-;;                          :lng -80.13484954833984}
-;;            :name-location nil
-;;            :name "Devon ☀️ (HARDCODED)"
-;;            :user-id "TODO"
-;;            :screen-name "devonzuegel"
-;;            :main-location "Miami Beach"
-;;            :name-coords nil
-;;            :distance
-;;            {:name-main nil
-;;             :name-name nil
-;;             :main-main nil
-;;             :main-name nil}})
+(defonce current-user (r/atom :loading))
+#_(defonce current-user
+    (r/atom {:profile_image_url_large
+             "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
+             :main-coords {:lat 25.792236328125
+                           :lng -80.13484954833984}
+             :name-location nil
+             :name "Devon ☀️ (HARDCODED)"
+             :user-id "TODO"
+             :screen-name "devonzuegel"
+             :main-location "Miami Beach"
+             :name-coords nil
+             :distance
+             {:name-main nil
+              :name-name nil
+              :main-main nil
+              :main-name nil}}))
 
 (defonce friends (r/atom :loading))
 
