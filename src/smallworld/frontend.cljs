@@ -164,9 +164,7 @@
      [:hr]
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
-       [:div.no-friends-found "no friends found in this location"])
-    ;;  [:br] [:br] [:br]
-     ]))
+       [:div.no-friends-found "no friends found in this location"])]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -291,10 +289,12 @@
           [RenderMap]]
 
          ;; for debugging:
-         [:pre "count @friends:\n" (try (count @friends)
+         [:pre "@current-user:\n\n"  (preify @current-user)]
+         [:br]
+         [:pre "count @friends:  " (try (count @friends)
                                         (catch js/Error e (str @friends)))]
-         [:pre "@current-user:\n"  (preify @current-user)]
-         [:pre "@friends:\n"       (preify @friends)]
+         [:br]
+         [:pre "@friends:\n\n"       (preify @friends)]
          [:br]
          [:br]])])])
 

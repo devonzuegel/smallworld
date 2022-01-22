@@ -114,36 +114,36 @@
 
 ;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
-(defn get-relevant-friend-data [friend & {:keys [current-user?] :or {current-user? false}}]
-  (let [current-user-relevant-data current-user
+(defn get-relevant-user-data [friend current-user]
+  (let [current-user? (or (= current-user :current-user)
+                          (= (:screen-name current-user) (:screen-name friend)))
         ; locations as strings
         friend-main-location  (:location friend)
         friend-name-location  (location-from-name (:name friend))
-        current-main-location (when (not current-user?) (:location current-user-relevant-data))
-        current-name-location (when (not current-user?) (location-from-name (:name current-user-relevant-data)))
+        current-main-location (when (not current-user?) (:main-location current-user))
+        current-name-location (when (not current-user?) (:location current-user))
         ; locations as coordinates
         friend-main-coords  (memoized-coordinates (or friend-main-location ""))
         friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-        current-main-coords (when (not current-user?) (:main-coords @current-user))
-        current-name-coords (when (not current-user?) (:name-coords @current-user))]
+        current-main-coords (when (not current-user?) (:main-coords current-user))
+        current-name-coords (when (not current-user?) (:name-coords current-user))]
 
-    ;; (println " friend-main-location:" friend-main-location)
-    ;; (println " friend-name-location:" friend-name-location)
-    ;; (println "current-main-location:" current-main-location)
-    ;; (println "current-name-location:" current-name-location)
-
-    ;; (println "---------------------------------------------------")
-    ;; (println "current-user?:             " current-user?)
-    ;; (println "@current-user:")
-    ;; (println @current-user)
-    ;; (println "current-user-relevant-data:" current-user-relevant-data)
-    ;; (println "current-main-location:     " current-main-location)
-    ;; (println "current-name-location:     " current-name-location)
-    ;; (println "(:name friend):            " (:name friend))
-    ;; (println "current-name-coords:       " current-name-coords)
-    ;; (println "current-main-coords:       " current-main-coords)
-    ;; (println "friend-main-coords:        " friend-main-coords)
-    ;; (println "friend-main-coords:        " friend-name-coords)
+    (println "---------------------------------------------------")
+    (println " friend-main-location:" friend-main-location)
+    (println " friend-name-location:" friend-name-location)
+    (println "current-main-location:" current-main-location)
+    (println "current-name-location:" current-name-location)
+    (println "")
+    (println "current-user?:         " current-user?)
+    (println "current-user:          " current-user)
+    (println "")
+    (println "current-main-location: " current-main-location)
+    (println "current-name-location: " current-name-location)
+    (println "friend :name           " (:name friend))
+    (println "current-name-coords:   " current-name-coords)
+    (println "current-main-coords:   " current-main-coords)
+    (println "friend-main-coords:    " friend-main-coords)
+    (println "friend-main-coords:    " friend-name-coords)
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
@@ -232,8 +232,12 @@
 (def memoized-friends (m/my-memoize --fetch-friends friends-cache))
 
 (def friends-cache-relevant-data (atom {}))
-(defn --fetch-friends-relevant-data [screen-name]
-  (map get-relevant-friend-data (memoized-friends screen-name)))
+(defn --fetch-friends-relevant-data [screen-name current-user]
+  (println "")
+  (println "--fetch-friends-relevant-data | current-user: ")
+  (println "")
+  (println (pp/pprint current-user))
+  (map #(get-relevant-user-data % current-user) (memoized-friends screen-name)))
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
@@ -244,6 +248,10 @@
 (defn set-session [response-so-far new-session]
   (assoc response-so-far
          :session new-session))
+
+(defn get-current-user [req]
+  (get-in req [:session :current-user]
+          cu/default-state))
 
 ;; step 1
 ;; in prod: this will redirect to https://small-world-friends.herokuapp.com/authorized,
@@ -261,7 +269,8 @@
   (let [oauth-token    (get-in req [:params :oauth_token])
         oauth-verifier (get-in req [:params :oauth_verifier])
         access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
-        current-user   (get-relevant-friend-data (fetch-current-user--with-access-token access-token))
+        current-user   (get-relevant-user-data (fetch-current-user--with-access-token access-token)
+                                               :current-user)
         screen-name    (:screen-name current-user)]
     (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
     (println (str "@" screen-name " (user-id: " "TODO" ") "
@@ -270,7 +279,7 @@
                                           :access-token access-token})))
 
 (defn logout [req]
-  (let [screen-name (get-in req [:session :current-user :screen-name])
+  (let [screen-name (:screen-name (get-current-user req))
         logout-msg (if (nil? screen-name)
                      "no-op: there was no active session"
                      (str "@" screen-name " has logged out"))]
@@ -282,14 +291,15 @@
   ;; oauth & session endpoints
   (GET "/login"      []  (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
-  (GET "/session"    req (generate-string (get-in req [:session :current-user] {})))
+  (GET "/session"    req (generate-string (get-current-user req)))
   (GET "/logout"     req (logout req))
 
   ;; app data endpoints
-  (GET "/friends" req (let [-current-user (get-in req [:session :current-user] cu/default-state)]
+  (GET "/friends" req (let [-current-user (get-current-user req)]
                         (generate-string (if (= cu/default-state -current-user)
                                            []
-                                           (memoized-friends-relevant-data (:screen-name -current-user))))))
+                                           (memoized-friends-relevant-data (:screen-name -current-user)
+                                                                           (get-current-user req))))))
 
   ;; general resources
   (GET "/" [] (slurp (io/resource "public/index.html")))

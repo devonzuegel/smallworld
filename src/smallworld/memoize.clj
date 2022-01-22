@@ -23,13 +23,22 @@
 
 (defn my-memoize
   ([expensive-fn cache]
-   (fn [request-key]
+   (fn [& [request-key & optional-args :as all-args]]
+     (println "")
+     (println "all-args:")
+     (println all-args)
+     (println "")
+     (println "optional-args:")
+     (println (or optional-args "  no optional args"))
+     (println "")
      (assert (string? request-key) "my-memoize requires the request key to be a string")
 
      (if (= ::not-found (read! cache request-key))
 
        ;; if we haven't seen the request before, then we need to compute the value
-       (let [result (expensive-fn request-key)]
+       (let [result (if optional-args
+                      (apply expensive-fn all-args)
+                      (expensive-fn request-key))]
          (if (= :failed result)
            ;; if the expensive function failed, don't cache the result
            (do #_(println "🔴 failed to fetch result for:" request-key)
