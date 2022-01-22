@@ -19,9 +19,6 @@
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
 
-;; TODO: fetch this from the Twitter client
-(def current-user (atom cu/default-state))
-
 (defn haversine [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
   ; Haversine formula
   ; a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
