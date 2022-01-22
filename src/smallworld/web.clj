@@ -241,6 +241,10 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn set-session [response-so-far new-session]
+  (assoc response-so-far
+         :session new-session))
+
 ;; step 1
 ;; in prod: this will redirect to https://small-world-friends.herokuapp.com/authorized,
 ;;          the 'Callback URL' set up at https://developer.twitter.com/en/apps/9258522
@@ -262,11 +266,16 @@
     (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
     (println (str "@" screen-name " (user-id: " "TODO" ") "
                   "has successfully authorized Small World to access their Twitter account"))
-    (assoc (response/redirect "/") :session {:current-user current-user
-                                             :access-token access-token})))
+    (set-session (response/redirect "/") {:current-user current-user
+                                          :access-token access-token})))
 
 (defn logout [req]
-  (assoc (response/redirect "/logged-out") :session {}))
+  (let [screen-name (get-in req [:session :current-user :screen-name])
+        logout-msg (if (nil? screen-name)
+                     "no-op: there was no active session"
+                     (str "@" screen-name " has logged out"))]
+    (println logout-msg)
+    (set-session (response/response logout-msg) {})))
 
 ;; app is function that takes a request, and returns a response
 (defroutes devons-app ; order matters in this function!

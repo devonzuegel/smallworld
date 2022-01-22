@@ -49,6 +49,9 @@ body {
   left: 0px;
   opacity: 0.26;
 }
+.nav * {
+  z-index: 2;
+}
 .logo {
   display: flex;
   align-items: center;
