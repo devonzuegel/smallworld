@@ -27,6 +27,7 @@ body {
 /*****************************************/
 .nav {
   margin-bottom: 64px;
+  border-top: 1px solid #d9d3cc22;
   border-bottom: 1px solid #d9d3cc22;
   display: flex;
   align-items: center;

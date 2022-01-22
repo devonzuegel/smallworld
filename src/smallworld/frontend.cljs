@@ -166,24 +166,26 @@
      [:hr]
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
-       [:div.no-friends-found "no friends found"])
+       [:div.no-friends-found "no friends found in this location"])
     ;;  [:br] [:br] [:br]
      ]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def mapbox-config {:frank-lloyd-wright {:key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+(def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
                                         ;;  :style "./mapbox-style-frank.json"
                                          }
-                    :curios-bright {:key "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                    :minimo {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                             :style "mapbox://styles/devonzuegel/ckyootmv72ci414ppwl6j34a2"}
+                    :curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                     :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}})
 
 ;; (def mapbox-style :frank-lloyd-wright)
 (def mapbox-style :curios-bright)
 
-(set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :key]))
+(set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :access-token]))
 
 ;; const marker = new mapgl.Marker(map, {
 ;;     coordinates: [55.31878, 25.23584],
@@ -238,7 +240,7 @@
    {:component-did-mount (fn []
                            (new js/mapboxgl.Map
                                 #js{:container "smallworld-map"
-                                    :key (get-in mapbox-config [mapbox-style :key])
+                                    :key (get-in mapbox-config [mapbox-style :access-token])
                                     :style (get-in mapbox-config [mapbox-style :style])
                                     :attributionControl false ;; remove the Mapbox copyright symbol
                                     :center #js[74.5, 40] ;; TODO: center on user's location
