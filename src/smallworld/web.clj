@@ -271,9 +271,9 @@
   (let [-current-user (get-current-user req)
         logged-in?    (not= cu/default-state -current-user)]
     (generate-string (if logged-in?
-                       []
                        (memoized-friends-relevant-data (:screen-name -current-user)
-                                                       (get-current-user req))))))
+                                                       (get-current-user req))
+                       []))))
 
 ;; app is function that takes a request, and returns a response
 (defroutes devons-app ; order matters in this function!
