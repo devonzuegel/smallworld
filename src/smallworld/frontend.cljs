@@ -141,21 +141,29 @@
        (filter (closer-than max-distance distance-key))))
 
 (defn render-friends-list [friends-list-key verb-gerund location-name]
-  (let [friends-list      (get-close-friends friends-list-key 100)
+  (let [friends-list      (if (= :loading @friends)
+                            []
+                            (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
         friend-pluralized (if (= list-count 1) "friend" "friends")
         say-pluralized    (if (= list-count 1) "says" "say")]
+
     [:div.friends-list
-     (when (> list-count 0) [:p.location-info [:<>
-                                               list-count " "
-                                               friend-pluralized " "
-                                               say-pluralized " they're "
-                                               [:u verb-gerund] " " location-name ":"]])
-     (if (> list-count 0)
-       [:div.friends (map-indexed Friend friends-list)]
-       [:div.friends
-        [:div.no-friends-found
-         "0 friends have shared that they're " [:u verb-gerund] " " location-name "."]])]))
+     (if (= :loading @friends)
+       (simple-loading-animation)
+
+       (if (> list-count 0)
+         [:<>
+          [:p.location-info [:<>
+                             list-count " "
+                             friend-pluralized " "
+                             say-pluralized " they're "
+                             [:u verb-gerund] " " location-name ":"]]
+          [:div.friends (map-indexed Friend friends-list)]]
+
+         [:div.friends
+          [:div.no-friends-found
+           "0 friends have shared that they're " [:u verb-gerund] " " location-name "."]]))]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
