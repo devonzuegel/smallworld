@@ -187,24 +187,22 @@
      [:div.container
       [:div.current-user (Friend nil @current-user)]
 
-      (if (= :loading @friends)
-        (simple-loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
-        [:<>
-         (when-not (empty? main-location)
-           [:div.category
-            [:span.current-user-location main-location]
+      [:<>
+       (when-not (empty? main-location)
+         [:div.category
+          [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-            (render-friends-list :main-main "living near" main-location)
-            (render-friends-list :main-name "visiting"     main-location)])
+          (render-friends-list :main-main "living near" main-location)
+          (render-friends-list :main-name "visiting"     main-location)])
 
-         (when-not (empty? name-location)
-           [:div.category
-            [:span.current-user-location name-location]
+       (when-not (empty? name-location)
+         [:div.category
+          [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-            (render-friends-list :name-name "living near" name-location)
-            (render-friends-list :name-main "visiting" name-location)])
+          (render-friends-list :name-name "living near" name-location)
+          (render-friends-list :name-main "visiting" name-location)])
 
-         [smallworld.mapbox/mapbox]
+       [smallworld.mapbox/mapbox]
 
         ;;  ;; for debugging:
         ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
@@ -214,7 +212,7 @@
         ;;  [:br]
         ;;  [:pre "@friends:\n\n"       (preify @friends)]
         ;;
-         ])])])
+       ]])])
 
 (defn app-container []
 
