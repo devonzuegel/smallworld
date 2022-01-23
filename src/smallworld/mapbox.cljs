@@ -3,6 +3,8 @@
             [cljsjs.mapbox]
             [goog.dom]))
 
+; not defonce because we want to reset it to closed upon refresh
+(def expanded (r/atom false))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
@@ -18,7 +20,7 @@
 
 (set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :access-token]))
 
-(defn RenderMap []
+(defn render-map []
   (r/create-class
    {:component-did-mount (fn []
                            (new js/mapboxgl.Map
@@ -32,9 +34,13 @@
 
 (defn mapbox []
   [:<>
-   [:div#mapbox-container
-    [:a.expand-me {:on-click #(js/alert "hi!")} "expand map"]
-    [RenderMap]]
+   [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
+    [:a.expand-me
+     {:on-click (fn []
+                  (println "(not @expanded): " (not @expanded))
+                  (reset! expanded (not @expanded)))}
+     (if @expanded "collapse map" "expand map")]
+    [render-map]]
    [:div#mapbox-spacer]])
 
 ;; const marker = new mapgl.Marker(map, {

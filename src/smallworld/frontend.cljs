@@ -61,14 +61,6 @@
      [:a#login {:href "/login"} "sign in"]
      [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])])
 
-(defn music []
-  [:iframe {:src "https://open.spotify.com/embed/track/3fWTQXs897m4H1zsai8SOk?utm_source=generator&theme=0"
-            :width "100%"
-            :height "80"
-            :frameBorder "0"
-            :allowFullScreen ""
-            :allow "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"}])
-
 (def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance" "profile_image_url_large"])
 
 (defn location-name-similarity [friend]
@@ -215,7 +207,6 @@
        ]])])
 
 (defn app-container []
-
   (condp = @current-user
     :loading (loading-screen)
     cu/default-state (logged-out-screen)

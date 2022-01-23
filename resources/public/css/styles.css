@@ -397,6 +397,9 @@ tr:nth-child(even) {
 #mapbox-spacer {
   height: 40px;
 }
+#mapbox-container.expanded {
+  height: 65vh;
+}
 #mapbox-container {
   height: 80px;
   width: 100%;
