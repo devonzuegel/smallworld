@@ -291,12 +291,6 @@ tr:nth-child(even) {
 .friend:hover .right-section a .handle {
   opacity: 0.7;
 }
-.coordinates {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.8em;
-  margin-left: 12px;
-  opacity: 0.7;
-}
 .no-friends-found {
   font-size: 1.2em;
   opacity: 0.7;
