@@ -2,9 +2,10 @@
   (:require [reagent.core :as r]
             [smallworld.current-user :as cu]
             [smallworld.mapbox]
+            [smallworld.decorations :as decorations]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
-            ;; [clojure.string :as str]
+            [clojure.string :as str]
             [cljsjs.mapbox]
             [goog.dom]
             [goog.dom.classlist :as gc]))
@@ -24,25 +25,6 @@
 (fetch "/friends" #(reset! friends %))
 (fetch "/session" #(reset! current-user %))
 
-(defn animated-globe []
-  (let [handle-hover (fn [] (let [elem (goog.dom/getElement "logo-animation")
-                                  start-animation #(gc/remove elem "no-animation")
-                                  stop-animation #(gc/add elem "no-animation")
-                                  stop-after-iteration #((.addEventListener elem "webkitAnimationIteration" stop-animation) ;; for Chrome
-                                                         (.addEventListener elem "animationiteration" stop-animation) ;; for Firefox
-                                                         (.addEventListener elem "MSAnimationIteration" stop-animation) ;; for IE
-                                                         (.addEventListener elem "animationiteration" stop-animation))]
-                              (.addEventListener elem "mouseover" start-animation)
-                              (.addEventListener elem "mouseout" stop-after-iteration)))]
-    ;; give time to load the animation
-    (js/setTimeout handle-hover 1000))
-  [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]])
-
-(defn simple-loading-animation []
-  [:svg.loader
-   [:path {:fill "#fff"
-           :d "M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"}]])
-
 (defn logout []
   (fetch "/logout" #(reset! current-user {})))
 
@@ -50,7 +32,7 @@
 
   [:div.nav
    [:div#logo-animation.logo
-    (animated-globe)
+    (decorations/animated-globe)
 
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
@@ -60,22 +42,26 @@
      [:a#login {:href "/login"} "sign in"]
      [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])])
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn closer-than [max-distance dist-key]
   (fn [friend]
     (let [smallest-distance (get-in friend [:distance dist-key])]
       (and (< smallest-distance max-distance)
            (not (nil? smallest-distance))))))
 
-(def round-two-decimals #(pp/cl-format nil "~,2f" %))
+(defn round-to-int [num]
+  (let [formatted  (pp/cl-format nil "~,0f" num)
+        no-decimal (str/replace formatted #"\." "")]
+    no-decimal))
 
 (defn get-smallest-distance [friend]
-  (let [x (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
-                                   (get-in friend [:distance :name-name])
-                                   (get-in friend [:distance :name-main])
-                                   (get-in friend [:distance :main-name])
-                                   (get-in friend [:distance :main-main])]))]
-    ;; (println "distance: " x)
-    x))
+  (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
+                           (get-in friend [:distance :name-name])
+                           (get-in friend [:distance :name-main])
+                           (get-in friend [:distance :main-name])
+                           (get-in friend [:distance :main-main])])))
 
 (defn Friend [k friend]
   (let [twitter-pic    (:profile_image_url_large friend)
@@ -84,8 +70,9 @@
         twitter-link   (str "http://twitter.com/" twitter-handle)
         location       (:main-location friend)
         twitter-href   {:href twitter-link :target "_blank" :title "Twitter"}
-        lat            (round-two-decimals (:lat (:main-coords friend)))
-        lng            (round-two-decimals (:lng (:main-coords friend)))]
+        lat            (:lat (:main-coords friend))
+        lng            (:lng (:main-coords friend))
+        distance       (get-smallest-distance friend)]
     [:div.friend {:key twitter-name}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
@@ -98,7 +85,8 @@
             :title "Google Maps"
             :target "_blank"}
         [:span.location location]
-        [:span.distance "~" (round-two-decimals (get-smallest-distance friend)) " miles away"]]]]]))
+        (when (< distance 1000)
+          [:span.distance (round-to-int distance) " miles away"])]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
@@ -115,7 +103,7 @@
 
     [:div.friends-list
      (if (= :loading @friends)
-       (simple-loading-animation)
+       (decorations/simple-loading-animation)
 
        (if (> list-count 0)
          [:<>
@@ -134,12 +122,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn loading-screen []
-  [:div.center-vh (simple-loading-animation)])
+  [:div.center-vh (decorations/simple-loading-animation)])
 
 (defn logged-out-screen []
   [:div.welcome.center-vh
    [:h1 "welcome to Small World"]
-   [:div#logo-animation.logo (animated-globe)]
+   [:div#logo-animation.logo (decorations/animated-globe)]
    [:h2
     [:a#login-btn {:href "login"} "sign in " [:span.arrow "→"]]
     [:br] "to connect with friends"]])
