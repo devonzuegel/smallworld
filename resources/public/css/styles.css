@@ -215,6 +215,16 @@ tr:nth-child(even) {
   display: flex;
   align-items: center;
 }
+@media screen and (min-width: 700px) {
+  .friend {
+    width: 400px;
+  }
+}
+@media screen and (max-width: 700px) {
+  .friend {
+    width: 100%;
+  }
+}
 .friend .twitter-pic,
 .friend .twitter-pic img {
   height: 60px;
