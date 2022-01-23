@@ -18,9 +18,6 @@ html {
 body {
   margin: 0;
 }
-#app {
-  height: 100vh;
-}
 /*****************************************/
 /**** nav ********************************/
 /*****************************************/
@@ -153,7 +150,6 @@ body {
   margin: auto;
   margin-top: 72px;
   padding: 16px;
-  margin-bottom: 100px;
 }
 pre {
   white-space: pre-wrap;
