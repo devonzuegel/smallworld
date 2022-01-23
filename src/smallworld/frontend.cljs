@@ -74,7 +74,7 @@
         twitter-handle (:screen-name friend)
         twitter-link   (str "http://twitter.com/" twitter-handle)
         location       (:main-location friend)
-        twitter-href   {:href twitter-link :target "_blank"}
+        twitter-href   {:href twitter-link :target "_blank" :title "Twitter"}
         lat            (round-two-decimals (:lat (:main-coords friend)))
         lng            (round-two-decimals (:lng (:main-coords friend)))]
     [:div.friend {:key twitter-name}
@@ -87,9 +87,9 @@
       ;; [:span.name " dist: " (round-two-decimals (get-smallest-distance friend))]
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
+            :title "Google Maps"
             :target "_blank"}
-        [:span.location location]]
-       #_[:pre (preify friend)]]]]))
+        [:span.location location]]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
