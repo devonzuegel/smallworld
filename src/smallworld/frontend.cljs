@@ -140,22 +140,22 @@
                      (get-in % [:distance distance-key])))
        (filter (closer-than max-distance distance-key))))
 
-(defn render-friends-list [friends-list-key [verb verb-plural] location-name]
+(defn render-friends-list [friends-list-key verb-gerund location-name]
   (let [friends-list      (get-close-friends friends-list-key 100)
         list-count        (count friends-list)
         friend-pluralized (if (= list-count 1) "friend" "friends")
-        say-pluralized    (if (= list-count 1) "says" "say")
-        verb-pluralized   (if (= list-count 1) verb verb-plural)]
+        say-pluralized    (if (= list-count 1) "says" "say")]
     [:div.friends-list
-     [:p.location-info [:<>
-                        list-count " "
-                        friend-pluralized " "
-                        say-pluralized " they "
-                        verb-pluralized " near "
-                        [:span.location location-name]]]
+     (when (> list-count 0) [:p.location-info [:<>
+                                               list-count " "
+                                               friend-pluralized " "
+                                               say-pluralized " they're "
+                                               [:u verb-gerund] " " location-name ":"]])
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
-       [:div.friends.no-friends-found "no friends found in this location"])]))
+       [:div.friends
+        [:div.no-friends-found
+         "0 friends have shared that they're " [:u verb-gerund] " " location-name "."]])]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -186,15 +186,15 @@
            [:div.category
             [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-            (render-friends-list :main-main ["live" "live"] main-location)
-            (render-friends-list :main-name ["is" "are"]     main-location)])
+            (render-friends-list :main-main "living near" main-location)
+            (render-friends-list :main-name "visiting"     main-location)])
 
          (when-not (empty? name-location)
            [:div.category
             [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-            (render-friends-list :name-name ["live" "live"] name-location)
-            (render-friends-list :name-main ["is" "are"]     name-location)])
+            (render-friends-list :name-name "living near" name-location)
+            (render-friends-list :name-main "visiting" name-location)])
 
          [smallworld.mapbox/mapbox]
 
