@@ -395,9 +395,11 @@ tr:nth-child(even) {
 }
 #mapbox-container.expanded {
   height: 65vh;
+  transition: height 200ms ease-in-out;
 }
 #mapbox-container {
   height: 80px;
+  transition: height 200ms ease-in-out;
   width: 100%;
   position: fixed;
   left: 0;

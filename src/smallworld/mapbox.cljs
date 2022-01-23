@@ -5,6 +5,7 @@
 
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
+(def the-map (r/atom nil)) ;; can't name it `map` since that's taken
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
@@ -23,13 +24,14 @@
 (defn render-map []
   (r/create-class
    {:component-did-mount (fn []
-                           (new js/mapboxgl.Map
-                                #js{:container "mapbox"
-                                    :key (get-in mapbox-config [mapbox-style :access-token])
-                                    :style (get-in mapbox-config [mapbox-style :style])
-                                    :attributionControl false ;; remove the Mapbox copyright symbol
-                                    :center #js[74.5, 40] ;; TODO: center on user's location
-                                    :zoom 1}))
+                           (reset! the-map
+                                   (new js/mapboxgl.Map
+                                        #js{:container "mapbox"
+                                            :key (get-in mapbox-config [mapbox-style :access-token])
+                                            :style (get-in mapbox-config [mapbox-style :style])
+                                            :attributionControl false ;; remove the Mapbox copyright symbol
+                                            :center #js[74.5, 40] ;; TODO: center on user's location
+                                            :zoom 1})))
     :reagent-render (fn [] [:div#mapbox])}))
 
 (defn mapbox []
@@ -37,8 +39,29 @@
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
      {:on-click (fn []
-                  (println "(not @expanded): " (not @expanded))
-                  (reset! expanded (not @expanded)))}
+                  (reset! expanded (not @expanded))
+                  ; resize the map multiple times to account for the animation
+                  (js/setTimeout #(.resize @the-map) 0)
+                  (js/setTimeout #(.resize @the-map) 10)
+                  (js/setTimeout #(.resize @the-map) 20)
+                  (js/setTimeout #(.resize @the-map) 30)
+                  (js/setTimeout #(.resize @the-map) 40)
+                  (js/setTimeout #(.resize @the-map) 50)
+                  (js/setTimeout #(.resize @the-map) 60)
+                  (js/setTimeout #(.resize @the-map) 70)
+                  (js/setTimeout #(.resize @the-map) 80)
+                  (js/setTimeout #(.resize @the-map) 90)
+                  (js/setTimeout #(.resize @the-map) 100)
+                  (js/setTimeout #(.resize @the-map) 110)
+                  (js/setTimeout #(.resize @the-map) 120)
+                  (js/setTimeout #(.resize @the-map) 130)
+                  (js/setTimeout #(.resize @the-map) 140)
+                  (js/setTimeout #(.resize @the-map) 150)
+                  (js/setTimeout #(.resize @the-map) 160)
+                  (js/setTimeout #(.resize @the-map) 170)
+                  (js/setTimeout #(.resize @the-map) 180)
+                  (js/setTimeout #(.resize @the-map) 190)
+                  (js/setTimeout #(.resize @the-map) 200))}
      (if @expanded "collapse map" "expand map")]
     [render-map]]
    [:div#mapbox-spacer]])
