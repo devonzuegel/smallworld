@@ -442,8 +442,8 @@ tr:nth-child(even) {
   display: none !important;
 }
 .marker {
-  border: 3px solid red;
-  height: 4px;
-  width: 4px;
-  border-radius: 4px;
+  background-color: #013917;
+  height: 8px;
+  width: 8px;
+  border-radius: 8px;
 }
