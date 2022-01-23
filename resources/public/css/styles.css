@@ -42,16 +42,13 @@ body {
 .nav::before {
   content: '';
   background-image: url(../washi.png);
-  background-size: tile;
+  pointer-events: none;
   position: absolute;
   top: 0px;
   right: 0px;
   bottom: 0px;
   left: 0px;
   opacity: 0.26;
-}
-.nav * {
-  z-index: 2;
 }
 .logo {
   display: flex;
@@ -335,20 +332,28 @@ tr:nth-child(even) {
   align-items: center;
 }
 #smallworld-map-container .expand-me {
-  background: white;
   background: #efeaef;
   font-weight: bolder;
   font-size: 1.2rem;
   color: #013917;
-  border: 1px solid #01391766;
+  border: 2px solid #013917;
+  filter: saturate(50%);
+  box-shadow: 0px 0px 18px #ffffff77;
   padding: 6px 16px 8px 16px;
   border-radius: 16px;
   z-index: 1;
   cursor: pointer;
   transform: translateY(50%);
+  transition: background 100ms ease-out;
+}
+#smallworld-map-container .expand-me:hover {
+  background: white;
+  transition: background 100ms ease-out;
 }
 #smallworld-map-container .mapboxgl-map {
-  border-top: 1px solid #d9d3cc;
+  box-shadow: 0px 0px 18px #ffffff55;
+  border-top: 2px solid #013917;
+  filter: saturate(50%);
 }
 #smallworld-map {
   height: 100%;
