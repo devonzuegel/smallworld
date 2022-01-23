@@ -146,16 +146,16 @@
         friend-pluralized (if (= list-count 1) "friend" "friends")
         say-pluralized    (if (= list-count 1) "says" "say")
         verb-pluralized   (if (= list-count 1) verb verb-plural)]
-    [:<>
-     [:p.location-info (str list-count " "
-                            friend-pluralized " "
-                            say-pluralized " they "
-                            verb-pluralized " near "
-                            location-name ":")]
-     [:hr]
+    [:div.friends-list
+     [:p.location-info [:<>
+                        list-count " "
+                        friend-pluralized " "
+                        say-pluralized " they "
+                        verb-pluralized " near "
+                        [:span.location location-name]]]
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
-       [:div.no-friends-found "no friends found in this location"])]))
+       [:div.friends.no-friends-found "no friends found in this location"])]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -177,24 +177,22 @@
    (let [main-location (:main-location @current-user)
          name-location (:name-location @current-user)]
      [:div.container
-      (Friend nil @current-user)
-      ;; [:div.location-info
-      ;;  [:p "you are based in: "      [:span.location main-location]]
-      ;;  (when name-location
-      ;;    [:p "your current location: " [:span.location name-location]])]
-
-      [:br]
+      [:div.current-user (Friend nil @current-user)]
 
       (if (= :loading @friends)
         (simple-loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
         [:<>
          (when-not (empty? main-location)
-           [:<>
+           [:div.category
+            [:span.current-user-location main-location]
+            ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
             (render-friends-list :main-main ["live" "live"] main-location)
             (render-friends-list :main-name ["is" "are"]     main-location)])
 
          (when-not (empty? name-location)
-           [:<>
+           [:div.category
+            [:span.current-user-location name-location]
+            ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
             (render-friends-list :name-name ["live" "live"] name-location)
             (render-friends-list :name-main ["is" "are"]     name-location)])
 

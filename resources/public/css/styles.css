@@ -150,9 +150,8 @@ body {
 /**** content *****************************************************************/
 /******************************************************************************/
 .container {
-  // max-width: 700px;
   margin: auto;
-  margin-top: 64px;
+  margin-top: 72px;
   padding: 16px;
   margin-bottom: 100px;
 }
@@ -166,7 +165,7 @@ pre {
 }
 hr {
   border-bottom: 2px solid #d9d3cc33;
-  margin: 16px 0;
+  margin: 8px 0;
 }
 a {
   color: #d9d3cc;
@@ -204,14 +203,50 @@ tr:nth-child(even) {
   background: #11492799;
 }
 /*****************************************/
+/**** category ***************************/
+/*****************************************/
+.category {
+  border: 1px solid #d9d3cc22;
+  border-radius: 10px;
+  margin-top: 32px;
+  margin-bottom: 44px;
+  padding-top: 6px;
+}
+.category .current-user-location {
+  transform: translateY(calc(-50% - 6px));
+  color: #d9d3cc99;
+  position: absolute;
+  background-color: #013917;
+  background-image: url(../az-subtle.png);
+  padding: 2px 4px;
+  margin-left: -6px;
+}
+.friends-list {
+  padding: 24px;
+}
+@media screen and (max-width: 700px) {
+  .friends-list {
+    padding: 16px;
+  }
+}
+.friends-list:not(:first-of-type) {
+  border-top: 1px solid #d9d3cc22;
+}
+
+/*****************************************/
 /**** friend *****************************/
 /*****************************************/
-.friends {
+.friends-list .friends {
   display: flex;
   flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  // border: 1px solid #d9d3cc11;
+  // background: #d9d3cc08;
+  // border-radius: 4px;
+  // margin-top: 8px;
 }
 .friend {
-  margin-bottom: 24px;
   display: flex;
   align-items: center;
 }
@@ -260,11 +295,41 @@ tr:nth-child(even) {
   margin-left: 12px;
   opacity: 0.7;
 }
+.friends-list .location-info {
+  margin-bottom: 12px;
+  color: #d9d3cc;
+}
 .no-friends-found {
   font-size: 1.2em;
-  margin-bottom: 24px;
   opacity: 0.7;
+  // margin-top: 12px;
+  // margin-bottom: 64px;
 }
+/******************************************************************************/
+/**** friend: current-user ********************************************************************/
+/******************************************************************************/
+.current-user .friend {
+  margin-bottom: 24px;
+}
+@media screen and (min-width: 700px) {
+  .current-user .friend {
+    width: 100%;
+  }
+  .current-user .friend .twitter-pic,
+  .current-user .friend .twitter-pic img {
+    height: 100px;
+    width: 100px;
+    border-radius: 100px;
+  }
+  .current-user .friend .right-section a .name {
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+  .current-user .friend .bottom {
+    font-size: 1.2em;
+  }
+}
+
 /******************************************************************************/
 /**** sticky footer ***********************************************************/
 /******************************************************************************/
