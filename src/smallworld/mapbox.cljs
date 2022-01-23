@@ -6,6 +6,15 @@
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
 (def the-map (r/atom nil)) ;; can't name it `map` since that's taken
+(defonce markers (r/atom []))
+
+(defn add-marker [coordinate]
+  (let [element (.createElement js/document "div")
+        marker (new js/mapboxgl.Marker element)]
+    (.setLngLat marker (clj->js coordinate))
+    (.addTo marker @the-map)
+    (set! (.-className element) "marker")
+    (swap! markers conj marker)))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
@@ -31,7 +40,10 @@
                                             :style (get-in mapbox-config [mapbox-style :style])
                                             :attributionControl false ;; remove the Mapbox copyright symbol
                                             :center #js[74.5, 40] ;; TODO: center on user's location
-                                            :zoom 1})))
+                                            :zoom 1}))
+                           (add-marker [74.5, 40])
+                           (add-marker [174.5, 40])
+                           (add-marker [-14.5, 30]))
     :reagent-render (fn [] [:div#mapbox])}))
 
 (defn mapbox []
@@ -40,6 +52,7 @@
     [:a.expand-me
      {:on-click (fn []
                   (reset! expanded (not @expanded))
+                  ; TODO: iterate over these timeouts so it's not so gross – need to find a non-lazy way to do it so it actually works
                   ; resize the map multiple times to account for the animation
                   (js/setTimeout #(.resize @the-map) 0)
                   (js/setTimeout #(.resize @the-map) 10)
