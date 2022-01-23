@@ -68,6 +68,15 @@
 
 (def round-two-decimals #(pp/cl-format nil "~,2f" %))
 
+(defn get-smallest-distance [friend]
+  (let [x (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
+                                   (get-in friend [:distance :name-name])
+                                   (get-in friend [:distance :name-main])
+                                   (get-in friend [:distance :main-name])
+                                   (get-in friend [:distance :main-main])]))]
+    ;; (println "distance: " x)
+    x))
+
 (defn Friend [k friend]
   (let [twitter-pic    (:profile_image_url_large friend)
         twitter-name   (:name friend)
@@ -84,17 +93,16 @@
       [:a.top twitter-href
        [:a.name twitter-name]
        [:a.handle "@" twitter-handle]]
-      ;; [:span.name " dist: " (round-two-decimals (get-smallest-distance friend))]
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :title "Google Maps"
             :target "_blank"}
-        [:span.location location]]]]]))
+        [:span.location location]
+        [:span.distance "~" (round-two-decimals (get-smallest-distance friend)) " miles away"]]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
-       (sort-by #(do #_(println (:screen-name %) "– distance:" (get-in % [:distance distance-key]))
-                     (get-in % [:distance distance-key])))
+       (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
 (defn render-friends-list [friends-list-key verb-gerund location-name]
