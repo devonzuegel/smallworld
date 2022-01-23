@@ -140,11 +140,18 @@
                      (get-in % [:distance distance-key])))
        (filter (closer-than max-distance distance-key))))
 
-(defn render-friends-list [friends-list-key verb location-name]
-  (let [friends-list (get-close-friends friends-list-key 100)
-        list-count   (count friends-list)]
+(defn render-friends-list [friends-list-key [verb verb-plural] location-name]
+  (let [friends-list      (get-close-friends friends-list-key 100)
+        list-count        (count friends-list)
+        friend-pluralized (if (= list-count 1) "friend" "friends")
+        say-pluralized    (if (= list-count 1) "says" "say")
+        verb-pluralized   (if (= list-count 1) verb verb-plural)]
     [:<>
-     [:p.location-info list-count " friends say they " [:b verb] " near " location-name ":"]
+     [:p.location-info (str list-count " "
+                            friend-pluralized " "
+                            say-pluralized " they "
+                            verb-pluralized " near "
+                            location-name ":")]
      [:hr]
      (if (> list-count 0)
        [:div.friends (map-indexed Friend friends-list)]
@@ -171,25 +178,25 @@
          name-location (:name-location @current-user)]
      [:div.container
       (Friend nil @current-user)
-      [:div.location-info
-       [:p "you are based in: "      [:span.location main-location]]
-       (when name-location
-         [:p "your current location: " [:span.location name-location]])]
+      ;; [:div.location-info
+      ;;  [:p "you are based in: "      [:span.location main-location]]
+      ;;  (when name-location
+      ;;    [:p "your current location: " [:span.location name-location]])]
 
-      [:hr] [:br]
+      [:br]
 
       (if (= :loading @friends)
         (simple-loading-animation) ;; TODO: replace this with list of empty Friends to make the transition less jarring
         [:<>
          (when-not (empty? main-location)
            [:<>
-            (render-friends-list :main-main "live" main-location)
-            (render-friends-list :main-name "are" main-location)])
+            (render-friends-list :main-main ["live" "live"] main-location)
+            (render-friends-list :main-name ["is" "are"]     main-location)])
 
          (when-not (empty? name-location)
            [:<>
-            (render-friends-list :name-name "live" name-location)
-            (render-friends-list :name-main "are" name-location)])
+            (render-friends-list :name-name ["live" "live"] name-location)
+            (render-friends-list :name-main ["is" "are"]     name-location)])
 
          [smallworld.mapbox/mapbox]
 
