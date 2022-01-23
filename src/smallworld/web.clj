@@ -267,20 +267,24 @@
     (println logout-msg)
     (set-session (response/response logout-msg) {})))
 
+(defn get-users-friends [req]
+  (let [-current-user (get-current-user req)
+        logged-in?    (not= cu/default-state -current-user)]
+    (generate-string (if logged-in?
+                       []
+                       (memoized-friends-relevant-data (:screen-name -current-user)
+                                                       (get-current-user req))))))
+
 ;; app is function that takes a request, and returns a response
 (defroutes devons-app ; order matters in this function!
   ;; oauth & session endpoints
-  (GET "/login"      []  (start-oauth-flow))
+  (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/session"    req (generate-string (get-current-user req)))
   (GET "/logout"     req (logout req))
 
   ;; app data endpoints
-  (GET "/friends" req (let [-current-user (get-current-user req)]
-                        (generate-string (if (= cu/default-state -current-user)
-                                           []
-                                           (memoized-friends-relevant-data (:screen-name -current-user)
-                                                                           (get-current-user req))))))
+  (GET "/friends" req (get-users-friends req))
 
   ;; general resources
   (GET "/" [] (slurp (io/resource "public/index.html")))
