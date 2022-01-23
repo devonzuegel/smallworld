@@ -214,7 +214,6 @@ tr:nth-child(even) {
   margin-bottom: 24px;
   display: flex;
   align-items: center;
-  width: 440px;
 }
 .friend .twitter-pic,
 .friend .twitter-pic img {
@@ -319,8 +318,11 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
+#smallworld-map-spacer {
+  height: 40px;
+}
 #smallworld-map-container {
-  height: 100px;
+  height: 80px;
   width: 100%;
   position: fixed;
   left: 0;

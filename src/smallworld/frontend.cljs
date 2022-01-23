@@ -267,6 +267,7 @@
             (render-friends-list :name-name "live" main-location)
             (render-friends-list :name-main "are" main-location)])
 
+         [:div#smallworld-map-spacer]
          [:div#smallworld-map-container
           [:a.expand-me {:on-click #(js/alert "hi!")} "expand map"]
           [RenderMap]]
@@ -278,8 +279,7 @@
         ;;                                 (catch js/Error e (str @friends)))]
         ;;  [:br]
         ;;  [:pre "@friends:\n\n"       (preify @friends)]
-         [:br]
-         [:br]])])])
+         ])])])
 
 (defn app-container []
 
