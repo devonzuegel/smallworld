@@ -82,8 +82,8 @@
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
      [:div.right-section
       [:a.top twitter-href
-       [:span.name twitter-name]
-       [:span.handle "@" twitter-handle]]
+       [:a.name twitter-name]
+       [:a.handle "@" twitter-handle]]
       ;; [:span.name " dist: " (round-two-decimals (get-smallest-distance friend))]
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")

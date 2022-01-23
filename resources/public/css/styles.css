@@ -164,12 +164,14 @@ hr {
   border-bottom: 2px solid #d9d3cc33;
   margin: 8px 0;
 }
-a {
+a,
+a a {
   color: #d9d3cc;
   text-decoration: none;
   // border-bottom: 3px solid #ffffff22;
 }
-a:hover {
+a:hover,
+a:hover a {
   color: #f5f0eb;
   transition: all 50ms ease-out;
   // border-bottom: 3px solid #ffffff44;
@@ -280,15 +282,15 @@ tr:nth-child(even) {
   margin-left: 12px;
   padding-bottom: 12px;
 }
-.friend .right-section a .name {
+.friend .right-section .top .name {
   font-size: 1.2em;
   font-weight: bold;
 }
-.friend .right-section a .handle {
+.friend .right-section .top .handle {
   opacity: 0.6;
   margin-left: 12px;
 }
-.friend:hover .right-section a .handle {
+.friend:hover .right-section .top .handle {
   opacity: 0.7;
 }
 .no-friends-found {
@@ -315,7 +317,7 @@ tr:nth-child(even) {
     width: 100px;
     border-radius: 100px;
   }
-  .current-user .friend .right-section a .name {
+  .current-user .friend .right-section .top .name {
     font-size: 1.5em;
     font-weight: bold;
   }
