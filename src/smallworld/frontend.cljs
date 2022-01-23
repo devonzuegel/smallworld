@@ -21,7 +21,6 @@
               ;;  (pp/pprint result)
                (callback result)))))
 
-;; TODO: only fetch friends if current-user is set
 (fetch "/friends" #(reset! friends %))
 (fetch "/session" #(reset! current-user %))
 
@@ -61,37 +60,6 @@
      [:a#login {:href "/login"} "sign in"]
      [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])])
 
-(def friend-row-headers ["" "name" "handle" "location" "coordinates" "distance" "profile_image_url_large"])
-
-(defn location-name-similarity [friend]
-  (fuzzy/jaro-winkler (.toLowerCase (:location friend))
-                      (.toLowerCase (:location @current-user))))
-
-(defn friend-row [i friend]
-  (let [twitter-handle (:screen-name friend)
-        twitter-link   (str "http://twitter.com/" twitter-handle)]
-    [:tr {:key i}
-     [:td i]
-     [:td (:name friend)]
-     [:td [:a {:href twitter-link} (str "@" twitter-handle)]]
-     [:td (:location friend)]
-     [:td (pr-str (:coordinates friend))]
-     [:td (:distance friend)]
-     [:td (:profile_image_url_large friend)]
-     #_[:td (location-name-similarity friend)]]))
-
-(def table-header (map-indexed (fn [i header] [:th {:key i} header])
-                               friend-row-headers))
-
-(defn get-smallest-distance [friend]
-  (let [x (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
-                                   (get-in friend [:distance :name-name])
-                                   (get-in friend [:distance :name-main])
-                                   (get-in friend [:distance :main-name])
-                                   (get-in friend [:distance :main-main])]))]
-    ;; (println "distance: " x)
-    x))
-
 (defn closer-than [max-distance dist-key]
   (fn [friend]
     (let [smallest-distance (get-in friend [:distance dist-key])]
@@ -99,8 +67,6 @@
            (not (nil? smallest-distance))))))
 
 (def round-two-decimals #(pp/cl-format nil "~,2f" %))
-
-(defn preify [obj] (with-out-str (pp/pprint obj)))
 
 (defn Friend [k friend]
   (let [twitter-pic    (:profile_image_url_large friend)
@@ -122,8 +88,7 @@
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :target "_blank"}
-        [:span.location location]
-        [:span.coordinates [:span.coord lat] " " [:span.coord lng]]]
+        [:span.location location]]
        #_[:pre (preify friend)]]]]))
 
 (defn get-close-friends [distance-key max-distance]
