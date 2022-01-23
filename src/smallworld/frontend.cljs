@@ -218,13 +218,13 @@
   (r/create-class
    {:component-did-mount (fn []
                            (new js/mapboxgl.Map
-                                #js{:container "smallworld-map"
+                                #js{:container "mapbox"
                                     :key (get-in mapbox-config [mapbox-style :access-token])
                                     :style (get-in mapbox-config [mapbox-style :style])
                                     :attributionControl false ;; remove the Mapbox copyright symbol
                                     :center #js[74.5, 40] ;; TODO: center on user's location
                                     :zoom 1}))
-    :reagent-render (fn [] [:div#smallworld-map])}))
+    :reagent-render (fn [] [:div#mapbox])}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -267,10 +267,10 @@
             (render-friends-list :name-name "live" main-location)
             (render-friends-list :name-main "are" main-location)])
 
-         [:div#smallworld-map-spacer]
-         [:div#smallworld-map-container
+         [:div#mapbox-container
           [:a.expand-me {:on-click #(js/alert "hi!")} "expand map"]
           [RenderMap]]
+         [:div#mapbox-spacer]
 
         ;;  ;; for debugging:
         ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
