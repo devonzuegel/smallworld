@@ -19,7 +19,6 @@ body {
   margin: 0;
 }
 #app {
-  overflow-x: hidden;
   height: 100vh;
 }
 /*****************************************/
