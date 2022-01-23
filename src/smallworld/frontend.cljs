@@ -115,12 +115,12 @@
                              list-count " "
                              friend-pluralized " "
                              say-pluralized " they're "
-                             [:u verb-gerund] " " location-name ":"]]
+                             [:u verb-gerund] " nearby:"]]
           [:div.friends (map-indexed Friend friends-list)]]
 
          [:div.friends
           [:div.no-friends-found
-           "0 friends have shared that they're " [:u verb-gerund] " " location-name "."]]))]))
+           "0 friends have shared that they're " [:u verb-gerund] "."]]))]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -149,14 +149,14 @@
          [:div.category
           [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-          (render-friends-list :main-main "living near" main-location)
+          (render-friends-list :main-main "living" main-location)
           (render-friends-list :main-name "visiting"     main-location)])
 
        (when-not (empty? name-location)
          [:div.category
           [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-          (render-friends-list :name-name "living near" name-location)
+          (render-friends-list :name-name "living" name-location)
           (render-friends-list :name-main "visiting" name-location)])
 
        [smallworld.mapbox/mapbox]
