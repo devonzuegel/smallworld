@@ -22,16 +22,18 @@
               ;;  (pp/pprint result)
                (callback result)))))
 
+(defn add-friends-to-map [-friends]
+  (doall ; no lazy load
+   (for [friend -friends]
+     (let [main-coords (:main-coords friend)
+           name-coords (:name-coords friend)]
+       ; TODO: make the styles for main vs name coords different
+       (when main-coords (smallworld.mapbox/add-marker [(:lng main-coords) (:lat main-coords)]))
+       (when name-coords (smallworld.mapbox/add-marker [(:lng name-coords) (:lat name-coords)]))))))
+
 (fetch "/friends" (fn [result]
                     (reset! friends result)
-                    (js/setTimeout
-                     (fn []
-                       (smallworld.mapbox/add-marker [74.5, 40])
-                       (smallworld.mapbox/add-marker [-90, 40])
-                       (smallworld.mapbox/add-marker [-77, 39]) ;; Washington DC
-                       (smallworld.mapbox/add-marker [174.5, 40])
-                       (smallworld.mapbox/add-marker [-14.5, 30]))
-                     1000)))
+                    (add-friends-to-map @friends)))
 (fetch "/session" #(reset! current-user %))
 
 (defn logout []
@@ -172,8 +174,8 @@
                                        (when main-coords [(:lng main-coords) (:lat main-coords)]))])
 
         ;;  ;; for debugging:
-       [:pre "@current-user:\n\n"  (preify @current-user)]
-       [:br]
+        ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
+        ;;  [:br]
         ;;  [:pre "count @friends:  " (try (count @friends)
         ;;                                 (catch js/Error e (str @friends)))]
        [:br]
