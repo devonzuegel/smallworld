@@ -22,7 +22,16 @@
               ;;  (pp/pprint result)
                (callback result)))))
 
-(fetch "/friends" #(reset! friends %))
+(fetch "/friends" (fn [result]
+                    (reset! friends result)
+                    (js/setTimeout
+                     (fn []
+                       (smallworld.mapbox/add-marker [74.5, 40])
+                       (smallworld.mapbox/add-marker [-90, 40])
+                       (smallworld.mapbox/add-marker [-77, 39]) ;; Washington DC
+                       (smallworld.mapbox/add-marker [174.5, 40])
+                       (smallworld.mapbox/add-marker [-14.5, 30]))
+                     1000)))
 (fetch "/session" #(reset! current-user %))
 
 (defn logout []

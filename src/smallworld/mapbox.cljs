@@ -60,12 +60,7 @@
                                               :attributionControl false ;; remove the Mapbox copyright symbol
                                               :center (clj->js center) ;; TODO: center on user's location
                                               :zoom 1}))
-                             (add-marker center "center")
-                             (add-marker [74.5, 40])
-                             (add-marker [-90, 40])
-                             (add-marker [-77, 39]) ;; Washington DC
-                             (add-marker [174.5, 40])
-                             (add-marker [-14.5, 30]))
+                             (add-marker center "center"))
       :reagent-render (fn [] [:div#mapbox])})))
 
 (defn mapbox [map-center]
