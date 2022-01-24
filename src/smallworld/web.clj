@@ -247,17 +247,19 @@
 
 ;; step 2
 (defn store-fetched-access-token-then-redirect-home [req]
-  (let [oauth-token    (get-in req [:params :oauth_token])
-        oauth-verifier (get-in req [:params :oauth_verifier])
-        access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
-        current-user   (get-relevant-user-data (fetch-current-user--with-access-token access-token)
-                                               :current-user)
-        screen-name    (:screen-name current-user)]
-    (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
-    (println (str "@" screen-name " (user-id: " "TODO" ") "
-                  "has successfully authorized Small World to access their Twitter account"))
-    (set-session (response/redirect "/") {:current-user current-user
-                                          :access-token access-token})))
+  (try (let [oauth-token    (get-in req [:params :oauth_token])
+             oauth-verifier (get-in req [:params :oauth_verifier])
+             access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
+             current-user   (get-relevant-user-data (fetch-current-user--with-access-token access-token)
+                                                    :current-user)
+             screen-name    (:screen-name current-user)]
+         (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
+         (println (str "@" screen-name " (user-id: " "TODO" ") has successfully authorized Small World to access their Twitter account"))
+         (set-session (response/redirect "/") {:current-user current-user
+                                               :access-token access-token}))
+       (catch Throwable e
+         (println "user failed to log in")
+         (response/redirect "/"))))
 
 (defn logout [req]
   (let [screen-name (:screen-name (get-current-user req))
