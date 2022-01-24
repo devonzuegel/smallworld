@@ -78,8 +78,8 @@
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
      [:div.right-section
       [:a.top twitter-href
-       [:a.name twitter-name]
-       [:a.handle "@" twitter-handle]]
+       [:span.name twitter-name]
+       [:span.handle "@" twitter-handle]]
       [:div.bottom
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :title "Google Maps"

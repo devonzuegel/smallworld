@@ -4,16 +4,32 @@
             [goog.dom]))
 
 ; not defonce because we want to reset it to closed upon refresh
-(def expanded (r/atom false))
+(def expanded (r/atom true #_false))
 (def the-map (r/atom nil)) ;; can't name it `map` since that's taken
 (defonce markers (r/atom []))
 
+(defn assert-long-lat [[long lat]]
+  (assert (and (number? lat)
+               (number? long))
+          (str "[lat long] must be numbers – [lat long] = [" lat " " long "]"))
+  (assert (and (>= lat -90)
+               (<= lat 90))
+          (str "lat must be between -90 & 90 [" lat "]"))
+  (assert (and (>= long -180)
+               (<= long 180))
+          (str "long must be between -180 & 180 [" lat "]")))
+
 (defn add-marker [coordinate]
+  (assert-long-lat coordinate)
   (let [element (.createElement js/document "div")
+        newContent (.createTextNode js/document (str coordinate))
         marker (new js/mapboxgl.Marker element)]
+
+    (.appendChild element newContent)
+    (set! (.-className element) "marker")
+
     (.setLngLat marker (clj->js coordinate))
     (.addTo marker @the-map)
-    (set! (.-className element) "marker")
     (swap! markers conj marker)))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
@@ -30,21 +46,26 @@
 
 (set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :access-token]))
 
-(defn render-map []
-  (r/create-class
-   {:component-did-mount (fn []
-                           (reset! the-map
-                                   (new js/mapboxgl.Map
-                                        #js{:container "mapbox"
-                                            :key (get-in mapbox-config [mapbox-style :access-token])
-                                            :style (get-in mapbox-config [mapbox-style :style])
-                                            :attributionControl false ;; remove the Mapbox copyright symbol
-                                            :center #js[74.5, 40] ;; TODO: center on user's location
-                                            :zoom 1}))
-                           (add-marker [74.5, 40])
-                           (add-marker [174.5, 40])
-                           (add-marker [-14.5, 30]))
-    :reagent-render (fn [] [:div#mapbox])}))
+(def middle-of-USA [-90, 40])
+
+(defn render-map [& [center]]
+  (let [center (or center middle-of-USA)]
+    (r/create-class
+     {:component-did-mount (fn []
+                             (reset! the-map
+                                     (new js/mapboxgl.Map
+                                          #js{:container "mapbox"
+                                              :key (get-in mapbox-config [mapbox-style :access-token])
+                                              :style (get-in mapbox-config [mapbox-style :style])
+                                              :attributionControl false ;; remove the Mapbox copyright symbol
+                                              :center (clj->js center) ;; TODO: center on user's location
+                                              :zoom 1}))
+                             (add-marker [74.5, 40])
+                             (add-marker [-90, 40])
+                             (add-marker [-77, 39]) ;; Washington DC
+                             (add-marker [174.5, 40])
+                             (add-marker [-14.5, 30]))
+      :reagent-render (fn [] [:div#mapbox])})))
 
 (defn mapbox []
   [:<>
