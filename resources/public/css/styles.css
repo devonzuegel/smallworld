@@ -34,7 +34,10 @@ body {
   top: 0;
   z-index: 1;
   width: -webkit-fill-available;
+  padding-top: 2px;
+  padding-bottom: 2px;
   padding-right: 22px;
+  padding-left: 8px;
 }
 .nav::before {
   content: '';
@@ -46,6 +49,11 @@ body {
   bottom: 0px;
   left: 0px;
   opacity: 0.26;
+}
+.nav .globe-loader {
+  position: relative;
+  top: 2px;
+  transform: scale(0.8);
 }
 .logo {
   display: flex;
@@ -64,16 +72,14 @@ body {
 .logo-text {
   display: inline-block;
   font-family: 'Inria Serif', serif;
-  font-size: 22px;
-  line-height: 0.9em;
-  margin: 10px 12px;
-  max-width: 80px;
+  font-size: 1.5rem;
+  margin: 10px 6px;
 }
 .fill-nav-space {
   flex-grow: 1;
 }
 .links-spacer {
-  margin: 0 16px;
+  margin: 0 12px;
   color: #d9d3cc55;
 }
 @media screen and (max-width: 768px) {
@@ -98,7 +104,7 @@ body {
 .globe-loader > i {
   display: block;
   position: absolute;
-  font-size: 0.37em;
+  font-size: 0.45em;
   height: 50%;
   top: 0;
   left: 50%;
