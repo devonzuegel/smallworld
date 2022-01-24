@@ -289,8 +289,8 @@
   (GET "/friends" req (get-users-friends req))
 
   ;; general resources
-  (GET "/"                      [] (slurp (io/resource "public/index.html")))
-  (GET "/mapbox-gl-dev.inc.css" [] (slurp (io/resource "cljsjs/mapbox/development/mapbox-gl-dev.inc.css")))
+  (GET "/"                      [] (io/resource "public/index.html"))
+  (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
 
