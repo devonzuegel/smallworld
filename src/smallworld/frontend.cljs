@@ -45,6 +45,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn preify [obj] (with-out-str (pp/pprint obj)))
+
 (defn closer-than [max-distance dist-key]
   (fn [friend]
     (let [smallest-distance (get-in friend [:distance dist-key])]
@@ -155,14 +157,17 @@
           (render-friends-list :name-name "living" name-location)
           (render-friends-list :name-main "visiting" name-location)])
 
-       [smallworld.mapbox/mapbox]
+       (let [main-coords (:main-coords @current-user)
+             name-coords (:name-coords @current-user)]
+         [smallworld.mapbox/mapbox (or (when name-coords [(:lng name-coords) (:lat name-coords)])
+                                       (when main-coords [(:lng main-coords) (:lat main-coords)]))])
 
         ;;  ;; for debugging:
-        ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
-        ;;  [:br]
+       [:pre "@current-user:\n\n"  (preify @current-user)]
+       [:br]
         ;;  [:pre "count @friends:  " (try (count @friends)
         ;;                                 (catch js/Error e (str @friends)))]
-        ;;  [:br]
+       [:br]
         ;;  [:pre "@friends:\n\n"       (preify @friends)]
         ;;
        ]])])

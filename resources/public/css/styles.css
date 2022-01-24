@@ -448,6 +448,10 @@ tr:nth-child(even) {
 .mapboxgl-ctrl-logo {
   display: none !important;
 }
+.marker.center {
+  color: red;
+  background-color: red;
+}
 .marker {
   color: #013917;
   background-color: #013917;

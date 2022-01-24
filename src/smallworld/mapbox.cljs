@@ -19,14 +19,14 @@
                (<= long 180))
           (str "long must be between -180 & 180 [" lat "]")))
 
-(defn add-marker [coordinate]
+(defn add-marker [coordinate & [classname]]
   (assert-long-lat coordinate)
   (let [element (.createElement js/document "div")
         newContent (.createTextNode js/document (str coordinate))
         marker (new js/mapboxgl.Marker element)]
 
     (.appendChild element newContent)
-    (set! (.-className element) "marker")
+    (set! (.-className element) (str "marker " classname))
 
     (.setLngLat marker (clj->js coordinate))
     (.addTo marker @the-map)
@@ -60,6 +60,7 @@
                                               :attributionControl false ;; remove the Mapbox copyright symbol
                                               :center (clj->js center) ;; TODO: center on user's location
                                               :zoom 1}))
+                             (add-marker center "center")
                              (add-marker [74.5, 40])
                              (add-marker [-90, 40])
                              (add-marker [-77, 39]) ;; Washington DC
@@ -67,7 +68,7 @@
                              (add-marker [-14.5, 30]))
       :reagent-render (fn [] [:div#mapbox])})))
 
-(defn mapbox []
+(defn mapbox [map-center]
   [:<>
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
@@ -97,54 +98,5 @@
                   (js/setTimeout #(.resize @the-map) 190)
                   (js/setTimeout #(.resize @the-map) 200))}
      (if @expanded "collapse map" "expand map")]
-    [render-map]]
+    [render-map map-center]]
    [:div#mapbox-spacer]])
-
-;; const marker = new mapgl.Marker(map, {
-;;     coordinates: [55.31878, 25.23584],
-;; });
-
-
-;; (new js/mapboxgl.Map
-;;      :container container-id
-;;      :style "mapbox://styles/mapbox/streets-v11"
-;;      :center [-74.5, 40]
-;;      :zoom 9)
-;; (defn MapRender
-;;   []
-;;   (let [ref (r/useRef nil)
-;;         [map setMap] (r/useState nil)]
-;;     (r/useEffect
-;;      (fn []
-;;        (when (and (.-current ref) (not map))
-;;          (let [map
-;;                (new
-;;                 (.-Map mapboxgl)
-;;                 #js
-;;                  {:container (.-current ref)
-;;                   :style "mapbox://styles/mapbox/streets-v11"
-;;                   :center #js [0 0]
-;;                   :zoom 1})]
-;;            (setMap map))))
-;;      #js [ref map])
-;;     [:div {:className "map-container", :ref ref}]))
-
-;; mapboxgl.accessToken = '<your access token here>';
-;; const map = new mapboxgl.Map({
-;;     container: 'map', // container ID
-;;     style: 'mapbox://styles/mapbox/streets-v11', // style URL
-;;     center: [-74.5, 40], // starting position [lng, lat]
-;;     zoom: 9 // starting zoom
-;; });
-
-;; js/mapbox.accessToken "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-  ;; (let [my-div [:div "my-div"]
-  ;;       my-map (new js/mapboxgl.Map
-  ;;                   :container my-div
-  ;;                   :style "mapbox://styles/mapbox/streets-v11"
-  ;;                   :center [-74.5, 40]
-  ;;                   :zoom 9)]
-  ;;   ;; (print "my-map:")
-  ;;   ;; (print my-map)
-  ;;   my-map)
-
