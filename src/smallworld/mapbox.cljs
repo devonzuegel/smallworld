@@ -63,7 +63,7 @@
                                               :key (get-in mapbox-config [mapbox-style :access-token])
                                               :style (get-in mapbox-config [mapbox-style :style])
                                               :attributionControl false ;; remove the Mapbox copyright symbol
-                                              :center (clj->js center) ;; TODO: center on user's location
+                                              :center (clj->js center)
                                               :zoom 1}))
                              (add-marker center "center"))
       :reagent-render (fn [] [:div#mapbox])})))
@@ -74,29 +74,9 @@
     [:a.expand-me
      {:on-click (fn []
                   (reset! expanded (not @expanded))
-                  ; TODO: iterate over these timeouts so it's not so gross – need to find a non-lazy way to do it so it actually works
-                  ; resize the map multiple times to account for the animation
-                  (js/setTimeout #(.resize @the-map) 0)
-                  (js/setTimeout #(.resize @the-map) 10)
-                  (js/setTimeout #(.resize @the-map) 20)
-                  (js/setTimeout #(.resize @the-map) 30)
-                  (js/setTimeout #(.resize @the-map) 40)
-                  (js/setTimeout #(.resize @the-map) 50)
-                  (js/setTimeout #(.resize @the-map) 60)
-                  (js/setTimeout #(.resize @the-map) 70)
-                  (js/setTimeout #(.resize @the-map) 80)
-                  (js/setTimeout #(.resize @the-map) 90)
-                  (js/setTimeout #(.resize @the-map) 100)
-                  (js/setTimeout #(.resize @the-map) 110)
-                  (js/setTimeout #(.resize @the-map) 120)
-                  (js/setTimeout #(.resize @the-map) 130)
-                  (js/setTimeout #(.resize @the-map) 140)
-                  (js/setTimeout #(.resize @the-map) 150)
-                  (js/setTimeout #(.resize @the-map) 160)
-                  (js/setTimeout #(.resize @the-map) 170)
-                  (js/setTimeout #(.resize @the-map) 180)
-                  (js/setTimeout #(.resize @the-map) 190)
-                  (js/setTimeout #(.resize @the-map) 200))}
+                  (doall
+                   (for [i (range 20)]
+                     (js/setTimeout #(.resize @the-map) (* i 10)))))}
      (if @expanded "collapse map" "expand map")]
     [render-map map-center]]
    [:div#mapbox-spacer]])

@@ -23,7 +23,7 @@
                (callback result)))))
 
 (defn add-friends-to-map [-friends]
-  (doall ; no lazy load
+  (doall ; force no lazy load
    (for [friend -friends]
      (let [main-coords (:main-coords friend)
            name-coords (:name-coords friend)]
