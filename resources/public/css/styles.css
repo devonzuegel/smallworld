@@ -442,7 +442,7 @@ tr:nth-child(even) {
   transition: background 100ms ease-out;
 }
 #mapbox-container .mapboxgl-map {
-  background-color: #efeaef;
+  background: #9dc7d9;
   box-shadow: 0px 0px 18px #ffffff55;
   border-top: 2px solid #013917;
   filter: saturate(50%);
