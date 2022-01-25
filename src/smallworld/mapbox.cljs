@@ -8,29 +8,34 @@
 (def the-map (r/atom nil)) ;; can't name it `map` since that's taken
 (defonce markers (r/atom []))
 
-(defn assert-long-lat [[long lat]]
-  (assert (and (number? lat)
-               (number? long))
-          (str "[lat long] must be numbers – [lat long] = [" lat " " long "]"))
-  (assert (and (>= lat -90)
-               (<= lat 90))
-          (str "lat must be between -90 & 90 [" lat "]"))
-  (assert (and (>= long -180)
-               (<= long 180))
-          (str "long must be between -180 & 180 [" lat "]")))
+(defn assert-long-lat [-coordinates]
+  (let [[long lat] -coordinates]
+    (assert (not (nil? -coordinates))
+            (str "expected coordinates to be a list of [long lat], but received nil"))
+    (assert (and (number? lat)
+                 (number? long))
+            (str "[lat long] must be numbers, but received [" lat " " long "]"))
+    (assert (and (>= lat -90)
+                 (<= lat 90))
+            (str "lat must be between -90 & 90, but received [" lat "]"))
+    (assert (and (>= long -180)
+                 (<= long 180))
+            (str "long must be between -180 & 180, but received [" lat "]"))))
 
 (defn add-marker [coordinate & [classname]]
-  (assert-long-lat coordinate)
-  (let [element (.createElement js/document "div")
-        newContent (.createTextNode js/document (str coordinate))
-        marker (new js/mapboxgl.Marker element)]
+  (try (do
+         (assert-long-lat coordinate)
+         (let [;; coords (.createTextNode js/document (str coordinate))
+               element (.createElement js/document "div")
+               marker (new js/mapboxgl.Marker element)]
 
-    (.appendChild element newContent)
-    (set! (.-className element) (str "marker " classname))
+           ;; (.appendChild element coords)
+           (set! (.-className element) (str "marker " classname))
 
-    (.setLngLat marker (clj->js coordinate))
-    (.addTo marker @the-map)
-    (swap! markers conj marker)))
+           (.setLngLat marker (clj->js coordinate))
+           (.addTo marker @the-map)
+           (swap! markers conj marker)))
+       (catch js/Error e (js/console.error e))))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
