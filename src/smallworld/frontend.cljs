@@ -33,7 +33,8 @@
 
 (fetch "/friends" (fn [result]
                     (reset! friends result)
-                    (add-friends-to-map @friends)))
+                    ; wait for the map to load – this is a hack & may be a source of errors ;)
+                    (js/setTimeout #(add-friends-to-map @friends) 500)))
 (fetch "/session" #(reset! current-user %))
 
 (defn logout []
