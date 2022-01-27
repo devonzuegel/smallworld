@@ -4,8 +4,8 @@
             [goog.dom]))
 
 ; not defonce because we want to reset it to closed upon refresh
-(def expanded (r/atom true #_false))
-(def the-map (r/atom nil)) ;; can't name it `map` since that's taken
+(def expanded (r/atom false))
+(def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (defonce markers (r/atom []))
 
 (defn assert-long-lat [-coordinates]
@@ -23,16 +23,18 @@
             (str "long must be between -180 & 180, but received [" lat "]"))))
 
 (defn add-friend-marker [{lng-lat :lng-lat
+                          img-url :img-url
                           classname :classname}]
-
-  (println "adding friend marker...")
   (try (do
          (assert-long-lat lng-lat)
-         (let [;; coords (.createTextNode js/document (str lng-lat))
-               element (.createElement js/document "div")
-               marker (new js/mapboxgl.Marker element)]
+         (let [element (.createElement js/document "div")
+               img     (.createElement js/document "img")
+               marker  (new js/mapboxgl.Marker element)]
 
-           ;; (.appendChild element coords)
+          ;;  (set! (.-src img) img-url)
+          ;;  (.appendChild element img)
+
+           (set! (.. element -style -backgroundImage) img-url)
            (set! (.-className element) (str "marker " classname))
 
            (.setLngLat marker (clj->js lng-lat))
@@ -56,6 +58,14 @@
 
 (def middle-of-USA [-90, 40])
 
+(defn update-markers-size []
+  (let [scale   (+ .1 (* (.getZoom @the-map) 0.2))
+        markers (array-seq (goog.dom/getElementsByClass "marker"))]
+    (doall (for [marker markers]
+             (let [current-transform (.-transform (.-style marker))
+                   new-transform     (str "transform: " current-transform " scale(" scale ");")]
+               (set! (.-style marker) new-transform))))))
+
 (defn render-map [& [center]]
   (let [center (or center middle-of-USA)]
     (r/create-class
@@ -65,11 +75,16 @@
                                           #js{:container "mapbox"
                                               :key (get-in mapbox-config [mapbox-style :access-token])
                                               :style (get-in mapbox-config [mapbox-style :style])
-                                              :attributionControl false ;; remove the Mapbox copyright symbol
+                                              :attributionControl false ; removes the Mapbox copyright symbol
                                               :center (clj->js center)
-                                              :zoom 1}))
+                                              :zoom 4}))
                              (add-friend-marker {:lng-lat center
-                                                 :classname "current-user"}))
+                                                 :classname "current-user"})
+                             ; calibrate markers' size when (a) map loads, (b) zoom changes, (c) zoom change ends
+                             (update-markers-size)
+                             (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
+                             (.on @the-map "zoom" update-markers-size))
+
       :reagent-render (fn [] [:div#mapbox])})))
 
 (defn mapbox [map-center]

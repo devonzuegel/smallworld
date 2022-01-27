@@ -35,6 +35,7 @@
          (when has-coord
            #_(mapbox/add-marker [lng lat])
            (mapbox/add-friend-marker {:lng-lat [lng lat]
+                                      :img-url (:profile_image_url_large friend)
                                       :classname "main-coords"})))
 
        (let [lng (:lng name-coords)
@@ -43,6 +44,7 @@
          (when has-coord
            #_(mapbox/add-marker [lng lat])
            (mapbox/add-friend-marker {:lng-lat [(+ lng 0.1) lat]
+                                      :img-url (:profile_image_url_large friend)
                                       :classname "name-coords"})))))))
 
 (fetch "/friends" (fn [result]

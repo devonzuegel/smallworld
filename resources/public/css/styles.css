@@ -476,18 +476,18 @@ tr:nth-child(even) {
 .mapboxgl-ctrl-logo {
   display: none !important;
 }
-.marker.current-user {
-  color: red;
-  background-color: red;
-}
-.marker.main-coords {
-  color: cyan;
-  background-color: cyan;
-}
-.marker.name-coords {
-  color: green;
-  background-color: green;
-}
+// .marker.current-user {
+//   color: red;
+//   background-color: red;
+// }
+// .marker.main-coords {
+//   color: cyan;
+//   background-color: cyan;
+// }
+// .marker.name-coords {
+//   color: green;
+//   background-color: green;
+// }
 .marker {
   position: absolute; /* without this, you get the zoomy marker bug */
   color: #013917;
@@ -502,6 +502,11 @@ tr:nth-child(even) {
   -moz-animation: fadein 1s; /* Firefox */
   -webkit-animation: fadein 1s; /* Safari and Chrome */
   -o-animation: fadein 1s; /* Opera */
+
+  height: 42px;
+  width: 42px;
+  border-radius: 100%;
+  border: 1px solid #efeaef;
 }
 @keyframes fadein {
   from {
