@@ -28,12 +28,12 @@
      (let [main-coords (:main-coords friend)
            name-coords (:name-coords friend)]
        ; TODO: make the styles for main vs name coords different
-       (when (and main-coords
-                  (:lng main-coords)
-                  (:lat main-coords)) (mapbox/add-marker [(:lng main-coords) (:lat main-coords)]))
-       (when (and name-coords
-                  (:lng name-coords)
-                  (:lat name-coords)) (mapbox/add-marker [(:lng name-coords) (:lat name-coords)]))))))
+       (let [lng (:lng main-coords)
+             lat (:lat main-coords)]
+         (when (and main-coords lng lat) (mapbox/add-marker [lng lat])))
+       (let [lng (:lng name-coords)
+             lat (:lat name-coords)]
+         (when (and name-coords lng lat) (mapbox/add-marker [lng lat])))))))
 
 (fetch "/friends" (fn [result]
                     (reset! friends result)
