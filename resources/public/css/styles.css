@@ -399,10 +399,6 @@ tr:nth-child(even) {
   background-color: #e7e2de;
   transition: background-color 100ms ease-out;
 }
-.welcome a#login-btn .arrow {
-  margin-top: 4px;
-  font-size: 0.9em;
-}
 .welcome h1 {
   font-size: 4em;
   font-weight: 700;

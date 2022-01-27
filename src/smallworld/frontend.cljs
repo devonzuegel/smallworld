@@ -158,7 +158,7 @@
    [:h1 "welcome to Small World"]
    [:div#logo-animation.logo (decorations/animated-globe)]
    [:h2
-    [:a#login-btn {:href "login"} "sign in " [:span.arrow "→"]]
+    [:a#login-btn {:href "login"} "sign in"]
     [:br] "to connect with friends"]])
 
 (defn logged-in-screen []
