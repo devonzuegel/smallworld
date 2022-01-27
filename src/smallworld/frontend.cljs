@@ -1,7 +1,7 @@
 (ns smallworld.frontend
   (:require [reagent.core :as r]
             [smallworld.current-user :as cu]
-            [smallworld.mapbox]
+            [smallworld.mapbox :as mapbox]
             [smallworld.decorations :as decorations]
             [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
@@ -28,8 +28,12 @@
      (let [main-coords (:main-coords friend)
            name-coords (:name-coords friend)]
        ; TODO: make the styles for main vs name coords different
-       (when main-coords (smallworld.mapbox/add-marker [(:lng main-coords) (:lat main-coords)]))
-       (when name-coords (smallworld.mapbox/add-marker [(:lng name-coords) (:lat name-coords)]))))))
+       (when (and main-coords
+                  (:lng main-coords)
+                  (:lat main-coords)) (mapbox/add-marker [(:lng main-coords) (:lat main-coords)]))
+       (when (and name-coords
+                  (:lng name-coords)
+                  (:lat name-coords)) (mapbox/add-marker [(:lng name-coords) (:lat name-coords)]))))))
 
 (fetch "/friends" (fn [result]
                     (reset! friends result)
@@ -171,8 +175,8 @@
 
        (let [main-coords (:main-coords @current-user)
              name-coords (:name-coords @current-user)]
-         [smallworld.mapbox/mapbox (or (when name-coords [(:lng name-coords) (:lat name-coords)])
-                                       (when main-coords [(:lng main-coords) (:lat main-coords)]))])
+         [mapbox/mapbox (or (when name-coords [(:lng name-coords) (:lat name-coords)])
+                            (when main-coords [(:lng main-coords) (:lat main-coords)]))])
 
         ;;  ;; for debugging:
         ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
