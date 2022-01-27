@@ -34,10 +34,22 @@ body {
   top: 0;
   z-index: 1;
   width: -webkit-fill-available;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  padding-right: 22px;
-  padding-left: 8px;
+}
+@media (min-width: 768px) /* desktop */ {
+  .nav {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 22px;
+    padding-left: 8px;
+  }
+}
+@media (max-width: 768px) /* mobile */ {
+  .nav {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 16px;
+    padding-left: 0;
+  }
 }
 .nav::before {
   content: '';
@@ -78,13 +90,23 @@ body {
 .fill-nav-space {
   flex-grow: 1;
 }
+@media (max-width: 768px) /* mobile */ {
+  .nav > a > .screen-name {
+    /* to save nav space, don't show username on mobile */
+    display: none;
+  }
+}
 .links-spacer {
-  margin: 0 12px;
   color: #d9d3cc55;
 }
-@media screen and (max-width: 768px) {
+@media (min-width: 768px) /* desktop */ {
   .links-spacer {
-    margin: 0 8px;
+    margin: 0 12px;
+  }
+}
+@media (max-width: 768px) /* mobile */ {
+  .links-spacer {
+    margin: 0 6px;
   }
 }
 

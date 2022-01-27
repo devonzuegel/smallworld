@@ -54,9 +54,8 @@
    [:span.fill-nav-space]
    [:a {:href "#about"} "about"]
    [:span.links-spacer "·"]
-   (if (nil? (:screen-name @current-user))
-     [:a#login {:href "/login"} "sign in"]
-     [:a {:href "/" :on-click logout} "log out " [:b "@" (:screen-name @current-user)]])])
+   [:a {:href "/" :on-click logout}
+    "log out" [:b.screen-name " @" (:screen-name @current-user)]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
