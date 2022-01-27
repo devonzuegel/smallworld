@@ -459,6 +459,7 @@ tr:nth-child(even) {
   background-color: red;
 }
 .marker {
+  position: absolute; /* without this, you get the zoomy marker bug */
   color: #013917;
   background-color: #013917;
   height: 8px;
