@@ -4,7 +4,7 @@
             [goog.dom]))
 
 ; not defonce because we want to reset it to closed upon refresh
-(def expanded (r/atom false))
+(def expanded (r/atom true #_false))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (defonce markers (r/atom []))
 
@@ -58,9 +58,11 @@
 
 (def middle-of-USA [-90, 40])
 
-(defn update-markers-size []
+(defn update-markers-size [& [to-print]]
   (let [scale   (+ .1 (* (.getZoom @the-map) 0.2))
         markers (array-seq (goog.dom/getElementsByClass "marker"))]
+    (when (string? to-print)
+      (println to-print " | scale:" scale "| (count markers):" (count markers)))
     (doall (for [marker markers]
              (let [current-transform (.-transform (.-style marker))
                    new-transform     (str "transform: " current-transform " scale(" scale ");")]
@@ -81,10 +83,15 @@
                            (when current-user-coordinates (add-friend-marker {:lng-lat current-user-coordinates
                                                                               :classname "current-user"}))
 
-                             ; calibrate markers' size when (a) map loads, (b) zoom changes, (c) zoom change ends
-                           (update-markers-size)
+                           ; calibrate markers' size on various rendering events
+                           (update-markers-size) ; initial calibration
                            (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
-                           (.on @the-map "zoom" update-markers-size))
+                           (.on @the-map "zoom"       update-markers-size)
+
+      ; TODO: clean this up once I've successfully debugged it
+                           (.on @the-map "drag"      (fn [] (js/setTimeout #(update-markers-size "update-markers-size | drag")      1)))
+                           (.on @the-map "dragstart" (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragstart") 1)))
+                           (.on @the-map "dragend"   (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragend")   1))))
 
     :reagent-render (fn [] [:div#mapbox])}))
 
