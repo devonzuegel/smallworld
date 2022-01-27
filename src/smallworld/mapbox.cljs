@@ -71,34 +71,32 @@
                    new-transform     (str "transform: " current-transform " scale(" scale ");")]
                (set! (.-style marker) new-transform))))))
 
-(defn render-map [& [current-user-coordinates]]
-  (r/create-class
-   {:component-did-mount (fn []
-                           (reset! the-map
-                                   (new js/mapboxgl.Map
-                                        #js{:container "mapbox"
-                                            :key    (get-in mapbox-config [mapbox-style :access-token])
-                                            :style  (get-in mapbox-config [mapbox-style :style])
-                                            :center (clj->js (or current-user-coordinates middle-of-USA))
-                                            :attributionControl false ; removes the Mapbox copyright symbol
-                                            :zoom 4}))
+(defn after-mount [& [current-user-coordinates]]
+  ; create the map
+  (reset! the-map
+          (new js/mapboxgl.Map
+               #js{:container "mapbox"
+                   :key    (get-in mapbox-config [mapbox-style :access-token])
+                   :style  (get-in mapbox-config [mapbox-style :style])
+                   :center (clj->js (or current-user-coordinates middle-of-USA))
+                   :attributionControl false ; removes the Mapbox copyright symbol
+                   :zoom 4}))
 
-                           (when current-user-coordinates (add-friend-marker {:lng-lat current-user-coordinates
-                                                                              :classname "current-user"}))
+  ; add the current user to the map
+  (when current-user-coordinates (add-friend-marker {:lng-lat current-user-coordinates
+                                                     :classname "current-user"}))
 
-                           ; calibrate markers' size on various rendering events
-                           (update-markers-size) ; initial calibration
-                           (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
-                           (.on @the-map "zoom"       update-markers-size)
+  ; calibrate markers' size on various rendering events
+  (update-markers-size) ; initial calibration
+  (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
+  (.on @the-map "zoom"       update-markers-size)
 
-      ; TODO: clean this up once I've successfully debugged it
-                           (.on @the-map "drag"      (fn [] (js/setTimeout #(update-markers-size "update-markers-size | drag")      1)))
-                           (.on @the-map "dragstart" (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragstart") 1)))
-                           (.on @the-map "dragend"   (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragend")   1))))
+  ; TODO: clean this up once I've successfully debugged it
+  (.on @the-map "drag"      (fn [] (js/setTimeout #(update-markers-size "update-markers-size | drag")      1)))
+  (.on @the-map "dragstart" (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragstart") 1)))
+  (.on @the-map "dragend"   (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragend")   1))))
 
-    :reagent-render (fn [] [:div#mapbox])}))
-
-(defn mapbox [map-center]
+(defn mapbox [current-user-coordinates]
   [:<>
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
@@ -107,6 +105,10 @@
                   (doall
                    (for [i (range 20)]
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
-     (if @expanded "collapse map" "expand map")]
-    [render-map map-center]]
+     (if @expanded "collapse map!" "expand map!")]
+
+    [(r/create-class
+      {:component-did-mount #(after-mount current-user-coordinates)
+       :reagent-render      (fn [] [:div#mapbox])})]]
+
    [:div#mapbox-spacer]])
