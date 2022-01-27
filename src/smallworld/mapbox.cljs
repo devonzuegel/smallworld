@@ -67,9 +67,9 @@
     (when (string? to-print)
       (println to-print " | scale:" scale "| (count markers):" (count markers)))
     (doall (for [marker markers]
-             (let [current-transform (.-transform (.-style marker))
-                   new-transform     (str "transform: " current-transform " scale(" scale ");")]
-               (set! (.-style marker) new-transform))))))
+             (let [new-diameter (str (min 46 (* scale 30)) "px")]
+               (.setProperty (.-style marker) "width" new-diameter)
+               (.setProperty (.-style marker) "height" new-diameter))))))
 
 (defn after-mount [& [current-user-coordinates]]
   ; create the map
@@ -87,14 +87,8 @@
                                                      :classname "current-user"}))
 
   ; calibrate markers' size on various rendering events
-  (update-markers-size) ; initial calibration
-  (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
-  (.on @the-map "zoom"       update-markers-size)
-
-  ; TODO: clean this up once I've successfully debugged it
-  (.on @the-map "drag"      (fn [] (js/setTimeout #(update-markers-size "update-markers-size | drag")      1)))
-  (.on @the-map "dragstart" (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragstart") 1)))
-  (.on @the-map "dragend"   (fn [] (js/setTimeout #(update-markers-size "update-markers-size | dragend")   1))))
+  (.on @the-map "load" update-markers-size)
+  (.on @the-map "zoom" update-markers-size))
 
 (defn mapbox [current-user-coordinates]
   [:<>
@@ -105,7 +99,7 @@
                   (doall
                    (for [i (range 20)]
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
-     (if @expanded "collapse map!" "expand map!")]
+     (if @expanded "collapse map" "expand map")]
 
     [(r/create-class
       {:component-did-mount #(after-mount current-user-coordinates)
