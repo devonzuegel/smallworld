@@ -66,26 +66,27 @@
                    new-transform     (str "transform: " current-transform " scale(" scale ");")]
                (set! (.-style marker) new-transform))))))
 
-(defn render-map [& [center]]
-  (let [center (or center middle-of-USA)]
-    (r/create-class
-     {:component-did-mount (fn []
-                             (reset! the-map
-                                     (new js/mapboxgl.Map
-                                          #js{:container "mapbox"
-                                              :key (get-in mapbox-config [mapbox-style :access-token])
-                                              :style (get-in mapbox-config [mapbox-style :style])
-                                              :attributionControl false ; removes the Mapbox copyright symbol
-                                              :center (clj->js center)
-                                              :zoom 4}))
-                             (add-friend-marker {:lng-lat center
-                                                 :classname "current-user"})
-                             ; calibrate markers' size when (a) map loads, (b) zoom changes, (c) zoom change ends
-                             (update-markers-size)
-                             (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
-                             (.on @the-map "zoom" update-markers-size))
+(defn render-map [& [current-user-coordinates]]
+  (r/create-class
+   {:component-did-mount (fn []
+                           (reset! the-map
+                                   (new js/mapboxgl.Map
+                                        #js{:container "mapbox"
+                                            :key    (get-in mapbox-config [mapbox-style :access-token])
+                                            :style  (get-in mapbox-config [mapbox-style :style])
+                                            :center (clj->js (or current-user-coordinates middle-of-USA))
+                                            :attributionControl false ; removes the Mapbox copyright symbol
+                                            :zoom 4}))
 
-      :reagent-render (fn [] [:div#mapbox])})))
+                           (when current-user-coordinates (add-friend-marker {:lng-lat current-user-coordinates
+                                                                              :classname "current-user"}))
+
+                             ; calibrate markers' size when (a) map loads, (b) zoom changes, (c) zoom change ends
+                           (update-markers-size)
+                           (.on @the-map "zoomend" #(js/setTimeout update-markers-size 1)) ; the timeout is a hack
+                           (.on @the-map "zoom" update-markers-size))
+
+    :reagent-render (fn [] [:div#mapbox])}))
 
 (defn mapbox [map-center]
   [:<>
