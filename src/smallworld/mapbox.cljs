@@ -1,7 +1,10 @@
 (ns smallworld.mapbox
   (:require [reagent.core :as r]
             [cljsjs.mapbox]
+            [smallworld.util :as util]
             [goog.dom]))
+
+(util/load-stylesheet "./css/mapbox-gl.inc.css")
 
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom true #_false))
