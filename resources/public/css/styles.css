@@ -476,9 +476,17 @@ tr:nth-child(even) {
 .mapboxgl-ctrl-logo {
   display: none !important;
 }
-.marker.center {
+.marker.current-user {
   color: red;
   background-color: red;
+}
+.marker.main-coords {
+  color: cyan;
+  background-color: cyan;
+}
+.marker.name-coords {
+  color: green;
+  background-color: green;
 }
 .marker {
   position: absolute; /* without this, you get the zoomy marker bug */

@@ -27,13 +27,23 @@
    (for [friend -friends]
      (let [main-coords (:main-coords friend)
            name-coords (:name-coords friend)]
+
        ; TODO: make the styles for main vs name coords different
        (let [lng (:lng main-coords)
-             lat (:lat main-coords)]
-         (when (and main-coords lng lat) (mapbox/add-marker [lng lat])))
+             lat (:lat main-coords)
+             has-coord (and main-coords lng lat)]
+         (when has-coord
+           #_(mapbox/add-marker [lng lat])
+           (mapbox/add-friend-marker {:lng-lat [lng lat]
+                                      :classname "main-coords"})))
+
        (let [lng (:lng name-coords)
-             lat (:lat name-coords)]
-         (when (and name-coords lng lat) (mapbox/add-marker [lng lat])))))))
+             lat (:lat name-coords)
+             has-coord (and name-coords lng lat)]
+         (when has-coord
+           #_(mapbox/add-marker [lng lat])
+           (mapbox/add-friend-marker {:lng-lat [(+ lng 0.1) lat]
+                                      :classname "name-coords"})))))))
 
 (fetch "/friends" (fn [result]
                     (reset! friends result)

@@ -22,17 +22,20 @@
                  (<= long 180))
             (str "long must be between -180 & 180, but received [" lat "]"))))
 
-(defn add-marker [coordinate & [classname]]
+(defn add-friend-marker [{lng-lat :lng-lat
+                          classname :classname}]
+
+  (println "adding friend marker...")
   (try (do
-         (assert-long-lat coordinate)
-         (let [;; coords (.createTextNode js/document (str coordinate))
+         (assert-long-lat lng-lat)
+         (let [;; coords (.createTextNode js/document (str lng-lat))
                element (.createElement js/document "div")
                marker (new js/mapboxgl.Marker element)]
 
            ;; (.appendChild element coords)
            (set! (.-className element) (str "marker " classname))
 
-           (.setLngLat marker (clj->js coordinate))
+           (.setLngLat marker (clj->js lng-lat))
            (.addTo marker @the-map)
            (swap! markers conj marker)))
        (catch js/Error e (js/console.error e))))
@@ -65,7 +68,8 @@
                                               :attributionControl false ;; remove the Mapbox copyright symbol
                                               :center (clj->js center)
                                               :zoom 1}))
-                             (add-marker center "center"))
+                             (add-friend-marker {:lng-lat center
+                                                 :classname "current-user"}))
       :reagent-render (fn [] [:div#mapbox])})))
 
 (defn mapbox [map-center]
