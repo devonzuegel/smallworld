@@ -113,7 +113,7 @@
             :target "_blank"}
         [:span.location location]
         (when (< distance 1000)
-          [:span.distance (round-to-int distance) " miles away"])]]]]))
+          [:span.distance (round-to-int distance) " mile" (when (not= "1" (round-to-int distance)) "s") " away"])]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @friends
