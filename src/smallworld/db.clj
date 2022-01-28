@@ -9,9 +9,11 @@
                      [:screen_name :text    "not null" "unique"]
                      [:data        :json]
                      [:created_at  :timestamp "default current_timestamp"]
-                     [:updated_at  :timestamp "default current_timestamp"]]
+                     [:updated_at  :timestamp "default current_timestamp"]
                      ; TODO: get "on update current_timestamp" working for :updated_at
-  )
+                     ; I thought the following would work, but the db throws an error:
+                     ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
+                     ])
 
 (defn now [] (new java.util.Date))
 
