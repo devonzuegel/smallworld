@@ -33,14 +33,17 @@
   [(+ (random-offset) (first lng-lat))
    (+ (random-offset) (second lng-lat))])
 
-(defn add-friend-marker [{lng-lat :lng-lat
-                          img-url :img-url
-                          classname :classname}]
+(defn add-friend-marker [{lng-lat     :lng-lat
+                          location    :location
+                          img-url     :img-url
+                          user-name   :user-name
+                          screen-name :screen-name
+                          classname   :classname}]
   (try (do
          (assert-long-lat lng-lat)
-         (let [element (.createElement js/document "div")
-               img     (.createElement js/document "img")
-               marker  (new js/mapboxgl.Marker element)]
+         (let [element  (.createElement js/document "div")
+               name-div (.createElement js/document "div")
+               marker   (new js/mapboxgl.Marker element)]
 
            (.setLngLat marker (clj->js (if (= classname "current-user")
                                          lng-lat
@@ -49,7 +52,12 @@
            (swap! markers conj marker)
 
            (.setProperty (.-style element) "background-image" (str "url(" img-url ")"))
-           (set! (.-className element) (str "marker " classname))))
+           (set! (.-className element) (str "marker " classname))
+
+           ; add name element to marker
+           (.appendChild name-div (.createTextNode js/document user-name))
+           (.appendChild element name-div)
+           (set! (.-className name-div) "user-name")))
        (catch js/Error e (js/console.error e))))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
@@ -78,17 +86,18 @@
                (.setProperty (.-style marker) "width" new-diameter)
                (.setProperty (.-style marker) "height" new-diameter))))))
 
-(defn after-mount [& [current-user-coordinates current-user-img]]
+(defn after-mount [current-user]
   ; create the map
   (reset! the-map
           (new js/mapboxgl.Map
                #js{:container "mapbox"
                    :key    (get-in mapbox-config [mapbox-style :access-token])
                    :style  (get-in mapbox-config [mapbox-style :style])
-                   :center (clj->js (or current-user-coordinates middle-of-USA))
+                   :center (clj->js (or (:lng-lat current-user) middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
                    :zoom 9
-                   :maxZoom 9}))
+                   :maxZoom 9
+                   :minZoom 1.5}))
 
   ; calibrate markers' size on various rendering events
   (.on @the-map "load" update-markers-size)
@@ -96,12 +105,15 @@
 
   ; add the current user to the map
   (js/setTimeout ; the timeout is a hack to ensure the map is loaded before adding the current-user marker
-   (when current-user-coordinates (add-friend-marker {:lng-lat current-user-coordinates
-                                                      :classname "current-user"
-                                                      :img-url current-user-img}))
+   (when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
+                                                     :location    (:location current-user)
+                                                     :img-url     (:user-img current-user)
+                                                     :user-name   (:user-name current-user)
+                                                     :screen-name (:screen-name current-user)
+                                                     :classname   "current-user"}))
    10))
 
-(defn mapbox [current-user-coordinates current-user-img]
+(defn mapbox [current-user]
   [:<>
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
@@ -113,7 +125,7 @@
      (if @expanded "collapse map" "expand map")]
 
     [(r/create-class
-      {:component-did-mount #(after-mount current-user-coordinates current-user-img)
+      {:component-did-mount #(after-mount current-user)
        :reagent-render      (fn [] [:div#mapbox])})]]
 
    [:div#mapbox-spacer]])

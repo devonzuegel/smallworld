@@ -475,6 +475,14 @@ tr:nth-child(even) {
 .marker:hover {
   z-index: 3;
 }
+.marker .user-name {
+  display: none;
+}
+.marker:hover .user-name {
+  display: block;
+  position: fixed;
+  left: 110%;
+}
 .marker.current-user {
   z-index: 2;
   //   color: red;
@@ -498,7 +506,7 @@ tr:nth-child(even) {
   white-space: pre;
   font-family: 'Roboto Mono', monospace;
 
-  transition: height width 100ms ease-out;
+  transition: height width 500ms ease-out;
   animation: fadein 1s;
   -moz-animation: fadein 1s; /* Firefox */
   -webkit-animation: fadein 1s; /* Safari and Chrome */
@@ -513,6 +521,8 @@ tr:nth-child(even) {
   min-width: 20px;
   max-height: 54px;
   max-width: 54px;
+
+  cursor: pointer;
 }
 @keyframes fadein {
   from {

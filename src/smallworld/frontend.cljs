@@ -33,19 +33,23 @@
              lat (:lat main-coords)
              has-coord (and main-coords lng lat)]
          (when has-coord
-           #_(mapbox/add-marker [lng lat])
-           (mapbox/add-friend-marker {:lng-lat [lng lat]
-                                      :img-url (:profile_image_url_large friend)
-                                      :classname "main-coords"})))
+           (mapbox/add-friend-marker {:lng-lat     [lng lat]
+                                      :location    (:location friend)
+                                      :img-url     (:profile_image_url_large friend)
+                                      :user-name   (:name friend)
+                                      :screen-name (:screen_name friend)
+                                      :classname   "main-coords"})))
 
        (let [lng (:lng name-coords)
              lat (:lat name-coords)
              has-coord (and name-coords lng lat)]
          (when has-coord
-           #_(mapbox/add-marker [lng lat])
-           (mapbox/add-friend-marker {:lng-lat [(+ lng 0.1) lat]
-                                      :img-url (:profile_image_url_large friend)
-                                      :classname "name-coords"})))))))
+           (mapbox/add-friend-marker {:lng-lat     [lng lat]
+                                      :location    (:location friend)
+                                      :img-url     (:profile_image_url_large friend)
+                                      :user-name   (:name friend)
+                                      :screen-name (:screen_name friend)
+                                      :classname   "name-coords"})))))))
 
 (fetch "/friends" (fn [result]
                     (reset! friends result)
@@ -187,9 +191,13 @@
        (let [main-coords (:main-coords @current-user)
              name-coords (:name-coords @current-user)]
          [mapbox/mapbox
-          (or (when name-coords [(:lng name-coords) (:lat name-coords)])
-              (when main-coords [(:lng main-coords) (:lat main-coords)]))
-          (:profile_image_url_large @current-user)])
+          {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
+                        (when main-coords [(:lng main-coords) (:lat main-coords)]))
+           :location (or name-location
+                         main-location)
+           :user-img (:profile_image_url_large @current-user)
+           :user-name (:name @current-user)
+           :screen-name (:screen-name @current-user)}])
 
         ;;  ;; for debugging:
         ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
