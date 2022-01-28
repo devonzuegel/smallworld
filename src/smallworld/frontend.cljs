@@ -186,8 +186,10 @@
 
        (let [main-coords (:main-coords @current-user)
              name-coords (:name-coords @current-user)]
-         [mapbox/mapbox (or (when name-coords [(:lng name-coords) (:lat name-coords)])
-                            (when main-coords [(:lng main-coords) (:lat main-coords)]))])
+         [mapbox/mapbox
+          (or (when name-coords [(:lng name-coords) (:lat name-coords)])
+              (when main-coords [(:lng main-coords) (:lat main-coords)]))
+          (:profile_image_url_large @current-user)])
 
         ;;  ;; for debugging:
         ;;  [:pre "@current-user:\n\n"  (preify @current-user)]

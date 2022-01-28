@@ -472,10 +472,14 @@ tr:nth-child(even) {
 .mapboxgl-ctrl-logo {
   display: none !important;
 }
-// .marker.current-user {
-//   color: red;
-//   background-color: red;
-// }
+.marker:hover {
+  z-index: 3;
+}
+.marker.current-user {
+  z-index: 2;
+  //   color: red;
+  //   background-color: red;
+}
 // .marker.main-coords {
 //   color: cyan;
 //   background-color: cyan;
@@ -502,6 +506,13 @@ tr:nth-child(even) {
 
   border-radius: 100%;
   border: 1px solid #efeaef;
+  background-size: cover; /* the background-image will get loaded by the JS */
+
+  /* scaling occurs in JS */
+  min-height: 20px;
+  min-width: 20px;
+  max-height: 54px;
+  max-width: 54px;
 }
 @keyframes fadein {
   from {
