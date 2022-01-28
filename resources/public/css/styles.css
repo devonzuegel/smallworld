@@ -481,7 +481,13 @@ tr:nth-child(even) {
 .marker:hover .user-name {
   display: block;
   position: fixed;
-  left: 110%;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  padding: 1px 5px;
+  box-shadow: #9dc7d9 0px 0px 18px;
+  border-radius: 4px;
 }
 .marker.current-user {
   z-index: 2;
