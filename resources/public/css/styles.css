@@ -498,7 +498,7 @@ tr:nth-child(even) {
   white-space: pre;
   font-family: 'Roboto Mono', monospace;
 
-  transition: all 100ms ease-out;
+  transition: height width 100ms ease-out;
   animation: fadein 1s;
   -moz-animation: fadein 1s; /* Firefox */
   -webkit-animation: fadein 1s; /* Safari and Chrome */

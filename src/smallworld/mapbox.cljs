@@ -27,7 +27,11 @@
                  (<= long 180))
             (str "long must be between -180 & 180, but received [" lat "]"))))
 
-(defn random-offset [] (- (rand 0.35) 0.175))
+(defn random-offset [] (- (rand 0.4) 0.2))
+
+(defn with-offset [lng-lat]
+  [(+ (random-offset) (first lng-lat))
+   (+ (random-offset) (second lng-lat))])
 
 (defn add-friend-marker [{lng-lat :lng-lat
                           img-url :img-url
@@ -38,8 +42,9 @@
                img     (.createElement js/document "img")
                marker  (new js/mapboxgl.Marker element)]
 
-           (.setLngLat marker (clj->js [(+ (random-offset) (first lng-lat))
-                                        (+ (random-offset) (second lng-lat))]))
+           (.setLngLat marker (clj->js (if (= classname "current-user")
+                                         lng-lat
+                                         (with-offset lng-lat))))
            (.addTo marker @the-map)
            (swap! markers conj marker)
 
@@ -82,7 +87,7 @@
                    :style  (get-in mapbox-config [mapbox-style :style])
                    :center (clj->js (or current-user-coordinates middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
-                   :zoom 4
+                   :zoom 9
                    :maxZoom 9}))
 
   ; calibrate markers' size on various rendering events
