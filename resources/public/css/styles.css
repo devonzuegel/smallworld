@@ -451,7 +451,7 @@ tr:nth-child(even) {
   transition: height 200ms ease-in-out;
 }
 #mapbox-container {
-  height: 80px;
+  height: 120px;
   transition: height 200ms ease-in-out;
   width: 100%;
   position: fixed;
@@ -490,6 +490,12 @@ tr:nth-child(even) {
 #mapbox {
   height: 100%;
   width: 100%;
+}
+
+@media (max-width: 768px) /* mobile */ {
+  #mapbox-spacer {
+    height: 86px;
+  }
 }
 .mapboxgl-ctrl-logo {
   display: none !important;

@@ -124,6 +124,8 @@
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
      (if @expanded "collapse map" "expand map")]
 
+
     [(r/create-class
       {:component-did-mount #(after-mount current-user)
-       :reagent-render      (fn [] [:div#mapbox])})]]])
+       :reagent-render      (fn [] [:div#mapbox])})]]
+   [:div#mapbox-spacer]])
