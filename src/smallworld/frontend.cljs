@@ -156,7 +156,7 @@
 
 (defn logged-out-screen []
   [:div.welcome.center-vh
-   [:h1 "welcome to Small World"]
+   [:h1 "welcome to" [:br] "Small World"]
    [:div#logo-animation.logo (decorations/animated-globe)]
    [:h2
     [:a#login-btn {:href "login"} "sign in"]
