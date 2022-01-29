@@ -57,9 +57,6 @@
                     (js/setTimeout #(add-friends-to-map @friends) 500)))
 (fetch "/session" #(reset! current-user %))
 
-(defn logout []
-  (fetch "/logout" #(reset! current-user {})))
-
 (defn nav []
 
   [:div.nav
@@ -70,7 +67,7 @@
    [:span.fill-nav-space]
    [:a {:href "#about"} "about"]
    [:span.links-spacer "·"]
-   [:a {:href "/" :on-click logout}
+   [:a {:href "/logout"}
     "log out" [:b.screen-name " @" (:screen-name @current-user)]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

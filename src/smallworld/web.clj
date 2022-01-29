@@ -267,7 +267,7 @@
                      "no-op: there was no active session"
                      (str "@" screen-name " has logged out"))]
     (println logout-msg)
-    (set-session (response/response logout-msg) {})))
+    (set-session (response/redirect "/") {})))
 
 (defn get-users-friends [req]
   (let [-current-user (get-current-user req)
