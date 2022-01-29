@@ -388,6 +388,9 @@ tr:nth-child(even) {
   width: 100%;
   height: 100vh;
 }
+.welcome {
+  overflow: hidden;
+}
 .welcome a#login-btn {
   font-weight: bolder !important;
   color: #013917;
