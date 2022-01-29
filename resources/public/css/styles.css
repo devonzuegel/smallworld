@@ -390,6 +390,9 @@ tr:nth-child(even) {
 }
 .welcome {
   overflow: hidden;
+  height: 98vh;
+  width: 98vw;
+  border: 3px solid white;
 }
 .welcome a#login-btn {
   font-weight: bolder !important;
