@@ -175,14 +175,14 @@
          [:div.category
           [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-          (render-friends-list :main-main "living" main-location)
-          (render-friends-list :main-name "visiting"     main-location)])
+          (render-friends-list :main-main "living"   main-location)
+          (render-friends-list :main-name "visiting" main-location)])
 
        (when-not (empty? name-location)
          [:div.category
           [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-          (render-friends-list :name-name "living" name-location)
+          (render-friends-list :name-name "living"   name-location)
           (render-friends-list :name-main "visiting" name-location)])
 
        (let [main-coords (:main-coords @current-user)

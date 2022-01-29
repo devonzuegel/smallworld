@@ -9,7 +9,7 @@
 (util/load-stylesheet "./css/mapbox-gl.inc.css")
 
 ; not defonce because we want to reset it to closed upon refresh
-(def expanded (r/atom true #_false))
+(def expanded (r/atom false))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (defonce markers (r/atom []))
 
@@ -126,6 +126,4 @@
 
     [(r/create-class
       {:component-did-mount #(after-mount current-user)
-       :reagent-render      (fn [] [:div#mapbox])})]]
-
-   [:div#mapbox-spacer]])
+       :reagent-render      (fn [] [:div#mapbox])})]]])

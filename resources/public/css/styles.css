@@ -19,6 +19,12 @@ html {
 body {
   margin: 0;
 }
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
 /*****************************************/
 /**** nav ********************************/
 /*****************************************/
@@ -180,8 +186,10 @@ body {
 /******************************************************************************/
 .container {
   margin: auto;
-  margin-top: 72px;
+  margin-top: 48px; /* account for the nav */
   padding: 16px;
+  height: calc(100vh - 72px - 38px - 14px);
+  overflow: scroll;
 }
 pre {
   white-space: pre-wrap;
@@ -253,19 +261,19 @@ tr:nth-child(even) {
   border: 1px solid #d9d3cc22;
   border-radius: 10px;
   margin-top: 32px;
-  margin-bottom: 44px;
   padding-top: 6px;
 }
 .category .current-user-location {
   transform: translateY(calc(-50% - 6px));
   color: #d9d3cc99;
-  position: absolute;
+  position: relative;
   background-color: #00000011;
   background-color: #013917;
   border-radius: 8px;
   background-image: url(../az-subtle.png);
   padding: 2px 4px;
   margin-left: -6px;
+  top: -14px;
 }
 .friends-list {
   padding: 24px;
@@ -277,6 +285,14 @@ tr:nth-child(even) {
 }
 .friends-list:not(:first-of-type) {
   border-top: 1px solid #d9d3cc22;
+}
+.current-user-location + .friends-list {
+  margin-top: -18px;
+}
+@media screen and (max-width: 700px) {
+  .current-user-location + .friends-list {
+    margin-top: -12px;
+  }
 }
 
 /*****************************************/
@@ -336,8 +352,8 @@ tr:nth-child(even) {
   opacity: 0.7;
   font-family: 'Inria Serif', serif;
   font-style: italic;
+  margin-bottom: 6px;
   // margin-top: 12px;
-  // margin-bottom: 64px;
 }
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
@@ -390,9 +406,9 @@ tr:nth-child(even) {
 }
 .welcome {
   overflow: hidden;
-  height: 98vh;
+  height: calc(98vh - 84px); /* account for iOS searchbar */
   width: 98vw;
-  border: 3px solid white;
+  margin: auto;
 }
 .welcome a#login-btn {
   font-weight: bolder !important;
@@ -430,9 +446,6 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
-#mapbox-spacer {
-  height: 40px;
-}
 #mapbox-container.expanded {
   height: 65vh;
   transition: height 200ms ease-in-out;
