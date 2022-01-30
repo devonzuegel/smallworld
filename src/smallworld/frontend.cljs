@@ -142,7 +142,7 @@
    (nav)
    (let [main-location (:main-location @current-user)
          name-location (:name-location @current-user)]
-     [:div.container
+     [:div.container {:id "scrollable-content"}
       [:div.current-user (Friend nil @current-user)]
 
       [:<>
@@ -171,13 +171,13 @@
            :user-name (:name @current-user)
            :screen-name (:screen-name @current-user)}])
 
-        ;;  ;; for debugging:
-        ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
-        ;;  [:br]
-        ;;  [:pre "count @friends:  " (try (count @friends)
-        ;;                                 (catch js/Error e (str @friends)))]
-        ;;  [:br]
-        ;;  [:pre "@friends:\n\n"       (preify @friends)]
+         ;; for debugging:
+       [:pre "@current-user:\n\n"  (preify @current-user)]
+       [:br]
+       [:pre "count @friends:  " (try (count @friends)
+                                      (catch js/Error e (str @friends)))]
+       [:br]
+       [:pre "@friends:\n\n"       (preify @friends)]
         ;;
        ]])])
 

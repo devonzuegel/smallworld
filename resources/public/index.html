@@ -8,6 +8,7 @@
 
     <!-- tell the browser do not mess with scaling -->
     <meta name="viewport" content="width=device-width,initial-scale=1.0" charset="utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <!-- CSS styles + Font Awesome icons-->
     <link href="./css/styles.css" rel="stylesheet" type="text/css" />
@@ -27,6 +28,14 @@
 
     <!-- reset the favicon according to dark/light mode -->
     <script type="text/javascript">
+      window.onload = function () {
+        setTimeout(function () {
+          document.getElementById('scrollable-content').scroll(0, 100)
+          window.scrollTo(0, 1)
+          // alert("document.getElementById('scrollable-content').scroll(0, 40)")
+        }, 10)
+      }
+
       const changeFavicon = () => {
         const faviconElem = document.getElementById('favicon')
         const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches

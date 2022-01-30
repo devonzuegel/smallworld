@@ -22,8 +22,8 @@ body {
 
 html,
 body {
-  height: 100%;
-  overflow: hidden;
+  height: 110%;
+  // overflow: hidden;
 }
 /*****************************************/
 /**** nav ********************************/
@@ -184,13 +184,14 @@ body {
 /******************************************************************************/
 /**** content *****************************************************************/
 /******************************************************************************/
-.container {
+.container#scrollable-content {
   margin: auto;
   margin-top: 48px; /* account for the nav */
   padding: 16px;
   height: calc(100vh - 48px /* nav */ - 16px /* padding */ - min(15vh, 120px) /* container */ + 9px /* button */);
   overflow-x: hidden; /* side to side */
   overflow-y: scroll; /* top to bottom */
+  border: 3px solid purple;
 }
 pre {
   white-space: pre-wrap;
