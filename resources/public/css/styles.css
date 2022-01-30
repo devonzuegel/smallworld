@@ -188,7 +188,7 @@ body {
   margin: auto;
   margin-top: 48px; /* account for the nav */
   padding: 16px;
-  height: calc(100vh - 72px - 38px - 14px);
+  height: calc(100vh - 48px /* nav */ - 16px /* padding */ - min(15vh, 120px) /* container */ + 9px /* button */);
   overflow: scroll;
 }
 pre {
@@ -450,8 +450,11 @@ tr:nth-child(even) {
   height: 65vh;
   transition: height 200ms ease-in-out;
 }
+#mapbox-container.not-expanded {
+  height: min(15vh, 120px);
+  transition: height 200ms ease-in-out;
+}
 #mapbox-container {
-  height: 120px;
   transition: height 200ms ease-in-out;
   width: 100%;
   position: fixed;

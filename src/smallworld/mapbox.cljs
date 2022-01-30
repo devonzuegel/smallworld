@@ -12,7 +12,7 @@
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
-(defonce markers (r/atom []))
+(defonce friends (r/atom []))
 
 (defn assert-long-lat [-coordinates]
   (let [[long lat] -coordinates]
@@ -50,8 +50,6 @@
                                          lng-lat
                                          (with-offset lng-lat))))
            (.addTo marker @the-map)
-           (swap! markers conj marker)
-
            (.setProperty (.-style element) "background-image" (str "url(" img-url ")"))
            (set! (.-className element) (str "marker " classname))
 
@@ -60,6 +58,35 @@
            (.appendChild element name-div)
            (set! (.-className name-div) "user-name")))
        (catch js/Error e (js/console.error e))))
+
+(defn add-friends-to-map [-friends]
+  (doall ; force no lazy load
+   (for [friend -friends]
+     (let [main-coords (:main-coords friend)
+           name-coords (:name-coords friend)]
+
+       ; TODO: make the styles for main vs name coords different
+       (let [lng (:lng main-coords)
+             lat (:lat main-coords)
+             has-coord (and main-coords lng lat)]
+         (when has-coord
+           (add-friend-marker {:lng-lat     [lng lat]
+                               :location    (:location friend)
+                               :img-url     (:profile_image_url_large friend)
+                               :user-name   (:name friend)
+                               :screen-name (:screen_name friend)
+                               :classname   "main-coords"})))
+
+       (let [lng (:lng name-coords)
+             lat (:lat name-coords)
+             has-coord (and name-coords lng lat)]
+         (when has-coord
+           (add-friend-marker {:lng-lat     [lng lat]
+                               :location    (:location friend)
+                               :img-url     (:profile_image_url_large friend)
+                               :user-name   (:name friend)
+                               :screen-name (:screen_name friend)
+                               :classname   "name-coords"})))))))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
@@ -104,7 +131,7 @@
                    :style  (get-in mapbox-config [mapbox-style :style])
                    :center (clj->js (or (:lng-lat current-user) middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
-                   :zoom 9
+                   :zoom 1.5 ;9
                    :maxZoom 9
                    :minZoom 1.5}))
 
@@ -112,22 +139,23 @@
   (.on @the-map "load" update-markers-size)
   (.on @the-map "zoom" update-markers-size)
   (.on @the-map "click" #(toggle-expanded true))
-  (set! (.-onclick (goog.dom/getElementByClass "container"))
-        (fn [e]
-          (when-not (str/includes? (.-className (.-target e)) "mapboxgl-canvas")
-            (if (str/includes? (.-className (.-target e)) "expand-me")
-              (toggle-expanded @expanded)
-              (toggle-expanded false)))))
+  #_(set! (.-onclick (goog.dom/getElementByClass "container"))
+          (fn [e]
+            (when-not (str/includes? (.-className (.-target e)) "mapboxgl-canvas")
+              (if (str/includes? (.-className (.-target e)) "expand-me")
+                (toggle-expanded @expanded)
+                (toggle-expanded false)))))
 
 
   ; add the current user to the map
-  (js/setTimeout ; the timeout is a hack to ensure the map is loaded before adding the current-user marker
+  (js/setTimeout ; the timeout is a hack to ensure map is loaded before adding markers
    (when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
                                                      :location    (:location current-user)
                                                      :img-url     (:user-img current-user)
                                                      :user-name   (:user-name current-user)
                                                      :screen-name (:screen-name current-user)
                                                      :classname   "current-user"}))
+   (add-friends-to-map @friends)
    10))
 
 (defn mapbox [current-user]

@@ -22,39 +22,11 @@
               ;;  (pp/pprint result)
                (callback result)))))
 
-(defn add-friends-to-map [-friends]
-  (doall ; force no lazy load
-   (for [friend -friends]
-     (let [main-coords (:main-coords friend)
-           name-coords (:name-coords friend)]
-
-       ; TODO: make the styles for main vs name coords different
-       (let [lng (:lng main-coords)
-             lat (:lat main-coords)
-             has-coord (and main-coords lng lat)]
-         (when has-coord
-           (mapbox/add-friend-marker {:lng-lat     [lng lat]
-                                      :location    (:location friend)
-                                      :img-url     (:profile_image_url_large friend)
-                                      :user-name   (:name friend)
-                                      :screen-name (:screen_name friend)
-                                      :classname   "main-coords"})))
-
-       (let [lng (:lng name-coords)
-             lat (:lat name-coords)
-             has-coord (and name-coords lng lat)]
-         (when has-coord
-           (mapbox/add-friend-marker {:lng-lat     [lng lat]
-                                      :location    (:location friend)
-                                      :img-url     (:profile_image_url_large friend)
-                                      :user-name   (:name friend)
-                                      :screen-name (:screen_name friend)
-                                      :classname   "name-coords"})))))))
-
 (fetch "/friends" (fn [result]
+                    (reset! mapbox/friends result)
                     (reset! friends result)
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
-                    (js/setTimeout #(add-friends-to-map @friends) 500)))
+                    #_(js/setTimeout #(add-friends-to-map @friends) 500)))
 (fetch "/session" #(reset! current-user %))
 
 (defn nav []
