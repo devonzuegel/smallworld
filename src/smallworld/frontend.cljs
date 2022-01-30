@@ -10,7 +10,9 @@
             [goog.dom]
             [goog.dom.classlist :as gc]))
 
-(defonce current-user (r/atom :loading))
+(def debug? true)
+
+(defonce current-user (r/atom cu/dummy-data))
 (defonce friends      (r/atom :loading))
 
 (defn fetch [route callback]
@@ -18,16 +20,17 @@
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-              ;;  (println route ":")
-              ;;  (pp/pprint result)
+               (when debug?
+                 (println route ":")
+                 (pp/pprint result))
                (callback result)))))
 
 (fetch "/friends" (fn [result]
-                    (reset! mapbox/friends result)
-                    (reset! friends result)
-                    ; wait for the map to load – this is a hack & may be a source of errors ;)
-                    #_(js/setTimeout #(add-friends-to-map @friends) 500)))
-(fetch "/session" #(reset! current-user %))
+                    (let [result (if debug? cu/dummy-data-friends result)]
+                      (reset! friends result)
+                      (reset! mapbox/friends result))))
+(fetch "/session" (fn [result]
+                    (reset! current-user (if debug? cu/dummy-data result))))
 
 (defn nav []
 
@@ -173,7 +176,7 @@
         ;;  [:br]
         ;;  [:pre "count @friends:  " (try (count @friends)
         ;;                                 (catch js/Error e (str @friends)))]
-       [:br]
+        ;;  [:br]
         ;;  [:pre "@friends:\n\n"       (preify @friends)]
         ;;
        ]])])

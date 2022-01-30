@@ -189,7 +189,8 @@ body {
   margin-top: 48px; /* account for the nav */
   padding: 16px;
   height: calc(100vh - 48px /* nav */ - 16px /* padding */ - min(15vh, 120px) /* container */ + 9px /* button */);
-  overflow: scroll;
+  overflow-x: hidden; /* side to side */
+  overflow-y: scroll; /* top to bottom */
 }
 pre {
   white-space: pre-wrap;
@@ -522,17 +523,9 @@ tr:nth-child(even) {
 }
 .marker.current-user {
   z-index: 2;
-  //   color: red;
-  //   background-color: red;
 }
-// .marker.main-coords {
-//   color: cyan;
-//   background-color: cyan;
-// }
-// .marker.name-coords {
-//   color: green;
-//   background-color: green;
-// }
+// .marker.main-coords {}
+// .marker.name-coords {}
 .marker {
   position: absolute; /* without this, you get the zoomy marker bug */
   color: #013917;

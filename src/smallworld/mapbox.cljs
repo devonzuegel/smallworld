@@ -131,7 +131,7 @@
                    :style  (get-in mapbox-config [mapbox-style :style])
                    :center (clj->js (or (:lng-lat current-user) middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
-                   :zoom 1.5 ;9
+                   :zoom 9
                    :maxZoom 9
                    :minZoom 1.5}))
 
@@ -139,13 +139,13 @@
   (.on @the-map "load" update-markers-size)
   (.on @the-map "zoom" update-markers-size)
   (.on @the-map "click" #(toggle-expanded true))
-  #_(set! (.-onclick (goog.dom/getElementByClass "container"))
-          (fn [e]
-            (when-not (str/includes? (.-className (.-target e)) "mapboxgl-canvas")
-              (if (str/includes? (.-className (.-target e)) "expand-me")
-                (toggle-expanded @expanded)
-                (toggle-expanded false)))))
 
+  (set! (.-onclick (goog.dom/getElementByClass "container"))
+        (fn [e]
+          (when-not (str/includes? (.-className (.-target e)) "mapboxgl-canvas")
+            (if (str/includes? (.-className (.-target e)) "expand-me")
+              (toggle-expanded @expanded)
+              (toggle-expanded false)))))
 
   ; add the current user to the map
   (js/setTimeout ; the timeout is a hack to ensure map is loaded before adding markers
