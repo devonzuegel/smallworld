@@ -86,6 +86,12 @@
                (.setProperty (.-style marker) "width" new-diameter)
                (.setProperty (.-style marker) "height" new-diameter))))))
 
+(defn toggle-expanded [& [{expanded? :expanded?}]]
+  (reset! expanded (or expanded? (not @expanded)))
+  (doall
+   (for [i (range 20)]
+     (js/setTimeout #(.resize @the-map) (* i 10)))))
+
 (defn after-mount [current-user]
   ; create the map
   (reset! the-map
@@ -102,6 +108,7 @@
   ; calibrate markers' size on various rendering events
   (.on @the-map "load" update-markers-size)
   (.on @the-map "zoom" update-markers-size)
+  (.on @the-map "click" #(toggle-expanded {:expanded? true}))
 
   ; add the current user to the map
   (js/setTimeout ; the timeout is a hack to ensure the map is loaded before adding the current-user marker
@@ -117,11 +124,7 @@
   [:<>
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
-     {:on-click (fn []
-                  (reset! expanded (not @expanded))
-                  (doall
-                   (for [i (range 20)]
-                     (js/setTimeout #(.resize @the-map) (* i 10)))))}
+     {:on-click toggle-expanded}
      (if @expanded "collapse map" "expand map")]
 
 
