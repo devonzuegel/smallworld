@@ -1,6 +1,7 @@
 (ns smallworld.mapbox
   (:require [reagent.core :as r]
             [cljsjs.mapbox]
+            [clojure.string :as str]
             [smallworld.util :as util]
             [goog.dom]))
 
@@ -86,11 +87,13 @@
                (.setProperty (.-style marker) "width" new-diameter)
                (.setProperty (.-style marker) "height" new-diameter))))))
 
-(defn toggle-expanded [& [{expanded? :expanded?}]]
-  (reset! expanded (or expanded? (not @expanded)))
-  (doall
-   (for [i (range 20)]
-     (js/setTimeout #(.resize @the-map) (* i 10)))))
+(defn toggle-expanded [new-value]
+  (when (not= new-value @expanded) ; only run when there's an update
+    (js/console.log "running toggle-expanded:" new-value)
+    (reset! expanded (if (nil? new-value) (not @expanded) new-value))
+    (doall
+     (for [i (range 20)]
+       (js/setTimeout #(.resize @the-map) (* i 10))))))
 
 (defn after-mount [current-user]
   ; create the map
@@ -108,7 +111,14 @@
   ; calibrate markers' size on various rendering events
   (.on @the-map "load" update-markers-size)
   (.on @the-map "zoom" update-markers-size)
-  (.on @the-map "click" #(toggle-expanded {:expanded? true}))
+  (.on @the-map "click" #(toggle-expanded true))
+  (set! (.-onclick (goog.dom/getElementByClass "container"))
+        (fn [e]
+          (when-not (str/includes? (.-className (.-target e)) "mapboxgl-canvas")
+            (if (str/includes? (.-className (.-target e)) "expand-me")
+              (toggle-expanded @expanded)
+              (toggle-expanded false)))))
+
 
   ; add the current user to the map
   (js/setTimeout ; the timeout is a hack to ensure the map is loaded before adding the current-user marker
@@ -124,7 +134,7 @@
   [:<>
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
-     {:on-click toggle-expanded}
+     {:on-click #(toggle-expanded (not @expanded))}
      (if @expanded "collapse map" "expand map")]
 
 
