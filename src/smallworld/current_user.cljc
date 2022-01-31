@@ -1,6 +1,6 @@
 (ns smallworld.current-user)
 
-(def default-state {})
+(def empty-session {})
 
 ;; ;; use this during development when you don't want to fetch from Twitter for whatever reason
 ;; (def dummy-data {:profile_image_url_large

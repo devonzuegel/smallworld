@@ -232,7 +232,7 @@
 
 (defn get-current-user [req]
   (get-in req [:session :current-user]
-          cu/default-state))
+          cu/empty-session))
 
 ;; step 1
 ;; in prod: this will redirect to https://small-world-friends.herokuapp.com/authorized,
@@ -271,7 +271,7 @@
 
 (defn get-users-friends [req]
   (let [-current-user (get-current-user req)
-        logged-in?    (not= cu/default-state -current-user)]
+        logged-in?    (not= cu/empty-session -current-user)]
     (generate-string (if logged-in?
                        (memoized-friends-relevant-data (:screen-name -current-user)
                                                        (get-current-user req))

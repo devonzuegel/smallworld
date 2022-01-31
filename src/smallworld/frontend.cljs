@@ -209,7 +209,7 @@
 (defn app-container []
   (condp = @current-user
     :loading (loading-screen)
-    cu/default-state (logged-out-screen)
+    cu/empty-session (logged-out-screen)
     (logged-in-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
