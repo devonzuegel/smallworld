@@ -13,13 +13,16 @@
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
 
+(def debug? true)
+
 (defn fetch [route callback]
   (-> (.fetch js/window route)
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
       (.then (fn [result]
-              ;;  (println route ":")
-              ;;  (pp/pprint result)
+               (when debug?
+                 (println route ":")
+                 (pp/pprint result))
                (callback result)))))
 
 (defn add-friends-to-map [-friends]
@@ -196,15 +199,13 @@
            :user-name (:name @current-user)
            :screen-name (:screen-name @current-user)}])
 
-        ;;  ;; for debugging:
-        ;;  [:pre "@current-user:\n\n"  (preify @current-user)]
-        ;;  [:br]
-        ;;  [:pre "count @friends:  " (try (count @friends)
-        ;;                                 (catch js/Error e (str @friends)))]
-       [:br]
-        ;;  [:pre "@friends:\n\n"       (preify @friends)]
-        ;;
-       ]])])
+
+       (when debug?
+         [:<>
+          [:br]
+          [:pre "@current-user:\n\n"  (preify @current-user)]
+          [:br]
+          [:pre "@friends (take 20):\n\n"       (preify (take 20 @friends))]])]])])
 
 (defn app-container []
   (condp = @current-user
