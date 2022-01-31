@@ -1,20 +1,21 @@
 (ns smallworld.memoize
-  (:refer-clojure :exclude [memoize]))
+  (:refer-clojure :exclude [memoize])
+  (:require [smallworld.db :as db]))
 
 (def debug? true)
 
 (defprotocol ICache
   ; TODO: consider additing a #validate method, which I'd use for the db version
-  (update! [this request-key value])
-  (read!   [this request-key]))
+  (fetch! [this request-key value])
+  (read!  [this request-key]))
 
 (extend-protocol ICache
   clojure.lang.Atom
-  (update! [this request-key value] (swap! this #(assoc % request-key value)))
-  (read!   [this request-key]       (get @this request-key ::not-found))
+  (fetch! [this request-key value] (swap! this #(assoc % request-key value)))
+  (read!  [this request-key]       (get @this request-key ::not-found))
 
   java.io.File
-  (update! [this request-key value]
+  (fetch! [this request-key value]
     (when (.createNewFile this) ;; creates new file & returns true iff it doesn't exist
       (spit this "{}"))
     (spit this (assoc (read-string (slurp this)) request-key value)))
@@ -24,23 +25,25 @@
     (get (read-string (slurp this)) request-key ::not-found))
 
   java.lang.String
-  (update! [this request-key value]
-    (println)
-    (println)
-    (println "---------- update! was called ---------------")
-    (println)
-    (println "              this: " this)
-    (println "       request-key: " request-key)
-    (println "             value: " value)
-    1)
+  (fetch! [this request-key value]
+    (db/insert! request-key value)
+    (when debug?
+      (println)
+      (println "---------- fetch! was called ---------------")
+      (println)
+      (println "              this: " this)
+      (println "       request-key: " request-key)
+      (println "             value: " value))
+    ; TODO: return :failed if couldn't fetch the result
+    value)
   (read! [this request-key]
-    ; TODO: return :failed if couldn't find the result
-    (println)
-    (println "---------- read! was called ---------------")
-    (println)
-    (println "              this: " this)
-    (println "       request-key: " request-key)
-    2))
+    (when debug?
+      (println)
+      (println "---------- read! was called ---------------")
+      (println)
+      (println "              this: " this)
+      (println "       request-key: " request-key))
+    ::not-found))
 
 (defn my-memoize
   ([expensive-fn cache]
@@ -67,10 +70,10 @@
            (do (when debug?
                  (println "\n🟢 fetch for first time: " request-key " → " result)
                  (println))
-               (update! cache request-key result)
+               (fetch! cache request-key result)
                result)))
 
-       ;; if we've seen the request before, then just return the cached value
+       ;; else if we've seen the request before, then just return the cached value
        (let [result (read! cache request-key)]
          (when debug?
            (println "\n🟡 retrieving stored result: " request-key " → " result)
@@ -83,7 +86,8 @@
 
 (when debug?
   (defn expensive-fn-1 [key]
-    (println "expensive-fn-1 was called with key" key))
+    (println "expensive-fn-1 was called with key" key)
+    (str key key key key))
 
   (def memoized-fn-1a (my-memoize expensive-fn-1 "db-url"))
   (memoized-fn-1a "a"))
