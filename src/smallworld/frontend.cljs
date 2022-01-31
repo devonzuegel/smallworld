@@ -93,16 +93,16 @@
                            (get-in friend [:distance :main-name])
                            (get-in friend [:distance :main-main])])))
 
-(defn Friend [k friend]
-  (let [twitter-pic    (:profile_image_url_large friend)
-        twitter-name   (:name friend)
-        twitter-handle (:screen-name friend)
+(defn render-user [k user]
+  (let [twitter-pic    (:profile_image_url_large user)
+        twitter-name   (:name user)
+        twitter-handle (:screen-name user)
         twitter-link   (str "http://twitter.com/" twitter-handle)
-        location       (:main-location friend)
+        location       (:main-location user)
         twitter-href   {:href twitter-link :target "_blank" :title "Twitter"}
-        lat            (:lat (:main-coords friend))
-        lng            (:lng (:main-coords friend))
-        distance       (get-smallest-distance friend)]
+        lat            (:lat (:main-coords user))
+        lng            (:lng (:main-coords user))
+        distance       (get-smallest-distance user)]
     [:div.friend {:key twitter-name}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
@@ -142,7 +142,7 @@
                              friend-pluralized " "
                              say-pluralized " they're "
                              [:u verb-gerund] " nearby:"]]
-          [:div.friends (map-indexed Friend friends-list)]]
+          [:div.friends (map-indexed render-user friends-list)]]
 
          [:div.friends
           [:div.no-friends-found
@@ -168,7 +168,7 @@
    (let [main-location (:main-location @current-user)
          name-location (:name-location @current-user)]
      [:div.container
-      [:div.current-user (Friend nil @current-user)]
+      [:div.current-user (render-user nil @current-user)]
 
       [:<>
        (when-not (empty? main-location)
