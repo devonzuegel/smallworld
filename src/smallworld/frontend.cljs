@@ -147,6 +147,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; TODO: only do this on first load of logged-in-screen, not on every re-render
+; and not for all the other pages
+(fetch "/friends" (fn [result]
+                    (reset! friends result)
+                    ; wait for the map to load – this is a hack & may be a source of errors ;)
+                    (js/setTimeout #(add-friends-to-map @friends) 500)))
+
+(fetch "/session" #(reset! current-user %))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn loading-screen []
   [:div.center-vh (decorations/simple-loading-animation)])
 
@@ -159,10 +171,6 @@
     [:br] "to connect with friends"]])
 
 (defn logged-in-screen []
-  (fetch "/friends" (fn [result]
-                      (reset! friends result)
-                    ; wait for the map to load – this is a hack & may be a source of errors ;)
-                      (js/setTimeout #(add-friends-to-map @friends) 500)))
   [:<>
    (nav)
    (let [main-location (:main-location @current-user)
@@ -235,7 +243,6 @@
   [:h1 "404 – not found :("])
 
 (defn app-container []
-  (fetch "/session" #(reset! current-user %))
   (condp = (.-pathname (.-location js/window))
     "/about" (about-screen)
     "/" (condp = @current-user
