@@ -54,14 +54,7 @@
                                       :screen-name (:screen_name friend)
                                       :classname   "name-coords"})))))))
 
-(fetch "/friends" (fn [result]
-                    (reset! friends result)
-                    ; wait for the map to load – this is a hack & may be a source of errors ;)
-                    (js/setTimeout #(add-friends-to-map @friends) 500)))
-(fetch "/session" #(reset! current-user %))
-
 (defn nav []
-
   [:div.nav
    [:a#logo-animation.logo {:href "/"}
     (decorations/animated-globe)
@@ -166,6 +159,10 @@
     [:br] "to connect with friends"]])
 
 (defn logged-in-screen []
+  (fetch "/friends" (fn [result]
+                      (reset! friends result)
+                    ; wait for the map to load – this is a hack & may be a source of errors ;)
+                      (js/setTimeout #(add-friends-to-map @friends) 500)))
   [:<>
    (nav)
    (let [main-location (:main-location @current-user)
@@ -238,13 +235,13 @@
   [:h1 "404 – not found :("])
 
 (defn app-container []
-  (js/console.log (.-location js/window))
+  (fetch "/session" #(reset! current-user %))
   (condp = (.-pathname (.-location js/window))
+    "/about" (about-screen)
     "/" (condp = @current-user
           :loading (loading-screen)
           cu/empty-session (logged-out-screen)
           (logged-in-screen))
-    "/about" (about-screen)
     (not-found-404-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
