@@ -86,7 +86,7 @@
                (.setProperty (.-style marker) "width" new-diameter)
                (.setProperty (.-style marker) "height" new-diameter))))))
 
-(defn after-mount [current-user]
+(defn component-did-mount [current-user] ; this should be called just once when the component is mounted
   ; create the map
   (reset! the-map
           (new js/mapboxgl.Map
@@ -105,13 +105,20 @@
 
   ; add the current user to the map
   (js/setTimeout ; the timeout is a hack to ensure the map is loaded before adding the current-user marker
-   (when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
-                                                     :location    (:location current-user)
-                                                     :img-url     (:user-img current-user)
-                                                     :user-name   (:user-name current-user)
-                                                     :screen-name (:screen-name current-user)
-                                                     :classname   "current-user"}))
+   #(when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
+                                                      :location    (:location current-user)
+                                                      :img-url     (:user-img current-user)
+                                                      :user-name   (:user-name current-user)
+                                                      :screen-name (:screen-name current-user)
+                                                      :classname   "current-user"}))
    10))
+
+
+; this cannot be an anonymous function.  it needs to be a named function, because otherwise
+; reagent won't know that it shouldn't be re-rendered on expand/collapse.
+(defn mapbox-dom [current-user] (r/create-class
+                                 {:component-did-mount #(component-did-mount current-user)
+                                  :reagent-render      (fn [] [:div#mapbox])}))
 
 (defn mapbox [current-user]
   [:<>
@@ -120,10 +127,7 @@
      {:on-click (fn []
                   (reset! expanded (not @expanded))
                   (doall
-                   (for [i (range 20)]
+                   (for [i (range 25)]
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
      (if @expanded "collapse map" "expand map")]
-
-    [(r/create-class
-      {:component-did-mount #(after-mount current-user)
-       :reagent-render      (fn [] [:div#mapbox])})]]])
+    [mapbox-dom current-user]]])

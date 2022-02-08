@@ -190,14 +190,14 @@
 
        (let [main-coords (:main-coords @current-user)
              name-coords (:name-coords @current-user)]
-         [mapbox/mapbox
+         (mapbox/mapbox
           {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
                         (when main-coords [(:lng main-coords) (:lat main-coords)]))
            :location (or name-location
                          main-location)
            :user-img (:profile_image_url_large @current-user)
            :user-name (:name @current-user)
-           :screen-name (:screen-name @current-user)}])
+           :screen-name (:screen-name @current-user)}))
 
        (when debug?
          [:<>
