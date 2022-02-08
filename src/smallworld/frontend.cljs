@@ -13,7 +13,7 @@
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
 
-(def debug? true)
+(def debug? false)
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
@@ -63,12 +63,12 @@
 (defn nav []
 
   [:div.nav
-   [:div#logo-animation.logo
+   [:a#logo-animation.logo {:href "/"}
     (decorations/animated-globe)
 
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
-   [:a {:href "#about"} "about"]
+   [:a {:href "/about"} "about"]
    [:span.links-spacer "·"]
    [:a {:href "/logout"}
     "log out" [:b.screen-name " @" (:screen-name @current-user)]]])
@@ -170,7 +170,7 @@
    (nav)
    (let [main-location (:main-location @current-user)
          name-location (:name-location @current-user)]
-     [:div.container
+     [:div.container.nav-spacer
       [:div.current-user (render-user nil @current-user)]
 
       [:<>
@@ -199,7 +199,6 @@
            :user-name (:name @current-user)
            :screen-name (:screen-name @current-user)}])
 
-
        (when debug?
          [:<>
           [:br]
@@ -207,11 +206,46 @@
           [:br]
           [:pre "@friends (take 20):\n\n"       (preify (take 20 @friends))]])]])])
 
+(defn about-screen []
+  [:<>
+   (nav)
+   [:div.about-container.nav-spacer
+    [:div.splash
+     [:h2 "welcome to Small World,"]
+     [:h4 "a tiny tool to stay in touch with friends"]
+     [:p.serif
+      "Small World is a Marauder's Map" [:br]
+      "for the people you know on Twitter."]
+     [:br]
+     [:a.btn {:href "/"} "connect with friends"]]
+
+    [:hr]
+
+    [:p [:b "Q: how does Small World work?"]]
+    [:p "Small World checks to see if the people you follow on Twitter have updated their location.  it looks at two places:"]
+    [:ul
+     [:li "their display name, which Small World interprets as they're traveling to that location"]
+     [:li "their location, which Small World interprets as they're living in that location"]]
+
+    [:hr]
+
+    [:p [:b "Q: why isn't my friend showing up in the list or on the map?"]]
+    [:p "they may not have their location set on Twitter (either in their name or in the location field), or Small World may not be able to parse the location yet."]
+    [:p "if they have their location set but it's just not showing up in the app, please open an issue and share more so I can improve the city parser."]
+    [:<>]]])
+
+(defn not-found-404-screen []
+  [:h1 "404 – not found :("])
+
 (defn app-container []
-  (condp = @current-user
-    :loading (loading-screen)
-    cu/empty-session (logged-out-screen)
-    (logged-in-screen)))
+  (js/console.log (.-location js/window))
+  (condp = (.-pathname (.-location js/window))
+    "/" (condp = @current-user
+          :loading (loading-screen)
+          cu/empty-session (logged-out-screen)
+          (logged-in-screen))
+    "/about" (about-screen)
+    (not-found-404-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
 

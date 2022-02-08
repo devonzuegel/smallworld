@@ -2,7 +2,6 @@
 
 * {
   margin: 0;
-  padding: 0;
   border: 0;
   outline: 0;
   font-size: 100%;
@@ -28,6 +27,9 @@ body {
 /*****************************************/
 /**** nav ********************************/
 /*****************************************/
+.nav-spacer {
+  margin-top: 48px !important; /* account for the nav */
+}
 .nav {
   margin-bottom: 64px;
   border-top: 1px solid #d9d3cc22;
@@ -186,7 +188,6 @@ body {
 /******************************************************************************/
 .container {
   margin: auto;
-  margin-top: 48px; /* account for the nav */
   padding: 16px;
   height: calc(100vh - 72px - 38px - 14px);
   overflow: scroll;
@@ -586,4 +587,56 @@ tr:nth-child(even) {
   to {
     opacity: 1;
   }
+}
+/************************************************************/
+/** about ***************************************************/
+/************************************************************/
+.about-container {
+  max-width: min(100%, 500px);
+  padding: 32px;
+  margin: auto;
+  height: calc(100vh - 118px);
+  overflow: scroll; /* the main scroll is disabled */
+  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+}
+.about-container .serif {
+  font-family: 'Inria Serif', serif;
+  font-style: italic;
+  margin-bottom: 18px;
+}
+.about-container h2 {
+  margin-bottom: 4px;
+  font-size: 2.2em;
+  font-weight: 500;
+}
+.about-container h4 {
+  margin-bottom: 24px;
+  font-size: 1.4em;
+  font-weight: 500;
+}
+.about-container .splash {
+  text-align: center;
+  margin-top: 48px;
+  margin-bottom: 96px;
+}
+.about-container p {
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+.about-container a.btn {
+  font-weight: bold;
+  background-color: #d9d3cc;
+  color: #013917;
+  padding: 3px 6px 4px 6px;
+  border-radius: 4px;
+}
+.about-container a.btn:hover {
+  background-color: #e7e2de;
+}
+.about-container hr {
+  margin: auto;
+  margin-top: 36px;
+  margin-bottom: 36px;
+  margin-left: -32px;
+  margin-right: -32px;
 }
