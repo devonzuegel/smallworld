@@ -1,4 +1,4 @@
-(ns smallword.mocks)
+(ns smallworld.mocks)
 
 ; TODO: find out how to only load this in development, not in production
 ; use during development when you don't want to fetch from Twitter
