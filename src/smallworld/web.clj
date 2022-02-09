@@ -220,7 +220,7 @@
   (println "--fetch-friends-relevant-data | current-user: ")
   (println "")
   (println (pp/pprint current-user))
-  (map #(get-relevant-user-data % current-user) (take 50 (memoized-friends screen-name)))) ; TODO: undo the (take X)
+  (map #(get-relevant-user-data % current-user) (memoized-friends screen-name))) ; TODO: can add (take X) for debugging
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 

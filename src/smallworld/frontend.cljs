@@ -171,10 +171,6 @@
     [:br] "to connect with friends"]])
 
 (defn logged-in-screen []
-  (fetch "/friends" (fn [result]
-                      (reset! friends result)
-                    ; wait for the map to load – this is a hack & may be a source of errors ;)
-                      (js/setTimeout #(add-friends-to-map @friends) 500)))
   [:<>
    (nav)
    (let [main-location (:main-location @current-user)
@@ -247,7 +243,6 @@
   [:h1 "404 – not found :("])
 
 (defn app-container []
-  (fetch "/session" #(reset! current-user %))
   (condp = (.-pathname (.-location js/window))
     "/about" (about-screen)
     "/" (condp = @current-user
