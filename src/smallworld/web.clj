@@ -12,6 +12,7 @@
             [oauth.twitter :as oauth]
             [clojure.pprint :as pp]
             [smallworld.memoize :as m]
+            [smallworld.db :as db]
             [smallworld.coordinates :as coord-utils]
             [smallworld.util :as util]
             [smallworld.current-user :as cu]
@@ -19,6 +20,8 @@
             [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
             [environ.core :refer [env]]))
+
+(def debug? false)
 
 ;; if you need to make the locations more precise in the future, use the bbox
 ;; (bounding box) rather than just the coordinates
@@ -52,7 +55,8 @@
 
 
 (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
-;; (def -coordinates-cache (atom {}))
+;; ;; (def -coordinates-cache (atom {}))
+;; (def -coordinates-cache :coordinates)
 (def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
@@ -64,9 +68,10 @@
       (some nil? (vals coords))))
 
 (defn distance-btwn-coordinates [coords1 coords2]
-  #_(println "coords1:" coords1)
-  #_(println "coords2:" coords2)
-  #_(println "")
+  (when debug?
+    (println "coords1:" coords1)
+    (println "coords2:" coords2)
+    (println ""))
   (if (or (coordinates-not-defined? coords1)
           (coordinates-not-defined? coords2))
     nil
@@ -89,10 +94,6 @@
       nil
       (last split-name))))
 
-;; (defn f [a & {:keys [b] :or {b "default"}}]
-;;   (println a)
-;;   (println b))
-
 ;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
 (defn get-relevant-user-data [friend current-user]
@@ -109,22 +110,23 @@
         current-main-coords (when (not current-user?) (:main-coords current-user))
         current-name-coords (when (not current-user?) (:name-coords current-user))]
 
-    (println "---------------------------------------------------")
-    (println " friend-main-location:" friend-main-location)
-    (println " friend-name-location:" friend-name-location)
-    (println "current-main-location:" current-main-location)
-    (println "current-name-location:" current-name-location)
-    (println "")
-    (println "current-user?:         " current-user?)
-    (println "current-user:          " current-user)
-    (println "")
-    (println "current-main-location: " current-main-location)
-    (println "current-name-location: " current-name-location)
-    (println "friend :name           " (:name friend))
-    (println "current-name-coords:   " current-name-coords)
-    (println "current-main-coords:   " current-main-coords)
-    (println "friend-main-coords:    " friend-main-coords)
-    (println "friend-main-coords:    " friend-name-coords)
+    (when debug?
+      (println "---------------------------------------------------")
+      (println " friend-main-location:" friend-main-location)
+      (println " friend-name-location:" friend-name-location)
+      (println "current-main-location:" current-main-location)
+      (println "current-name-location:" current-name-location)
+      (println "")
+      (println "current-user?:         " current-user?)
+      (println "current-user:          " current-user)
+      (println "")
+      (println "current-main-location: " current-main-location)
+      (println "current-name-location: " current-name-location)
+      (println "friend :name           " (:name friend))
+      (println "current-name-coords:   " current-name-coords)
+      (println "current-main-coords:   " current-main-coords)
+      (println "friend-main-coords:    " friend-main-coords)
+      (println "friend-main-coords:    " friend-name-coords))
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
@@ -218,7 +220,7 @@
   (println "--fetch-friends-relevant-data | current-user: ")
   (println "")
   (println (pp/pprint current-user))
-  (map #(get-relevant-user-data % current-user) (memoized-friends screen-name)))
+  (map #(get-relevant-user-data % current-user) (take 50 (memoized-friends screen-name)))) ; TODO: undo the (take X)
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
