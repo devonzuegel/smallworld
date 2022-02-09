@@ -233,6 +233,8 @@
          :session new-session))
 
 (defn get-current-user [req]
+  (println "running: (get-current-user)")
+  (pp/pprint (get-in req [:session]))
   (get-in req [:session :current-user]
           cu/empty-session))
 
@@ -257,6 +259,8 @@
              screen-name    (:screen-name current-user)]
          (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
          (println (str "@" screen-name " (user-id: " "TODO" ") has successfully authorized Small World to access their Twitter account"))
+         (pp/pprint "current-user:     (get-relevant-user-data ...)")
+         (pp/pprint current-user)
          (set-session (response/redirect "/") {:current-user current-user
                                                :access-token access-token}))
        (catch Throwable e
