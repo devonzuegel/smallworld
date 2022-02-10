@@ -30,7 +30,7 @@
   (if (table-exists? table-name)
     (println "table" table-name "already exists")
     (do
-      (print "creating table"  table-name)
+      (println "creating table"  table-name)
       (sql/db-do-commands url (sql/create-table-ddl (name table-name) memoized-data-schema)))))
 
 (defn recreate-table [table-name]
@@ -41,14 +41,19 @@
 
 (defn show-all [table-name]
   (println)
-  (let [results (sql/query url (str "select * from " (name table-name)))]
-    ;; (pp/pprint results)
+  (let [results (if (= table-name :users)
+                  (sql/query url (str "select request_key from users"))
+                  (sql/query url (str "select * from " (name table-name))))]
+    (pp/pprint results)
+    (when (= table-name :users) (println "not printing {:data {:friends}} because it's too long"))
     (println "count: " (count results)))
   (println))
 
 (defn select-by-request-key [table-name request-key]
-  (println "select-by-request-key  ->  request-key: " request-key)
-  (sql/query url [(str "select * from " (name table-name) " where request_key = '" request-key "'")]))
+  (println "\n\nselect-by-request-key  ->  request-key: " request-key "from " table-name "\n\n")
+  (clojure.walk/keywordize-keys
+   (sql/query url [(str "select * from " (name table-name)
+                        " where request_key = '" request-key "'")])))
 
 (defn insert! [-table-name data]
   ;; (println "-table-name:" -table-name)
@@ -62,6 +67,8 @@
   (recreate-table :users)
   (show-all :users)
 
+  (show-all :access_tokens)
+  (select-by-request-key :access_tokens "devonzuegel")
 
   (recreate-table :coordinates)
   (show-all :coordinates)
