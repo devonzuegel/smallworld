@@ -18,8 +18,20 @@
 (def tables {:coordinates :coordinates
              :users       :users})
 
+(defn table-exists? [table-name]
+  (not= 0
+        (count (sql/query url (str "SELECT table_name FROM information_schema.tables where table_name = '"
+                                   (name table-name) "'")))))
+
+(table-exists? :coordinates)
+(table-exists? :users)
+
 (defn create-table [table-name]
-  (sql/db-do-commands url (sql/create-table-ddl (name table-name) memoized-data-schema)))
+  (if (table-exists? table-name)
+    (println "table" table-name "already exists")
+    (do
+      (print "creating table"  table-name)
+      (sql/db-do-commands url (sql/create-table-ddl (name table-name) memoized-data-schema)))))
 
 (defn recreate-table [table-name]
   (sql/db-do-commands url (str " drop table if exists " (name table-name)))
@@ -48,7 +60,7 @@
 
 (comment
   (recreate-table :users)
-  (show-all :users)
+  ;; (show-all :users)
 
   (recreate-table :coordinates)
   (show-all :coordinates)

@@ -316,6 +316,9 @@
 (defn start! [port]
   (some-> @server* (.stop))
 
+  (db/create-table :users)
+  (db/create-table :coordinates)
+
   ; TODO: write the following in Clojure
   ;; org.eclipse.jetty.util.log.Log.setLog (new jettyNoLog ());
   ;; Logger.getLogger (jettyNoLog.class.getName ()) .setLevel (Level.OFF);
