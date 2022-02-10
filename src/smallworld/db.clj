@@ -48,4 +48,5 @@
 
 (comment
   (recreate-table :coordinates)
-  (show-all :coordinates))
+  (show-all :coordinates)
+  (select-by-request-key :coordinates "spain"))

@@ -50,7 +50,14 @@
         (println "           results: " results))
       (if (= 0 (count results))
         ::not-found
-        (:keywordize-keys (:data (first results)))))))
+        (do
+          (println "(first results))")
+          (pp/pprint (first results))
+          (println "(:data (first results))")
+          (pp/pprint (:data (first results)))
+          (println "(clojure.walk/keywordize-keys (:data (first results)))")
+          (pp/pprint (clojure.walk/keywordize-keys (:data (first results))))
+          (clojure.walk/keywordize-keys (:data (first results))))))))
 
 (defn my-memoize
   ([expensive-fn cache]
