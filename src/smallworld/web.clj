@@ -312,6 +312,14 @@
 
 (defn start! [port]
   (some-> @server* (.stop))
+
+  ; TODO: write the following in Clojure
+  ;; org.eclipse.jetty.util.log.Log.setLog (new jettyNoLog ());
+  ;; Logger.getLogger (jettyNoLog.class.getName ()) .setLevel (Level.OFF);
+  ;; org.eclipse.jetty.util.log.Log.getProperties () .setProperty ("org.eclipse.jetty.LEVEL", "OFF");
+  ;; org.eclipse.jetty.util.log.Log.getProperties () .setProperty ("org.eclipse.jetty.util.log.announce", "false");
+  ;; org.eclipse.jetty.util.log.Log.getRootLogger () .setDebugEnabled (false);
+
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
     (reset! server* server)))

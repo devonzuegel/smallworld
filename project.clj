@@ -28,7 +28,8 @@
   :figwheel {:css-dirs ["resources/public/css"]
              :server-port 3450
             ;;  :ring-handler smallworld.web/app ;; run the backend too
-             :nrepl-port 7888}
+            ;;  :nrepl-port 7888
+             }
   :uberjar-name "smallworld.jar"
   :main ^:skip-aot smallworld.web
   :profiles {:dev {:dependencies [[cider/piggieback "0.4.1"]
