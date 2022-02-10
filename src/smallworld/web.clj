@@ -54,9 +54,9 @@
         nil))))
 
 
-(def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
+;; (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
 ;; ;; (def -coordinates-cache (atom {}))
-;; (def -coordinates-cache :coordinates)
+(def -coordinates-cache :coordinates)
 (def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
@@ -220,7 +220,7 @@
   (println "--fetch-friends-relevant-data | current-user: ")
   (println "")
   (println (pp/pprint current-user))
-  (map #(get-relevant-user-data % current-user) (memoized-friends screen-name))) ; TODO: can add (take X) for debugging
+  (map #(get-relevant-user-data % current-user) (take 80 (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
