@@ -209,7 +209,8 @@
           [:br]
           [:pre "@current-user:\n\n"  (preify @current-user)]
           [:br]
-          [:pre "@friends (take 80):\n\n"       (preify (take 80 @friends))]])]])])
+          (when-not (= @friends :loading)
+            [:pre "@friends (take 80):\n\n"       (preify (take 80 @friends))])])]])])
 
 (defn about-screen []
   [:<>
