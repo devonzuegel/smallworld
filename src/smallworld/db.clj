@@ -39,14 +39,17 @@
   (sql/query url [(str "select * from " (name table-name) " where request_key = '" request-key "'")]))
 
 (defn insert! [-table-name data]
-  (println "-table-name:" -table-name)
-  (println "       data:" data)
+  ;; (println "-table-name:" -table-name)
+  ;; (println "       data:" data)
   (sql/insert! url -table-name data))
 
 (defn update! [table-name request-key new-json]
   (sql/update! url table-name new-json ["request_key = ?" request-key]))
 
 (comment
+  (recreate-table :users)
+  (show-all :users)
+
   (recreate-table :coordinates)
   (show-all :coordinates)
   (select-by-request-key :coordinates "spain"))

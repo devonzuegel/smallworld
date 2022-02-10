@@ -3,7 +3,7 @@
   (:require [smallworld.db :as db]
             [clojure.pprint :as pp]))
 
-(def debug? true)
+(def debug? false)
 
 (defprotocol ICache
   ; TODO: consider additing a #validate method, which I'd use for the db version
@@ -33,9 +33,8 @@
       (println)
       (println "        table-name: " table-name)
       (println "       request-key: " request-key)
-      (println "            result: " result)
-      (println table-name)
-      (println {:request-key request-key :data result}))
+      (println "            result: " (count result))
+      (println table-name))
     ; store result so it doesn't have to be fetched again
     (db/insert! table-name {:request_key request-key :data result})
     result)
@@ -47,17 +46,11 @@
         (println)
         (println "        table-name: " table-name)
         (println "       request-key: " request-key)
-        (println "           results: " results))
+        ;; (println "           results: " results)
+        )
       (if (= 0 (count results))
         ::not-found
-        (do
-          (println "(first results))")
-          (pp/pprint (first results))
-          (println "(:data (first results))")
-          (pp/pprint (:data (first results)))
-          (println "(clojure.walk/keywordize-keys (:data (first results)))")
-          (pp/pprint (clojure.walk/keywordize-keys (:data (first results))))
-          (clojure.walk/keywordize-keys (:data (first results))))))))
+        (clojure.walk/keywordize-keys (:data (first results)))))))
 
 (defn my-memoize
   ([expensive-fn cache]

@@ -35,16 +35,16 @@
 
 (defn get-coordinates-from-city [city-str]
   (if (or (empty? city-str) (nil? city-str))
-    (do #_(println "")
-        (println "city-str:" city-str)
+    (do (when debug? (println "city-str:" city-str))
         nil ; return nil coordinates if no city string is given TODO: return :no-result
         )
     (try
       (let [city    (java.net.URLEncoder/encode (or city-str "") "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
             api-key (java.net.URLEncoder/encode (util/get-env-var "BING_MAPS_API_KEY") "UTF-8")]
-        (println "city:" city)
-        (println "api-key:" api-key)
-        (println "")
+        (when debug?
+          (println "city:" city)
+          (println "api-key:" api-key)
+          (println ""))
         (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
             slurp
             extract-coordinates))
@@ -110,28 +110,28 @@
         current-main-coords (when (not current-user?) (:main-coords current-user))
         current-name-coords (when (not current-user?) (:name-coords current-user))]
 
-    (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
-                :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-                :current-main-coords (when (not current-user?) (:main-coords current-user))
-                :current-name-coords (when (not current-user?) (:name-coords current-user))})
+    ;; (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
+    ;;             :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
+    ;;             :current-main-coords (when (not current-user?) (:main-coords current-user))
+    ;;             :current-name-coords (when (not current-user?) (:name-coords current-user))})
 
-    (when debug?
-      (println "---------------------------------------------------")
-      (println " friend-main-location:" friend-main-location)
-      (println " friend-name-location:" friend-name-location)
-      ;; (println "current-main-location:" current-main-location)
-      ;; ;; (println "current-name-location:" current-name-location)
-      ;; (println "")
-      ;; ;; (println "current-user?:         " current-user?)
-      ;; ;; (println "current-user:          " current-user)
-      ;; (println "")
-      ;; ;; (println "current-main-location: " current-main-location)
-      ;; ;; (println "current-name-location: " current-name-location)
-      ;; (println "friend :name           " (:name friend))
-      ;; ;; (println "current-name-coords:   " current-name-coords)
-      ;; ;; (println "current-main-coords:   " current-main-coords)
-      (println "friend-main-coords:    " friend-main-coords)
-      (println "friend-main-coords:    " friend-name-coords))
+    ;; (when debug?
+    ;;   (println "---------------------------------------------------")
+    ;;   (println " friend-main-location:" friend-main-location)
+    ;;   (println " friend-name-location:" friend-name-location)
+    ;;   ;; (println "current-main-location:" current-main-location)
+    ;;   ;; ;; (println "current-name-location:" current-name-location)
+    ;;   ;; (println "")
+    ;;   ;; ;; (println "current-user?:         " current-user?)
+    ;;   ;; ;; (println "current-user:          " current-user)
+    ;;   ;; (println "")
+    ;;   ;; ;; (println "current-main-location: " current-main-location)
+    ;;   ;; ;; (println "current-name-location: " current-name-location)
+    ;;   ;; (println "friend :name           " (:name friend))
+    ;;   ;; ;; (println "current-name-coords:   " current-name-coords)
+    ;;   ;; ;; (println "current-main-coords:   " current-main-coords)
+    ;;   (println "friend-main-coords:    " friend-main-coords)
+    ;;   (println "friend-main-coords:    " friend-name-coords))
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
@@ -164,63 +164,68 @@
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
 
-(def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
-  (try
-    (let [access-token (get @access-tokens screen-name)
-          client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
-                                     (util/get-env-var "TWITTER_CONSUMER_SECRET")
-                                     (:oauth-token access-token)
-                                     (:oauth-token-secret access-token))]
-      ;; (println "============================================================== start")
+  :this--was--commented--out
+  #_(try
+      (let [access-token (get @access-tokens screen-name)
+            client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                       (util/get-env-var "TWITTER_CONSUMER_SECRET")
+                                       (:oauth-token access-token)
+                                       (:oauth-token-secret access-token))]
+        (println "============================================================== start")
       ;; (println "access-token: ---------------------------------------------")
       ;; (println access-token)
       ;; (println "client: ---------------------------------------------------")
       ;; (println client)
-      (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
-             result-so-far []]
+        (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
+               result-so-far []]
 
-        ;; (println "cursor: -------------------------------------------------")
-        ;; (println cursor)
+          (println "cursor: -------------------------------------------------")
+          (println cursor)
         ;; (println "result-so-far: ------------------------------------------")
         ;; (println result-so-far)
-        (let [api-response  (client {:method :get
-                                     :url "https://api.twitter.com/1.1/friends/list.json"
-                                     :body (str "count=200"
-                                                "&cursor=" (str cursor)
-                                                "&skip_status=false"
-                                                "&include_user_entities=true")})
-              page-of-friends (:users api-response)
-              new-result      (concat result-so-far page-of-friends)
-              screen-names    (map :screen-name (:users api-response))
-              next-cursor     (:next-cursor api-response)]
+          (let [api-response  (client {:method :get
+                                       :url "https://api.twitter.com/1.1/friends/list.json"
+                                       :body (str "count=200"
+                                                  "&cursor=" (str cursor)
+                                                  "&skip_status=false"
+                                                  "&include_user_entities=true")})
+                page-of-friends (:users api-response)
+                new-result      (concat result-so-far page-of-friends)
+                screen-names    (map :screen-name (:users api-response))
+                next-cursor     (:next-cursor api-response)]
 
-          ;; (println "api-response:         " (keys api-response))
-          ;; (println "(first screen-names): " (first screen-names))
-          ;; (println "(count screen-names): " (count screen-names))
-          ;; (println "next-cursor:          " next-cursor)
-          ;; (println "friends count so far: " (count result-so-far))
-          ;; (println "----------------------------------------")
-          ;; (println "============================================================ end")
+            (println "api-response:         " (keys api-response))
+            (println "(first screen-names): " (first screen-names))
+            (println "(count screen-names): " (count screen-names))
+            (println "next-cursor:          " next-cursor)
+            (println "friends count so far: " (count result-so-far))
+            (println "----------------------------------------")
+            (println "============================================================ end")
 
-          ;; new-result ;; TODO: undo me once I've solved the Oauth issues
-          (if (= next-cursor 0)
-            new-result ;; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-            ))))
-    (catch Throwable e
-      (println "🔴 caught exception when getting friends for screen-name:" screen-name)
-      (println (pr-str e))
-      :failed)))
-(def memoized-friends (m/my-memoize --fetch-friends friends-cache))
+            new-result ;; TODO: undo me once save-to-db is working
+            #_(if (= next-cursor 0)
+                new-result ;; return final result if Twitter returns a cursor of 0
+                (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+                ))))
+      (catch Throwable e
+        (println "🔴 caught exception when getting friends for screen-name:" screen-name)
+        (println (pr-str e))
+        :failed)))
+(def -friends-cache (clojure.java.io/file "memoized-friends.edn"))
+(def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
+(def friends-cache :users)
+(def memoized-friends (m/my-memoize
+                       (fn [screen-name] {:friends (-memoized-friends screen-name)})
+                       friends-cache))
 
 (def friends-cache-relevant-data (atom {}))
 (defn --fetch-friends-relevant-data [screen-name current-user]
-  (println "")
-  (println "--fetch-friends-relevant-data | current-user: ")
-  (println "")
-  (println (pp/pprint current-user))
-  (map #(get-relevant-user-data % current-user) (take 80 (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
+  ;; (println "")
+  ;; (println "--fetch-friends-relevant-data | current-user: ")
+  ;; (println "")
+  ;; (println (pp/pprint current-user))
+  (map #(get-relevant-user-data % current-user) (take 80 (:friends (memoized-friends screen-name))))) ; TODO: can add (take X) for debugging
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
@@ -233,8 +238,6 @@
          :session new-session))
 
 (defn get-current-user [req]
-  (println "running: (get-current-user)")
-  (pp/pprint (get-in req [:session]))
   (get-in req [:session :current-user]
           cu/empty-session))
 
@@ -259,8 +262,8 @@
              screen-name    (:screen-name current-user)]
          (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
          (println (str "@" screen-name " (user-id: " "TODO" ") has successfully authorized Small World to access their Twitter account"))
-         (pp/pprint "current-user:     (get-relevant-user-data ...)")
-         (pp/pprint current-user)
+        ;;  (pp/pprint "current-user:     (get-relevant-user-data ...)")
+        ;;  (pp/pprint current-user)
          (set-session (response/redirect "/") {:current-user current-user
                                                :access-token access-token}))
        (catch Throwable e
