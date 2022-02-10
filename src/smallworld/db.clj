@@ -15,6 +15,8 @@
                            ; I thought the following would work, but the db throws an error:
                            ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                            ])
+(def tables {:coordinates :coordinates
+             :users       :users})
 
 (defn create-table [table-name]
   (sql/db-do-commands url (sql/create-table-ddl (name table-name) memoized-data-schema)))

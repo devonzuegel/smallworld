@@ -38,25 +38,19 @@
       (println {:request-key request-key :data result}))
     ; store result so it doesn't have to be fetched again
     (db/insert! table-name {:request_key request-key :data result})
-    (println "db/show-all " table-name)
-    (println (db/show-all :coordinates))
     result)
   (read! [table-name request-key]
-    (when debug?
-      (println)
-      (println "---------- read! was called ---------------")
-      (println)
-      (println "        table-name: " table-name)
-      (println "       request-key: " request-key))
     (let [result (db/select-by-request-key table-name request-key)]
       (when debug?
+        (println)
+        (println "---------- read! was called ---------------")
+        (println)
+        (println "        table-name: " table-name)
+        (println "       request-key: " request-key)
         (println "            result: " result))
-      (try (if (= 0 (count result)) ::not-found (first result))
-           (catch Throwable _
-             (println "\n\nthrew an exception, returning {:lat 66 :lng 66}\n\n")
-             {:lat 66 :lng 66})))))
-
-(def debug? false)
+      (if (= 0 (count result))
+        ::not-found
+        (first result)))))
 
 (defn my-memoize
   ([expensive-fn cache]
