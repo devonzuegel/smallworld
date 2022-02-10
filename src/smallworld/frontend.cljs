@@ -13,7 +13,7 @@
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
 
-(def debug? true)
+(def debug? false)
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
@@ -152,9 +152,10 @@
 (fetch "/friends" (fn [result]
                     (reset! friends result)
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
-                    (js/setTimeout #(add-friends-to-map @friends) 500)))
+                    (js/setTimeout #(add-friends-to-map @friends) 2000)))
 
-(fetch "/session" #(reset! current-user %))
+(js/setInterval (fn [] (fetch "/session" #(reset! current-user %)))
+                (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

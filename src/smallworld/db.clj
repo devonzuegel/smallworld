@@ -62,6 +62,9 @@
   (recreate-table :users)
   ;; (show-all :users)
 
+  (select-by-request-key :coordinates "Miami Beach")
+  (update! :coordinates "Miami Beach" {:data {:lat 25.792236328125 :lng -80.13484954833984}})
+
   (recreate-table :coordinates)
   (show-all :coordinates)
   (select-by-request-key :coordinates "spain"))
