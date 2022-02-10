@@ -165,53 +165,52 @@
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
 
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
-  :this--was--commented--out
-  #_(try
-      (let [access-token (get @access-tokens screen-name)
-            client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
-                                       (util/get-env-var "TWITTER_CONSUMER_SECRET")
-                                       (:oauth-token access-token)
-                                       (:oauth-token-secret access-token))]
-        (println "============================================================== start")
+  (try
+    (let [access-token (get @access-tokens screen-name)
+          client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                     (util/get-env-var "TWITTER_CONSUMER_SECRET")
+                                     (:oauth-token access-token)
+                                     (:oauth-token-secret access-token))]
+      (println "============================================================== start")
       ;; (println "access-token: ---------------------------------------------")
       ;; (println access-token)
       ;; (println "client: ---------------------------------------------------")
       ;; (println client)
-        (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
-               result-so-far []]
+      (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
+             result-so-far []]
 
-          (println "cursor: -------------------------------------------------")
-          (println cursor)
+        (println "cursor: -------------------------------------------------")
+        (println cursor)
         ;; (println "result-so-far: ------------------------------------------")
         ;; (println result-so-far)
-          (let [api-response  (client {:method :get
-                                       :url "https://api.twitter.com/1.1/friends/list.json"
-                                       :body (str "count=200"
-                                                  "&cursor=" (str cursor)
-                                                  "&skip_status=false"
-                                                  "&include_user_entities=true")})
-                page-of-friends (:users api-response)
-                new-result      (concat result-so-far page-of-friends)
-                screen-names    (map :screen-name (:users api-response))
-                next-cursor     (:next-cursor api-response)]
+        (let [api-response  (client {:method :get
+                                     :url "https://api.twitter.com/1.1/friends/list.json"
+                                     :body (str "count=200"
+                                                "&cursor=" (str cursor)
+                                                "&skip_status=false"
+                                                "&include_user_entities=true")})
+              page-of-friends (:users api-response)
+              new-result      (concat result-so-far page-of-friends)
+              screen-names    (map :screen-name (:users api-response))
+              next-cursor     (:next-cursor api-response)]
 
-            (println "api-response:         " (keys api-response))
-            (println "(first screen-names): " (first screen-names))
-            (println "(count screen-names): " (count screen-names))
-            (println "next-cursor:          " next-cursor)
-            (println "friends count so far: " (count result-so-far))
-            (println "----------------------------------------")
-            (println "============================================================ end")
+          (println "api-response:         " (keys api-response))
+          (println "(first screen-names): " (first screen-names))
+          (println "(count screen-names): " (count screen-names))
+          (println "next-cursor:          " next-cursor)
+          (println "friends count so far: " (count result-so-far))
+          (println "----------------------------------------")
+          (println "============================================================ end")
 
-            new-result ;; TODO: undo me once save-to-db is working
-            #_(if (= next-cursor 0)
-                new-result ;; return final result if Twitter returns a cursor of 0
-                (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-                ))))
-      (catch Throwable e
-        (println "🔴 caught exception when getting friends for screen-name:" screen-name)
-        (println (pr-str e))
-        :failed)))
+          new-result ;; TODO: undo me once save-to-db is working
+          #_(if (= next-cursor 0)
+              new-result ;; return final result if Twitter returns a cursor of 0
+              (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+              ))))
+    (catch Throwable e
+      (println "🔴 caught exception when getting friends for screen-name:" screen-name)
+      (println (pr-str e))
+      :failed)))
 (def -friends-cache (clojure.java.io/file "memoized-friends.edn"))
 (def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
 (def friends-cache :users)
