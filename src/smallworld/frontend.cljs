@@ -154,6 +154,8 @@
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
                     (js/setTimeout #(add-friends-to-map @friends) 2000)))
 
+; fetch current-user once & then again every 30 seconds
+(fetch "/session" #(reset! current-user %))
 (js/setInterval (fn [] (fetch "/session" #(reset! current-user %)))
                 (* 30 1000))
 
@@ -205,7 +207,7 @@
            :user-name (:name @current-user)
            :screen-name (:screen-name @current-user)}))
 
-       (when debug?
+       (when true ; debug?
          [:<>
           [:br]
           [:pre "@current-user:\n\n"  (preify @current-user)]

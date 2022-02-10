@@ -42,7 +42,7 @@
 (defn show-all [table-name]
   (println)
   (let [results (sql/query url (str "select * from " (name table-name)))]
-    (pp/pprint results)
+    ;; (pp/pprint results)
     (println "count: " (count results)))
   (println))
 
@@ -60,11 +60,11 @@
 
 (comment
   (recreate-table :users)
-  ;; (show-all :users)
+  (show-all :users)
 
-  (select-by-request-key :coordinates "Miami Beach")
-  (update! :coordinates "Miami Beach" {:data {:lat 25.792236328125 :lng -80.13484954833984}})
 
   (recreate-table :coordinates)
   (show-all :coordinates)
+  (pp/pprint (select-by-request-key :coordinates "Miami Beach"))
+  (update! :coordinates "Miami Beach" {:data {:lat 25.792236328125 :lng -80.13484954833984}})
   (select-by-request-key :coordinates "spain"))
