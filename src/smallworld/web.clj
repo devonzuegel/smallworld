@@ -316,7 +316,8 @@
 (defn start! [port]
   (some-> @server* (.stop))
 
-  (db/create-table :users)
+  ;; (db/create-table :users)
+  (db/recreate-table :users) ; TODO: this is destructive! undo it before launch
   (db/create-table :coordinates)
 
   ; TODO: write the following in Clojure
