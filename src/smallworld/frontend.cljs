@@ -13,7 +13,7 @@
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
 
-(def debug? false)
+(def debug? true)
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
@@ -209,7 +209,7 @@
           [:br]
           [:pre "@current-user:\n\n"  (preify @current-user)]
           [:br]
-          [:pre "@friends (take 20):\n\n"       (preify (take 20 @friends))]])]])])
+          [:pre "@friends (take 80):\n\n"       (preify (take 80 @friends))]])]])])
 
 (defn about-screen []
   [:<>

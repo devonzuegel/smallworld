@@ -49,7 +49,7 @@
             slurp
             extract-coordinates))
       (catch Throwable e
-        (println "\ncaught exception (get-coordinates-from-city): ")
+        (println "\nBing Maps API - returning nil, because API call failed: ")
         (println e)
         nil))))
 
@@ -109,6 +109,11 @@
         friend-name-coords  (memoized-coordinates (or friend-name-location ""))
         current-main-coords (when (not current-user?) (:main-coords current-user))
         current-name-coords (when (not current-user?) (:name-coords current-user))]
+
+    (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
+                :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
+                :current-main-coords (when (not current-user?) (:main-coords current-user))
+                :current-name-coords (when (not current-user?) (:name-coords current-user))})
 
     (when debug?
       (println "---------------------------------------------------")

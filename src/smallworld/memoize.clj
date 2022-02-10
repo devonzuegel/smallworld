@@ -3,7 +3,7 @@
   (:require [smallworld.db :as db]
             [clojure.pprint :as pp]))
 
-(def debug? false)
+(def debug? true)
 
 (defprotocol ICache
   ; TODO: consider additing a #validate method, which I'd use for the db version
@@ -40,17 +40,17 @@
     (db/insert! table-name {:request_key request-key :data result})
     result)
   (read! [table-name request-key]
-    (let [result (db/select-by-request-key table-name request-key)]
+    (let [results (db/select-by-request-key table-name request-key)]
       (when debug?
         (println)
         (println "---------- read! was called ---------------")
         (println)
         (println "        table-name: " table-name)
         (println "       request-key: " request-key)
-        (println "            result: " result))
-      (if (= 0 (count result))
+        (println "           results: " results))
+      (if (= 0 (count results))
         ::not-found
-        (first result)))))
+        (:keywordize-keys (:data (first results)))))))
 
 (defn my-memoize
   ([expensive-fn cache]
