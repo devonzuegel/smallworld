@@ -151,9 +151,9 @@
 ;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; TODO: store this in the db
 (defonce access-tokens (atom {}))
 
-(def users-cache (atom {}))
 ;; TODO: make it so this --with-access-token works with memoization too
 (defn fetch-current-user--with-access-token [access-token]
   (let [client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
@@ -163,13 +163,8 @@
     (client {:method :get
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
-(defn fetch-current-user [screen-name]
-  (let [access-token (get @access-tokens screen-name)]
-    (fetch-current-user--with-access-token access-token)))
-(def memoized-user-data (m/my-memoize fetch-current-user users-cache))
 
 (def friends-cache (clojure.java.io/file "memoized-friends.edn"))
-;; (def friends-cache (atom {}))
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (try
     (let [access-token (get @access-tokens screen-name)
