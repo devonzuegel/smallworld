@@ -1,5 +1,8 @@
 {
   "workbench.iconTheme": "city-lights-icons-vsc-light",
   "editor.formatOnSave": true,
-  "workbench.colorTheme": "Winter is Coming (Dark Blue)"
+  "workbench.colorTheme": "Horizon Bright",
+  "workbench.preferredLightColorTheme": "Horizon Bright",
+  "window.autoDetectColorScheme": true,
+  "workbench.preferredDarkColorTheme": "Winter is Coming (Dark Blue)"
 }
