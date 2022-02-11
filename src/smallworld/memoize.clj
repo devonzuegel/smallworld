@@ -1,7 +1,8 @@
 (ns smallworld.memoize
   (:refer-clojure :exclude [memoize])
   (:require [smallworld.db :as db]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            [clojure.walk :as walk]))
 
 (def debug? false)
 
@@ -50,7 +51,7 @@
         )
       (if (= 0 (count results))
         ::not-found
-        (clojure.walk/keywordize-keys (:data (first results)))))))
+        (walk/keywordize-keys (:data (first results)))))))
 
 (defn my-memoize
   ([expensive-fn cache]

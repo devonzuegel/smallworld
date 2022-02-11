@@ -1,7 +1,8 @@
 (ns smallworld.db (:require [clojure.java.jdbc :as sql]
                             [clojure.pprint :as pp]
                             [smallworld.clj-postgresql.types] ; this enables the :json type
-                            [smallworld.util :as util]))
+                            [smallworld.util :as util]
+                            [clojure.walk :as walk]))
 
 (def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))
@@ -14,16 +15,18 @@
                            ; I thought the following would work, but the db throws an error:
                            ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                            ])
-(def tables {:coordinates :coordinates
-             :users       :users})
+
+; table names
+(def users-table         :users)
+(def coordinates-table   :coordinates)
+(def access_tokens-table :access_tokens)
 
 (defn table-exists? [table-name]
-  (not= 0
-        (count (sql/query url (str "SELECT table_name FROM information_schema.tables where table_name = '"
-                                   (name table-name) "'")))))
-
-(table-exists? :coordinates)
-(table-exists? :users)
+  (->> table-name
+       name
+       (#(sql/query url (str "SELECT table_name FROM information_schema.tables where table_name = '" % "'")))
+       count
+       (not= 0)))
 
 (defn create-table [table-name]
   (if (table-exists? table-name)
@@ -32,11 +35,13 @@
       (println "creating table"  table-name)
       (sql/db-do-commands url (sql/create-table-ddl (name table-name) memoized-data-schema)))))
 
-(defn recreate-table [table-name]
-  (sql/db-do-commands url (str " drop table if exists " (name table-name)))
-  (create-table table-name)
-  (when debug? (println "done dropping table named " table-name " (if it existed)"))
-  (when debug? (println "done creating table named " table-name)))
+#_(defn recreate-table [table-name] ; leave this commented out by default, since it's destructive
+    (sql/db-do-commands url (str " drop table if exists " (name table-name)))
+    (create-table table-name)
+    (when debug?
+      (println "done dropping table named " table-name " (if it existed)")
+      (println "done creating table named " table-name)))
+
 
 (defn show-all [table-name]
   (println)
@@ -48,19 +53,30 @@
     (println "count: " (count results)))
   (println))
 
-(defn select-by-request-key [table-name request-key]
-  (println "select-by-request-key  ->  request-key: " request-key "from " table-name)
-  (clojure.walk/keywordize-keys
+(defn select-by-request-key [table-name request_key]
+  (when debug?
+    (println "select-by-request-key  ->  request_key: " request_key "from " table-name))
+  (walk/keywordize-keys
    (sql/query url [(str "select * from " (name table-name)
-                        " where request_key = '" request-key "'")])))
+                        " where request_key = '" request_key "'")])))
 
 (defn insert! [-table-name data]
-  (println "-table-name:" -table-name)
-  (println "       data:" data)
+  ;; (println "-table-name:" -table-name)
+  ;; (println "       data:" data)
   (sql/insert! url -table-name data))
 
-(defn update! [table-name request-key new-json]
-  (sql/update! url table-name new-json ["request_key = ?" request-key]))
+(defn update! [table-name request_key new-json]
+  (sql/update! url table-name new-json ["request_key = ?" request_key]))
+
+; TODO: turn this into a single query to speed it up
+(defn insert-or-update! [table-name request_key data]
+  (let [exists? (not (nil? (select-by-request-key table-name request_key)))]
+    (when debug?
+      (println "exists? " exists?)
+      (pp/pprint (select-by-request-key table-name request_key)))
+    (if-not exists?
+      (insert! table-name {:request_key request_key :data data})
+      (update! table-name request_key {:data data}))))
 
 (comment
   (recreate-table :users)
