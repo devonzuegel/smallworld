@@ -2,7 +2,7 @@
                             [clojure.data.json :as json]
                             [clojure.pprint :as pp]
                             [smallworld.util :as util]
-                            [clj-postgresql.types]))
+                            #_[clj-postgresql.types]))
 
 (def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))

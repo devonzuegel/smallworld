@@ -324,15 +324,26 @@
   (db/create-table -coordinates-table)
   (db/create-table access-tokens-table)
 
-  ; TODO: write the following in Clojure
-  ;; org.eclipse.jetty.util.log.Log.setLog (new jettyNoLog ());
-  ;; Logger.getLogger (jettyNoLog.class.getName ()) .setLevel (Level.OFF);
-  ;; org.eclipse.jetty.util.log.Log.getProperties () .setProperty ("org.eclipse.jetty.LEVEL", "OFF");
-  ;; org.eclipse.jetty.util.log.Log.getProperties () .setProperty ("org.eclipse.jetty.util.log.announce", "false");
-  ;; org.eclipse.jetty.util.log.Log.getRootLogger () .setDebugEnabled (false);
-
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
+
+    ; TODO: write the following in Clojure
+    ;; (org.eclipse.jetty.util.log.Log/setLog (new jettyNoLog))
+
+    (.setProperty (org.eclipse.jetty.util.log.Log/getProperties)
+                  "org.eclipse.jetty.LEVEL"
+                  "OFF")
+
+    ;; org.eclipse.jetty.util.log.Log.getProperties().setProperty("org.eclipse.jetty.LEVEL", "OFF");
+    ;; (.setDebugEnabled (org.eclipse.jetty.util.log.Log/getRootLogger) false)
+
+    ;; (jetty.util.log.Log.setLog(new jettyNoLog))
+    ;; org.eclipse.jetty.util.log.Log.setLog(new jettyNoLog());
+    ;; Logger.getLogger(jettyNoLog.class.getName()).setLevel(Level.OFF);
+    ;; org.eclipse.jetty.util.log.Log.getProperties().setProperty("org.eclipse.jetty.LEVEL", "OFF");
+    ;; org.eclipse.jetty.util.log.Log.getProperties().setProperty("org.eclipse.jetty.util.log.announce", "false");
+    ;; org.eclipse.jetty.util.log.Log.getRootLogger().setDebugEnabled(false);
+
     (reset! server* server)))
 
 (defn stop! []

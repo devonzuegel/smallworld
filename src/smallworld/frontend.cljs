@@ -13,7 +13,7 @@
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
 
-(def debug? false)
+(def debug? true)
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
