@@ -163,12 +163,12 @@
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (println "\n\n\nfetching friends for " screen-name "\n\n\n")
   (try
-    (let [access-token (get-in (first (db/select-by-request-key db/access_tokens-table screen-name))
-                               [:data :access_token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
-          client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
-                                     (util/get-env-var "TWITTER_CONSUMER_SECRET")
-                                     (:oauth-token access-token)
-                                     (:oauth-token-secret access-token))]
+    (let [sql-result   (db/select-by-request-key db/access_tokens-table screen-name)
+          access-token (get-in (first sql-result) [:data :access_token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
+          client       (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                           (util/get-env-var "TWITTER_CONSUMER_SECRET")
+                                           (:oauth-token access-token)
+                                           (:oauth-token-secret access-token))]
       (println "============================================================== start")
       ;; (println "access-token: ---------------------------------------------")
       ;; (println access-token)
@@ -209,10 +209,11 @@
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (println (pr-str e))
       :failed)))
-(def -friends-cache (clojure.java.io/file "memoized-friends.edn"))
-(def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
+;; (def -friends-cache (clojure.java.io/file "memoized-friends.edn")) ; TODO: this is just for development so that we don't hit Twitter's API rate limit
+;; (def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
 (def memoized-friends (m/my-memoize
-                       (fn [screen-name] {:friends (-memoized-friends screen-name)})
+                      ;;  (fn [screen-name] {:friends (-memoized-friends screen-name)})
+                       (fn [screen-name] {:friends (--fetch-friends screen-name)})
                        db/users-table))
 
 (def friends-cache-relevant-data (atom {}))
@@ -257,6 +258,10 @@
                                                     :current-user)
              screen-name    (:screen-name current-user)]
         ;;  (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
+         (println "running db/insert-or-update! with the following parameters:")
+         (pp/pprint {:table db/access_tokens-table
+                     :screen-name screen-name
+                     :--data {:access_token access-token}})
          (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token})
          (println (str "@" screen-name " (user-id: " "TODO" ") has successfully authorized Small World to access their Twitter account"))
         ;;  (pp/pprint "current-user:     (get-relevant-user-data ...)")

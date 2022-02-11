@@ -4,7 +4,7 @@
                             [smallworld.util :as util]
                             [clojure.walk :as walk]))
 
-(def debug? false)
+(def debug? true)
 (def url (util/get-env-var "DATABASE_URL"))
 (def memoized-data-schema [[:id          :integer "primary key" "generated always as identity"]
                            [:request_key :text    "not null" "unique"]
@@ -35,12 +35,12 @@
       (println "creating table"  table-name)
       (sql/db-do-commands url (sql/create-table-ddl (name table-name) memoized-data-schema)))))
 
-#_(defn recreate-table [table-name] ; leave this commented out by default, since it's destructive
-    (sql/db-do-commands url (str " drop table if exists " (name table-name)))
-    (create-table table-name)
-    (when debug?
-      (println "done dropping table named " table-name " (if it existed)")
-      (println "done creating table named " table-name)))
+(defn recreate-table [table-name] ; leave this commented out by default, since it's destructive
+  (sql/db-do-commands url (str " drop table if exists " (name table-name)))
+  (create-table table-name)
+  (when debug?
+    (println "done dropping table named " table-name " (if it existed)")
+    (println "done creating table named " table-name)))
 
 
 (defn show-all [table-name]
@@ -50,28 +50,31 @@
                   (sql/query url (str "select * from " (name table-name))))]
     (pp/pprint results)
     (when (= table-name :users) (println "not printing {:data {:friends}} because it's too long"))
-    (println "count: " (count results)))
+    (println "\ncount: " (count results)))
   (println))
 
 (defn select-by-request-key [table-name request_key]
   (when debug?
-    (println "select-by-request-key  ->  request_key: " request_key "from " table-name))
+    (println "(select-by-request-key" request_key table-name ")"))
   (walk/keywordize-keys
    (sql/query url [(str "select * from " (name table-name)
                         " where request_key = '" request_key "'")])))
 
-(defn insert! [-table-name data]
-  ;; (println "-table-name:" -table-name)
-  ;; (println "       data:" data)
-  (sql/insert! url -table-name data))
+(defn insert! [table-name data]
+  (when debug?
+    (println "inserting the following data into" table-name)
+    (pp/pprint data))
+  (sql/insert! url table-name data))
 
 (defn update! [table-name request_key new-json]
   (sql/update! url table-name new-json ["request_key = ?" request_key]))
 
 ; TODO: turn this into a single query to speed it up
 (defn insert-or-update! [table-name request_key data]
-  (let [exists? (not (nil? (select-by-request-key table-name request_key)))]
+  (let [sql-results (select-by-request-key table-name request_key)
+        exists? (not= 0 (count sql-results))]
     (when debug?
+      (println "result:" sql-results)
       (println "exists? " exists?)
       (pp/pprint (select-by-request-key table-name request_key)))
     (if-not exists?
@@ -80,10 +83,13 @@
 
 (comment
   (recreate-table :users)
+  ;; (select-by-request-key users-table "devonzuegel")
+  (select-by-request-key users-table "meadowmaus")
   (show-all :users)
 
-  (show-all :access_tokens)
-  (select-by-request-key :access_tokens "devonzuegel")
+  (show-all access_tokens-table)
+  (select-by-request-key access_tokens-table "devonzuegel")
+  (select-by-request-key access_tokens-table "meadowmaus")
 
   (recreate-table :coordinates)
   (show-all :coordinates)
