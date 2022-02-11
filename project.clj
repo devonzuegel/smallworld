@@ -18,7 +18,6 @@
                  [ring/ring-ssl "0.3.0"]
                  [yesql "0.5.3"]
                  [org.clojure/data.json "2.4.0"]
-                 [clj-postgresql "0.7.0"]
                  [clj-fuzzy "0.4.1"]
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [environ "1.1.0"]]

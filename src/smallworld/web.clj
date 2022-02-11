@@ -35,16 +35,16 @@
 
 (defn get-coordinates-from-city [city-str]
   (if (or (empty? city-str) (nil? city-str))
-    (do #_(println "")
-        (println "city-str:" city-str)
+    (do (when debug? (println "city-str:" city-str))
         nil ; return nil coordinates if no city string is given TODO: return :no-result
         )
     (try
       (let [city    (java.net.URLEncoder/encode (or city-str "") "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
             api-key (java.net.URLEncoder/encode (util/get-env-var "BING_MAPS_API_KEY") "UTF-8")]
-        (println "city:" city)
-        (println "api-key:" api-key)
-        (println "")
+        (when debug?
+          (println "city:" city)
+          (println "api-key:" api-key)
+          (println ""))
         (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
             slurp
             extract-coordinates))
@@ -54,10 +54,8 @@
         nil))))
 
 
-;; (def -coordinates-cache (clojure.java.io/file "memoized-coordinates.edn"))
-;; ;; (def -coordinates-cache (atom {}))
-(def -coordinates-cache :coordinates)
-(def -memoized-coordinates (m/my-memoize get-coordinates-from-city -coordinates-cache))
+;; (def -coordinates-cache (atom {})) ; consider creating a second memoization with an even faster atom
+(def -memoized-coordinates (m/my-memoize get-coordinates-from-city db/coordinates-table))
 (def coordinates-cache (atom {}))
 (def memoized-coordinates (m/my-memoize
                            (fn [city-str] (-memoized-coordinates city-str))
@@ -110,28 +108,28 @@
         current-main-coords (when (not current-user?) (:main-coords current-user))
         current-name-coords (when (not current-user?) (:name-coords current-user))]
 
-    (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
-                :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-                :current-main-coords (when (not current-user?) (:main-coords current-user))
-                :current-name-coords (when (not current-user?) (:name-coords current-user))})
+    ;; (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
+    ;;             :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
+    ;;             :current-main-coords (when (not current-user?) (:main-coords current-user))
+    ;;             :current-name-coords (when (not current-user?) (:name-coords current-user))})
 
-    (when debug?
-      (println "---------------------------------------------------")
-      (println " friend-main-location:" friend-main-location)
-      (println " friend-name-location:" friend-name-location)
-      ;; (println "current-main-location:" current-main-location)
-      ;; ;; (println "current-name-location:" current-name-location)
-      ;; (println "")
-      ;; ;; (println "current-user?:         " current-user?)
-      ;; ;; (println "current-user:          " current-user)
-      ;; (println "")
-      ;; ;; (println "current-main-location: " current-main-location)
-      ;; ;; (println "current-name-location: " current-name-location)
-      ;; (println "friend :name           " (:name friend))
-      ;; ;; (println "current-name-coords:   " current-name-coords)
-      ;; ;; (println "current-main-coords:   " current-main-coords)
-      (println "friend-main-coords:    " friend-main-coords)
-      (println "friend-main-coords:    " friend-name-coords))
+    ;; (when debug?
+    ;;   (println "---------------------------------------------------")
+    ;;   (println " friend-main-location:" friend-main-location)
+    ;;   (println " friend-name-location:" friend-name-location)
+    ;;   ;; (println "current-main-location:" current-main-location)
+    ;;   ;; ;; (println "current-name-location:" current-name-location)
+    ;;   ;; (println "")
+    ;;   ;; ;; (println "current-user?:         " current-user?)
+    ;;   ;; ;; (println "current-user:          " current-user)
+    ;;   ;; (println "")
+    ;;   ;; ;; (println "current-main-location: " current-main-location)
+    ;;   ;; ;; (println "current-name-location: " current-name-location)
+    ;;   ;; (println "friend :name           " (:name friend))
+    ;;   ;; ;; (println "current-name-coords:   " current-name-coords)
+    ;;   ;; ;; (println "current-main-coords:   " current-main-coords)
+    ;;   (println "friend-main-coords:    " friend-main-coords)
+    ;;   (println "friend-main-coords:    " friend-name-coords))
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
@@ -151,10 +149,7 @@
 ;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; TODO: store this in the db
-(defonce access-tokens (atom {}))
-
-;; TODO: make it so this --with-access-token works with memoization too
+;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
 (defn fetch-current-user--with-access-token [access-token]
   (let [client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
                                    (util/get-env-var "TWITTER_CONSUMER_SECRET")
@@ -164,15 +159,21 @@
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
 
-(def friends-cache (clojure.java.io/file "memoized-friends.edn"))
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
+  (when debug?
+    (println "============================================================== start")
+    (println "\n\n\nfetching friends for " screen-name "\n\n\n"))
   (try
-    (let [access-token (get @access-tokens screen-name)
-          client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
-                                     (util/get-env-var "TWITTER_CONSUMER_SECRET")
-                                     (:oauth-token access-token)
-                                     (:oauth-token-secret access-token))]
-      ;; (println "============================================================== start")
+    (let [; the sql-result should never be an empty list; if it is, that means the
+          ; access token was deleted. it shouldn't be possible to get to this state,
+          ; but if it does happen at some point, then we may need to add a way for
+          ; the user to re-authenticate.
+          sql-result   (db/select-by-request-key db/access_tokens-table screen-name)
+          access-token (get-in (first sql-result) [:data :access_token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
+          client       (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
+                                           (util/get-env-var "TWITTER_CONSUMER_SECRET")
+                                           (:oauth-token access-token)
+                                           (:oauth-token-secret access-token))]
       ;; (println "access-token: ---------------------------------------------")
       ;; (println access-token)
       ;; (println "client: ---------------------------------------------------")
@@ -180,8 +181,8 @@
       (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
              result-so-far []]
 
-        ;; (println "cursor: -------------------------------------------------")
-        ;; (println cursor)
+        (println "cursor: -------------------------------------------------")
+        (println cursor)
         ;; (println "result-so-far: ------------------------------------------")
         ;; (println result-so-far)
         (let [api-response  (client {:method :get
@@ -195,32 +196,33 @@
               screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
-          ;; (println "api-response:         " (keys api-response))
-          ;; (println "(first screen-names): " (first screen-names))
-          ;; (println "(count screen-names): " (count screen-names))
-          ;; (println "next-cursor:          " next-cursor)
-          ;; (println "friends count so far: " (count result-so-far))
-          ;; (println "----------------------------------------")
-          ;; (println "============================================================ end")
+          (println "api-response:         " (keys api-response))
+          (println "(first screen-names): " (first screen-names))
+          (println "(count screen-names): " (count screen-names))
+          (println "next-cursor:          " next-cursor)
+          (println "friends count so far: " (count result-so-far))
+          (println "----------------------------------------")
+          (println "============================================================ end")
 
-          ;; new-result ;; TODO: undo me once I've solved the Oauth issues
-          (if (= next-cursor 0)
-            new-result ;; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-            ))))
+          new-result ;; TODO: undo me once save-to-db is working
+          #_(if (= next-cursor 0)
+              new-result ;; return final result if Twitter returns a cursor of 0
+              (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+              ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (println (pr-str e))
       :failed)))
-(def memoized-friends (m/my-memoize --fetch-friends friends-cache))
+;; (def -friends-cache (clojure.java.io/file "memoized-friends.edn")) ; TODO: this is just for development so that we don't hit Twitter's API rate limit
+;; (def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
+(def memoized-friends (m/my-memoize
+                       (fn [screen-name] {:friends (--fetch-friends screen-name)})
+                       db/users-table))
 
 (def friends-cache-relevant-data (atom {}))
 (defn --fetch-friends-relevant-data [screen-name current-user]
-  (println "")
-  (println "--fetch-friends-relevant-data | current-user: ")
-  (println "")
-  (println (pp/pprint current-user))
-  (map #(get-relevant-user-data % current-user) (take 80 (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
+  (map #(get-relevant-user-data % current-user)
+       (take 80 (:friends (memoized-friends screen-name))))) ; TODO: can add (take X) for debugging
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
@@ -233,8 +235,6 @@
          :session new-session))
 
 (defn get-current-user [req]
-  (println "running: (get-current-user)")
-  (pp/pprint (get-in req [:session]))
   (get-in req [:session :current-user]
           cu/empty-session))
 
@@ -257,14 +257,13 @@
              current-user   (get-relevant-user-data (fetch-current-user--with-access-token access-token)
                                                     :current-user)
              screen-name    (:screen-name current-user)]
-         (swap! access-tokens assoc screen-name access-token) ;; TODO: maybe get rid of this? or put it in db?
-         (println (str "@" screen-name " (user-id: " "TODO" ") has successfully authorized Small World to access their Twitter account"))
-         (pp/pprint "current-user:     (get-relevant-user-data ...)")
-         (pp/pprint current-user)
+         (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
+         (println (str "@" screen-name ") has successfully authorized Small World to access their Twitter account"))
          (set-session (response/redirect "/") {:current-user current-user
                                                :access-token access-token}))
        (catch Throwable e
          (println "user failed to log in")
+         (println e)
          (response/redirect "/"))))
 
 (defn logout [req]
@@ -313,15 +312,14 @@
 (defn start! [port]
   (some-> @server* (.stop))
 
-  ; TODO: write the following in Clojure
-  ;; org.eclipse.jetty.util.log.Log.setLog (new jettyNoLog ());
-  ;; Logger.getLogger (jettyNoLog.class.getName ()) .setLevel (Level.OFF);
-  ;; org.eclipse.jetty.util.log.Log.getProperties () .setProperty ("org.eclipse.jetty.LEVEL", "OFF");
-  ;; org.eclipse.jetty.util.log.Log.getProperties () .setProperty ("org.eclipse.jetty.util.log.announce", "false");
-  ;; org.eclipse.jetty.util.log.Log.getRootLogger () .setDebugEnabled (false);
+  ; create the tables if they don't already exists
+  (db/create-table db/users-table)
+  (db/create-table db/coordinates-table)
+  (db/create-table db/access_tokens-table)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
+
     (reset! server* server)))
 
 (defn stop! []
