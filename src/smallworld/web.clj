@@ -164,7 +164,7 @@
   (println "\n\n\nfetching friends for " screen-name "\n\n\n")
   (try
     (let [access-token (get-in (first (db/select-by-request-key db/access_tokens-table screen-name))
-                               [:data :access-token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
+                               [:data :access_token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
           client (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
                                      (util/get-env-var "TWITTER_CONSUMER_SECRET")
                                      (:oauth-token access-token)
