@@ -87,7 +87,10 @@
   (select-by-request-key users-table "meadowmaus")
   (show-all :users)
 
+  (sql/delete! url users-table         ["request_key = ?" "devon_dos"])
+  (sql/delete! url access_tokens-table ["request_key = ?" "devon_dos"])
   (show-all access_tokens-table)
+
   (select-by-request-key access_tokens-table "devonzuegel")
   (select-by-request-key access_tokens-table "meadowmaus")
 
