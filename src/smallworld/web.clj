@@ -133,7 +133,6 @@
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
-     :user-id                 :TODO ;; TODO: generate this in the db
      :profile_image_url_large (normal-img-to-full-size friend)
      :distance (when (not current-user?)
                  {:name-main (distance-btwn-coordinates current-name-coords friend-main-coords)
@@ -204,15 +203,16 @@
           (println "----------------------------------------")
           (println "============================================================ end")
 
-          new-result ;; TODO: undo me once save-to-db is working
-          #_(if (= next-cursor 0)
-              new-result ;; return final result if Twitter returns a cursor of 0
-              (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
-              ))))
+          ; new-result ;; TODO: undo me once save-to-db is working
+          (if (= next-cursor 0)
+            new-result ;; return final result if Twitter returns a cursor of 0
+            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+            ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (println (pr-str e))
       :failed)))
+
 ;; (def -friends-cache (clojure.java.io/file "memoized-friends.edn")) ; TODO: this is just for development so that we don't hit Twitter's API rate limit
 ;; (def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
 (def memoized-friends (m/my-memoize
@@ -222,7 +222,7 @@
 (def friends-cache-relevant-data (atom {}))
 (defn --fetch-friends-relevant-data [screen-name current-user]
   (map #(get-relevant-user-data % current-user)
-       (take 80 (:friends (memoized-friends screen-name))))) ; TODO: can add (take X) for debugging
+       (:friends (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
 (def memoized-friends-relevant-data
   (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
 
