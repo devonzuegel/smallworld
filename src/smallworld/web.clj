@@ -271,6 +271,7 @@
                                                :access-token access-token}))
        (catch Throwable e
          (println "user failed to log in")
+         (println e)
          (response/redirect "/"))))
 
 (defn logout [req]

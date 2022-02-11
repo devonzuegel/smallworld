@@ -1,8 +1,7 @@
 (ns smallworld.db (:require [clojure.java.jdbc :as sql]
-                            [clojure.data.json :as json]
                             [clojure.pprint :as pp]
-                            [smallworld.util :as util]
-                            #_[clj-postgresql.types]))
+                            [smallworld.clj-postgresql.types] ; this enables the :json type
+                            [smallworld.util :as util]))
 
 (def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))
@@ -50,14 +49,14 @@
   (println))
 
 (defn select-by-request-key [table-name request-key]
-  (println "\n\nselect-by-request-key  ->  request-key: " request-key "from " table-name "\n\n")
+  (println "select-by-request-key  ->  request-key: " request-key "from " table-name)
   (clojure.walk/keywordize-keys
    (sql/query url [(str "select * from " (name table-name)
                         " where request_key = '" request-key "'")])))
 
 (defn insert! [-table-name data]
-  ;; (println "-table-name:" -table-name)
-  ;; (println "       data:" data)
+  (println "-table-name:" -table-name)
+  (println "       data:" data)
   (sql/insert! url -table-name data))
 
 (defn update! [table-name request-key new-json]
