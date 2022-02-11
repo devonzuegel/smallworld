@@ -1,6 +1,6 @@
 ;; adapted from https://github.com/remodoy/clj-postgresql/blob/38eec16386e43504addcae4601fa36f595c81f1a/src/clj_postgresql/types.clj
 
-(ns clj-postgresql.types
+(ns smallworld.clj-postgresql.types
   "Participate in clojure.java.jdbc's ISQLValue and IResultSetReadColumn protocols
    to allow using PostGIS geometry types without the PGgeometry wrapper, support the
    PGjson type and allow coercing clojure structures into PostGIS types."
