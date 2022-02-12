@@ -21,9 +21,17 @@
 (def coordinates-table   :coordinates)
 (def access_tokens-table :access_tokens)
 
+(defn escape-str [str]
+  (clojure.string/replace str "'" "''"))
+
+
+(defn where [column-name value]
+  (str " where " column-name " = '" (escape-str value) "'"))
+
 (defn table-exists? [table-name]
   (->> table-name
        name
+       escape-str
        (#(sql/query url (str "SELECT table_name FROM information_schema.tables where table_name = '" % "'")))
        count
        (not= 0)))
@@ -57,8 +65,8 @@
   (when debug?
     (println "(select-by-request-key" request_key table-name ")"))
   (walk/keywordize-keys
-   (sql/query url [(str "select * from " (name table-name)
-                        " where request_key = '" request_key "'")])))
+   (sql/query url (str "select * from " (name table-name)
+                       (where "request_key" request_key)))))
 
 (defn insert! [table-name data]
   (when debug?
@@ -83,12 +91,12 @@
 
 (comment
   (recreate-table :users)
-  ;; (select-by-request-key users-table "devonzuegel")
+  (select-by-request-key users-table "devonzuegel")
   (select-by-request-key users-table "meadowmaus")
   (show-all :users)
 
-  (sql/delete! url users-table         ["request_key = ?" "devon_dos"])
-  (sql/delete! url access_tokens-table ["request_key = ?" "devon_dos"])
+  (sql/delete! url users-table         ["request_key = ?" "devonzuegel"])
+  (sql/delete! url access_tokens-table ["request_key = ?" "devonzuegel"])
   (show-all access_tokens-table)
 
   (select-by-request-key access_tokens-table "devonzuegel")

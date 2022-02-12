@@ -214,7 +214,7 @@
           [:br]
           (if (= @friends :loading)
             [:pre "@friends is still :loading"]
-            [:pre "@friends (take 80):\n\n"       (preify (take 80 @friends))])])]])])
+            [:pre "@friends (" (count @friends) "):\n\n" #_(preify @friends)])])]])])
 
 (defn about-screen []
   [:<>
