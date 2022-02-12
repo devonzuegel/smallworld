@@ -1,5 +1,16 @@
 # Small World
 
+## local setup
+
+install dependencies:
+
+1. `lein install`
+2. install postgres: https://postgresapp.com (database)
+3. install postbird: https://github.com/Paxa/postbird (GUI)
+4. create local postgres db called `smallworld-local`
+
+## local development
+
 ### start the repl (frontend hot-reloading + server)
 ### start/restart the app
 1. set the environment variables
@@ -41,17 +52,7 @@ lein figwheel
 ### open local URL
 
 http://localhost:3001
-
-# local setup
-
-install dependencies:
-
-1. `lein install`
-2. install postgres: https://postgresapp.com (database)
-3. install postbird: https://github.com/Paxa/postbird (GUI)
-4. create local postgres db called `smallworld-local`
-
-# deploy to heroku
+## deploy to heroku
 
 note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
 
@@ -75,7 +76,7 @@ note: instead of heroku's usual `git push heroku` deployment patter, we use the 
    bin/heroku-logs.sh
    ```
 
-# designs
+## initial designs
 
 | ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
 | -                                 | -                                                | -                                         |
