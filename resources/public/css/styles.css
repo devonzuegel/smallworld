@@ -532,8 +532,8 @@ tr:nth-child(even) {
   position: absolute; /* without this, you get the zoomy marker bug */
   color: #013917;
   background-color: #013917;
-  height: 8px;
-  width: 8px;
+  height: 30px;
+  width: 30px;
   border-radius: 8px;
   white-space: pre;
   font-family: 'Roboto Mono', monospace;

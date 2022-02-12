@@ -77,7 +77,7 @@
 (def middle-of-USA [-90, 40])
 
 (defn update-markers-size [& [to-print]]
-  (let [scale   (+ .1 (* (.getZoom @the-map) 0.2))
+  (let [scale   (+ .1 (* (.getZoom @the-map) 0.1))
         markers (array-seq (goog.dom/getElementsByClass "marker"))]
     (when (string? to-print)
       (println to-print " | scale:" scale "| (count markers):" (count markers)))
@@ -99,19 +99,16 @@
                    :maxZoom 9
                    :minZoom 1.5}))
 
-  ; calibrate markers' size on various rendering events
-  (.on @the-map "load" update-markers-size)
-  (.on @the-map "zoom" update-markers-size)
+  (.on @the-map "zoom" update-markers-size) ; calibrate markers' size according to the zoom
 
   ; add the current user to the map
-  (js/setTimeout ; the timeout is a hack to ensure the map is loaded before adding the current-user marker
-   #(when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
-                                                      :location    (:location current-user)
-                                                      :img-url     (:user-img current-user)
-                                                      :user-name   (:user-name current-user)
-                                                      :screen-name (:screen-name current-user)
-                                                      :classname   "current-user"}))
-   10))
+  (.on @the-map "load"
+       #(when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
+                                                          :location    (:location current-user)
+                                                          :img-url     (:user-img current-user)
+                                                          :user-name   (:user-name current-user)
+                                                          :screen-name (:screen-name current-user)
+                                                          :classname   "current-user"}))))
 
 
 ; this cannot be an anonymous function.  it needs to be a named function, because otherwise

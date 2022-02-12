@@ -13,7 +13,7 @@
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
 
-(def debug? true)
+(def debug? false)
 
 (defn fetch [route callback]
   (-> (.fetch js/window route)
@@ -52,7 +52,8 @@
                                       :img-url     (:profile_image_url_large friend)
                                       :user-name   (:name friend)
                                       :screen-name (:screen_name friend)
-                                      :classname   "name-coords"})))))))
+                                      :classname   "name-coords"}))))))
+  (mapbox/update-markers-size))
 
 (defn nav []
   [:div.nav
