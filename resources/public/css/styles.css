@@ -449,7 +449,7 @@ tr:nth-child(even) {
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
 #mapbox-container.expanded {
-  height: 65vh;
+  height: 95vh;
   transition: height 200ms ease-in-out;
 }
 #mapbox-container {

@@ -99,10 +99,9 @@
                    :maxZoom 9
                    :minZoom 1.5}))
 
+  (js/setInterval #(.resize @the-map) (* 10 1000)) ; make sure the map is properly sized
   (.on @the-map "zoom" update-markers-size) ; calibrate markers' size according to the zoom
-
-  ; add the current user to the map
-  (.on @the-map "load"
+  (.on @the-map "load" ; add the current user to the map
        #(when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
                                                           :location    (:location current-user)
                                                           :img-url     (:user-img current-user)
@@ -124,7 +123,7 @@
      {:on-click (fn []
                   (reset! expanded (not @expanded))
                   (doall
-                   (for [i (range 25)]
+                   (for [i (range 105)]
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
      (if @expanded "collapse map" "expand map")]
     [mapbox-dom current-user]]])
