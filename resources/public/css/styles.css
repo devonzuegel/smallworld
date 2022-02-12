@@ -478,6 +478,8 @@ tr:nth-child(even) {
   cursor: pointer;
   transform: translateY(50%);
   transition: background 100ms ease-out;
+  width: 6em;
+  text-align: center;
 }
 #mapbox-container .expand-me:hover {
   background: white;
