@@ -189,7 +189,8 @@ body {
 .container {
   margin: auto;
   padding: 16px;
-  height: calc(100vh - 72px - 38px - 14px);
+  padding-bottom: 52px;
+  height: calc(100vh - 216px - 14px);
   overflow: scroll;
 }
 pre {
@@ -452,7 +453,7 @@ tr:nth-child(even) {
   transition: height 200ms ease-in-out;
 }
 #mapbox-container {
-  height: 80px;
+  height: 150px;
   transition: height 200ms ease-in-out;
   width: 100%;
   position: fixed;
