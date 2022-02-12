@@ -168,7 +168,7 @@
 
 (defn logged-out-screen []
   [:div.welcome.center-vh
-   [:h1 "welcome to" [:br] "Small World"]
+   [:h1 "welcome to" [:br] "small world"]
    [:div#logo-animation.logo (decorations/animated-globe)]
    [:h2
     [:a#login-btn {:href "login"} "sign in"]
@@ -222,26 +222,26 @@
    (nav)
    [:div.about-container.nav-spacer
     [:div.splash
-     [:h2 "welcome to Small World,"]
+     [:h2 "welcome to small world,"]
      [:h4 "a tiny tool to stay in touch with friends"]
      [:p.serif
-      "Small World is a Marauder's Map" [:br]
+      "small world is a Marauder's Map" [:br]
       "for the people you know on Twitter."]
      [:br]
      [:a.btn {:href "/"} "connect with friends"]]
 
     [:hr]
 
-    [:p [:b "Q: how does Small World work?"]]
-    [:p "Small World checks to see if the people you follow on Twitter have updated their location.  it looks at two places:"]
+    [:p [:b "Q: how does small world work?"]]
+    [:p "small world checks to see if the people you follow on Twitter have updated their location.  it looks at two places:"]
     [:ul
-     [:li "their display name, which Small World interprets as they're traveling to that location"]
-     [:li "their location, which Small World interprets as they're living in that location"]]
+     [:li "their display name, which small world interprets as they're traveling to that location"]
+     [:li "their location, which small world interprets as they're living in that location"]]
 
     [:hr]
 
     [:p [:b "Q: why isn't my friend showing up in the list or on the map?"]]
-    [:p "they may not have their location set on Twitter (either in their name or in the location field), or Small World may not be able to parse the location yet."]
+    [:p "they may not have their location set on Twitter (either in their name or in the location field), or small world may not be able to parse the location yet."]
     [:p "if they have their location set but it's just not showing up in the app, please open an issue and share more so I can improve the city parser."]
     [:<>]]])
 

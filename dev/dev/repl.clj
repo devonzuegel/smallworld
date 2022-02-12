@@ -14,7 +14,7 @@
 
 
 (defn initialize-repl []
-  (println (str "\n\n🌎 starting the Small World server (backend): http://localhost:" PORT " 🌍\n"))
+  (println (str "\n\n🌎 starting the small world server (backend): http://localhost:" PORT " 🌍\n"))
   (backend/start! 3001)
 
   (println "\n\n🎨 starting the Figwheel server (frontend hot-reloading) 🎨\n")

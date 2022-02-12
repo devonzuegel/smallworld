@@ -258,7 +258,7 @@
                                                     :current-user)
              screen-name    (:screen-name current-user)]
          (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
-         (println (str "@" screen-name ") has successfully authorized Small World to access their Twitter account"))
+         (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
          (set-session (response/redirect "/") {:current-user current-user
                                                :access-token access-token}))
        (catch Throwable e
@@ -334,5 +334,5 @@
                (do (println "PORT not defined. Defaulting to" default-port)
                    default-port)
                (Integer/parseInt port))]
-    (println "\nSmall World is running on" (str "http://localhost:" port) "\n")
+    (println "\nsmall world is running on" (str "http://localhost:" port) "\n")
     (start! port)))
