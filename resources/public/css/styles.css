@@ -446,7 +446,7 @@ tr:nth-child(even) {
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
 #mapbox-container.expanded {
-  height: 99vh; /* note that this includes the height of the button, not just the map */
+  height: 96vh; /* note that this includes the height of the button, not just the map */
   transition: height 200ms ease-in-out;
 }
 #mapbox-container {
