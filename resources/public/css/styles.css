@@ -448,6 +448,8 @@ tr:nth-child(even) {
 #mapbox-container.expanded {
   height: 99vh; /* note that this includes the height of the button, not just the map */
   transition: height 200ms ease-in-out;
+  top: 0;
+  margin-top: 1vh;
 }
 /* iOS devices only, to account for vertical space taken by iOS Safari search bar at bottom of screen */
 @supports (-webkit-touch-callout: none) {
