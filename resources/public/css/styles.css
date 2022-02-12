@@ -638,8 +638,11 @@ tr:nth-child(even) {
   padding: 3px 6px 4px 6px;
   border-radius: 4px;
 }
-.about-container a.btn:hover {
-  background-color: #e7e2de;
+.about-container p a {
+  border-bottom: #e7e2de33 2px solid;
+}
+.about-container p a:hover {
+  border-bottom: #e7e2de44 2px solid;
 }
 .about-container hr {
   margin: auto;

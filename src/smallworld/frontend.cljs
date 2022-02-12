@@ -242,7 +242,7 @@
 
     [:p [:b "Q: why isn't my friend showing up in the list or on the map?"]]
     [:p "they may not have their location set on Twitter (either in their name or in the location field), or small world may not be able to parse the location yet."]
-    [:p "if they have their location set but it's just not showing up in the app, please open an issue and share more so I can improve the city parser."]
+    [:p "if they have their location set but it's just not showing up in the app, please " [:a {:href "https://github.com/devonzuegel/smallworld"} "open a GitHub issue"] " and share more so I can improve the city parser."]
     [:<>]]])
 
 (defn not-found-404-screen []
