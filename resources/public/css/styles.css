@@ -189,7 +189,8 @@ body {
 .container {
   margin: auto;
   padding: 16px;
-  height: calc(100vh - 72px - 38px - 14px);
+  padding-bottom: 52px;
+  height: calc(100vh - 216px - 14px);
   overflow: scroll;
 }
 pre {
