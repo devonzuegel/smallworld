@@ -459,6 +459,7 @@ tr:nth-child(even) {
 }
 
 #mapbox-container {
+  pointer-events: none;
   height: 150px;
   transition: height 200ms ease-in-out;
   width: 100%;
@@ -471,6 +472,7 @@ tr:nth-child(even) {
   align-items: center;
 }
 #mapbox-container .expand-me {
+  pointer-events: auto;
   background: #efeaef;
   font-weight: bolder;
   font-size: 1.2rem;
@@ -500,6 +502,7 @@ tr:nth-child(even) {
 #mapbox {
   height: 100%;
   width: 100%;
+  pointer-events: auto;
 }
 .mapboxgl-ctrl-logo {
   display: none !important;
