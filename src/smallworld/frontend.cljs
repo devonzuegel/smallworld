@@ -1,17 +1,15 @@
 (ns smallworld.frontend
-  (:require [reagent.core :as r]
-            [smallworld.session :as session]
-            [smallworld.mapbox :as mapbox]
+  (:require [reagent.core           :as r]
+            [smallworld.session     :as session]
+            [smallworld.mapbox      :as mapbox]
             [smallworld.decorations :as decorations]
-            [clojure.pprint :as pp]
-            [clojure.string :as str]
+            [smallworld.util        :as util]
+            [clojure.pprint         :as pp]
+            [clojure.string         :as str]
             [cljsjs.mapbox]
             [goog.dom]))
 
-(defonce current-user (r/atom :loading))
-(defonce friends      (r/atom :loading))
-
-(defn session-update [new-session-data] (reset! current-user new-session-data))
+(defonce friends (r/atom :loading))
 
 (def debug? false)
 
@@ -65,12 +63,10 @@
    [:a {:href "/about"} "about"]
    [:span.links-spacer "·"]
    [:a {:href "/logout"}
-    "log out" [:b.screen-name " @" (:screen-name @current-user)]]])
+    "log out" [:b.screen-name " @" (:screen-name @session/store*)]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn preify [obj] (with-out-str (pp/pprint obj)))
 
 (defn closer-than [max-distance dist-key]
   (fn [friend]
@@ -156,8 +152,8 @@
                     (js/setTimeout #(add-friends-to-map @friends) 2000)))
 
 ; fetch current-user once & then again every 30 seconds
-(fetch "/session" session-update)
-(js/setInterval #(fetch "/session" session-update) (* 30 1000))
+(fetch "/session" session/update!)
+(js/setInterval #(fetch "/session" session/update!) (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -176,10 +172,10 @@
 (defn logged-in-screen []
   [:<>
    (nav)
-   (let [main-location (:main-location @current-user)
-         name-location (:name-location @current-user)]
+   (let [main-location (:main-location @session/store*)
+         name-location (:name-location @session/store*)]
      [:div.container.nav-spacer
-      [:div.current-user (render-user nil @current-user)]
+      [:div.current-user (render-user nil @session/store*)]
 
       [:<>
        (when-not (empty? main-location)
@@ -196,21 +192,21 @@
           (render-friends-list :name-name "living"   name-location)
           (render-friends-list :name-main "visiting" name-location)])
 
-       (let [main-coords (:main-coords @current-user)
-             name-coords (:name-coords @current-user)]
+       (let [main-coords (:main-coords @session/store*)
+             name-coords (:name-coords @session/store*)]
          (mapbox/mapbox
           {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
                         (when main-coords [(:lng main-coords) (:lat main-coords)]))
            :location (or name-location
                          main-location)
-           :user-img (:profile_image_url_large @current-user)
-           :user-name (:name @current-user)
-           :screen-name (:screen-name @current-user)}))
+           :user-img (:profile_image_url_large @session/store*)
+           :user-name (:name @session/store*)
+           :screen-name (:screen-name @session/store*)}))
 
-       (when true ; debug?
+       (when debug?
          [:<>
           [:br]
-          [:pre "@current-user:\n\n"  (preify @current-user)]
+          [:pre "@current-user:\n\n"  (util/preify @session/store*)]
           [:br]
           (if (= @friends :loading)
             [:pre "@friends is still :loading"]
@@ -250,7 +246,7 @@
 (defn app-container []
   (condp = (.-pathname (.-location js/window))
     "/about" (about-screen)
-    "/" (condp = @current-user
+    "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
           (logged-in-screen))

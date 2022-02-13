@@ -9,3 +9,5 @@
     (set! (.-href link) href)
     (.appendChild head link)
     (when callback (callback))))
+
+(defn preify [obj] (with-out-str (pp/pprint obj)))
