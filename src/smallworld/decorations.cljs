@@ -1,10 +1,6 @@
 (ns smallworld.decorations
-  (:require [reagent.core :as r]
-            [smallworld.current-user :as cu]
-            [smallworld.mapbox]
-            [clj-fuzzy.metrics :as fuzzy]
+  (:require [smallworld.mapbox]
             [clojure.pprint :as pp]
-            ;; [clojure.string :as str]
             [cljsjs.mapbox]
             [goog.dom]
             [goog.dom.classlist :as gc]))
@@ -19,9 +15,8 @@
                                                          (.addEventListener elem "animationiteration" stop-animation))]
                               (.addEventListener elem "mouseover" start-animation)
                               (.addEventListener elem "mouseout" stop-after-iteration)))]
-    ;; give time to load the animation
-    (js/setTimeout handle-hover 1000))
-  [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]])
+    (js/setTimeout handle-hover 1000) ; give time to load the animation
+    [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]]))
 
 (defn simple-loading-animation []
   [:svg.loader

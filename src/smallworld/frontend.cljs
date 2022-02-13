@@ -1,17 +1,17 @@
 (ns smallworld.frontend
   (:require [reagent.core :as r]
-            [smallworld.current-user :as cu]
+            [smallworld.session :as session]
             [smallworld.mapbox :as mapbox]
             [smallworld.decorations :as decorations]
-            [clj-fuzzy.metrics :as fuzzy]
             [clojure.pprint :as pp]
             [clojure.string :as str]
             [cljsjs.mapbox]
-            [goog.dom]
-            [goog.dom.classlist :as gc]))
+            [goog.dom]))
 
 (defonce current-user (r/atom :loading))
 (defonce friends      (r/atom :loading))
+
+(defn session-update [new-session-data] (reset! current-user new-session-data))
 
 (def debug? false)
 
@@ -156,9 +156,8 @@
                     (js/setTimeout #(add-friends-to-map @friends) 2000)))
 
 ; fetch current-user once & then again every 30 seconds
-(fetch "/session" #(reset! current-user %))
-(js/setInterval (fn [] (fetch "/session" #(reset! current-user %)))
-                (* 30 1000))
+(fetch "/session" session-update)
+(js/setInterval #(fetch "/session" session-update) (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -253,7 +252,7 @@
     "/about" (about-screen)
     "/" (condp = @current-user
           :loading (loading-screen)
-          cu/empty-session (logged-out-screen)
+          session/blank (logged-out-screen)
           (logged-in-screen))
     (not-found-404-screen)))
 

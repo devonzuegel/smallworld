@@ -12,7 +12,7 @@
             [smallworld.memoize :as m]
             [smallworld.db :as db]
             [smallworld.util :as util]
-            [smallworld.current-user :as cu]
+            [smallworld.session :as session]
             [cheshire.core :refer [generate-string]]
             [smallworld.user-data :as user-data]))
 
@@ -36,6 +36,7 @@
   (when debug?
     (println "============================================================== start")
     (println "\n\n\nfetching friends for " screen-name "\n\n\n"))
+
   (try
     (let [; the sql-result should never be an empty list; if it is, that means the
           ; access token was deleted. it shouldn't be possible to get to this state,
@@ -47,17 +48,21 @@
                                            (util/get-env-var "TWITTER_CONSUMER_SECRET")
                                            (:oauth-token access-token)
                                            (:oauth-token-secret access-token))]
-      ;; (println "access-token: ---------------------------------------------")
-      ;; (println access-token)
-      ;; (println "client: ---------------------------------------------------")
-      ;; (println client)
+      (when debug?
+        (println "access-token: ---------------------------------------------")
+        (println access-token)
+        (println "client: ---------------------------------------------------")
+        (println client))
+
       (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
              result-so-far []]
 
-        (println "cursor: -------------------------------------------------")
-        (println cursor)
-        ;; (println "result-so-far: ------------------------------------------")
-        ;; (println result-so-far)
+        (when debug?
+          (println "cursor: -------------------------------------------------")
+          (println cursor)
+          (println "result-so-far: ------------------------------------------")
+          (println result-so-far))
+
         (let [api-response  (client {:method :get
                                      :url "https://api.twitter.com/1.1/friends/list.json"
                                      :body (str "count=200"
@@ -69,26 +74,24 @@
               screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
-          (println "api-response:         " (keys api-response))
-          (println "(first screen-names): " (first screen-names))
-          (println "(count screen-names): " (count screen-names))
-          (println "next-cursor:          " next-cursor)
-          (println "friends count so far: " (count result-so-far))
-          (println "----------------------------------------")
-          (println "============================================================ end")
+          (when debug?
+            (println "api-response:         " (keys api-response))
+            (println "(first screen-names): " (first screen-names))
+            (println "(count screen-names): " (count screen-names))
+            (println "next-cursor:          " next-cursor)
+            (println "friends count so far: " (count result-so-far))
+            (println "----------------------------------------")
+            (println "============================================================ end"))
 
-          ; new-result ;; TODO: undo me once save-to-db is working
           (if (= next-cursor 0)
-            new-result ;; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result) ;; else, recur by appending the page to the result so far
+            new-result ; return final result if Twitter returns a cursor of 0
+            (recur next-cursor new-result) ; else, recur by appending the page to the result so far
             ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (println (pr-str e))
       :failed)))
 
-;; (def -friends-cache (clojure.java.io/file "memoized-friends.edn")) ; TODO: this is just for development so that we don't hit Twitter's API rate limit
-;; (def -memoized-friends (m/my-memoize --fetch-friends -friends-cache))
 (def memoized-friends (m/my-memoize
                        (fn [screen-name] {:friends (--fetch-friends screen-name)})
                        db/users-table))
@@ -96,7 +99,7 @@
 (def abridged-friends-cache (atom {}))
 (defn --fetch-abridged-friends [screen-name current-user]
   (map #(user-data/abridged % current-user)
-       (:friends (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
+       (:friends (memoized-friends screen-name)))) ; can add (take X) for debugging
 (def memoized-abridged-friends
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
@@ -110,7 +113,7 @@
 
 (defn get-current-user [req]
   (get-in req [:session :current-user]
-          cu/empty-session))
+          session/blank))
 
 ;; step 1
 ;; in prod: this will redirect to https://small-world-friends.herokuapp.com/authorized,
@@ -150,7 +153,7 @@
 
 (defn get-users-friends [req]
   (let [-current-user (get-current-user req)
-        logged-in?    (not= cu/empty-session -current-user)]
+        logged-in?    (not= session/blank -current-user)]
     (generate-string (if logged-in?
                        (memoized-abridged-friends (:screen-name -current-user)
                                                   (get-current-user req))
