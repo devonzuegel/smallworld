@@ -1,6 +1,5 @@
 (ns smallworld.web
   (:gen-class)
-  #_{:clj-kondo/ignore [:deprecated-var]}
   (:require [compojure.core :refer [defroutes GET ANY]]
             [compojure.handler]
             [compojure.route :as route]
@@ -8,17 +7,13 @@
             [ring.adapter.jetty :as jetty]
             [ring.util.response :as response]
             [ring.middleware.session.cookie :as cookie]
-            [ring.middleware.session :as msession] ;; documentation: https://www.baeldung.com/clojure-ring
             [oauth.twitter :as oauth]
             [clojure.pprint :as pp]
             [smallworld.memoize :as m]
             [smallworld.db :as db]
-            [smallworld.coordinates :as coordinates]
             [smallworld.util :as util]
             [smallworld.current-user :as cu]
-            [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
-            [environ.core :refer [env]]
             [smallworld.user-data :as user-data]))
 
 (def debug? false)
