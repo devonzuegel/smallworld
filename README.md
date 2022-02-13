@@ -8,27 +8,24 @@ install dependencies:
 2. install postgres: https://postgresapp.com (database)
 3. install postbird: https://github.com/Paxa/postbird (GUI)
 4. create local postgres db called `smallworld-local`
+### local development
+1. run `bin/start-dev.sh`
+   - sets the environment variables
+   - starts the server
+   - starts the frontend hot-reloading
+   - starts the repl
 
-## local development
-
-### start the repl (frontend hot-reloading + server)
-### start/restart the app
-1. set the environment variables
-   - in your terminal: `source bin/set-env-variables.sh`
-
-2. start a repl
-   - in your terminal: `lein repl`
-
-3. connect your Calva repl in VSCode to the repl running in the terminal
+2. connect your Calva repl in VSCode to the repl running in the terminal
    - command in VSCode: `Calva: Connect to a running REPL server in the project`
 
-4. load your code into the repl
+3. load your code into the repl
    - command in VSCode: `Calva: load current file and dependencies`
 
-5. stop whatever server is running and then start one: 
+4. in the repl, stop whatever server is running and then start one:
    - in Calva: `(restart-server)`
+   - this reloads the backend code as well, which does not hot-reload like the frontend
 
-### update code running on the server
+### update code running in the repl
 you have two options:
 
 1. reload the entire file into the repl
@@ -52,9 +49,11 @@ lein figwheel
 ### open local URL
 
 http://localhost:3001
-## deploy to heroku
+## deploy to Heroku
 
-note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
+you'll generally use this combined command to deploy to Heroku: `bin/make-and-deploy.sh`
+
+here are the steps that script follows, broken down into separate subscripts:
 
 1. build a production version
    ```sh
@@ -76,6 +75,7 @@ note: instead of heroku's usual `git push heroku` deployment patter, we use the 
    bin/heroku-logs.sh
    ```
 
+note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
 ## initial designs
 
 | ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
