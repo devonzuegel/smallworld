@@ -51,7 +51,9 @@
                                       :user-name   (:name friend)
                                       :screen-name (:screen_name friend)
                                       :classname   "name-coords"}))))))
-  (mapbox/update-markers-size))
+  (when-not (nil? @mapbox/the-map)
+    (.on @mapbox/the-map "loaded" #((println "upating markers size")
+                                    (mapbox/update-markers-size)))))
 
 (defn nav []
   [:div.nav
@@ -148,6 +150,7 @@
 ; and not for all the other pages
 (fetch "/friends" (fn [result]
                     (reset! friends result)
+                    ; TODO: only run this on the main page, otherwise you'll get errors
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
                     (js/setTimeout #(add-friends-to-map @friends) 2000)))
 
