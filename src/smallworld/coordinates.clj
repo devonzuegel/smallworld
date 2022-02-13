@@ -1,4 +1,46 @@
-(ns smallworld.coordinates)
+(ns smallworld.coordinates (:require [clojure.data.json :as json]
+                                     [smallworld.util :as util]))
+
+(def debug? false)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; coordinate data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; if you need to make the locations more precise in the future, use the bbox
+;; (bounding box) rather than just the coordinates
+(defn extract-coordinates [raw-result]
+  (let [result      (json/read-str raw-result)
+        status-code (get result "statusCode")
+        coordinates (get-in result ["resourceSets" 0 "resources" 0 "geocodePoints" 0 "coordinates"])
+        coordinates {:lat (first coordinates) :lng (second coordinates)}]
+    (if (= 200 status-code) coordinates
+        (print "houston, we have a problem..."))))
+
+(defn get-from-city [city-str]
+  (if (or (empty? city-str) (nil? city-str))
+    (do (when debug? (println "city-str:" city-str))
+        nil ; return nil coordinates if no city string is given TODO: return :no-result
+        )
+    (try
+      (let [city    (java.net.URLEncoder/encode (or city-str "") "UTF-8") ;; the (if empty?) shouldn't caught the nil string thing... not sure why it didn't
+            api-key (java.net.URLEncoder/encode (util/get-env-var "BING_MAPS_API_KEY") "UTF-8")]
+        (when debug?
+          (println "city:" city)
+          (println "api-key:" api-key)
+          (println ""))
+        (-> (str "https://dev.virtualearth.net/REST/v1/Locations/" city "?key=" api-key)
+            slurp
+            extract-coordinates))
+      (catch Throwable e
+        (println "\nBing Maps API - returning nil, because API call failed: ")
+        (println e)
+        nil))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; calculations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defn haversine [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
   ; Haversine formula
@@ -16,3 +58,17 @@
         a (+ (* (Math/sin (/ dlat 2)) (Math/sin (/ dlat 2)))
              (* (Math/sin (/ dlon 2)) (Math/sin (/ dlon 2)) (Math/cos lat1) (Math/cos lat2)))]
     (* R 2 (Math/asin (Math/sqrt a)))))
+
+(defn coordinates-not-defined? [coords]
+  (or (nil? coords)
+      (some nil? (vals coords))))
+
+(defn distance-btwn [coords1 coords2]
+  (when debug?
+    (println "coords1:" coords1)
+    (println "coords2:" coords2)
+    (println ""))
+  (if (or (coordinates-not-defined? coords1)
+          (coordinates-not-defined? coords2))
+    nil
+    (haversine coords1 coords2)))
