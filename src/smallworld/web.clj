@@ -18,86 +18,10 @@
             [smallworld.current-user :as cu]
             [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
-            [environ.core :refer [env]]))
+            [environ.core :refer [env]]
+            [smallworld.user-data :as user-data]))
 
 (def debug? false)
-
-;; (def -coordinates-cache (atom {})) ; consider creating a second memoization with an even faster atom
-(def -memoized-coordinates (m/my-memoize coordinates/get-from-city
-                                         db/coordinates-table))
-(def coordinates-cache (atom {}))
-(def memoized-coordinates (m/my-memoize
-                           (fn [city-str] (-memoized-coordinates city-str))
-                           coordinates-cache))
-
-(defn normal-img-to-full-size [friend]
-  (let [original-url (:profile-image-url-https friend)]
-    (if (nil? original-url)
-      nil
-      (str/replace original-url "_normal" ""))))
-
-;; TODO: instead of doing this messy split thing, get a list of city/country names & see if they're in this string
-(defn location-from-name [name]
-  (let [name (or name "")
-        name (clojure.string/replace name #"they/them" "")
-        name (clojure.string/replace name #"she/her" "")
-        name (clojure.string/replace name #"he/him" "")
-        split-name (str/split name #" in ")]
-    (if (= 1 (count (or split-name "")))
-      nil
-      (last split-name))))
-
-;; "main" refers to the location set in the Twitter :location field
-;; "name-location" refers to the location described in their Twitter :name (which may be nil)
-(defn get-abridged-user [friend current-user]
-  (let [current-user? (or (= current-user :current-user)
-                          (= (:screen-name current-user) (:screen-name friend)))
-        ; locations as strings
-        friend-main-location  (:location friend)
-        friend-name-location  (location-from-name (:name friend))
-        current-main-location (when (not current-user?) (:main-location current-user))
-        current-name-location (when (not current-user?) (:location current-user))
-        ; locations as coordinates
-        friend-main-coords  (memoized-coordinates (or friend-main-location ""))
-        friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-        current-main-coords (when (not current-user?) (:main-coords current-user))
-        current-name-coords (when (not current-user?) (:name-coords current-user))]
-
-    ;; (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
-    ;;             :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-    ;;             :current-main-coords (when (not current-user?) (:main-coords current-user))
-    ;;             :current-name-coords (when (not current-user?) (:name-coords current-user))})
-
-    ;; (when debug?
-    ;;   (println "---------------------------------------------------")
-    ;;   (println " friend-main-location:" friend-main-location)
-    ;;   (println " friend-name-location:" friend-name-location)
-    ;;   ;; (println "current-main-location:" current-main-location)
-    ;;   ;; ;; (println "current-name-location:" current-name-location)
-    ;;   ;; (println "")
-    ;;   ;; ;; (println "current-user?:         " current-user?)
-    ;;   ;; ;; (println "current-user:          " current-user)
-    ;;   ;; (println "")
-    ;;   ;; ;; (println "current-main-location: " current-main-location)
-    ;;   ;; ;; (println "current-name-location: " current-name-location)
-    ;;   ;; (println "friend :name           " (:name friend))
-    ;;   ;; ;; (println "current-name-coords:   " current-name-coords)
-    ;;   ;; ;; (println "current-main-coords:   " current-main-coords)
-    ;;   (println "friend-main-coords:    " friend-main-coords)
-    ;;   (println "friend-main-coords:    " friend-name-coords))
-
-    {:name                    (:name friend)
-     :screen-name             (:screen-name friend)
-     :profile_image_url_large (normal-img-to-full-size friend)
-     :distance (when (not current-user?)
-                 {:name-main (coordinates/distance-btwn current-name-coords friend-main-coords)
-                  :name-name (coordinates/distance-btwn current-name-coords friend-name-coords)
-                  :main-main (coordinates/distance-btwn current-main-coords friend-main-coords)
-                  :main-name (coordinates/distance-btwn current-main-coords friend-name-coords)})
-     :main-location friend-main-location
-     :name-location friend-name-location
-     :main-coords   friend-main-coords
-     :name-coords   friend-name-coords}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter oauth ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -176,7 +100,7 @@
 
 (def abridged-friends-cache (atom {}))
 (defn --fetch-abridged-friends [screen-name current-user]
-  (map #(get-abridged-user % current-user)
+  (map #(user-data/abridged % current-user)
        (:friends (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
 (def memoized-abridged-friends
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
@@ -209,8 +133,8 @@
   (try (let [oauth-token    (get-in req [:params :oauth_token])
              oauth-verifier (get-in req [:params :oauth_verifier])
              access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
-             current-user   (get-abridged-user (fetch-current-user--with-access-token access-token)
-                                               :current-user)
+             current-user   (user-data/abridged (fetch-current-user--with-access-token access-token)
+                                                :current-user)
              screen-name    (:screen-name current-user)]
          (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))

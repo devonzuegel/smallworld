@@ -1,5 +1,7 @@
 (ns smallworld.coordinates (:require [clojure.data.json :as json]
-                                     [smallworld.util :as util]))
+                                     [smallworld.util :as util]
+                                     [smallworld.memoize :as m]
+                                     [smallworld.db :as db]))
 
 (def debug? false)
 
@@ -41,7 +43,6 @@
 ;; calculations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defn haversine [{lon1 :lng lat1 :lat} {lon2 :lng lat2 :lat}]
   ; Haversine formula
   ; a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
@@ -72,3 +73,12 @@
           (coordinates-not-defined? coords2))
     nil
     (haversine coords1 coords2)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(def table-memoized (m/my-memoize get-from-city  db/coordinates-table))
+(def atom-memoized  (m/my-memoize table-memoized (atom {})))
+(def memoized atom-memoized) ; re-naming just for export
