@@ -49,7 +49,7 @@
 
 ;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
-(defn get-relevant-user-data [friend current-user]
+(defn get-abridged-user [friend current-user]
   (let [current-user? (or (= current-user :current-user)
                           (= (:screen-name current-user) (:screen-name friend)))
         ; locations as strings
@@ -174,12 +174,12 @@
                        (fn [screen-name] {:friends (--fetch-friends screen-name)})
                        db/users-table))
 
-(def friends-cache-relevant-data (atom {}))
-(defn --fetch-friends-relevant-data [screen-name current-user]
-  (map #(get-relevant-user-data % current-user)
+(def abridged-friends-cache (atom {}))
+(defn --fetch-abridged-friends [screen-name current-user]
+  (map #(get-abridged-user % current-user)
        (:friends (memoized-friends screen-name)))) ; TODO: can add (take X) for debugging
-(def memoized-friends-relevant-data
-  (m/my-memoize --fetch-friends-relevant-data friends-cache-relevant-data))
+(def memoized-abridged-friends
+  (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -209,8 +209,8 @@
   (try (let [oauth-token    (get-in req [:params :oauth_token])
              oauth-verifier (get-in req [:params :oauth_verifier])
              access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
-             current-user   (get-relevant-user-data (fetch-current-user--with-access-token access-token)
-                                                    :current-user)
+             current-user   (get-abridged-user (fetch-current-user--with-access-token access-token)
+                                               :current-user)
              screen-name    (:screen-name current-user)]
          (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
@@ -233,8 +233,8 @@
   (let [-current-user (get-current-user req)
         logged-in?    (not= cu/empty-session -current-user)]
     (generate-string (if logged-in?
-                       (memoized-friends-relevant-data (:screen-name -current-user)
-                                                       (get-current-user req))
+                       (memoized-abridged-friends (:screen-name -current-user)
+                                                  (get-current-user req))
                        []))))
 
 ;; app is function that takes a request, and returns a response
