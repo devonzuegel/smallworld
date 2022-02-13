@@ -1,4 +1,4 @@
-(ns smallworld.util)
+(ns smallworld.util (:require [clojure.pprint :as pp]))
 
 ; Mapbox GL docs: https://docs.mapbox.com/mapbox-gl-js/guides/install 
 (defn load-stylesheet [href & [callback]]
