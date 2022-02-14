@@ -23,9 +23,9 @@
                  (pp/pprint result))
                (callback result)))))
 
-(defn add-friends-to-map [-friends]
+(defn add-friends-to-map []
   (doall ; force no lazy load
-   (for [friend -friends]
+   (for [friend @friends]
      (let [main-coords (:main-coords friend)
            name-coords (:name-coords friend)]
 
@@ -118,8 +118,8 @@
        (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
-(defn render-friends-list [-friends friends-list-key verb-gerund location-name]
-  (let [friends-list      (if (= :loading -friends)
+(defn render-friends-list [friends-list-key verb-gerund location-name]
+  (let [friends-list      (if (= :loading @friends)
                             []
                             (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
@@ -127,7 +127,7 @@
         say-pluralized    (if (= list-count 1) "says" "say")]
 
     [:div.friends-list
-     (if (= :loading -friends)
+     (if (= :loading @friends)
        (decorations/simple-loading-animation)
 
        (if (> list-count 0)
@@ -152,7 +152,7 @@
                     (reset! friends result)
                     ; TODO: only run this on the main page, otherwise you'll get errors
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
-                    (js/setTimeout #(add-friends-to-map @friends) 2000)))
+                    (js/setTimeout add-friends-to-map 2000)))
 
 ; fetch current-user once & then again every 30 seconds
 (fetch "/session" session/update!)
@@ -187,7 +187,7 @@
                                     (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
                                                 @mapbox/markers))
                                     (reset! friends result)
-                                    (add-friends-to-map @friends))))}
+                                    (add-friends-to-map))))}
        "refresh friends – takes several seconds to run!!!"]
 
       [:<>
@@ -195,15 +195,15 @@
          [:div.category
           [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-          (render-friends-list @friends :main-main "living"   main-location)
-          (render-friends-list @friends :main-name "visiting" main-location)])
+          (render-friends-list :main-main "living"   main-location)
+          (render-friends-list :main-name "visiting" main-location)])
 
        (when-not (empty? name-location)
          [:div.category
           [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-          (render-friends-list @friends :name-name "living"   name-location)
-          (render-friends-list @friends :name-main "visiting" name-location)])
+          (render-friends-list :name-name "living"   name-location)
+          (render-friends-list :name-main "visiting" name-location)])
 
        (let [main-coords (:main-coords @session/store*)
              name-coords (:name-coords @session/store*)]
