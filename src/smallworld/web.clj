@@ -93,7 +93,11 @@
       :failed)))
 
 (def memoized-friends (m/my-memoize
-                       (fn [screen-name] {:friends (--fetch-friends screen-name)})
+                       (fn [screen-name]
+                         (let [friends-result (--fetch-friends screen-name)]
+                           (if (= :failed friends-result)
+                             :failed
+                             {:friends friends-result})))
                        db/users-table))
 
 (def abridged-friends-cache (atom {}))
