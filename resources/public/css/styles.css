@@ -141,9 +141,6 @@ body {
   left: 50%;
   transform: translateX(-50%) rotate(-45deg);
   transform-origin: center bottom;
-  animation: airplane-spin 2.5s 3 ease-in-out;
-}
-.logo:hover .globe-loader > i {
   animation: airplane-spin 2.5s infinite ease-in-out;
 }
 .globe-loader > i::before {
