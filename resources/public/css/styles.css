@@ -634,7 +634,7 @@ tr:nth-child(even) {
   margin-top: 18px;
   margin-bottom: 18px;
 }
-.about-container a.btn {
+a.btn {
   font-weight: bold;
   background-color: #d9d3cc;
   color: #013917;

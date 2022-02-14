@@ -2,6 +2,8 @@
   (:require [smallworld.coordinates :as coordinates]
             [clojure.string :as str]))
 
+(def debug? false)
+
 (defn normal-img-to-full-size [friend]
   (let [original-url (:profile-image-url-https friend)]
     (if (nil? original-url)
@@ -22,44 +24,37 @@
 ;; "main" refers to the location set in the Twitter :location field
 ;; "name-location" refers to the location described in their Twitter :name (which may be nil)
 (defn abridged [friend current-user]
-  (let [current-user? (or (= current-user :current-user)
-                          (= (:screen-name current-user) (:screen-name friend)))
+  (let [is-current-user? (= (:screen-name current-user) (:screen-name friend))
         ; locations as strings
         friend-main-location  (:location friend)
         friend-name-location  (location-from-name (:name friend))
         ; locations as coordinates
         friend-main-coords  (coordinates/memoized (or friend-main-location ""))
         friend-name-coords  (coordinates/memoized (or friend-name-location ""))
-        current-main-coords (when (not current-user?) (:main-coords current-user))
-        current-name-coords (when (not current-user?) (:name-coords current-user))]
+        current-main-coords (when (not is-current-user?) (:main-coords current-user))
+        current-name-coords (when (not is-current-user?) (:name-coords current-user))]
 
-    ;; (pp/pprint {:friend-main-coords  (memoized-coordinates (or friend-main-location ""))
-    ;;             :friend-name-coords  (memoized-coordinates (or friend-name-location ""))
-    ;;             :current-main-coords (when (not current-user?) (:main-coords current-user))
-    ;;             :current-name-coords (when (not current-user?) (:name-coords current-user))})
-
-    ;; (when debug?
-    ;;   (println "---------------------------------------------------")
-    ;;   (println " friend-main-location:" friend-main-location)
-    ;;   (println " friend-name-location:" friend-name-location)
-    ;;   ;; (println "current-main-location:" (when (not current-user?) (:main-location current-user)))
-    ;;   ;; ;; (println "current-name-location:" (when (not current-user?) (:location current-user)))
-    ;;   ;; (println "")
-    ;;   ;; ;; (println "current-user?:         " current-user?)
-    ;;   ;; ;; (println "current-user:          " current-user)
-    ;;   ;; (println "")
-    ;;   ;; ;; (println "current-main-location: " current-main-location)
-    ;;   ;; ;; (println "current-name-location: " current-name-location)
-    ;;   ;; (println "friend :name           " (:name friend))
-    ;;   ;; ;; (println "current-name-coords:   " current-name-coords)
-    ;;   ;; ;; (println "current-main-coords:   " current-main-coords)
-    ;;   (println "friend-main-coords:    " friend-main-coords)
-    ;;   (println "friend-main-coords:    " friend-name-coords))
+    (when debug?
+      (println "---------------------------------------------------")
+      (println " friend-main-location:" friend-main-location)
+      (println " friend-name-location:" friend-name-location)
+      (println "current-main-location:" (when (not is-current-user?) (:main-location current-user)))
+      (println "current-name-location:" (when (not is-current-user?) (:location current-user)))
+      (println)
+      (println "is-current-user?:         " is-current-user?)
+      (println "current-user:          " current-user)
+      (println "friend :name           " (:name friend))
+      (println)
+      (println "current-name-coords:   " current-name-coords)
+      (println "current-main-coords:   " current-main-coords)
+      (println "friend-main-coords:    " friend-main-coords)
+      (println "friend-main-coords:    " friend-name-coords)
+      (println "-----------------------------------------------"))
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
      :profile_image_url_large (normal-img-to-full-size friend)
-     :distance (when (not current-user?)
+     :distance (when (not is-current-user?)
                  {:name-main (coordinates/distance-btwn current-name-coords friend-main-coords)
                   :name-name (coordinates/distance-btwn current-name-coords friend-name-coords)
                   :main-main (coordinates/distance-btwn current-main-coords friend-main-coords)

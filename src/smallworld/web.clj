@@ -89,6 +89,7 @@
             ))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
+      (when (= 429 (get-in e [:data :status])) (println "you hit the Twitter rate limit!"))
       (println (pr-str e))
       :failed)))
 
@@ -136,7 +137,7 @@
              oauth-verifier (get-in req [:params :oauth_verifier])
              access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
              current-user   (user-data/abridged (fetch-current-user--with-access-token access-token)
-                                                :current-user)
+                                                (get-current-user req))
              screen-name    (:screen-name current-user)]
          (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
@@ -173,7 +174,21 @@
 
   ;; app data endpoints
   (GET "/friends" req (get-users-friends req))
-
+  (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
+                                    friends-result   (--fetch-friends screen-name)
+                                    friends-abridged (map #(user-data/abridged % (get-current-user req))
+                                                          friends-result)]
+                                (if (= :failed friends-result)
+                                  (let [failure-message (str "could not refresh friends for @" screen-name)]
+                                    (println failure-message)
+                                    (generate-string (response/bad-request {:message failure-message})))
+                                  (do
+                                    (println (str "refreshing friends for @" screen-name
+                                                  " (count: " (count friends-abridged) ")"))
+                                    (db/update! :users screen-name {:data {:friends friends-result}})
+                                    (swap! abridged-friends-cache
+                                           assoc screen-name friends-abridged)
+                                    (generate-string friends-abridged)))))
   ;; general resources
   (GET "/"                      [] (io/resource "public/index.html"))
   (GET "/about"                 [] (io/resource "public/index.html")) ; TODO: make more elegant

@@ -33,12 +33,12 @@
   [(+ (random-offset) (first lng-lat))
    (+ (random-offset) (second lng-lat))])
 
-(defn add-friend-marker [{lng-lat     :lng-lat
-                          location    :location
-                          img-url     :img-url
-                          user-name   :user-name
-                          screen-name :screen-name
-                          classname   :classname}]
+(defn add-user-marker [{lng-lat     :lng-lat
+                        location    :location
+                        img-url     :img-url
+                        user-name   :user-name
+                        screen-name :screen-name
+                        classname   :classname}]
   (try (do
          (assert-long-lat lng-lat)
          (let [element  (.createElement js/document "div")
@@ -51,14 +51,24 @@
            (.addTo marker @the-map)
            (swap! markers conj marker)
 
-           (.setProperty (.-style element) "background-image" (str "url(" img-url ")"))
+          ;;  (.setProperty (.-id element) screen-name)
+           (set! (.-id element) screen-name)
            (set! (.-className element) (str "marker " classname))
+           (.setProperty (.-style element) "background-image" (str "url(" img-url ")"))
 
            ; add name element to marker
            (.appendChild name-div (.createTextNode js/document user-name))
            (.appendChild element name-div)
            (set! (.-className name-div) "user-name")))
        (catch js/Error e (js/console.error e))))
+
+; only remove marker if it's not the current user
+(defn remove-friend-marker [current-user-screen-name]
+  (fn [marker]
+    (let [friend-screen-name (.-id (.getElement marker))]
+      (when (not= current-user-screen-name
+                  friend-screen-name)
+        (.remove marker)))))
 
 (def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                                          :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
@@ -102,12 +112,12 @@
   (js/setInterval #(.resize @the-map) (* 10 1000)) ; make sure the map is properly sized
   (.on @the-map "zoom" update-markers-size) ; calibrate markers' size according to the zoom
   (.on @the-map "load" ; add the current user to the map
-       #(when (:lng-lat current-user) (add-friend-marker {:lng-lat     (:lng-lat current-user)
-                                                          :location    (:location current-user)
-                                                          :img-url     (:user-img current-user)
-                                                          :user-name   (:user-name current-user)
-                                                          :screen-name (:screen-name current-user)
-                                                          :classname   "current-user"}))))
+       #(when (:lng-lat current-user) (add-user-marker {:lng-lat     (:lng-lat current-user)
+                                                        :location    (:location current-user)
+                                                        :img-url     (:user-img current-user)
+                                                        :user-name   (:user-name current-user)
+                                                        :screen-name (:screen-name current-user)
+                                                        :classname   "current-user"}))))
 
 
 ; this cannot be an anonymous function.  it needs to be a named function, because otherwise

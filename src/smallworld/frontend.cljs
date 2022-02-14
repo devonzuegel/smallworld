@@ -34,23 +34,23 @@
              lat (:lat main-coords)
              has-coord (and main-coords lng lat)]
          (when has-coord
-           (mapbox/add-friend-marker {:lng-lat     [lng lat]
-                                      :location    (:location friend)
-                                      :img-url     (:profile_image_url_large friend)
-                                      :user-name   (:name friend)
-                                      :screen-name (:screen_name friend)
-                                      :classname   "main-coords"})))
+           (mapbox/add-user-marker {:lng-lat     [lng lat]
+                                    :location    (:location friend)
+                                    :img-url     (:profile_image_url_large friend)
+                                    :user-name   (:name friend)
+                                    :screen-name (:screen-name friend)
+                                    :classname   "main-coords"})))
 
        (let [lng (:lng name-coords)
              lat (:lat name-coords)
              has-coord (and name-coords lng lat)]
          (when has-coord
-           (mapbox/add-friend-marker {:lng-lat     [lng lat]
-                                      :location    (:location friend)
-                                      :img-url     (:profile_image_url_large friend)
-                                      :user-name   (:name friend)
-                                      :screen-name (:screen_name friend)
-                                      :classname   "name-coords"}))))))
+           (mapbox/add-user-marker {:lng-lat     [lng lat]
+                                    :location    (:location friend)
+                                    :img-url     (:profile_image_url_large friend)
+                                    :user-name   (:name friend)
+                                    :screen-name (:screen-name friend)
+                                    :classname   "name-coords"}))))))
   (when-not (nil? @mapbox/the-map)
     (.on @mapbox/the-map "loaded" #((println "upating markers size")
                                     (mapbox/update-markers-size)))))
@@ -118,8 +118,8 @@
        (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
-(defn render-friends-list [friends-list-key verb-gerund location-name]
-  (let [friends-list      (if (= :loading @friends)
+(defn render-friends-list [-friends friends-list-key verb-gerund location-name]
+  (let [friends-list      (if (= :loading -friends)
                             []
                             (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
@@ -127,7 +127,7 @@
         say-pluralized    (if (= list-count 1) "says" "say")]
 
     [:div.friends-list
-     (if (= :loading @friends)
+     (if (= :loading -friends)
        (decorations/simple-loading-animation)
 
        (if (> list-count 0)
@@ -180,20 +180,30 @@
      [:div.container.nav-spacer
       [:div.current-user (render-user nil @session/store*)]
 
+      [:a.btn {:href "#"
+               :on-click (fn []
+                           (fetch "/friends/refresh"
+                                  (fn [result]
+                                    (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                                                @mapbox/markers))
+                                    (reset! friends result)
+                                    (add-friends-to-map @friends))))}
+       "refresh friends – takes several seconds to run!!!"]
+
       [:<>
        (when-not (empty? main-location)
          [:div.category
           [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-          (render-friends-list :main-main "living"   main-location)
-          (render-friends-list :main-name "visiting" main-location)])
+          (render-friends-list @friends :main-main "living"   main-location)
+          (render-friends-list @friends :main-name "visiting" main-location)])
 
        (when-not (empty? name-location)
          [:div.category
           [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-          (render-friends-list :name-name "living"   name-location)
-          (render-friends-list :name-main "visiting" name-location)])
+          (render-friends-list @friends :name-name "living"   name-location)
+          (render-friends-list @friends :name-main "visiting" name-location)])
 
        (let [main-coords (:main-coords @session/store*)
              name-coords (:name-coords @session/store*)]
@@ -213,7 +223,7 @@
           [:br]
           (if (= @friends :loading)
             [:pre "@friends is still :loading"]
-            [:pre "@friends (" (count @friends) "):\n\n" #_(preify @friends)])])]])])
+            [:pre "@friends (" (count @friends) "):\n\n" (util/preify @friends)])])]])])
 
 (defn about-screen []
   [:<>

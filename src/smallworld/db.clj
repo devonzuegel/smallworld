@@ -92,6 +92,7 @@
 (comment
   (recreate-table :users)
   (select-by-request-key users-table "devonzuegel")
+  (select-by-request-key users-table "devon_dos")
   (select-by-request-key users-table "meadowmaus")
   (show-all :users)
 

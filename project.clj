@@ -9,7 +9,7 @@
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [org.clojure/clojurescript "1.10.520"]
                  [reagent "0.9.0-rc1"]
-                 [compojure "1.6.1"]
+                 [compojure "1.6.2"]
                  [twttr "3.2.3"]
                  [cheshire "5.10.1"]
                  [oauth-clj "0.1.16"]
