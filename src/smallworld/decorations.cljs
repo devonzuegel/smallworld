@@ -22,21 +22,22 @@
 
 (defonce plane-animation-iterations (r/atom 0))
 
+; this needs to get re-called in each function to get its fresh values
+(defn get-animation-elem [] (goog.dom/getElement "logo-animation"))
+
 (defn start-animation []
   (when debug? (println "start-animation"))
-  (let [elem (goog.dom/getElement "logo-animation")]
-    (gc/remove elem "no-animation")
-    (reset! plane-animation-iterations 0)))
+  (gc/remove (get-animation-elem) "no-animation")
+  (reset! plane-animation-iterations 0))
 
 (defn stop-animation []
   (when debug? (println "stop-animation:" @plane-animation-iterations))
   (swap! plane-animation-iterations inc)
   (when (>= @plane-animation-iterations 3)
-    (let [elem (goog.dom/getElement "logo-animation")]
-      (gc/add elem "no-animation"))))
+    (gc/add (get-animation-elem) "no-animation")))
 
 (defn animated-globe []
-  (js/setTimeout #(let [elem (goog.dom/getElement "logo-animation")]
+  (js/setTimeout #(let [elem (get-animation-elem)]
                     (.addEventListener elem "mouseover" start-animation)
                     (.addEventListener elem "webkitAnimationIteration" stop-animation) ;; for Chrome
                     (.addEventListener elem "animationiteration" stop-animation) ;; for Firefox
