@@ -8,29 +8,29 @@
 
 (defprotocol ICache
   ; TODO: consider additing a #validate method, which I'd use for the db version
-  (fetch! [this request-key value]) ; manages a newly fetched value
-  (read!  [this request-key])) ; retrieves a value that was previously fetched
+  (save! [this request-key value]) ; manages a newly fetched value
+  (read! [this request-key])) ; retrieves a value that was previously fetched
 
 (extend-protocol ICache
   clojure.lang.Atom
-  (fetch! [this request-key value] (swap! this #(assoc % request-key value)))
-  (read!  [this request-key]       (get @this request-key ::not-found))
+  (save! [this request-key value] (swap! this #(assoc % request-key value)))
+  (read! [this request-key]       (get @this request-key ::not-found))
 
   java.io.File
-  (fetch! [this request-key value]
-    (when (.createNewFile this) ;; creates new file & returns true iff it doesn't exist
-      (spit this "{}"))
+  (save! [this request-key value]
+    ; creates new file & returns true iff it doesn't exist
+    (when (.createNewFile this) (spit this "{}"))
     (spit this (assoc (read-string (slurp this)) request-key value)))
   (read! [this request-key]
-    (when (.createNewFile this) ;; creates new file & returns true iff it doesn't exist
-      (spit this "{}"))
+    ; creates new file & returns true iff it doesn't exist
+    (when (.createNewFile this) (spit this "{}"))
     (get (read-string (slurp this)) request-key ::not-found))
 
   clojure.lang.Keyword
-  (fetch! [table-name request-key result]
+  (save! [table-name request-key result]
     (when debug?
       (println)
-      (println "---------- fetch! was called ---------------")
+      (println "---------- save! was called ---------------")
       (println)
       (println "        table-name: " table-name)
       (println "       request-key: " request-key)
@@ -78,7 +78,7 @@
            (do (when debug?
                  (println "\n🟢 fetch for first time: " request-key #_" → " #_result)
                  (println))
-               (fetch! cache request-key result)
+               (save! cache request-key result)
                result)))
 
        ;; else if we've seen the request before, then just return the cached value
