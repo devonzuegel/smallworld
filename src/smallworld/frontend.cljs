@@ -177,58 +177,59 @@
    (nav)
    (let [main-location (:main-location @session/store*)
          name-location (:name-location @session/store*)]
-     [:div.container.nav-spacer
-      [:div.current-user (render-user nil @session/store*)]
+     [:<>
+      [:div.container
+       [:div.current-user (render-user nil @session/store*)]
 
-      [:a.btn {:href "#"
-               :on-click (fn []
-                           (fetch "/friends/refresh"
-                                  (fn [result]
-                                    (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                                                @mapbox/markers))
-                                    (reset! friends result)
-                                    (add-friends-to-map))))}
-       "refresh friends – takes several seconds to run!!!"]
+       [:a.btn {:href "#"
+                :on-click (fn []
+                            (fetch "/friends/refresh"
+                                   (fn [result]
+                                     (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                                                 @mapbox/markers))
+                                     (reset! friends result)
+                                     (add-friends-to-map))))}
+        "refresh friends – takes several seconds to run!!!"]
 
-      [:<>
-       (when-not (empty? main-location)
-         [:div.category
-          [:span.current-user-location main-location]
+       [:<>
+        (when-not (empty? main-location)
+          [:div.category
+           [:span.current-user-location main-location]
             ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
-          (render-friends-list :main-main "living"   main-location)
-          (render-friends-list :main-name "visiting" main-location)])
+           (render-friends-list :main-main "living"   main-location)
+           (render-friends-list :main-name "visiting" main-location)])
 
-       (when-not (empty? name-location)
-         [:div.category
-          [:span.current-user-location name-location]
+        (when-not (empty? name-location)
+          [:div.category
+           [:span.current-user-location name-location]
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
-          (render-friends-list :name-name "living"   name-location)
-          (render-friends-list :name-main "visiting" name-location)])
+           (render-friends-list :name-name "living"   name-location)
+           (render-friends-list :name-main "visiting" name-location)])
 
-       (let [main-coords (:main-coords @session/store*)
-             name-coords (:name-coords @session/store*)]
-         (mapbox/mapbox
-          {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
-                        (when main-coords [(:lng main-coords) (:lat main-coords)]))
-           :location (or name-location
-                         main-location)
-           :user-img (:profile_image_url_large @session/store*)
-           :user-name (:name @session/store*)
-           :screen-name (:screen-name @session/store*)}))
+        (when debug?
+          [:<>
+           [:br]
+           [:pre "@current-user:\n\n"  (util/preify @session/store*)]
+           [:br]
+           (if (= @friends :loading)
+             [:pre "@friends is still :loading"]
+             [:pre "@friends (" (count @friends) "):\n\n" (util/preify @friends)])])]]
 
-       (when debug?
-         [:<>
-          [:br]
-          [:pre "@current-user:\n\n"  (util/preify @session/store*)]
-          [:br]
-          (if (= @friends :loading)
-            [:pre "@friends is still :loading"]
-            [:pre "@friends (" (count @friends) "):\n\n" (util/preify @friends)])])]])])
+      (let [main-coords (:main-coords @session/store*)
+            name-coords (:name-coords @session/store*)]
+        (mapbox/mapbox
+         {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
+                       (when main-coords [(:lng main-coords) (:lat main-coords)]))
+          :location (or name-location
+                        main-location)
+          :user-img (:profile_image_url_large @session/store*)
+          :user-name (:name @session/store*)
+          :screen-name (:screen-name @session/store*)}))])])
 
 (defn about-screen []
   [:<>
    (nav)
-   [:div.about-container.nav-spacer
+   [:div.about-container
     [:div.splash
      [:h2 "welcome to small world,"]
      [:h4 "a tiny tool to stay in touch with friends"]

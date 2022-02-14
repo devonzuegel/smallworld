@@ -26,9 +26,6 @@ body {
 /*****************************************/
 /**** nav ********************************/
 /*****************************************/
-.nav-spacer {
-  margin-top: 48px !important; /* account for the nav */
-}
 .nav {
   margin-bottom: 12px;
   display: flex;
@@ -184,8 +181,7 @@ body {
 .container {
   margin: auto;
   padding: 16px;
-  padding-bottom: 52px;
-  height: calc(100vh - 216px - 14px);
+  padding-bottom: 180px;
 }
 pre {
   white-space: pre-wrap;
