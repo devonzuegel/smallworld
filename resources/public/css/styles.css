@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inria+Serif:ital,wght@0,400;0,700;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Inria+Serif:ital,wght@0,400;0,700;1,300&display=swap');
 
 * {
   margin: 0;
@@ -13,7 +13,8 @@ html {
   background-image: url(../az-subtle.png);
   color: #d9d3cc;
   font-size: 14px;
-  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
 }
 body {
   margin: 0;
@@ -218,7 +219,7 @@ a:hover a {
 .location-info .location {
   background-color: #002a0e;
   font-style: normal;
-  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
   padding: 2px 6px 4px 6px;
   border-radius: 4px;
 }
@@ -406,18 +407,25 @@ tr:nth-child(even) {
   font-weight: bolder !important;
   color: #013917;
   border-radius: 100px;
-  padding: 1px 24px 8px;
+  padding: 6px 24px 8px;
   margin-bottom: 8px;
   background-color: #d9d3cc;
   transition: background-color 100ms ease-out;
-  font-size: 1.5em;
+  font-size: 1em;
 }
 .welcome a#login-btn:hover {
   background-color: #e7e2de;
   transition: background-color 100ms ease-out;
 }
+.welcome a#login-btn .twitter-icon {
+  fill: #013917;
+  height: 24px;
+  width: 24px;
+  margin-right: 12px;
+  margin-bottom: -3px;
+}
 .welcome h1 {
-  font-size: 3em;
+  font-size: 3.75em;
   font-weight: 700;
   text-align: center;
 }
@@ -428,10 +436,10 @@ tr:nth-child(even) {
   line-height: 2em;
 }
 .welcome #logo-animation {
-  -ms-transform: scale(5); /* IE 9 */
-  -webkit-transform: scale(5); /* Safari */
-  transform: scale(6);
-  margin: 140px 0 130px 0;
+  -ms-transform: scale(4.5); /* IE 9 */
+  -webkit-transform: scale(4.5); /* Safari */
+  transform: scale(4.5);
+  margin: 150px 0;
   opacity: 0.25;
 }
 
@@ -479,7 +487,7 @@ tr:nth-child(even) {
   cursor: pointer;
   transform: translateY(50%);
   transition: background 100ms ease-out;
-  width: 6em;
+  width: 6.5em;
   text-align: center;
 }
 #mapbox-container .expand-me:hover {
@@ -601,7 +609,7 @@ tr:nth-child(even) {
   padding: 32px;
   margin: auto;
   height: calc(100vh - 118px);
-  font-family: 'Inria Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
 }
 .about-container .serif {
   font-family: 'Inria Serif', serif;

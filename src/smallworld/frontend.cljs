@@ -169,8 +169,7 @@
    [:h1 "welcome to" [:br] "small world"]
    [:div#logo-animation.logo (decorations/animated-globe)]
    [:h2
-    [:a#login-btn {:href "login"} "sign in"]
-    [:br] "to connect with friends"]])
+    [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]])
 
 (defn logged-in-screen []
   [:<>
