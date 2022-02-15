@@ -455,6 +455,7 @@ tr:nth-child(even) {
   opacity: 0.25;
 }
 .steps {
+  margin-top: 32px;
   padding: 14px;
   border: 3px solid #ffffff22;
   border-radius: 8px;
@@ -471,7 +472,7 @@ tr:nth-child(even) {
 }
 .welcome .info {
   font-size: 1.25em;
-  margin: 24px 24px 60px 24px;
+  margin: 32px 10px;
   max-width: 400px;
   line-height: 1.3;
 }

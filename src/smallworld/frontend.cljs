@@ -171,13 +171,13 @@
     [:div#logo-animation.logo (decorations/animated-globe)]
     [:h2
      [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]]
-   [:div.info
-    [:p "Small World uses the location from your" [:br]
-     [:a {:href "https://twitter.com/settings/profile"} "Twitter profile"] " to find nearby friends"]]
    [:div.steps
     [:p [:b "step 1:"] " sign up with Twitter"]
     [:p [:b "step 2:"] " update what city you're in"]
-    [:p [:b "step 3:"] " see a map of who's nearby"]]])
+    [:p [:b "step 3:"] " see a map of who's nearby"]]
+   [:div.info
+    [:p "Small World uses the location from your" [:br]
+     [:a {:href "https://twitter.com/settings/profile"} "Twitter profile"] " to find nearby friends"]]])
 
 (defn logged-in-screen []
   [:<>
