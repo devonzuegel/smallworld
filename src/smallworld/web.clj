@@ -191,7 +191,6 @@
                                     (generate-string friends-abridged)))))
   ;; general resources
   (GET "/"                      [] (io/resource "public/index.html"))
-  (GET "/about"                 [] (io/resource "public/index.html")) ; TODO: make more elegant
   (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))

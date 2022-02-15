@@ -99,19 +99,6 @@ body {
     display: none;
   }
 }
-.links-spacer {
-  color: #d9d3cc55;
-}
-@media (min-width: 768px) /* desktop */ {
-  .links-spacer {
-    margin: 0 12px;
-  }
-}
-@media (max-width: 768px) /* mobile */ {
-  .links-spacer {
-    margin: 0 6px;
-  }
-}
 
 /******************************************************************************/
 /**** animated logo ************************************************************/

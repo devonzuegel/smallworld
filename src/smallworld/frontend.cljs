@@ -62,8 +62,6 @@
 
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
-   [:a {:href "/about"} "about"]
-   [:span.links-spacer "·"]
    [:a {:href "/logout"}
     "log out" [:b.screen-name " @" (:screen-name @session/store*)]]])
 
@@ -177,7 +175,21 @@
     [:p [:b "step 3:"] " see a map of who's nearby"]]
    [:div.info
     [:p "Small World uses the location from your" [:br]
-     [:a {:href "https://twitter.com/settings/profile"} "Twitter profile"] " to find nearby friends"]]])
+     [:a {:href "https://twitter.com/settings/profile"} "Twitter profile"] " to find nearby friends"]]
+   #_[:div.faq
+      [:div.question
+       [:p [:b "Q: how does small world work?"]]
+       [:p "small world checks to see if the people you follow on Twitter have updated their location.  it looks at two places:"]
+       [:ul
+        [:li "their display name, which small world interprets as they're traveling to that location"]
+        [:li "their location, which small world interprets as they're living in that location"]]]
+
+      [:hr]
+
+      [:div.question
+       [:p [:b "Q: why isn't my friend showing up"]]
+       [:p "they may not have their location set on Twitter (either in their name or in the location field), or small world may not be able to parse the location yet."]
+       [:p "if they have their location set but it's just not showing up in the app, please " [:a {:href "https://github.com/devonzuegel/smallworld"} "open a GitHub issue"] " and share more so I can improve the city parser."]]]])
 
 (defn logged-in-screen []
   [:<>
@@ -233,41 +245,11 @@
           :user-name (:name @session/store*)
           :screen-name (:screen-name @session/store*)}))])])
 
-(defn about-screen []
-  [:<>
-   (nav)
-   [:div.about-container
-    [:div.splash
-     [:h2 "welcome to small world,"]
-     [:h4 "a tiny tool to stay in touch with friends"]
-     [:p.serif
-      "small world is a Marauder's Map" [:br]
-      "for the people you know on Twitter."]
-     [:br]
-     [:a.btn {:href "/"} "connect with friends"]]
-
-    [:hr]
-
-    [:p [:b "Q: how does small world work?"]]
-    [:p "small world checks to see if the people you follow on Twitter have updated their location.  it looks at two places:"]
-    [:ul
-     [:li "their display name, which small world interprets as they're traveling to that location"]
-     [:li "their location, which small world interprets as they're living in that location"]]
-
-    [:hr]
-
-    [:p [:b "Q: why isn't my friend showing up in the list or on the map?"]]
-    [:p "they may not have their location set on Twitter (either in their name or in the location field), or small world may not be able to parse the location yet."]
-    [:p "if they have their location set but it's just not showing up in the app, please " [:a {:href "https://github.com/devonzuegel/smallworld"} "open a GitHub issue"] " and share more so I can improve the city parser."]
-
-    [:hr]]])
-
 (defn not-found-404-screen []
   [:h1 "404 – not found :("])
 
 (defn app-container []
   (condp = (.-pathname (.-location js/window))
-    "/about" (about-screen)
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
