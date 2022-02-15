@@ -165,11 +165,19 @@
   [:div.center-vh (decorations/simple-loading-animation)])
 
 (defn logged-out-screen []
-  [:div.welcome.center-vh
-   [:h1 "welcome to" [:br] "small world"]
-   [:div#logo-animation.logo (decorations/animated-globe)]
-   [:h2
-    [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]])
+  [:div.welcome
+   [:div.hero
+    [:h1 "welcome to" [:br] "Small World"]
+    [:div#logo-animation.logo (decorations/animated-globe)]
+    [:h2
+     [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]]
+   [:div.info
+    [:p "Small World uses the location from your" [:br]
+     [:a {:href "https://twitter.com/settings/profile"} "Twitter profile"] " to find nearby friends"]]
+   [:div.steps
+    [:p [:b "step 1:"] " sign up with Twitter"]
+    [:p [:b "step 2:"] " update what city you're in"]
+    [:p [:b "step 3:"] " see a map of who's nearby"]]])
 
 (defn logged-in-screen []
   [:<>
