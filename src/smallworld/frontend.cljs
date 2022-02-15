@@ -266,37 +266,31 @@
 
 (defonce locations (r/atom :loading))
 
-(defn input-width [input-id input-value]
-  (let [fake-elem   (.createElement js/document "div")]
-    (set! (.. fake-elem -style -height) "0")
-    (set! (.. fake-elem -style -position) "absolute")
-    (set! (.. fake-elem -style -top) "0")
-    (set! (.. fake-elem -style -left) "-9999px")
-    (set! (.. fake-elem -style -overflow) "hidden")
-    (set! (.. fake-elem -style -visibility) "hidden")
-    (set! (.. fake-elem -style -whiteSpace) "nowrap")
-    ; set class of fake-elm
-    (set! (.. fake-elem -className) "input-width") ; match classname of the input this is mirroring
-    ;; (set! (.. fake-elem -style -fontFamily) (.-fontFamily -styles))
-    ;; (set! (.. fake-elem -style -fontSize) (.-fontSize -styles))
-    ;; (set! (.. fake-elem -style -fontStyle) (.-fontStyle -styles))
-    ;; (set! (.. fake-elem -style -fontWeight) (.-fontWeight -styles))
-    ;; (set! (.. fake-elem -style -letterSpacing) (.-letterSpacing -styles))
-    ;; (set! (.. fake-elem -style -textTransform) (.-textTransform -styles))
-    ;; (set! (.. fake-elem -style -borderLeftWidth) (.-borderLeftWidth -styles))
-    ;; (set! (.. fake-elem -style -borderRightWidth) (.-borderRightWidth -styles))
-    ;; (set! (.. fake-elem -style -paddingLeft) (.-paddingLeft -styles))
-    ;; (set! (.. fake-elem -style -paddingRight) (.-paddingRight -styles))
-    (.appendChild (.-body js/document) fake-elem)
-    (set! (.-innerHTML fake-elem) (.replace input-value #"\s" "&nbsp;"))
-    (.-width (.getComputedStyle js/window fake-elem))))
+(defn location-field [{id          :id
+                       label       :label
+                       placeholder :placeholder
+                       value       :value
+                       update!     :update!}]
+  [:div.location-field {:id id}
+   [:label label] [:br]
+   [:input.location-input
+    {:type "text"
+     :id (str id "-input")
+     :value value
+     :auto-complete "off"
+     :on-change #(let [input-elem (.-target %)
+                       new-value  (.-value input-elem)]
+                   (update! new-value))
+     :placeholder placeholder}]
+   (decorations/edit-icon)])
 
 (defn welcome-flow-screen []
   [:div.welcome-flow
 
-   [:div [:p "you signed in as:"]
+   [:div.you-signed-in-as
+    [:p "you signed in as:"]
     (render-user nil @session/store*)
-    [:pre (util/preify @session/store*)]]
+    (when debug? [:pre (util/preify @session/store*)])]
 
    [:hr]
 
@@ -308,28 +302,51 @@
                           :name name-location}))
 
      [:div.location-fields
-      [:div.main-location
-       [:label "your main location:"]
-       [:input.location-input
-        {:type "text"
-         :id "main-location-input"
-         :style {:width (max (input-width "main-location-input" "what city do you live in?")
-                             (input-width "main-location-input" (or (:main @locations) "")))}
-         :value (or (:main @locations) "")
-         :on-change #(let [input-elem (.-target %)
-                           new-value  (.-value input-elem)
-                           text-width (input-width "main-location-input" new-value)]
-                       (set! (.. input-elem -style -width)
-                             (js/parseInt text-width)
-                             #_(if (< 159 (js/parseInt text-width)) text-width "159px"))
-                       (swap! locations assoc :main new-value))
-         :placeholder "what city do you live in?"}]]
+      (location-field {:id "main-location"
+                       :label (if (str/blank? main-location)
+                                [:span ; TODO: improve the UX of this state
+                                 "you haven't set a location on Twitter.  you can add one in your "
+                                 [:a {:href "https://twitter.com/settings/profile"} "Twitter settings"]
+                                 " and then refresh, or you can add a location just to Small World:"]
+                                "based on your profile location, you’re in...")
+                       :placeholder "what city do you live in?"
+                       :value (or (:main @locations) "")
+                       :update! #(swap! locations assoc :main %)})
       [:br]
-      [:pre "@locations: " (util/preify @locations)]])
+      (location-field {:id "name-location"
+                       :label (if (str/blank? name-location)
+                                (str ; TODO: improve the UX of this state
+                                 "based on your display name, it looks like "
+                                 "you’re not traveling right now.  add a destination "
+                                 "to see who’s close by:")
+                                "based on your profile location, you’re in...")
+                       :placeholder "any plans to travel?"
+                       :value (or (:name @locations) "")
+                       :update! #(swap! locations assoc :name %)})
+
+      (when debug? [:pre "@locations: " (util/preify @locations)])])
+   [:hr]
+   [:div.email-options
+    [:pre
+     "🚧  TODO: add these fields  🚧" [:br] [:br] [:br]
+     "would you like email notifications when your friends are nearby?" [:br] [:br]
+     "- yes, send me daily digests" [:br]
+     "- yes, send me weekly digests" [:br]
+     "- no, please don’t email me" [:br] [:br] [:br]
+     "what email should we send them to?" [:br] [:br]
+     "  [_________________]"]]
    [:hr]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#" :on-click #(reset! welcome-flow-complete? true)}
-    "time for an adventure "]])
+    "time for an adventure "]
+   [:hr]
+   [:div.heads-up
+    [:pre "🚧  heads up  🚧" [:br] [:br]
+     "I'm currently working on this sign in flow, so you might see some squirrely stuff.  "
+     "in particular, if you updated your location data on this page, it won't saved.  " [:br] [:br]
+     "any other data entry you do on future screens will be saved as you'd expect "
+     "because those features are complete." [:br] [:br] "thanks for being an early user!"]]
+   [:br] [:br]])
 
 (defn not-found-404-screen []
   [:h1 "404 – not found :("])

@@ -493,7 +493,11 @@ tr:nth-child(even) {
 /******************************************************************************/
 
 .welcome-flow {
-  margin: 24px;
+  margin: 36px 24px;
+  text-align: center;
+}
+.welcome-flow .friend {
+  text-align: left;
 }
 .welcome-flow p {
   margin: 12px 0;
@@ -501,6 +505,7 @@ tr:nth-child(even) {
 .welcome-flow a.btn {
   font-family: 'Inria Serif', serif;
   font-weight: 700;
+  font-size: 1.4em;
   font-style: italic;
   -webkit-text-stroke-width: 0.4px;
   -webkit-text-stroke-color: #013917;
@@ -508,11 +513,32 @@ tr:nth-child(even) {
 .welcome-flow hr {
   margin: 32px -24px;
 }
-.welcome-flow .location-input {
-  padding: 4px 5px;
+.welcome-flow .heads-up,
+.welcome-flow .you-signed-in-as,
+.welcome-flow .email-options,
+.welcome-flow .location-field {
+  max-width: 400px;
+  margin: auto;
+}
+.welcome-flow .location-field .edit-icon {
+  fill: white;
+  height: 18px;
+  margin-bottom: -2px;
+  margin-left: -36px;
+  opacity: 0.5;
+}
+.welcome-flow input.location-input {
+  padding: 4px 32px 4px 5px;
   background: #ffffff11;
   border-radius: 4px;
-  margin: 0 4px;
+  margin: 8px;
+  font-size: 1.6em;
+  font-weight: bold;
+  text-align: center;
+}
+.welcome-flow input.location-input::placeholder {
+  color: #d9d3cc55;
+  font-size: 0.9em;
 }
 
 /******************************************************************************/
@@ -711,8 +737,8 @@ a.btn {
   font-weight: bold;
   background-color: #d9d3cc;
   color: #013917;
-  padding: 3px 6px 4px 6px;
-  border-radius: 4px;
+  padding: 3px 16px 4px 16px;
+  border-radius: 12px;
 }
 .about-container p a {
   border-bottom: #e7e2de33 2px solid;
