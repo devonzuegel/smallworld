@@ -10,6 +10,9 @@
             [goog.dom]))
 
 (defonce friends (r/atom :loading))
+(defonce welcome-flow-complete? (r/atom false))
+; TODO: store this on the session so it doesn't get reset on refresh
+; TODO: maybe this should only be show when they first sign up, not every time they log in
 
 (def debug? false)
 
@@ -24,36 +27,37 @@
                (callback result)))))
 
 (defn add-friends-to-map []
-  (doall ; force no lazy load
-   (for [friend @friends]
-     (let [main-coords (:main-coords friend)
-           name-coords (:name-coords friend)]
+  (when @mapbox/the-map ; don't add friends to map if there is no map
+    (doall ; force no lazy load
+     (for [friend @friends]
+       (let [main-coords (:main-coords friend)
+             name-coords (:name-coords friend)]
 
        ; TODO: make the styles for main vs name coords different
-       (let [lng (:lng main-coords)
-             lat (:lat main-coords)
-             has-coord (and main-coords lng lat)]
-         (when has-coord
-           (mapbox/add-user-marker {:lng-lat     [lng lat]
-                                    :location    (:location friend)
-                                    :img-url     (:profile_image_url_large friend)
-                                    :user-name   (:name friend)
-                                    :screen-name (:screen-name friend)
-                                    :classname   "main-coords"})))
+         (let [lng (:lng main-coords)
+               lat (:lat main-coords)
+               has-coord (and main-coords lng lat)]
+           (when has-coord
+             (mapbox/add-user-marker {:lng-lat     [lng lat]
+                                      :location    (:location friend)
+                                      :img-url     (:profile_image_url_large friend)
+                                      :user-name   (:name friend)
+                                      :screen-name (:screen-name friend)
+                                      :classname   "main-coords"})))
 
-       (let [lng (:lng name-coords)
-             lat (:lat name-coords)
-             has-coord (and name-coords lng lat)]
-         (when has-coord
-           (mapbox/add-user-marker {:lng-lat     [lng lat]
-                                    :location    (:location friend)
-                                    :img-url     (:profile_image_url_large friend)
-                                    :user-name   (:name friend)
-                                    :screen-name (:screen-name friend)
-                                    :classname   "name-coords"}))))))
-  (when-not (nil? @mapbox/the-map)
-    (.on @mapbox/the-map "loaded" #((println "upating markers size")
-                                    (mapbox/update-markers-size)))))
+         (let [lng (:lng name-coords)
+               lat (:lat name-coords)
+               has-coord (and name-coords lng lat)]
+           (when has-coord
+             (mapbox/add-user-marker {:lng-lat     [lng lat]
+                                      :location    (:location friend)
+                                      :img-url     (:profile_image_url_large friend)
+                                      :user-name   (:name friend)
+                                      :screen-name (:screen-name friend)
+                                      :classname   "name-coords"}))))))
+    (when-not (nil? @mapbox/the-map)
+      (.on @mapbox/the-map "loaded" #((println "upating markers size")
+                                      (mapbox/update-markers-size))))))
 
 (defn nav []
   [:div.nav
@@ -260,6 +264,73 @@
           :user-name (:name @session/store*)
           :screen-name (:screen-name @session/store*)}))])])
 
+(defonce locations (r/atom :loading))
+
+(defn input-width [input-id input-value]
+  (let [fake-elem   (.createElement js/document "div")]
+    (set! (.. fake-elem -style -height) "0")
+    (set! (.. fake-elem -style -position) "absolute")
+    (set! (.. fake-elem -style -top) "0")
+    (set! (.. fake-elem -style -left) "-9999px")
+    (set! (.. fake-elem -style -overflow) "hidden")
+    (set! (.. fake-elem -style -visibility) "hidden")
+    (set! (.. fake-elem -style -whiteSpace) "nowrap")
+    ; set class of fake-elm
+    (set! (.. fake-elem -className) "input-width") ; match classname of the input this is mirroring
+    ;; (set! (.. fake-elem -style -fontFamily) (.-fontFamily -styles))
+    ;; (set! (.. fake-elem -style -fontSize) (.-fontSize -styles))
+    ;; (set! (.. fake-elem -style -fontStyle) (.-fontStyle -styles))
+    ;; (set! (.. fake-elem -style -fontWeight) (.-fontWeight -styles))
+    ;; (set! (.. fake-elem -style -letterSpacing) (.-letterSpacing -styles))
+    ;; (set! (.. fake-elem -style -textTransform) (.-textTransform -styles))
+    ;; (set! (.. fake-elem -style -borderLeftWidth) (.-borderLeftWidth -styles))
+    ;; (set! (.. fake-elem -style -borderRightWidth) (.-borderRightWidth -styles))
+    ;; (set! (.. fake-elem -style -paddingLeft) (.-paddingLeft -styles))
+    ;; (set! (.. fake-elem -style -paddingRight) (.-paddingRight -styles))
+    (.appendChild (.-body js/document) fake-elem)
+    (set! (.-innerHTML fake-elem) (.replace input-value #"\s" "&nbsp;"))
+    (.-width (.getComputedStyle js/window fake-elem))))
+
+(defn welcome-flow-screen []
+  [:div.welcome-flow
+
+   [:div [:p "you signed in as:"]
+    (render-user nil @session/store*)
+    [:pre (util/preify @session/store*)]]
+
+   [:hr]
+
+   (let [main-location (or (:main-location @session/store*) "")
+         name-location (or (:name-location @session/store*) "")]
+
+     (when (= :loading @locations) ; TODO: clean this up, it's kinda hacky
+       (reset! locations {:main main-location
+                          :name name-location}))
+
+     [:div.location-fields
+      [:div.main-location
+       [:label "your main location:"]
+       [:input.location-input
+        {:type "text"
+         :id "main-location-input"
+         :style {:width (max (input-width "main-location-input" "what city do you live in?")
+                             (input-width "main-location-input" (or (:main @locations) "")))}
+         :value (or (:main @locations) "")
+         :on-change #(let [input-elem (.-target %)
+                           new-value  (.-value input-elem)
+                           text-width (input-width "main-location-input" new-value)]
+                       (set! (.. input-elem -style -width)
+                             (js/parseInt text-width)
+                             #_(if (< 159 (js/parseInt text-width)) text-width "159px"))
+                       (swap! locations assoc :main new-value))
+         :placeholder "what city do you live in?"}]]
+      [:br]
+      [:pre "@locations: " (util/preify @locations)]])
+   [:hr]
+   ; TODO: add a nice animation for this transition
+   [:a.btn {:href "#" :on-click #(reset! welcome-flow-complete? true)}
+    "time for an adventure "]])
+
 (defn not-found-404-screen []
   [:h1 "404 – not found :("])
 
@@ -268,7 +339,9 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (logged-in-screen))
+          (if @welcome-flow-complete?
+            (logged-in-screen)
+            (welcome-flow-screen)))
     (not-found-404-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
