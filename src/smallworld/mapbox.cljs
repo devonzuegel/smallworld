@@ -105,9 +105,9 @@
                    :style  (get-in mapbox-config [mapbox-style :style])
                    :center (clj->js (or (:lng-lat current-user) middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
-                   :zoom 9
+                   :zoom (if (:lng-lat current-user) 9 0) ; zoom in only if user has a location
                    :maxZoom 9
-                   :minZoom 1.5}))
+                   :minZoom 0}))
 
   (js/setInterval #(.resize @the-map) (* 10 1000)) ; make sure the map is properly sized
   (.on @the-map "zoom" update-markers-size) ; calibrate markers' size according to the zoom

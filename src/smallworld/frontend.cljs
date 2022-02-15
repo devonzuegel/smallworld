@@ -211,6 +211,21 @@
           "refresh friends – takes several seconds to run!!!"]
 
        [:<>
+        (when (and (empty? main-location)
+                   (empty? name-location))
+          [:div.no-locations-info
+           ; TODO: improve the design of this state
+           [:p "you haven't shared a location on Twitter, so we can't show you friends who are close by"]
+           [:br]
+           [:p "we pull from two places to find your location:"]
+           [:ol
+            [:li "your Twitter profile location"]
+            [:li "your Twitter display name"]]
+           [:br]
+           [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
+           [:br]
+           [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
+
         (when-not (empty? main-location)
           [:div.category
            [:span.current-user-location main-location]
