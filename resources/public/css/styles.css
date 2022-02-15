@@ -393,6 +393,12 @@ tr:nth-child(even) {
   align-items: center;
   justify-content: center;
 }
+/* iOS devices only, to account for vertical space taken by iOS Safari search bar at bottom of screen */
+@supports (-webkit-touch-callout: none) {
+  .welcome {
+    height: calc(100vh - 82px); /* account for Safari's serach bar */
+  }
+}
 .welcome .hero {
   width: 98vw;
   margin: 6vh auto 6vh;
@@ -458,7 +464,7 @@ tr:nth-child(even) {
 }
 .welcome .info {
   font-size: 1em;
-  margin: 32px 10px;
+  margin: 32px 10px 64px;
   max-width: 400px;
   line-height: 1.3;
   text-align: center;
