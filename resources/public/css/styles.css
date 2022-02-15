@@ -161,6 +161,14 @@ body {
     transform: rotate(360deg);
   }
 }
+.friends-list .loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  opacity: 0.6;
+  vertical-align: middle;
+}
 
 /******************************************************************************/
 /**** content *****************************************************************/

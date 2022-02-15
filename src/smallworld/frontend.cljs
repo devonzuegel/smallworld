@@ -130,7 +130,9 @@
 
     [:div.friends-list
      (if (= :loading @friends)
-       (decorations/simple-loading-animation)
+       [:div.loading
+        (decorations/simple-loading-animation)
+        "the first time takes a while to load"]
 
        (if (> list-count 0)
          [:<>
@@ -243,6 +245,11 @@
             ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
            (render-friends-list :name-name "living"   name-location)
            (render-friends-list :name-main "visiting" name-location)])
+
+        (when (= :loading @friends)
+          [:pre {:style {:margin "24px auto" :max-width "360px"}}
+           "🚧  I realize this is taking ages to load, apologies!  I'm working on "
+           "pagination, so it should be faster soon.  thanks for being Small World's first user!"])
 
         (when debug?
           [:<>
