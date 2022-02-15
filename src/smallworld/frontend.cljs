@@ -200,15 +200,15 @@
       [:div.container
        [:div.current-user (render-user nil @session/store*)]
 
-       [:a.btn {:href "#"
-                :on-click (fn []
-                            (fetch "/friends/refresh"
-                                   (fn [result]
-                                     (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                                                 @mapbox/markers))
-                                     (reset! friends result)
-                                     (add-friends-to-map))))}
-        "refresh friends – takes several seconds to run!!!"]
+       #_[:a.btn {:href "#"
+                  :on-click (fn []
+                              (fetch "/friends/refresh"
+                                     (fn [result]
+                                       (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                                                   @mapbox/markers))
+                                       (reset! friends result)
+                                       (add-friends-to-map))))}
+          "refresh friends – takes several seconds to run!!!"]
 
        [:<>
         (when-not (empty? main-location)
