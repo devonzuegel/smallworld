@@ -170,7 +170,7 @@
     [:h2
      [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]]
    [:div.steps
-    [:p [:b "step 1:"] " sign up with Twitter"]
+    [:p [:b "step 1:"] " log in with Twitter"]
     [:p [:b "step 2:"] " update what city you're in"]
     [:p [:b "step 3:"] " see a map of who's nearby"]]
    [:div.info
