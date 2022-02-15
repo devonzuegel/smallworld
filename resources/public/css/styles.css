@@ -492,7 +492,7 @@ tr:nth-child(even) {
 /* iOS devices only, to account for vertical space taken by iOS Safari search bar at bottom of screen */
 @supports (-webkit-touch-callout: none) {
   #mapbox-container.expanded {
-    height: 92vh; /* note that this includes the height of the button, not just the map */
+    height: 90vh; /* note that this includes the height of the button, not just the map */
   }
 }
 
