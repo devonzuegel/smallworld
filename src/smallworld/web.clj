@@ -139,7 +139,7 @@
              current-user   (user-data/abridged (fetch-current-user--with-access-token access-token)
                                                 (get-current-user req))
              screen-name    (:screen-name current-user)]
-         (db/insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
+         (db/memoized-insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
          (set-session (response/redirect "/") {:current-user current-user
                                                :access-token access-token}))

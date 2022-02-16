@@ -38,7 +38,7 @@
   (str/replace str "'" "''"))
 
 (defn where [column-name value]
-  (str " where " column-name " = '" (escape-str value) "'"))
+  (str " where " (name column-name) " = '" (escape-str value) "'"))
 
 (defn table-exists? [table-name]
   (->> table-name
@@ -72,12 +72,12 @@
     (println "\ncount: " (count results)))
   (println))
 
-(defn select-by-request-key [table-name request_key]
+(defn select-by-col [table-name col-name request_key]
   (when debug?
-    (println "(select-by-request-key" request_key table-name ")"))
+    (println "(select-by-col" table-name col-name request_key ")"))
   (walk/keywordize-keys
    (sql/query url (str "select * from " (name table-name)
-                       (where "request_key" request_key)))))
+                       (where col-name request_key)))))
 
 (defn insert! [table-name data]
   (when debug?
@@ -85,43 +85,66 @@
     (pp/pprint data))
   (sql/insert! url table-name data))
 
-(defn update! [table-name col-name request_key new-json]
+; TODO: this was meant to simplify the code, but it's best to just replace it
+; everywhere with sql/update! probably
+(defn update! [table-name col-name col-value new-json]
   (sql/update! url table-name new-json [(str (name col-name) " = ?")
-                                        request_key]))
+                                        col-value]))
 
 ; TODO: turn this into a single query to speed it up
-(defn insert-or-update! [table-name request_key data]
-  (let [sql-results (select-by-request-key table-name request_key)
+(defn memoized-insert-or-update! [table-name request_key data]
+  (let [sql-results (select-by-col table-name :request_key request_key)
         exists? (not= 0 (count sql-results))]
     (when debug?
       (println "result:" sql-results)
       (println "exists? " exists?)
-      (pp/pprint (select-by-request-key table-name request_key)))
+      (pp/pprint (select-by-col table-name :request_key request_key)))
     (if-not exists?
       (insert! table-name {:request_key request_key :data data})
       (update! table-name :request_key request_key {:data data}))))
+
+(defn insert-or-update! [table-name col-name data]
+  (let [col-name    (keyword col-name)
+        col-value   (get data col-name)
+        sql-results (select-by-col table-name col-name col-value)
+        exists?     (not= 0 (count sql-results))]
+    (when debug?
+      (println "result:" sql-results)
+      (println "exists? " exists?)
+      (pp/pprint (select-by-col table-name col-name col-value)))
+    (if-not exists?
+      (insert! table-name data)
+      (update! table-name col-name col-value data))))
 
 (comment
   (recreate-table settings-table settings-schema)
   (insert! settings-table {:screen_name "aaa" :main_location_corrected "bbb"})
   (update! settings-table :screen_name "aaa" {:welcome_flow_complete true})
+  (update! settings-table :screen_name "aaa" {:screen_name "foo"})
+  (update! settings-table :screen_name "foo" {:screen_name "aaa"})
+  (insert-or-update! settings-table
+                     :screen_name
+                     {:screen_name "aaa" :main_location_corrected "bbb"})
+  (insert-or-update! settings-table
+                     :screen_name
+                     {:screen_name "aaa" :welcome_flow_complete true})
   (show-all settings-table)
 
   (recreate-table :users memoized-data-schema)
-  (select-by-request-key users-table "devonzuegel")
-  (select-by-request-key users-table "devon_dos")
-  (select-by-request-key users-table "meadowmaus")
+  (select-by-col users-table :request_key "devonzuegel")
+  (select-by-col users-table :request_key "devon_dos")
+  (select-by-col users-table :request_key "meadowmaus")
   (show-all :users)
 
   (sql/delete! url users-table         ["request_key = ?" "devonzuegel"])
   (sql/delete! url access_tokens-table ["request_key = ?" "devonzuegel"])
   (show-all access_tokens-table)
 
-  (select-by-request-key access_tokens-table "devonzuegel")
-  (select-by-request-key access_tokens-table "meadowmaus")
+  (select-by-col access_tokens-table :request_key "devonzuegel")
+  (select-by-col access_tokens-table :request_key "meadowmaus")
 
   (recreate-table :coordinates memoized-data-schema)
   (show-all :coordinates)
-  (pp/pprint (select-by-request-key :coordinates "Miami Beach"))
+  (pp/pprint (select-by-col :coordinates :request_key "Miami Beach"))
   (update! :coordinates :request_key "Miami Beach" {:data {:lat 25.792236328125 :lng -80.13484954833984}})
-  (select-by-request-key :coordinates "spain"))
+  (select-by-col :coordinates :request_key "spain"))
