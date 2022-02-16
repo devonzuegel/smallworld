@@ -24,7 +24,12 @@
                (when debug?
                  (println route ":")
                  (pp/pprint result))
-               (callback result)))))
+               (callback result)))
+      (.catch (fn [error]
+                (println (str "error fetching " route ":"))
+                (js/console.log error)
+                (println (str "retrying..."))
+                (fetch route callback)))))
 
 (defn add-friends-to-map []
   (when @mapbox/the-map ; don't add friends to map if there is no map
