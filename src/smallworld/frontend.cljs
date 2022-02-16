@@ -18,8 +18,8 @@
 
 (defn fetch [route callback & {:keys [retry?] :or {retry? false}}]
   (-> (.fetch js/window route)
-      (.then #(.json %))
-      (.then #(js->clj % :keywordize-keys true))
+      (.then #(.json %)) ; parse
+      (.then #(js->clj % :keywordize-keys true)) ; parse
       (.then (fn [result] ; run the callback
                (when debug?
                  (println route ":")
