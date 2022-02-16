@@ -33,9 +33,8 @@
              :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
 
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
-  (when debug?
-    (println "============================================================== start")
-    (println "\n\n\nfetching friends for " screen-name "\n\n\n"))
+  (println "================================================================================================= start")
+  (println "fetching friends for " screen-name)
 
   (try
     (let [; the sql-result should never be an empty list; if it is, that means the
@@ -48,20 +47,8 @@
                                            (util/get-env-var "TWITTER_CONSUMER_SECRET")
                                            (:oauth-token access-token)
                                            (:oauth-token-secret access-token))]
-      (when debug?
-        (println "access-token: ---------------------------------------------")
-        (println access-token)
-        (println "client: ---------------------------------------------------")
-        (println client))
-
       (loop [cursor -1 ;; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
              result-so-far []]
-
-        (when debug?
-          (println "cursor: -------------------------------------------------")
-          (println cursor)
-          (println "result-so-far: ------------------------------------------")
-          (println result-so-far))
 
         (let [api-response  (client {:method :get
                                      :url "https://api.twitter.com/1.1/friends/list.json"
@@ -74,19 +61,16 @@
               screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
-          (when debug?
-            (println "api-response:         " (keys api-response))
-            (println "(first screen-names): " (first screen-names))
-            (println "(count screen-names): " (count screen-names))
-            (println "next-cursor:          " next-cursor)
-            (println "friends count so far: " (count result-so-far))
-            (println "----------------------------------------")
-            (println "============================================================ end"))
+          (println "api-response keys:    " (keys api-response))
+          (println "(first screen-names): " (first screen-names))
+          (println "(count screen-names): " (count screen-names))
+          (println "next-cursor:          " next-cursor)
+          (println "new-result count:     " (count new-result))
+          (println "-----------------------------------------------------------------------------------------")
 
           (if (= next-cursor 0)
             new-result ; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result) ; else, recur by appending the page to the result so far
-            ))))
+            (recur next-cursor new-result)))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (when (= 429 (get-in e [:data :status])) (println "you hit the Twitter rate limit!"))
@@ -196,7 +180,7 @@
                                   (do
                                     (println (str "refreshing friends for @" screen-name
                                                   " (count: " (count friends-abridged) ")"))
-                                    (db/update! :users screen-name {:data {:friends friends-result}})
+                                    (db/update! :users :request_key screen-name {:data {:friends friends-result}})
                                     (swap! abridged-friends-cache
                                            assoc screen-name friends-abridged)
                                     (generate-string friends-abridged)))))
