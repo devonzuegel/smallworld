@@ -2,7 +2,8 @@
                             [clojure.pprint :as pp]
                             [smallworld.clj-postgresql.types] ; this enables the :json type
                             [smallworld.util :as util]
-                            [clojure.walk :as walk]))
+                            [clojure.walk :as walk]
+                            [clojure.string :as str]))
 
 (def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))
@@ -21,9 +22,8 @@
 (def coordinates-table   :coordinates)
 (def access_tokens-table :access_tokens)
 
-(defn escape-str [str]
-  (clojure.string/replace str "'" "''"))
-
+(defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
+  (str/replace str "'" "''"))
 
 (defn where [column-name value]
   (str " where " column-name " = '" (escape-str value) "'"))
