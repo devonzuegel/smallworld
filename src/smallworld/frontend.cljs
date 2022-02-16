@@ -20,12 +20,12 @@
   (-> (.fetch js/window route)
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
-      (.then (fn [result]
+      (.then (fn [result] ; run the callback
                (when debug?
                  (println route ":")
                  (pp/pprint result))
                (callback result)))
-      (.catch (fn [error]
+      (.catch (fn [error] ; retry
                 (println (str "error fetching " route ":"))
                 (js/console.log error)
                 (println (str "retrying..."))
@@ -241,8 +241,8 @@
 
         (when (= :loading @friends)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
-           "🚧  I realize this is taking ages to load, apologies!  I'm working on "
-           "pagination, so it should be faster soon.  thanks for being Small World's first user!"])
+           "🚧  I realize this takes ages to load, apologies!  I'm working on "
+           "making it faster.  thanks for being Small World's first user!"])
 
         [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
          [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
@@ -302,12 +302,20 @@
 (defn welcome-flow-screen []
   [:div.welcome-flow
 
+   [:<>
+    [:p.serif {:style {:font-size "1.3em"}}
+     "welcome to"]
+    [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
+     "Small World"]]
+
+   [:hr]
+
    [:div.you-signed-in-as
-    [:p "you signed in as:"]
+
     (render-user nil @session/store*)
     (when debug? [:pre (util/preify @session/store*)])]
 
-   [:hr]
+   [:br] [:br] [:br]
 
    (let [main-location (or (:main-location @session/store*) "")
          name-location (or (:name-location @session/store*) "")]
@@ -319,22 +327,25 @@
      [:div.location-fields
       (location-field {:id "main-location"
                        :label (if (str/blank? main-location)
-                                [:span ; TODO: improve the UX of this state
+                                [:<> ; TODO: improve the UX of this state
                                  "you haven't set a location on Twitter.  you can add one in your "
                                  [:a {:href "https://twitter.com/settings/profile"} "Twitter settings"]
                                  " and then refresh, or you can add a location just to Small World:"]
-                                "based on your profile location, you’re in...")
+                                [:<>
+                                 "based on your " [:b "profile location"] ", you’re in..."])
                        :placeholder "what city do you live in?"
                        :value (or (:main @locations) "")
                        :update! #(swap! locations assoc :main %)})
-      [:br]
+      [:br] [:br]
       (location-field {:id "name-location"
                        :label (if (str/blank? name-location)
-                                (str ; TODO: improve the UX of this state
-                                 "based on your display name, it looks like "
-                                 "you’re not traveling right now.  add a destination "
-                                 "to see who’s close by:")
-                                "based on your profile location, you’re in...")
+                                [:<> ; TODO: improve the UX of this state
+                                 "based on your " [:b "display name"]
+                                 ", it looks like " [:br]
+                                 "you’re not traveling right now.  " [:br] [:br]
+                                 "add a destination to see who’s close by:"]
+
+                                [:<> "based on your " [:b "display name"] ", you’re in..."])
                        :placeholder "any plans to travel?"
                        :value (or (:name @locations) "")
                        :update! #(swap! locations assoc :name %)})
