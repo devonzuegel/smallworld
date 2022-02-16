@@ -210,9 +210,10 @@
   (some-> @server* (.stop))
 
   ; create the tables if they don't already exists
-  (db/create-table db/users-table)
-  (db/create-table db/coordinates-table)
-  (db/create-table db/access_tokens-table)
+  (db/create-table db/settings-table      db/settings-schema)
+  (db/create-table db/users-table         db/memoized-data-schema)
+  (db/create-table db/coordinates-table   db/memoized-data-schema)
+  (db/create-table db/access_tokens-table db/memoized-data-schema)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
