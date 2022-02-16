@@ -165,6 +165,12 @@
                     (js/setTimeout add-friends-to-map 2000))
        :retry? true)
 
+(fetch "/settings" (fn [result]
+                     (when debug?
+                       (pp/pprint "settings: ")
+                       (pp/pprint result))
+                     (reset! welcome-flow-complete? (:welcome_flow_complete result))))
+
 ; fetch current-user once & then again every 30 seconds
 (fetch "/session" session/update!)
 (js/setInterval #(fetch "/session" session/update!) (* 30 1000))

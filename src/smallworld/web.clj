@@ -140,6 +140,7 @@
                                                 (get-current-user req))
              screen-name    (:screen-name current-user)]
          (db/memoized-insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
+         (db/insert-or-update! db/settings-table :screen_name {:screen_name screen-name})
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
          (set-session (response/redirect "/") {:current-user current-user
                                                :access-token access-token}))
@@ -155,6 +156,13 @@
                      (str "@" screen-name " has logged out"))]
     (println logout-msg)
     (set-session (response/redirect "/") {})))
+
+(defn get-settings [req]
+  (let [-current-user (get-current-user req)
+        screen-name   (:screen-name -current-user)
+        settings      (first (db/select-by-col db/settings-table :screen_name screen-name))]
+    ; TODO: set in the session for faster access
+    (generate-string settings)))
 
 (defn get-users-friends [req]
   (let [-current-user (get-current-user req)
@@ -175,6 +183,7 @@
   (GET "/logout"     req (logout req))
 
   ;; app data endpoints
+  (GET "/settings" req (get-settings req))
   (GET "/friends" req (get-users-friends req))
   (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
                                     friends-result   (--fetch-friends screen-name)

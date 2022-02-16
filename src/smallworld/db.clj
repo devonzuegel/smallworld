@@ -124,10 +124,11 @@
   (update! settings-table :screen_name "foo" {:screen_name "aaa"})
   (insert-or-update! settings-table
                      :screen_name
-                     {:screen_name "aaa" :main_location_corrected "bbb"})
+                     {:screen_name "devonzuegel" :main_location_corrected "bbb"})
   (insert-or-update! settings-table
                      :screen_name
-                     {:screen_name "aaa" :welcome_flow_complete true})
+                     {:screen_name "devonzuegel" :welcome_flow_complete false})
+  (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
 
   (recreate-table :users memoized-data-schema)
