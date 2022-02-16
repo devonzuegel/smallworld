@@ -158,11 +158,13 @@
 
 (defn get-users-friends [req]
   (let [-current-user (get-current-user req)
-        logged-in?    (not= session/blank -current-user)]
-    (generate-string (if logged-in?
-                       (memoized-abridged-friends (:screen-name -current-user)
-                                                  (get-current-user req))
-                       []))))
+        logged-in?    (not= session/blank -current-user)
+        screen-name   (:screen-name -current-user)
+        result        (if logged-in?
+                        (memoized-abridged-friends screen-name -current-user)
+                        [])]
+    (println (str "count (get-users-friends @" screen-name "): " (count result)))
+    (generate-string result)))
 
 ;; app is function that takes a request, and returns a response
 (defroutes devons-app ; order matters in this function!
