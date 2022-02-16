@@ -16,7 +16,7 @@
 
 (def debug? false)
 
-(defn fetch [route callback]
+(defn fetch [route callback & {:keys [retry?] :or {retry? false}}]
   (-> (.fetch js/window route)
       (.then #(.json %))
       (.then #(js->clj % :keywordize-keys true))
@@ -27,9 +27,10 @@
                (callback result)))
       (.catch (fn [error] ; retry
                 (println (str "error fetching " route ":"))
-                (js/console.log error)
-                (println (str "retrying..."))
-                (fetch route callback)))))
+                (js/console.error error)
+                (when retry?
+                  (println (str "retrying..."))
+                  (fetch route callback))))))
 
 (defn add-friends-to-map []
   (when @mapbox/the-map ; don't add friends to map if there is no map
@@ -161,7 +162,8 @@
                     (reset! friends result)
                     ; TODO: only run this on the main page, otherwise you'll get errors
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
-                    (js/setTimeout add-friends-to-map 2000)))
+                    (js/setTimeout add-friends-to-map 2000))
+       :retry? true)
 
 ; fetch current-user once & then again every 30 seconds
 (fetch "/session" session/update!)
