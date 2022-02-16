@@ -78,6 +78,8 @@ here are the steps that script follows, broken down into separate subscripts:
 note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
 ## initial designs
 
+### [🎨 Figma workspace](https://www.figma.com/file/7fJoEke9aKGNg5uGE8BMCm/Small-World-mocks?node-id=0%3A1)
+
 | ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
 | -                                 | -                                                | -                                         |
 |                                   |                                                  |                                           |
