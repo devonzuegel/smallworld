@@ -206,16 +206,6 @@
       [:div.container
        [:div.current-user (render-user nil @session/store*)]
 
-       #_[:a.btn {:href "#"
-                  :on-click (fn []
-                              (fetch "/friends/refresh"
-                                     (fn [result]
-                                       (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                                                   @mapbox/markers))
-                                       (reset! friends result)
-                                       (add-friends-to-map))))}
-          "refresh friends – takes several seconds to run!!!"]
-
        [:<>
         (when (and (empty? main-location)
                    (empty? name-location))
@@ -235,14 +225,12 @@
         (when-not (empty? main-location)
           [:div.category
            [:span.current-user-location main-location]
-            ;; [:div.location-info.current [:p "you are based in: " [:span.location main-location]]]
            (render-friends-list :main-main "living"   main-location)
            (render-friends-list :main-name "visiting" main-location)])
 
         (when-not (empty? name-location)
           [:div.category
            [:span.current-user-location name-location]
-            ;; [:div.location-info.current [:p "your current location: " [:span.location name-location]]]
            (render-friends-list :name-name "living"   name-location)
            (render-friends-list :name-main "visiting" name-location)])
 
@@ -250,6 +238,21 @@
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
            "🚧  I realize this is taking ages to load, apologies!  I'm working on "
            "pagination, so it should be faster soon.  thanks for being Small World's first user!"])
+
+        [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
+         [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
+          "does your friends data look out of date?"]
+         [:a.btn {:href "#"
+                  :on-click (fn []
+                              (fetch "/friends/refresh"
+                                     (fn [result]
+                                       (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                                                   @mapbox/markers))
+                                       (reset! friends result)
+                                       (add-friends-to-map))))}
+          "refresh friends"]
+         [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
+          "note: this takes several seconds to run"]]
 
         (when debug?
           [:<>
