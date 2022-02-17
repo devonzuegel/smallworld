@@ -8,10 +8,10 @@
   vertical-align: baseline;
   background: transparent;
   color: #d9d3cc;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
-  font-size: 14px;
 }
 html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-size: 14px;
   background-color: #013917;
   background-image: url(../az-subtle.png);
 }
