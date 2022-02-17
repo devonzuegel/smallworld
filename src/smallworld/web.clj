@@ -30,7 +30,7 @@
                                    (:oauth-token-secret access-token))]
     (client {:method :get
              :url (str "https://api.twitter.com/1.1/account/verify_credentials.json")
-             :body "user.fields=created_at,description,entities,id,location,name,profile_image_url,protected,public_metrics,url,username"})))
+             :body "include_email=true"}))) ; TODO: save all this to the db
 
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (println "================================================================================================= start")
@@ -120,9 +120,12 @@
   (try (let [oauth-token    (get-in req [:params :oauth_token])
              oauth-verifier (get-in req [:params :oauth_verifier])
              access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
-             current-user   (user-data/abridged (fetch-current-user--with-access-token access-token)
-                                                (get-current-user req))
+             api-response   (fetch-current-user--with-access-token access-token)
+             current-user   (user-data/abridged api-response (get-current-user req))
              screen-name    (:screen-name current-user)]
+         (when debug?
+           (pp/pprint "twitter verify_credentials.json:")
+           (pp/pprint api-response))
          (db/memoized-insert-or-update! db/access_tokens-table screen-name {:access_token access-token}) ; TODO: consider memoizing for speed
          (db/insert-or-update! db/settings-table :screen_name {:screen_name screen-name})
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
