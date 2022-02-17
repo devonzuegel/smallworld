@@ -361,14 +361,21 @@
       (when debug? [:pre "@locations: " (util/preify @locations)])])
    [:hr]
    [:div.email-options
-    [:pre
-     "🚧  TODO: add these fields  🚧" [:br] [:br] [:br]
-     "would you like email notifications when your friends are nearby?" [:br] [:br]
-     "- yes, send me daily digests" [:br]
-     "- yes, send me weekly digests" [:br]
-     "- no, please don’t email me" [:br] [:br] [:br]
-     "what email should we send them to?" [:br] [:br]
-     "  [_________________]"]]
+    [:p "would you like email notifications" [:br] "when your friends are nearby?"]
+    [:div.radio-btns
+     [:div.radio-btn
+      [:input {:type "radio" :id "daily"  :value "daily"  :name "email_notification"}]
+      [:label {:for "daily"} "yes, send me daily digests"]]
+     [:div.radio-btn
+      [:input {:type "radio" :id "weekly" :value "adult"  :name "email_notification" :checked true}]
+      [:label {:for "weekly"} "yes, send me weekly digests"]]
+     [:div.radio-btn
+      [:input {:type "radio" :id "muted"  :value "muted"  :name "email_notification"}]
+      [:label {:for "muted"} "no, do not email me"]]]
+    #_[:pre
+       "🚧  TODO: add this field  🚧" [:br] [:br] [:br]
+       "what email should we send them to?" [:br] [:br]
+       "  [_________________]"]]
    [:hr]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#" :on-click #((reset! welcome-flow-complete? true)

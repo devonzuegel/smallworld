@@ -4,5 +4,6 @@
   "workbench.colorTheme": "Winter is Coming (Dark Blue)",
   "workbench.preferredLightColorTheme": "Horizon Bright",
   "window.autoDetectColorScheme": true,
-  "workbench.preferredDarkColorTheme": "Winter is Coming (Dark Blue)"
+  "workbench.preferredDarkColorTheme": "Winter is Coming (Dark Blue)",
+  "audioCues.enabled": "off"
 }

@@ -551,6 +551,61 @@ tr:nth-child(even) {
   color: #d9d3cc55;
   font-size: 0.9em;
 }
+.welcome-flow .email-options .radio-btns {
+  text-align: left;
+  max-width: 400px;
+  width: fit-content;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.welcome-flow .email-options .radio-btns .radio-btn {
+  display: flex;
+}
+.welcome-flow .email-options .radio-btns .radio-btn label {
+  font-size: 0.8em;
+  margin-left: 6px;
+  margin-top: -1px;
+  opacity: 0.8;
+}
+input[type='radio'] {
+  -webkit-appearance: none; /* Add if not using autoprefixer */
+  appearance: none; /* Remove most all native input styles */
+  background-color: #013917; /* For iOS < 15 */
+  margin: 0; /* Not removed via appearance */
+
+  font: inherit;
+  color: currentColor;
+  width: 1em;
+  height: 1em;
+  border: 0.15em solid currentColor;
+  border-radius: 50%;
+  transform: translateY(-0.075em);
+
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+}
+
+input[type='radio']::before {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em white;
+  background-color: CanvasText; /* Windows High Contrast Mode */
+}
+input[type='radio']:checked::before {
+  transform: scale(1);
+}
+
+input[type='radio']:focus {
+  outline: 0.1em solidwhite;
+  outline-offset: max(2px, 0.15em);
+}
 
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
