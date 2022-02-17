@@ -83,7 +83,7 @@
                            (if (= :failed friends-result)
                              :failed
                              {:friends friends-result})))
-                       db/users-table))
+                       db/friends-table))
 
 (def abridged-friends-cache (atom {}))
 (defn --fetch-abridged-friends [screen-name current-user]
@@ -190,7 +190,7 @@
                                   (do
                                     (println (str "refreshing friends for @" screen-name
                                                   " (count: " (count friends-abridged) ")"))
-                                    (db/update! :users :request_key screen-name {:data {:friends friends-result}})
+                                    (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
                                     (swap! abridged-friends-cache
                                            assoc screen-name friends-abridged)
                                     (generate-string friends-abridged)))))
@@ -214,7 +214,7 @@
 
   ; create the tables if they don't already exists
   (db/create-table db/settings-table      db/settings-schema)
-  (db/create-table db/users-table         db/memoized-data-schema)
+  (db/create-table db/friends-table         db/memoized-data-schema)
   (db/create-table db/coordinates-table   db/memoized-data-schema)
   (db/create-table db/access_tokens-table db/memoized-data-schema)
 

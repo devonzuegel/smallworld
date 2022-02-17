@@ -29,7 +29,7 @@
                       ])
 
 ; table names
-(def users-table         :users)
+(def friends-table       :friends)
 (def settings-table      :settings)
 (def coordinates-table   :coordinates)
 (def access_tokens-table :access_tokens)
@@ -64,11 +64,12 @@
 
 (defn show-all [table-name]
   (println)
-  (let [results (if (= table-name :users)
+  (let [results (if (= table-name friends-table)
                   (sql/query url (str "select request_key from users"))
                   (sql/query url (str "select * from " (name table-name))))]
     (pp/pprint results)
-    (when (= table-name :users) (println "not printing {:data {:friends}} because it's too long"))
+    (when (= table-name friends-table)
+      (println "not printing {:data {:friends}} because it's too long"))
     (println "\ncount: " (count results)))
   (println))
 
@@ -133,13 +134,13 @@
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
 
-  (recreate-table :users memoized-data-schema)
-  (select-by-col users-table :request_key "devonzuegel")
-  (select-by-col users-table :request_key "devon_dos")
-  (select-by-col users-table :request_key "meadowmaus")
-  (show-all :users)
+  (recreate-table friends-table memoized-data-schema)
+  (select-by-col friends-table :request_key "devonzuegel")
+  (select-by-col friends-table :request_key "devon_dos")
+  (select-by-col friends-table :request_key "meadowmaus")
+  (show-all friends-table)
 
-  (sql/delete! url users-table         ["request_key = ?" "devonzuegel"])
+  (sql/delete! url friends-table         ["request_key = ?" "devonzuegel"])
   (sql/delete! url access_tokens-table ["request_key = ?" "devonzuegel"])
   (show-all access_tokens-table)
 
