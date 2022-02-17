@@ -36,6 +36,8 @@
 
     (when debug?
       (println "---------------------------------------------------")
+      (println " friend email:        " (:email friend))
+      (println)
       (println " friend-main-location:" friend-main-location)
       (println " friend-name-location:" friend-name-location)
       (println "current-main-location:" (when (not is-current-user?) (:main-location current-user)))
@@ -54,6 +56,10 @@
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
      :profile_image_url_large (normal-img-to-full-size friend)
+     ; note – email will only be available if the user has given us permission
+     ; (i.e. if they are also the current-user) AND if they have set their email
+     ; on Twitter, which is not required, so sometimes it'll be the empty string
+     :email (:email friend)
      :distance (when (not is-current-user?)
                  {:name-main (coordinates/distance-btwn current-name-coords friend-main-coords)
                   :name-name (coordinates/distance-btwn current-name-coords friend-name-coords)
