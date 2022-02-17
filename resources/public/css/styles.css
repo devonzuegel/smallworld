@@ -330,12 +330,12 @@ tr:nth-child(even) {
   padding-bottom: 12px;
 }
 .friend .right-section .top .name {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: bold;
 }
 .friend .right-section .top .handle {
   opacity: 0.6;
-  margin-left: 12px;
+  margin-left: 8px;
 }
 .friend:hover .right-section .top .handle {
   opacity: 0.7;
@@ -542,8 +542,8 @@ tr:nth-child(even) {
   padding: 4px 32px 4px 5px;
   background: #ffffff11;
   border-radius: 4px;
-  margin: 8px;
-  font-size: 1.6em;
+  margin: 8px 4px;
+  font-size: 1.3em;
   font-weight: bold;
   text-align: center;
 }

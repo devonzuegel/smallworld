@@ -127,7 +127,7 @@
                      {:screen_name "devonzuegel" :main_location_corrected "bbb"})
   (insert-or-update! settings-table
                      :screen_name
-                     {:screen_name "devonzuegel" :welcome_flow_complete false})
+                     {:screen_name "devon_dos" :welcome_flow_complete false})
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
 
