@@ -72,12 +72,14 @@
     (println "\ncount: " (count results)))
   (println))
 
-(defn select-by-col [table-name col-name request_key]
+(defn select-by-col [table-name col-name col-value]
   (when debug?
-    (println "(select-by-col" table-name col-name request_key ")"))
-  (walk/keywordize-keys
-   (sql/query url (str "select * from " (name table-name)
-                       (where col-name request_key)))))
+    (println "(select-by-col" table-name col-name col-value ")"))
+  (if (nil? col-value)
+    []
+    (walk/keywordize-keys
+     (sql/query url (str "select * from " (name table-name)
+                         (where col-name col-value))))))
 
 (defn insert! [table-name data]
   (when debug?
