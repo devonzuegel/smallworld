@@ -252,20 +252,20 @@
            "🚧  I realize this takes ages to load, apologies!  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
 
-        [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
-         [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
-          "does your friends data look out of date?"]
-         [:a.btn {:href "#"
-                  :on-click (fn []
-                              (fetch "/friends/refresh"
-                                     (fn [result]
-                                       (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                                                   @mapbox/markers))
-                                       (reset! friends result)
-                                       (add-friends-to-map))))}
-          "refresh friends"]
-         [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
-          "note: this takes several seconds to run"]]
+        #_[:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
+           [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
+            "does the data for your friends look out of date?"]
+           [:a.btn {:href "#"
+                    :on-click (fn []
+                                (fetch "/friends/refresh"
+                                       (fn [result]
+                                         (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                                                     @mapbox/markers))
+                                         (reset! friends result)
+                                         (add-friends-to-map))))}
+            "refresh friends"]
+           [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
+            "note: this takes several seconds to run"]]
 
         (when debug?
           [:<>
