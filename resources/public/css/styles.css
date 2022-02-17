@@ -564,7 +564,7 @@ tr:nth-child(even) {
   display: flex;
 }
 .welcome-flow .email-options .radio-btns .radio-btn label {
-  font-size: 0.8em;
+  font-size: 0.9em;
   margin-left: 6px;
   margin-top: -1px;
   opacity: 0.8;
