@@ -371,7 +371,8 @@
      "  [_________________]"]]
    [:hr]
    ; TODO: add a nice animation for this transition
-   [:a.btn {:href "#" :on-click #(reset! welcome-flow-complete? true)}
+   [:a.btn {:href "#" :on-click #((reset! welcome-flow-complete? true)
+                                  (fetch "/settings/update" (fn [] (println "welcome-flow-complete? is now true"))))}
     "time for an adventure "]
    [:hr]
    [:div.heads-up

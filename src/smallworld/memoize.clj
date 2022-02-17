@@ -40,7 +40,7 @@
     (db/insert! table-name {:request_key request-key :data result})
     result)
   (read! [table-name request-key]
-    (let [results (db/select-by-request-key table-name request-key)]
+    (let [results (db/select-by-col table-name :request_key request-key)]
       (when debug?
         (println)
         (println "---------- read! was called ---------------")

@@ -41,7 +41,7 @@
           ; access token was deleted. it shouldn't be possible to get to this state,
           ; but if it does happen at some point, then we may need to add a way for
           ; the user to re-authenticate.
-          sql-result   (db/select-by-request-key db/access_tokens-table screen-name)
+          sql-result   (db/select-by-col db/access_tokens-table :request_key screen-name)
           access-token (get-in (first sql-result) [:data :access_token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
           client       (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
                                            (util/get-env-var "TWITTER_CONSUMER_SECRET")
@@ -148,6 +148,12 @@
     ; TODO: set in the session for faster access
     (generate-string settings)))
 
+(defn update-settings [req]
+  (let [-current-user (get-current-user req)
+        screen-name   (:screen-name -current-user)]
+    (db/insert-or-update! db/settings-table :screen_name {:screen_name screen-name
+                                                          :welcome_flow_complete true})))
+
 (defn get-users-friends [req]
   (let [-current-user (get-current-user req)
         logged-in?    (not= session/blank -current-user)
@@ -168,6 +174,7 @@
 
   ;; app data endpoints
   (GET "/settings" req (get-settings req))
+  (GET "/settings/update" req (update-settings req))
   (GET "/friends" req (get-users-friends req))
   (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
                                     friends-result   (--fetch-friends screen-name)
