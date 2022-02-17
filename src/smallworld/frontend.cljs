@@ -249,7 +249,7 @@
 
         (when (= :loading @friends)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
-           "🚧  I realize this takes ages to load, apologies!  I'm working on "
+           "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
 
         #_[:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
@@ -311,7 +311,7 @@
   [:div.welcome-flow
 
    [:<>
-    [:p.serif {:style {:font-size "1.3em"}}
+    [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px !important"}}
      "welcome to"]
     [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
      "Small World"]]
@@ -380,8 +380,8 @@
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#" :on-click #((reset! welcome-flow-complete? true)
                                   (fetch "/settings/update" (fn [] (println "welcome-flow-complete? is now true"))))}
-    "time for an adventure "]
-   [:hr]
+    "let's go!"]
+   [:br] [:br] [:br]
    [:div.heads-up
     [:pre "🚧  heads up  🚧" [:br] [:br]
      "I'm currently working on this sign in flow, so you might see some squirrely stuff.  "
