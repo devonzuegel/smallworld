@@ -29,10 +29,11 @@
                       ])
 
 ; table names
-(def friends-table       :friends)
-(def settings-table      :settings)
-(def coordinates-table   :coordinates)
-(def access_tokens-table :access_tokens)
+(def users-table         :users)         ; store all data from Twitter sign up
+(def settings-table      :settings)      ; store Small World-specific settings
+(def friends-table       :friends)       ; memoized storage: friends of the user (request_key)
+(def coordinates-table   :coordinates)   ; memoized storage: map of city/country names to coordinates
+(def access_tokens-table :access_tokens) ; memoized storage: Twitter access tokens
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
@@ -133,6 +134,8 @@
                      {:screen_name "devon_dos" :welcome_flow_complete false})
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
+
+  (show-all users-table)
 
   (recreate-table friends-table memoized-data-schema)
   (select-by-col friends-table :request_key "devonzuegel")
