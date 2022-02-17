@@ -375,7 +375,9 @@
     #_[:pre
        "🚧  TODO: add this field  🚧" [:br] [:br] [:br]
        "what email should we send them to?" [:br] [:br]
-       "  [_________________]"]]
+       "  [_________________]"]
+      ; TODO: add ability to choose other cities you may want to track (maybe with email notifications)
+    ]
    [:hr]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#" :on-click #((reset! welcome-flow-complete? true)
