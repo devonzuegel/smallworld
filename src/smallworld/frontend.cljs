@@ -10,7 +10,7 @@
             [goog.dom]))
 
 (defonce friends (r/atom :loading))
-(defonce welcome-flow-complete? (r/atom false))
+(defonce welcome-flow-complete? (r/atom :loading))
 ; TODO: store this on the session so it doesn't get reset on refresh
 ; TODO: maybe this should only be show when they first sign up, not every time they log in
 
@@ -398,9 +398,10 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (if @welcome-flow-complete?
-            (logged-in-screen)
-            (welcome-flow-screen)))
+          (condp = @welcome-flow-complete?
+            :loading (loading-screen)
+            true (logged-in-screen)
+            false (welcome-flow-screen)))
     (not-found-404-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
