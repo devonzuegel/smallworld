@@ -61,7 +61,8 @@
              screen-name    (:screen-name api-response)]
          (when debug?
            (pp/pprint "twitter verify_credentials.json:")
-           (pp/pprint api-response))
+           (pp/pprint api-response)
+           (println "screen-name:  " screen-name))
          (db/memoized-insert-or-update! db/access_tokens-table
                                         screen-name
                                         {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
