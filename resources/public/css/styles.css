@@ -531,12 +531,22 @@ tr:nth-child(even) {
 .welcome-flow hr {
   margin: 32px -24px;
 }
-.welcome-flow .heads-up,
 .welcome-flow .you-signed-in-as,
+.welcome-flow .location-field,
+.welcome-flow .heads-up,
+.welcome-flow .email-options {
+  max-width: 340px;
+  margin: auto;
+  padding: 16px 0;
+  border-radius: 12px;
+}
 .welcome-flow .email-options,
 .welcome-flow .location-field {
-  max-width: 400px;
-  margin: auto;
+  border: 1px solid #ffffff33;
+}
+
+.welcome-flow .you-signed-in-as .friend {
+  width: fit-content;
 }
 .welcome-flow .you-signed-in-as {
   display: inline-flex;
