@@ -58,7 +58,7 @@
              access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
              api-response   (fetch-current-user--with-access-token access-token)
              current-user   (user-data/abridged api-response (get-current-user req))
-             screen-name    (:screen-name current-user)]
+             screen-name    (:screen-name api-response)]
          (when debug?
            (pp/pprint "twitter verify_credentials.json:")
            (pp/pprint api-response))
