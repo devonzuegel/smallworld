@@ -327,7 +327,6 @@ tr:nth-child(even) {
 }
 .friend .right-section {
   margin-left: 12px;
-  padding-bottom: 12px;
   flex-grow: 1;
   overflow: hidden;
 }
