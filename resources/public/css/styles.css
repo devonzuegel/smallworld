@@ -569,6 +569,7 @@ tr:nth-child(even) {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-left: 4px;
 }
 .welcome-flow .email-options .radio-btns .radio-btn {
   display: flex;
