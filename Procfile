@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -jar target/smallworld.jar
+web: java -jar target/smallworld.jar -m smallworld.web
