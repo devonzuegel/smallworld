@@ -544,8 +544,9 @@ tr:nth-child(even) {
 .welcome-flow .location-field .edit-icon {
   fill: white;
   height: 18px;
-  margin-bottom: -2px;
   margin-left: -36px;
+  margin-top: 13px;
+  position: absolute;
   opacity: 0.5;
 }
 .welcome-flow input.location-input {
@@ -560,6 +561,11 @@ tr:nth-child(even) {
 .welcome-flow input.location-input::placeholder {
   color: #d9d3cc55;
   font-size: 0.9em;
+}
+.small-info-text {
+  font-size: 0.7em;
+  opacity: 0.4;
+  text-align: center;
 }
 .welcome-flow .email-options .radio-btns {
   text-align: left;

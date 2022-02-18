@@ -303,16 +303,20 @@
                        update!     :update!}]
   [:div.location-field {:id id}
    [:label label] [:br]
-   [:input.location-input
-    {:type "text"
-     :id (str id "-input")
-     :value value
-     :auto-complete "off"
-     :on-change #(let [input-elem (.-target %)
-                       new-value  (.-value input-elem)]
-                   (update! new-value))
-     :placeholder placeholder}]
-   (decorations/edit-icon)])
+   [:div
+    [:input.location-input
+     {:type "text"
+      :id (str id "-input")
+      :value value
+      :auto-complete "off"
+      :on-change #(let [input-elem (.-target %)
+                        new-value  (.-value input-elem)]
+                    (update! new-value))
+      :placeholder placeholder}]
+    (decorations/edit-icon)]
+   [:div.small-info-text "this will not update your Twitter profile"]
+   [:br]
+   [:iframe {:width "200px" :height "100px" :src "https://api.mapbox.com/styles/v1/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp.html?title=false&access_token=pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA&zoomwheel=false#3.48/36.44/-121.17" :title "Curios Bright" :style {:border "none" :background "#9dc7d9" :border-radius "40px"}}]])
 
 (defn welcome-flow-screen []
   [:div.welcome-flow
@@ -340,6 +344,7 @@
                           :name name-location}))
 
      [:div.location-fields
+      [:br]
       (location-field {:id "main-location"
                        :label (if (str/blank? main-location)
                                 [:<> ; TODO: improve the UX of this state
@@ -351,7 +356,7 @@
                        :placeholder "what city do you live in?"
                        :value (or (:main @locations) "")
                        :update! #(swap! locations assoc :main %)})
-      [:br] [:br]
+      [:br] [:br] [:br]
       (location-field {:id "name-location"
                        :label (if (str/blank? name-location)
                                 [:<> ; TODO: improve the UX of this state
