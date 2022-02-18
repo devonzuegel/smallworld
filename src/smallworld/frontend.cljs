@@ -318,7 +318,7 @@
   [:div.welcome-flow
 
    [:<>
-    [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px !important"}}
+    [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px"}}
      "welcome to"]
     [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
      "Small World"]]
@@ -371,13 +371,13 @@
     [:p "would you like email notifications" [:br] "when your friends are nearby?"]
     [:div.radio-btns
      [:div.radio-btn
-      [:input {:type "radio" :id "daily"  :value "daily"  :name "email_notification"}]
+      [:input {:name "email_notif" :type "radio" :value "daily" :id "daily"}]
       [:label {:for "daily"} "yes, send me daily digests"]]
      [:div.radio-btn
-      [:input {:type "radio" :id "weekly" :value "adult"  :name "email_notification" :checked true}]
+      [:input {:name "email_notif" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
       [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
-      [:input {:type "radio" :id "muted"  :value "muted"  :name "email_notification"}]
+      [:input {:name "email_notif" :type "radio" :value "muted" :id "muted"}]
       [:label {:for "muted"} "no, do not email me"]]]
     #_[:pre
        "🚧  TODO: add this field  🚧" [:br] [:br] [:br]

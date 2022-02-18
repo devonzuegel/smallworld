@@ -578,6 +578,7 @@ tr:nth-child(even) {
   margin-left: 6px;
   margin-top: -1px;
   opacity: 0.8;
+  cursor: pointer;
 }
 input[type='radio'] {
   -webkit-appearance: none; /* Add if not using autoprefixer */
