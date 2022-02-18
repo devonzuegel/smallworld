@@ -70,16 +70,12 @@
                   friend-screen-name)
         (.remove marker)))))
 
-(def mapbox-config {:frank-lloyd-wright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                                         :style "mapbox://styles/devonzuegel/ckyn7uof70x1e14ppotxarzhc"
-                                        ;;  :style "./mapbox-style-frank.json"
-                                         }
-                    :minimo {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                             :style "mapbox://styles/devonzuegel/ckyootmv72ci414ppwl6j34a2"}
-                    :curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                                    :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}})
-
-;; (def mapbox-style :frank-lloyd-wright)
+; note – the mapbox access-token is paired with each style, rather than a per-account basis
+(def mapbox-config {:curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                                    :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}
+                    ; for some reason, this is broken right now...
+                    :smallworld {:style "mapbox://styles/devonzuegel/ckzsrsamc000l15mubod1gev5"
+                                 :access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"}})
 (def mapbox-style :curios-bright)
 
 (set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :access-token]))
