@@ -31,7 +31,6 @@
             ;;  :nrepl-port 7888
              }
   :uberjar-name "smallworld.jar"
-  :main ^:skip-aot smallworld.web
   :profiles {:dev {:dependencies [[cider/piggieback "0.4.1"]
                                   [figwheel-sidecar "0.5.18"]
                                   ;; [binaryage/devtools "0.9.10"]
@@ -52,7 +51,7 @@
                        :source-paths ["src"]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :aot :all
-                       :prep-tasks ["compile" ["cljsbuild" "once"]]
+                       :prep-tasks ["compile" ["cljsbuild" "once"]] ; can comment this out in dev to make it faster to build the serverside code
                        :cljsbuild {:builds [{:id "production"
                                              :source-paths ["src"]
                                              :jar true
