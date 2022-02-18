@@ -334,7 +334,7 @@
     (render-user nil @session/store*)
     (when debug? [:pre (util/preify @session/store*)])]
 
-   [:br] [:br] [:br]
+
 
    (let [main-location (or (:main-location @session/store*) "")
          name-location (or (:name-location @session/store*) "")]
@@ -356,7 +356,7 @@
                        :placeholder "what city do you live in?"
                        :value (or (:main @locations) "")
                        :update! #(swap! locations assoc :main %)})
-      [:br] [:br] [:br]
+      [:br]
       (location-field {:id "name-location"
                        :label (if (str/blank? name-location)
                                 [:<> ; TODO: improve the UX of this state
@@ -371,7 +371,7 @@
                        :update! #(swap! locations assoc :name %)})
 
       (when debug? [:pre "@locations: " (util/preify @locations)])])
-   [:hr]
+   [:br]
    [:div.email-options
     [:p "would you like email notifications" [:br] "when your friends are nearby?"]
     [:div.radio-btns
@@ -387,13 +387,14 @@
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
       [:label {:for "muted"} "no, don't notify me by email"]]]
+    [:br]
     #_[:pre
        "🚧  TODO: add this field  🚧" [:br] [:br] [:br]
        "what email should we send them to?" [:br] [:br]
        "  [_________________]"]
       ; TODO: add ability to choose other cities you may want to track (maybe with email notifications)
     ]
-   [:hr]
+   [:br]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#" :on-click #((reset! welcome-flow-complete? true)
                                   (fetch "/settings/update" (fn [] (println "welcome-flow-complete? is now true"))))}
@@ -401,8 +402,8 @@
    [:br] [:br] [:br]
    [:div.heads-up
     [:pre "🚧  heads up  🚧" [:br] [:br]
-     "I'm currently working on this sign in flow, so you might see some squirrely stuff.  "
-     "in particular, if you updated your location data on this page, it won't saved.  " [:br] [:br]
+     "I'm currently working on this sign in flow, so you updated your location "
+     "data on this page, it won't saved (yet!).  " [:br] [:br]
      "any other data entry you do on future screens will be saved as you'd expect "
      "because those features are complete." [:br] [:br] "thanks for being an early user!"]]
    [:br] [:br]])
@@ -415,7 +416,7 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (condp = @welcome-flow-complete?
+          (condp = false ;@welcome-flow-complete?
             :loading (loading-screen)
             true (logged-in-screen)
             false (welcome-flow-screen)))
