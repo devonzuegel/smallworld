@@ -371,14 +371,17 @@
     [:p "would you like email notifications" [:br] "when your friends are nearby?"]
     [:div.radio-btns
      [:div.radio-btn
-      [:input {:name "email_notif" :type "radio" :value "daily" :id "daily"}]
+      [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
+      [:label {:for "instant"} "yes, notify me immediately"]]
+     [:div.radio-btn
+      [:input {:name "email_notification" :type "radio" :value "daily" :id "daily"}]
       [:label {:for "daily"} "yes, send me daily digests"]]
      [:div.radio-btn
-      [:input {:name "email_notif" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
+      [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
       [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
-      [:input {:name "email_notif" :type "radio" :value "muted" :id "muted"}]
-      [:label {:for "muted"} "no, do not email me"]]]
+      [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
+      [:label {:for "muted"} "no, don't notify me by email"]]]
     #_[:pre
        "🚧  TODO: add this field  🚧" [:br] [:br] [:br]
        "what email should we send them to?" [:br] [:br]
@@ -407,7 +410,7 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (condp = @welcome-flow-complete?
+          (condp = false ;@welcome-flow-complete?
             :loading (loading-screen)
             true (logged-in-screen)
             false (welcome-flow-screen)))
