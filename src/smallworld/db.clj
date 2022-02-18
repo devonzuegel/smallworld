@@ -5,7 +5,7 @@
                             [clojure.walk :as walk]
                             [clojure.string :as str]))
 
-(def debug? true)
+(def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))
 (def memoized-data-schema [[:id          :integer   "primary key" "generated always as identity"]
                            [:request_key :text      "not null" "unique"]
