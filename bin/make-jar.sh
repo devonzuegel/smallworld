@@ -5,15 +5,13 @@ echo "--------------------------------------------------"
 
 echo ""
 echo "running command:"
-echo "    lein clean"
-echo ""
-lein clean
+echo "    source bin/set-env-variables.sh"
+source bin/set-env-variables.sh
 
 echo ""
 echo "running command:"
-echo "    source bin/set-env-variables.sh"
-echo ""
-source bin/set-env-variables.sh
+echo "    lein clean"
+lein clean
 
 echo ""
 echo "running command:"
