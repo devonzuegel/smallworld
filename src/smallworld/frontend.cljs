@@ -416,7 +416,7 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (condp = false ;@welcome-flow-complete?
+          (condp = @welcome-flow-complete?
             :loading (loading-screen)
             true (logged-in-screen)
             false (welcome-flow-screen)))
