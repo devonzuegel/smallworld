@@ -113,9 +113,13 @@
         sql-results (select-by-col table-name col-name col-value)
         exists?     (not= 0 (count sql-results))]
     (when debug?
-      (println "result:" sql-results)
-      (println "exists? " exists?)
-      (pp/pprint (select-by-col table-name col-name col-value)))
+      (println "--- running fn: insert-or-update! ---------")
+      (println "col-name:   " col-name)
+      (println "col-value:  " col-value)
+      (println "data:       " data)
+      (println "sql-results:" sql-results)
+      (println "exists?     " exists?)
+      (println "-------------------------------------------"))
     (if-not exists?
       (insert! table-name data)
       (update! table-name col-name col-value data))))
