@@ -1,1 +1,1 @@
-web: java -jar target/smallworld.jar -m smallworld.web
+web: bin/run-server-jar.sh

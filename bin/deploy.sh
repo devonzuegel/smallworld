@@ -1,13 +1,13 @@
 echo ""
 echo "--------------------------------------------------"
-echo "          deploying the smallworld jar"
+echo "          deploying smallworld to heroku"
 echo "--------------------------------------------------"
 
 echo ""
 echo "running command:"
-echo "    heroku deploy:jar target/smallworld.jar --app small-world-friends"
+echo "    git push heroku master"
 echo ""
 echo "note: this will deploy the *existing* jar to the heroku app."
 echo "      run bin/make-jar.sh if you want to create a new jar."
 echo ""
-heroku deploy:jar target/smallworld.jar --app small-world-friends
+git push heroku master
