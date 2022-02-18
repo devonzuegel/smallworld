@@ -65,9 +65,9 @@
          (db/memoized-insert-or-update! db/access_tokens-table
                                         screen-name
                                         {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
-         (db/insert-or-update! db/users-table
-                               :screen-name
-                               {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
+         (db/memoized-insert-or-update! db/users-table
+                                        screen-name
+                                        {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
          (db/insert-or-update! db/settings-table
                                :screen_name
                                {:screen_name screen-name})
