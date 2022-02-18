@@ -146,12 +146,12 @@
                              list-count " "
                              friend-pluralized " "
                              say-pluralized " they're "
-                             [:u verb-gerund] " nearby:"]]
+                             [:u verb-gerund] " nearby"]]
           [:div.friends (map-indexed render-user friends-list)]]
 
          [:div.friends
           [:div.no-friends-found
-           "0 friends have shared that they're " [:u verb-gerund] "."]]))]))
+           "0 friends shared that they're " [:u verb-gerund]]]))]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -246,6 +246,13 @@
            [:span.current-user-location name-location]
            (render-friends-list :name-name "living"   name-location)
            (render-friends-list :name-main "visiting" name-location)])
+
+        (when (not= :loading @friends)
+          [:div {:style {:line-height "1.2em" :padding "12px 6px"}}
+           [:br]
+           [:p.location-info ; TODO: this should use different classes
+            "you are following " [:b (count @friends)] " people on Twitter.  "
+            "if they've shared a location, they'll show up in the map below."]])
 
         (when (= :loading @friends)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}

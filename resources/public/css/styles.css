@@ -204,9 +204,7 @@ a:hover a {
 }
 .location-info {
   opacity: 0.7;
-  font-family: 'Inria Serif', serif;
-  font-style: italic;
-  font-size: 1.2em;
+  font-size: 0.9em;
   margin-bottom: 16px;
   color: #d9d3cc;
 }
@@ -356,12 +354,9 @@ tr:nth-child(even) {
   opacity: 0.7;
 }
 .no-friends-found {
-  font-size: 1.2em;
+  font-size: 0.9em;
   opacity: 0.7;
-  font-family: 'Inria Serif', serif;
-  font-style: italic;
   margin-bottom: 6px;
-  // margin-top: 12px;
 }
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
@@ -384,7 +379,7 @@ tr:nth-child(even) {
     font-weight: bold;
   }
   .current-user .friend .bottom {
-    font-size: 1.2em;
+    font-size: 1em;
   }
 }
 
