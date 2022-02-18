@@ -1,29 +1,23 @@
 # Small World
 
-## local setup
-
-install dependencies:
+### local setup
 
 1. `lein install`
 2. install postgres: https://postgresapp.com (database)
-3. install postbird: https://github.com/Paxa/postbird (GUI)
-4. create local postgres db called `smallworld-local`
+3. create local postgres db called `smallworld-local`
 ### local development
 1. run `bin/start-dev.sh`
    - sets the environment variables
-   - starts the server
-   - starts the frontend hot-reloading
+   - starts the server: http://localhost:3001
+   - starts the frontend hot-reloading*
    - starts the repl
 
-2. connect your Calva repl in VSCode to the repl running in the terminal
+2. connect Calva repl in VSCode to the repl running in the terminal &nbsp; *(optional – the previous step starts a repl in your terminal, so this step is just for people who prefer to use the Calva repl instead of the terminal repl)*
    - command in VSCode: `Calva: Connect to a running REPL server in the project`
+   - how to reload your code into the repl: `Calva: Load Current File and Dependencies`
+   - how to reload the backend code in the running server: `(restart-server)`
 
-3. load your code into the repl
-   - command in VSCode: `Calva: load current file and dependencies`
-
-4. in the repl, stop whatever server is running and then start one:
-   - in Calva: `(restart-server)`
-   - this reloads the backend code as well, which does not hot-reload like the frontend
+> \* if you want to start <i>just</i> the frontend hot-reloading, without the server: `lein figwheel`.  you probably won't use this often, as `lein repl` starts the frontend hot-reloading as well as the server.
 
 ### update code running in the repl
 you have two options:
@@ -37,23 +31,14 @@ you have two options:
    - pros: faster
    - cons: more likely that you forget to evaluate a dependency that's needed and the whole thing doesn't actually update as you expect
 
-### start *just* the frontend hot-reloading
-run this in a separate terminal to get hot-reloading to work.  you probably won't use this often, as `lein repl` starts the frontend hot-reloadingn as well as the server.
+### deploy to Heroku
 
-note: you'll do most of your work in the main server that you started previously, the server that _this_ step starts is just for hot-reloading.
-
-```clojure
-lein figwheel
+```
+bin/make-and-deploy.sh
 ```
 
-### open local URL
+<details><summary>here are the steps that script follows, broken down into separate subscripts:</summary>
 
-http://localhost:3001
-## deploy to Heroku
-
-you'll generally use this combined command to deploy to Heroku: `bin/make-and-deploy.sh`
-
-here are the steps that script follows, broken down into separate subscripts:
 
 1. build a production version
    ```sh
@@ -75,10 +60,11 @@ here are the steps that script follows, broken down into separate subscripts:
    bin/heroku-logs.sh
    ```
 
-note: instead of heroku's usual `git push heroku` deployment patter, we use the [heroku java cli plugin](https://devcenter.heroku.com/articles/deploying-executable-jar-files)
+</details>
+
 ## initial designs
 
-### [🎨 Figma workspace](https://www.figma.com/file/7fJoEke9aKGNg5uGE8BMCm/Small-World-mocks?node-id=0%3A1)
+[🎨 Figma workspace](https://www.figma.com/file/7fJoEke9aKGNg5uGE8BMCm/Small-World-mocks?node-id=0%3A1)
 
 | ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
 | -                                 | -                                                | -                                         |
