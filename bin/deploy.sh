@@ -1,4 +1,9 @@
 echo ""
+echo "--------------------------------------------------"
+echo "          deploying the smallworld jar"
+echo "--------------------------------------------------"
+
+echo ""
 echo "running command:"
 echo "    heroku deploy:jar target/smallworld.jar --app small-world-friends"
 echo ""

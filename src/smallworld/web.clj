@@ -244,7 +244,7 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-(defn -main [& args]
+(defn -main []
   (let [default-port 8080
         port (System/getenv "PORT")
         port (if (nil? port)
