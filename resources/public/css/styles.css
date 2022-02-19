@@ -551,20 +551,21 @@ tr:nth-child(even) {
 .welcome-flow .you-signed-in-as {
   display: inline-flex;
 }
-.welcome-flow .location-field .edit-icon {
+.welcome-flow .field .edit-icon {
   fill: white;
-  height: 18px;
+  height: 13px;
   margin-left: -36px;
   margin-top: 13px;
   position: absolute;
   opacity: 0.5;
 }
-.welcome-flow input.location-input {
+.welcome-flow input[type='text'] {
+  width: 260px;
   padding: 4px 32px 4px 5px;
   background: #ffffff11;
   border-radius: 4px;
   margin: 8px 4px;
-  font-size: 1.3em;
+  font-size: 1em;
   font-weight: bold;
   text-align: center;
 }
