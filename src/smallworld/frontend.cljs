@@ -165,11 +165,7 @@
                     (js/setTimeout add-friends-to-map 2000))
        :retry? true)
 
-(fetch "/settings" (fn [result]
-                     (when debug?
-                       (pp/pprint "settings: ")
-                       (pp/pprint result))
-                     (reset! welcome-flow-complete? (:welcome_flow_complete result))))
+(fetch "/settings" #(reset! welcome-flow-complete? (:welcome_flow_complete %)))
 
 ; fetch current-user once & then again every 30 seconds
 (fetch "/session" session/update!)
@@ -396,8 +392,9 @@
     ]
    [:br]
    ; TODO: add a nice animation for this transition
-   [:a.btn {:href "#" :on-click #((reset! welcome-flow-complete? true)
-                                  (fetch "/settings/update" (fn [] (println "welcome-flow-complete? is now true"))))}
+   [:a.btn {:href "#"
+            :on-click #(fetch "/settings/update"
+                              (fn [] (reset! welcome-flow-complete? true)))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up
