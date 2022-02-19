@@ -70,13 +70,19 @@ bin/make-and-deploy.sh
 | -                                 | -                                                | -                                         |
 |                                   |                                                  |                                           |
 
-### misc
+### sql cheatsheet
 
-- to reset a user:
+- reset a user:
 
    ```sql
    delete from profiles      where request_key = 'devon_dos';
    delete from friends       where request_key = 'devon_dos';
    delete from settings      where screen_name = 'devon_dos';
    delete from access_tokens where request_key = 'devon_dos';
+   ```
+
+- view all tables:
+
+   ```sql
+   select table_name FROM information_schema.tables where table_schema = 'public';
    ```
