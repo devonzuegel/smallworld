@@ -20,6 +20,7 @@
                       [:screen_name             :text      "not null"    "unique"]
                       [:main_location_corrected :text]
                       [:name_location_corrected :text]
+                      ; TODO: add email_notification field
                       [:welcome_flow_complete   :boolean   "not null"    "default false"]
                       [:created_at              :timestamp "default current_timestamp"]
                       [:updated_at              :timestamp "default current_timestamp"]
