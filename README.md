@@ -69,3 +69,14 @@ bin/make-and-deploy.sh
 | ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
 | -                                 | -                                                | -                                         |
 |                                   |                                                  |                                           |
+
+### misc
+
+- to reset a user:
+
+   ```sql
+   delete from profiles      where request_key = 'devon_dos';
+   delete from friends       where request_key = 'devon_dos';
+   delete from settings      where screen_name = 'devon_dos';
+   delete from access_tokens where request_key = 'devon_dos';
+   ```
