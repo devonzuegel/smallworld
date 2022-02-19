@@ -29,7 +29,7 @@
                       ])
 
 ; table names
-(def users-table         :users)         ; store all data from Twitter sign up
+(def profiles-table      :profiles)      ; store all data from Twitter sign up
 (def settings-table      :settings)      ; store Small World-specific settings
 (def friends-table       :friends)       ; memoized storage: friends of the user (request_key)
 (def coordinates-table   :coordinates)   ; memoized storage: map of city/country names to coordinates
@@ -139,7 +139,7 @@
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
 
-  (show-all users-table)
+  (show-all profiles-table)
 
   (recreate-table friends-table memoized-data-schema)
   (select-by-col friends-table :request_key "devonzuegel")
