@@ -11,6 +11,7 @@
 
 (defonce friends (r/atom :loading))
 (defonce welcome-flow-complete? (r/atom :loading))
+(defonce email-address (r/atom :loading))
 ; TODO: store this on the session so it doesn't get reset on refresh
 ; TODO: maybe this should only be show when they first sign up, not every time they log in
 
@@ -177,7 +178,9 @@
                     (js/setTimeout add-friends-to-map 2000))
        :retry? true)
 
-(fetch "/settings" #(reset! welcome-flow-complete? (:welcome_flow_complete %)))
+(fetch "/settings" (fn [result]
+                     (reset! welcome-flow-complete? (:welcome_flow_complete result))
+                     (reset! email-address (:email result))))
 
 ; fetch current-user once & then again every 30 seconds
 (fetch "/session" session/update!)
@@ -309,7 +312,7 @@
                        placeholder :placeholder
                        value       :value
                        update!     :update!}]
-  [:div.location-field {:id id}
+  [:div.field.location-field {:id id}
    [:label label] [:br]
    [:div
     [:input.location-input
@@ -365,7 +368,7 @@
                                  [:a {:href "https://twitter.com/settings/profile"} "Twitter settings"]
                                  " and then refresh, or you can add a location just to Small World:"]
                                 [:<>
-                                 "based on your " [:b "profile location"] ", you’re in..."])
+                                 "based on your profile location, you’re in..."])
                        :placeholder "what city do you live in?"
                        :value (or (:main @locations) "")
                        :update! #(swap! locations assoc :main %)})
@@ -373,12 +376,11 @@
       (location-field {:id "name-location"
                        :label (if (str/blank? name-location)
                                 [:<> ; TODO: improve the UX of this state
-                                 "based on your " [:b "display name"]
-                                 ", it looks like " [:br]
+                                 "based on your display name, it looks like " [:br]
                                  "you’re not traveling right now.  " [:br] [:br]
                                  "add a destination to see who’s close by:"]
-
-                                [:<> "based on your " [:b "display name"] ", you’re in..."])
+                                [:<>
+                                 "based on your display name, you’re in..."])
                        :placeholder "any plans to travel?"
                        :value (or (:name @locations) "")
                        :update! #(swap! locations assoc :name %)})
@@ -399,25 +401,35 @@
       [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
-      [:label {:for "muted"} "no, don't notify me by email"]]]
-    [:br]
-    #_[:pre
-       "🚧  TODO: add this field  🚧" [:br] [:br] [:br]
-       "what email should we send them to?" [:br] [:br]
-       "  [_________________]"]
-      ; TODO: add ability to choose other cities you may want to track (maybe with email notifications)
-    ]
+      [:label {:for "muted"} "no, don't notify me by email"]]]]
+   [:br]
+   [:div.email-options
+    [:div.email-address
+     [:label "what's your email address?"] [:br]
+     [:div.field
+      [:input {:type "text"
+               :id "email-address-input"
+               :name "email-address-input"
+               :value @email-address
+               :auto-complete "off"
+               :on-change #(let [input-elem (.-target %)
+                                 new-value  (.-value input-elem)]
+                             (reset! email-address new-value))
+               :placeholder "email address"}]
+      (decorations/edit-icon)]]]
    [:br]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#"
             :on-click #(let [email_pref (.-id (input-by-name "email_notification" ":checked"))
                              m-location (.-value (input-by-name "main-location-input"))
                              n-location (.-value (input-by-name "name-location-input"))]
-                         (fetch-post "/settings/update" {:main_location_corrected m-location
-                                                         :name_location_corrected n-location
-                                                         ; :email_notifications     email_pref
-                                                         ; :email_address email ; TODO:
-                                                         :welcome_flow_complete   true}))}
+                         (pp/pprint
+                          ;; fetch-post "/settings/update"
+                          {:main_location_corrected m-location
+                           :name_location_corrected n-location
+                           :email_notifications     email_pref     ; TODO: add db support
+                           :email_address           @email-address ; TODO: add db support
+                           :welcome_flow_complete   true}))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up
