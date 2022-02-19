@@ -32,6 +32,18 @@
                   (println (str "retrying..."))
                   (fetch route callback))))))
 
+; TODO: combine this with the fetch function
+(defn fetch-post [route body]
+  (let [request (new js/Request
+                     route
+                     #js {:method "POST"
+                          :body (.stringify js/JSON (clj->js body))
+                          :headers (new js/Headers #js{:Content-Type "application/json"})})]
+    (->
+     (js/fetch request)
+     (.then (fn [res] (.json res)))
+     (.then (fn [res] (.log js/console res))))))
+
 (defn add-friends-to-map []
   (when @mapbox/the-map ; don't add friends to map if there is no map
     (doall ; force no lazy load
@@ -303,6 +315,7 @@
     [:input.location-input
      {:type "text"
       :id (str id "-input")
+      :name (str id "-input")
       :value value
       :auto-complete "off"
       :on-change #(let [input-elem (.-target %)
@@ -313,6 +326,10 @@
    [:div.small-info-text "this will not update your Twitter profile"]
    [:br]
    [:iframe {:width "200px" :height "100px" :src "https://api.mapbox.com/styles/v1/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp.html?title=false&access_token=pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA&zoomwheel=false#3.48/36.44/-121.17" :title "Curios Bright" :style {:border "none" :background "#9dc7d9" :border-radius "40px"}}]])
+
+(defn input-by-name [name & [other]]
+  (.querySelector js/document (str "input[name= \"" name "\"]"
+                                   (or other ""))))
 
 (defn welcome-flow-screen []
   [:div.welcome-flow
@@ -327,9 +344,9 @@
 
    [:div.you-signed-in-as
 
-    (render-user nil @session/store*)
-    (when debug? [:pre (util/preify @session/store*)])]
+    (render-user nil @session/store*)]
 
+   (when debug? [:pre (util/preify @session/store*)])
 
 
    (let [main-location (or (:main-location @session/store*) "")
@@ -393,8 +410,14 @@
    [:br]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#"
-            :on-click #(fetch "/settings/update"
-                              (fn [] (reset! welcome-flow-complete? true)))}
+            :on-click #(let [email_pref (.-id (input-by-name "email_notification" ":checked"))
+                             m-location (.-value (input-by-name "main-location-input"))
+                             n-location (.-value (input-by-name "name-location-input"))]
+                         (fetch-post "/settings/update" {:main_location_corrected m-location
+                                                         :name_location_corrected n-location
+                                                         ; :email_notifications     email_pref
+                                                         ; :email_address email ; TODO:
+                                                         :welcome_flow_complete   true}))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up
@@ -413,7 +436,7 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (condp = @welcome-flow-complete?
+          (condp = false; TODO: undo me @welcome-flow-complete?
             :loading (loading-screen)
             true (logged-in-screen)
             false (welcome-flow-screen)))

@@ -1,6 +1,6 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [compojure.core :refer [defroutes GET ANY]]
+  (:require [compojure.core :refer [defroutes GET POST ANY]]
             [compojure.handler]
             [compojure.route :as route]
             [clojure.java.io :as io]
@@ -14,7 +14,8 @@
             [smallworld.util :as util]
             [smallworld.session :as session]
             [cheshire.core :refer [generate-string]]
-            [smallworld.user-data :as user-data]))
+            [smallworld.user-data :as user-data]
+            [clojure.data.json :as json]))
 
 (def debug? false)
 
@@ -101,9 +102,13 @@
 
 (defn update-settings [req]
   (let [-current-user (get-current-user req)
-        screen-name   (:screen-name -current-user)]
-    (db/insert-or-update! db/settings-table :screen_name {:screen_name screen-name
-                                                          :welcome_flow_complete true})))
+        screen-name   (:screen-name -current-user)
+        parsed-body   (json/read-str (slurp (:body req)) :key-fn keyword)
+        new-values    (merge parsed-body {:screen_name screen-name})]
+    (when true ; debug?
+      (println "update-settings... new-values:")
+      (pp/pprint new-values))
+    (db/insert-or-update! db/settings-table :screen_name new-values)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -193,7 +198,7 @@
 
   ;; app data endpoints
   (GET "/settings" req (get-settings req))
-  (GET "/settings/update" req (update-settings req))
+  (POST "/settings/update" req (update-settings req))
   (GET "/friends" req (get-users-friends req))
   (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
                                     friends-result   (--fetch-friends screen-name)
