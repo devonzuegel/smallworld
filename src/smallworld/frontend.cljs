@@ -441,8 +441,27 @@
      "because those features are complete." [:br] [:br] "thanks for being an early user!"]]
    [:br] [:br]])
 
+(defonce admin-data (r/atom :loading))
+(defn admin-screen []
+  [:div.admin-screen
+   [:a.btn {:href "#"
+            :on-click #(fetch "/admin-data" (fn [result]
+                                              (println "successfully fetched /admin-data:")
+                                              (pp/pprint result)
+                                              (reset! admin-data result)))}
+    "load admin data"]
+   [:br] [:br] [:br]
+   (when (not= :loading @admin-data)
+     (map (fn [key] [:details {:open true} [:summary [:b key]]
+                     [:pre "count: " (count (get @admin-data key))]
+                     [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
+                                                      (get @admin-data key)))]
+                     [:pre {:id key} (util/preify (get @admin-data key))]])
+          (reverse (sort (keys @admin-data)))))])
+
 (defn not-found-404-screen []
-  [:h1 "404 – not found :("])
+  [:p {:style {:margin "30vh auto" :text-align "center" :font-size "2em"}}
+   "404 not found"])
 
 (defn app-container []
   (condp = (.-pathname (.-location js/window))
@@ -453,6 +472,7 @@
             :loading (loading-screen)
             true (logged-in-screen)
             false (welcome-flow-screen)))
+    "/admin" (admin-screen)
     (not-found-404-screen)))
 
 (r/render-component [app-container] (goog.dom/getElement "app"))
