@@ -84,11 +84,14 @@ bin/make-and-deploy.sh
 - view all tables:
 
    ```sql
-   select table_name FROM information_schema.tables where table_schema = 'public';
+   select table_name from information_schema.tables
+   where  table_schema = 'public';
    ```
 
-- make all users go through welcome flow again:
+- make a user go through welcome flow again:
 
    ```sql
-   UPDATE settings SET welcome_flow_complete = false;  select * from settings;
+   update settings
+   set    welcome_flow_complete = false
+   where  screen_name = 'devonzuegel';
    ```
