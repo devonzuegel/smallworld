@@ -544,7 +544,14 @@ tr:nth-child(even) {
 .welcome-flow .location-field {
   border: 1px solid #ffffff33;
 }
-
+.welcome-flow input {
+  border: 1px solid transparent;
+}
+.welcome-flow .location-field:focus-within,
+.welcome-flow .email-options:focus-within,
+.welcome-flow .email-options:focus /* the radio btns field is different */ {
+  border: 1px solid #ffffff55;
+}
 .welcome-flow .you-signed-in-as .friend {
   width: fit-content;
 }
