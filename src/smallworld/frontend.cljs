@@ -311,6 +311,8 @@
 (defonce locations (r/atom :loading))
 
 (defn location-field [{id          :id
+                       tabindex    :tab-index
+                       auto-focus  :auto-focus
                        label       :label
                        placeholder :placeholder
                        value       :value
@@ -320,6 +322,8 @@
    [:div
     [:input.location-input
      {:type "text"
+      :tab-index tabindex
+      :auto-focus auto-focus
       :id (str id "-input")
       :name (str id "-input")
       :value value
@@ -365,6 +369,8 @@
      [:div.location-fields
       [:br]
       (location-field {:id "main-location"
+                       :tab-index "1"
+                       :auto-focus true
                        :label (if (str/blank? main-location)
                                 [:<> ; TODO: improve the UX of this state
                                  "you haven't set a location on Twitter.  you can add one in your "
@@ -377,6 +383,7 @@
                        :update! #(swap! locations assoc :main %)})
       [:br]
       (location-field {:id "name-location"
+                       :tab-index "2"
                        :label (if (str/blank? name-location)
                                 [:<> ; TODO: improve the UX of this state
                                  "based on your display name, it looks like " [:br]
@@ -390,7 +397,7 @@
 
       (when debug? [:pre "@locations: " (util/preify @locations)])])
    [:br]
-   [:div.email-options
+   [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby?"]
     [:div.radio-btns
      [:div.radio-btn
@@ -412,6 +419,7 @@
      [:label "what's your email address?"] [:br]
      [:div.field
       [:input {:type "text"
+               :tab-index "4"
                :id "email-address-input"
                :name "email-address-input"
                :value @email-address ; TODO: this is a hack
