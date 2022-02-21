@@ -444,23 +444,27 @@
 (defonce admin-data (r/atom :loading))
 (defn admin-screen []
   [:div.admin-screen
-   [:a.btn {:href "#"
-            :on-click #(fetch "/admin-data" (fn [result]
-                                              (println "successfully fetched /admin-data:")
-                                              (pp/pprint result)
-                                              (reset! admin-data result)))}
-    "load admin data"]
-   [:br] [:br] [:br]
-   (when (not= :loading @admin-data)
-     (map (fn [key] [:details {:open true} [:summary [:b key]]
-                     [:pre "count: " (count (get @admin-data key))]
-                     [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
-                                                      (get @admin-data key)))]
-                     [:pre {:id key} (util/preify (get @admin-data key))]])
-          (reverse (sort (keys @admin-data)))))])
+   (if-not (= "devonzuegel" (:screen-name @session/store*))
+     [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
+      "whoops, you don't have access to this page"]
+     [:<>
+      [:a.btn {:href "#"
+               :on-click #(fetch "/admin-data" (fn [result]
+                                                 (println "successfully fetched /admin-data:")
+                                                 (pp/pprint result)
+                                                 (reset! admin-data result)))}
+       "load admin data"]
+      [:br] [:br] [:br]
+      (when (not= :loading @admin-data)
+        (map (fn [key] [:details {:open true} [:summary [:b key]]
+                        [:pre "count: " (count (get @admin-data key))]
+                        [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
+                                                         (get @admin-data key)))]
+                        [:pre {:id key} (util/preify (get @admin-data key))]])
+             (reverse (sort (keys @admin-data)))))])])
 
 (defn not-found-404-screen []
-  [:p {:style {:margin "30vh auto" :text-align "center" :font-size "2em"}}
+  [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
    "404 not found"])
 
 (defn app-container []
