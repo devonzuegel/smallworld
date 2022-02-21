@@ -401,7 +401,8 @@
       [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
-      [:label {:for "muted"} "no, don't notify me by email"]]]]
+      [:label {:for "muted"} "no, don't notify me by email"]]]
+    [:br]]
    [:br]
    [:div.email-options
     [:div.email-address
