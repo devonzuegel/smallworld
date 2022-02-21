@@ -86,3 +86,9 @@ bin/make-and-deploy.sh
    ```sql
    select table_name FROM information_schema.tables where table_schema = 'public';
    ```
+
+- make all users go through welcome flow again:
+
+   ```sql
+   UPDATE settings SET welcome_flow_complete = false;  select * from settings;
+   ```

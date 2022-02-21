@@ -411,7 +411,7 @@
       [:input {:type "text"
                :id "email-address-input"
                :name "email-address-input"
-               :value @email-address
+               :value @email-address ; TODO: this should pull from Twitter by default
                :auto-complete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
@@ -424,13 +424,13 @@
             :on-click #(let [email_pref (.-id (input-by-name "email_notification" ":checked"))
                              m-location (.-value (input-by-name "main-location-input"))
                              n-location (.-value (input-by-name "name-location-input"))]
-                         (pp/pprint
-                          ;; fetch-post "/settings/update"
-                          {:main_location_corrected m-location
-                           :name_location_corrected n-location
-                           :email_notifications     email_pref     ; TODO: add db support
-                           :email_address           @email-address ; TODO: add db support
-                           :welcome_flow_complete   true}))}
+                         (reset! welcome-flow-complete? true)
+                         (fetch-post "/settings/update"
+                                     {:main_location_corrected m-location
+                                      :name_location_corrected n-location
+                                      :email_notifications     email_pref     ; TODO: add db support
+                                      :email_address           @email-address ; TODO: add db support
+                                      :welcome_flow_complete   true}))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up
