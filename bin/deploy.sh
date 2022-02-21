@@ -10,4 +10,4 @@ echo ""
 echo "note: this will deploy the *existing* jar to the heroku app."
 echo "      run bin/make-jar.sh if you want to create a new jar."
 echo ""
-git push -u origin HEAD # push the current branch, whatever it’s called
+git push heroku HEAD:master # push the current branch to Heroku, whatever it’s called
