@@ -20,11 +20,9 @@
                       [:screen_name             :text      "not null"    "unique"]
                       [:main_location_corrected :text]
                       [:name_location_corrected :text]
-                      ;; ; once I download the existing user data, I'll need to add these:
-                      ;; [:email_address           :text]
-                      ;; [:email_notification      :text]
-                      [:screen_name  "varchar(255)" "not null" "unique"]
-                      ; TODO: add email_notification field
+                      [:email_address           :text]
+                      [:email_notifications     :text]
+                      ;; [:screen_name  "varchar(255)" "not null" "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
                       [:welcome_flow_complete   :boolean   "not null"    "default false"]
                       [:created_at              :timestamp "default current_timestamp"]
                       [:updated_at              :timestamp "default current_timestamp"]

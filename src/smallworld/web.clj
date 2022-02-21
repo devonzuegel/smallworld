@@ -106,10 +106,12 @@
         screen-name   (:screen-name -current-user)
         parsed-body   (json/read-str (slurp (:body req)) :key-fn keyword)
         new-values    (merge parsed-body {:screen_name screen-name})]
-    (when true ; debug? ; TODO: undo me
-      (println "update-settings... new-values:")
+    (when debug?
+      (println "update-settings - new-values:")
       (pp/pprint new-values))
-    (db/insert-or-update! db/settings-table :screen_name new-values)))
+    ; TODO: add try-catch to handle failures
+    (db/insert-or-update! db/settings-table :screen_name new-values)
+    (generate-string new-values)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
