@@ -456,8 +456,12 @@
 (defn admin-screen []
   [:div.admin-screen
    (if-not (= "devonzuegel" (:screen-name @session/store*))
-     [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
-      "whoops, you don't have access to this page"]
+
+     (if (= :loading @session/store*)
+       (loading-screen)
+       [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
+        "whoops, you don't have access to this page"])
+
      [:<>
       [:a.btn {:href "#"
                :on-click #(fetch "/admin-data" (fn [result]
