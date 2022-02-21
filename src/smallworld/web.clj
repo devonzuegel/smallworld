@@ -189,7 +189,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; app is function that takes a request, and returns a response
-(defroutes devons-app ; order matters in this function!
+(defroutes smallworld-routes ; order matters in this function!
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
@@ -221,12 +221,12 @@
   (route/resources "/")
   (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
 
-(def app-handler (-> devons-app
-                     (compojure.handler/site {:session
-                                              {:cookie-name "small-world-session"
-                                               :store (cookie/cookie-store
-                                                       {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})
-                     #_util/server-logger))
+(def app-handler
+  (-> smallworld-routes
+      (compojure.handler/site {:session
+                               {:cookie-name "small-world-session"
+                                :store (cookie/cookie-store
+                                        {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
 (defonce server* (atom nil))
 
