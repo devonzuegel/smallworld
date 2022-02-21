@@ -808,3 +808,26 @@ a.btn {
   padding: 3px 16px 4px 16px;
   border-radius: 12px;
 }
+/************************************************************/
+/** utils ***************************************************/
+/************************************************************/
+.admin-screen {
+  margin: 64px 24px;
+}
+.admin-screen details {
+  margin-bottom: 12px;
+}
+.admin-screen details summary {
+  cursor: pointer;
+}
+.admin-screen details summary b {
+  padding-left: 4px;
+}
+.admin-screen details > :not(summary) {
+  margin-left: 20px;
+}
+.admin-screen pre {
+  margin: 8px 0;
+  border: 1px solid #ffffff33;
+  border-radius: 3px;
+}

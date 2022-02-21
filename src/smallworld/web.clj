@@ -232,10 +232,9 @@
                                            assoc screen-name friends-abridged)
                                     (generate-string friends-abridged)))))
   ;; general resources
-  (GET "/"                      [] (io/resource "public/index.html"))
   (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
-  (ANY "*" [] (route/not-found "<h1 class='not-found'>404 not found</h1>")))
+  (ANY "*"                      [] (io/resource "public/index.html")))
 
 (def app-handler
   (-> smallworld-routes
