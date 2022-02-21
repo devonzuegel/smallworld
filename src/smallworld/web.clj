@@ -15,7 +15,8 @@
             [smallworld.session :as session]
             [cheshire.core :refer [generate-string]]
             [smallworld.user-data :as user-data]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [clojure.java.jdbc :as sql]))
 
 (def debug? false)
 
@@ -185,6 +186,20 @@
     (generate-string result)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; admin ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn admin-data [req]
+  (let [current-user (get-current-user req)
+        screen-name (:screen-name current-user)
+        result (if-not (= "devonzuegel" screen-name)
+                 (response/bad-request {:message "you don't have access to this page"})
+                 {:profiles    (db/select-all db/profiles-table)
+                  :settings    (db/select-all db/settings-table)
+                  :coordinates (db/select-all db/coordinates-table)})]
+    (generate-string result)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -195,6 +210,7 @@
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/session"    req (generate-string (get-current-user req)))
   (GET "/logout"     req (logout req))
+  (GET "/admin-data" req (admin-data req))
 
   ;; app data endpoints
   (GET "/settings" req (get-settings req))

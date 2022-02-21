@@ -68,10 +68,13 @@
     (println "done dropping table named " table-name " (if it existed)")
     (println "done creating table named " table-name)))
 
+(defn select-all [table]
+  (sql/query url (str "select * from " (name table))))
+
 (defn show-all [table-name]
   (println)
   (let [results (if (= table-name friends-table)
-                  (sql/query url (str "select request_key from users"))
+                  (sql/query url (str "select request_key from " (name friends-table)))
                   (sql/query url (str "select * from " (name table-name))))]
     (pp/pprint results)
     (when (= table-name friends-table)
