@@ -249,6 +249,12 @@
            [:br]
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
+        (when (not= :loading @friends)
+          [:div.category {:style {:line-height "1.2em" :padding "12px 6px"}}
+           [:p.you-are-following-count-info
+            "you are following " [:b (count @friends)] " people on Twitter.  "
+            "if they've shared a location, they'll show up in the map below."]])
+
         (when-not (empty? main-location)
           [:div.category
            [:span.current-user-location main-location]
@@ -260,13 +266,6 @@
            [:span.current-user-location name-location]
            (render-friends-list :name-name "living"   name-location)
            (render-friends-list :name-main "visiting" name-location)])
-
-        (when (not= :loading @friends)
-          [:div {:style {:line-height "1.2em" :padding "12px 6px"}}
-           [:br]
-           [:p.location-info ; TODO: this should use different classes
-            "you are following " [:b (count @friends)] " people on Twitter.  "
-            "if they've shared a location, they'll show up in the map below."]])
 
         (when (= :loading @friends)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
@@ -439,8 +438,8 @@
                          (fetch-post "/settings/update"
                                      {:main_location_corrected m-location
                                       :name_location_corrected n-location
-                                      :email_notifications     email_pref     ; TODO: add db support
-                                      :email_address           @email-address ; TODO: add db support
+                                      :email_notifications     email_pref
+                                      :email_address           @email-address
                                       :welcome_flow_complete   true}))}
     "let's go!"]
    [:br] [:br] [:br]
