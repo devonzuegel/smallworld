@@ -16,12 +16,12 @@
                            ; I thought the following would work, but the db throws an error:
                            ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                            ])
-(def settings-schema [[:id                      :integer   "primary key" "generated always as identity"]
-                      [:screen_name             :text      "not null"    "unique"]
-                      [:main_location_corrected :text]
-                      [:name_location_corrected :text]
-                      [:email_address           :text]
-                      [:email_notifications     :text]
+(def settings-schema [[:id                      :integer        "primary key"  "generated always as identity"]
+                      [:screen_name             "varchar(255)"  "not null"     "unique"]
+                      [:main_location_corrected "varchar(255)"]
+                      [:name_location_corrected "varchar(255)"]
+                      [:email_address           "varchar(255)"]
+                      [:email_notifications     "varchar(255)"]
                       ;; [:screen_name  "varchar(255)" "not null" "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
                       [:welcome_flow_complete   :boolean   "not null"    "default false"]
                       [:created_at              :timestamp "default current_timestamp"]
