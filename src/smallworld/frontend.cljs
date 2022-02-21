@@ -183,8 +183,11 @@
                      (reset! email-address (:email result))))
 
 ; fetch current-user once & then again every 30 seconds
-(fetch "/session" session/update!)
-(js/setInterval #(fetch "/session" session/update!) (* 30 1000))
+(fetch "/session" #((session/update! %)
+                    (reset! email-address (:email %))))
+(js/setInterval (fn [] (fetch "/session" #((session/update! %)
+                                           (reset! email-address (:email %)))))
+                (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -335,8 +338,8 @@
                                    (or other ""))))
 
 (defn welcome-flow-screen []
+  (when (nil? @email-address) (reset! email-address (:email @session/store*)))
   [:div.welcome-flow
-
    [:<>
     [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px"}}
      "welcome to"]
@@ -411,7 +414,7 @@
       [:input {:type "text"
                :id "email-address-input"
                :name "email-address-input"
-               :value @email-address ; TODO: this should pull from Twitter by default
+               :value @email-address ; TODO: this is a hack
                :auto-complete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
