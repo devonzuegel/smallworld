@@ -160,12 +160,12 @@
                              list-count " "
                              friend-pluralized " "
                              say-pluralized " they're "
-                             [:u verb-gerund] " nearby"]]
+                             verb-gerund " " location-name ":"]]
           [:div.friends (map-indexed render-user friends-list)]]
 
          [:div.friends
           [:div.no-friends-found
-           "0 friends shared that they're " [:u verb-gerund]]]))]))
+           "0 friends shared that they're " verb-gerund " " location-name]]))]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -263,22 +263,26 @@
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
         (when (not= :loading @friends*)
-          [:div.category {:style {:line-height "1.2em" :padding "12px 6px"}}
-           [:p.you-are-following-count-info
-            "you are following " [:b (count @friends*)] " people on Twitter.  "
-            "if they've shared a location, they'll show up in the map below."]])
+          [:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
+           [:div.you-are-following-count-info
+            [:p "you follow " [:b (count @friends*)] " people on Twitter:"]
+            [:ul
+             [:li
+              "if they're near the location you set on your Twitter profile or "
+              "in your display name, they'll show up in the lists below"]
+             [:li "if they've shared a location, they'll show up on the map"]]]])
 
         (when-not (empty? main-location)
           [:div.category
            [:span.current-user-location main-location]
-           (render-friends-list :main-main "living"   main-location)
-           (render-friends-list :main-name "visiting" main-location)])
+           (render-friends-list :main-main "living near" main-location)
+           (render-friends-list :main-name "visiting"    main-location)])
 
         (when-not (empty? name-location)
           [:div.category
            [:span.current-user-location name-location]
-           (render-friends-list :name-main "living"   name-location)
-           (render-friends-list :name-name "visiting" name-location)])
+           (render-friends-list :name-main "living near" name-location)
+           (render-friends-list :name-name "visiting"    name-location)])
 
         (when (= :loading @friends*)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}

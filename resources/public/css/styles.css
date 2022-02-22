@@ -844,3 +844,9 @@ a.btn {
   border: 1px solid #ffffff33;
   border-radius: 3px;
 }
+ul {
+  padding-left: 24px;
+}
+ul li {
+  padding-left: 6px;
+}
