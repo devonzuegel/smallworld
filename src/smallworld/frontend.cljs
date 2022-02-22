@@ -10,7 +10,7 @@
             [goog.dom]))
 
 (defonce friends (r/atom :loading))
-(defonce welcome-flow-complete? (r/atom :loading))
+(defonce settings (r/atom :loading))
 (defonce email-address (r/atom :loading))
 ; TODO: store this on the session so it doesn't get reset on refresh
 ; TODO: maybe this should only be show when they first sign up, not every time they log in
@@ -179,7 +179,7 @@
        :retry? true)
 
 (fetch "/settings" (fn [result]
-                     (reset! welcome-flow-complete? (:welcome_flow_complete result))
+                     (reset! settings result)
                      (reset! email-address (:email result))))
 
 ; fetch current-user once & then again every 30 seconds
@@ -421,7 +421,7 @@
                :tab-index "4"
                :id "email-address-input"
                :name "email-address-input"
-               :value @email-address ; TODO: this is a hack
+               :value @email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
                :auto-complete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
@@ -431,16 +431,13 @@
    [:br]
    ; TODO: add a nice animation for this transition
    [:a.btn {:href "#"
-            :on-click #(let [email_pref (.-id (input-by-name "email_notification" ":checked"))
-                             m-location (.-value (input-by-name "main-location-input"))
-                             n-location (.-value (input-by-name "name-location-input"))]
-                         (reset! welcome-flow-complete? true)
-                         (fetch-post "/settings/update"
-                                     {:main_location_corrected m-location
-                                      :name_location_corrected n-location
-                                      :email_notifications     email_pref
-                                      :email_address           @email-address
-                                      :welcome_flow_complete   true}))}
+            :on-click #(let [new-settings {:main_location_corrected (.-value (input-by-name "main-location-input"))
+                                           :name_location_corrected (.-value (input-by-name "name-location-input"))
+                                           :email_address           (.-value (input-by-name "email-address-input"))
+                                           :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
+                                           :welcome_flow_complete   true}]
+                         (reset! settings new-settings)
+                         (fetch-post "/settings/update" new-settings))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up
@@ -486,7 +483,7 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (condp = @welcome-flow-complete?
+          (condp = (:welcome_flow_complete @settings)
             :loading (loading-screen)
             true (logged-in-screen)
             false (welcome-flow-screen)))
