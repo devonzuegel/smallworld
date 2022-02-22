@@ -16,7 +16,8 @@
             [cheshire.core :refer [generate-string]]
             [smallworld.user-data :as user-data]
             [clojure.data.json :as json]
-            [clojure.java.jdbc :as sql]))
+            [clojure.java.jdbc :as sql]
+            [smallworld.coordinates :as coordinates]))
 
 (def debug? false)
 
@@ -96,10 +97,9 @@
 
 (defn get-settings [req]
   (let [-current-user (get-current-user req)
-        screen-name   (:screen-name -current-user)
-        settings      (first (db/select-by-col db/settings-table :screen_name screen-name))]
+        screen-name   (:screen-name -current-user)]
     ; TODO: set in the session for faster access
-    (generate-string settings)))
+    (first (db/select-by-col db/settings-table :screen_name screen-name))))
 
 (defn update-settings [req]
   (let [-current-user (get-current-user req)
@@ -178,11 +178,18 @@
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 (defn get-users-friends [req]
-  (let [-current-user (get-current-user req)
-        logged-in?    (not= session/blank -current-user)
-        screen-name   (:screen-name -current-user)
+  (let [main-location (or (:main_location_corrected (get-settings req)) "")
+        name-location (or (:name_location_corrected (get-settings req)) "")
+        corrected-curr-user (merge
+                             (get-current-user req)
+                             {:main-location main-location
+                              :main-coords (coordinates/memoized main-location)
+                              :name-coords (coordinates/memoized name-location)
+                              :name-location name-location})
+        logged-in?    (not= session/blank corrected-curr-user)
+        screen-name   (:screen-name corrected-curr-user)
         result        (if logged-in?
-                        (memoized-abridged-friends screen-name -current-user)
+                        (memoized-abridged-friends screen-name corrected-curr-user)
                         [])]
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
@@ -215,12 +222,19 @@
   (GET "/admin-data" req (admin-data req))
 
   ;; app data endpoints
-  (GET "/settings" req (get-settings req))
+  (GET "/settings" req (generate-string (get-settings req)))
   (POST "/settings/update" req (update-settings req))
   (GET "/friends" req (get-users-friends req))
   (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
                                     friends-result   (--fetch-friends screen-name)
-                                    friends-abridged (map #(user-data/abridged % (get-current-user req))
+                                    settings         (get-settings req)
+                                    corrected-curr-user (merge
+                                                         (get-current-user req)
+                                                         {:main-location (:main_location_corrected settings)
+                                                          :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
+                                                          :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
+                                                          :name-location (:name_location_corrected settings)})
+                                    friends-abridged (map #(user-data/abridged % corrected-curr-user)
                                                           friends-result)]
                                 (if (= :failed friends-result)
                                   (let [failure-message (str "could not refresh friends for @" screen-name)]

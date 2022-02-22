@@ -15,14 +15,14 @@
 ; TODO: store this on the session so it doesn't get reset on refresh
 ; TODO: maybe this should only be show when they first sign up, not every time they log in
 
-(def debug? false)
+(def debug?* (r/atom false))
 
 (defn fetch [route callback & {:keys [retry?] :or {retry? false}}]
   (-> (.fetch js/window route)
       (.then #(.json %)) ; parse
       (.then #(js->clj % :keywordize-keys true)) ; parse
       (.then (fn [result] ; run the callback
-               (when debug?
+               (when @debug?*
                  (println route ":")
                  (pp/pprint result))
                (callback result)))
@@ -34,7 +34,7 @@
                   (fetch route callback))))))
 
 ; TODO: combine this with the fetch function
-(defn fetch-post [route body]
+(defn fetch-post [route body & [callback]]
   (let [request (new js/Request
                      route
                      #js {:method "POST"
@@ -43,7 +43,8 @@
     (->
      (js/fetch request)
      (.then (fn [res] (.json res)))
-     (.then (fn [res] (.log js/console res))))))
+     (.then (fn [res] (.log js/console res)))
+     (.then (fn [res] (when callback (callback res)))))))
 
 (defn add-friends-to-map []
   (when @mapbox/the-map ; don't add friends to map if there is no map
@@ -192,6 +193,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn refresh-friends []
+  (fetch "/friends/refresh"
+         (fn [result]
+           (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                       @mapbox/markers))
+           (reset! friends* result)
+           (add-friends-to-map))))
+
 (defn loading-screen []
   [:div.center-vh (decorations/simple-loading-animation)])
 
@@ -227,14 +236,15 @@
 (defn logged-in-screen []
   [:<>
    (nav)
-   (let [main-location (:main-location @session/store*)
-         name-location (:name-location @session/store*)]
+   (let [main-location (or (:main_location_corrected @settings*) (:main-location @session/store*))
+         name-location (or (:name_location_corrected @settings*) (:name-location @session/store*))]
      [:<>
       [:div.container
        [:div.current-user (render-user nil @session/store*)]
 
-       [:br]
-       [:pre (util/preify @settings*)]
+       (when @debug?*
+         [:br]
+         [:pre (util/preify @settings*)])
 
        [:<>
         (when (and (empty? main-location)
@@ -275,29 +285,28 @@
            "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
 
-        #_[:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
+        (when @debug?*
+          [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
            [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
             "does the data for your friends look out of date?"]
-           [:a.btn {:href "#"
-                    :on-click (fn []
-                                (fetch "/friends/refresh"
-                                       (fn [result]
-                                         (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                                                     @mapbox/markers))
-                                         (reset! friends* result)
-                                         (add-friends-to-map))))}
+           [:a.btn {:href "#" :on-click refresh-friends}
             "refresh friends"]
            [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
-            "note: this takes several seconds to run"]]
+            "note: this takes several seconds to run"]])
 
-        (when debug?
+        (when @debug?*
           [:<>
            [:br]
            [:pre "@current-user:\n\n"  (util/preify @session/store*)]
            [:br]
            (if (= @friends* :loading)
              [:pre "@friends* is still :loading"]
-             [:pre "@friends* (" (count @friends*) "):\n\n" (util/preify @friends*)])])]]
+             [:pre "@friends* (" (count @friends*) "):\n\n" (util/preify @friends*)])])
+
+        [:br] [:br] [:br]
+        [:p {:style {:text-align "center"}}
+         [:a {:on-click #(reset! debug?* (not @debug?*)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+          "toggle debug – currently " (if @debug?* "on 🟢" "off 🔴")]]]]
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
@@ -358,8 +367,7 @@
 
     (render-user nil @session/store*)]
 
-   (when debug? [:pre (util/preify @session/store*)])
-
+   (when @debug?* [:pre (util/preify @session/store*)])
 
    (let [main-location (or (:main-location @session/store*) "")
          name-location (or (:name-location @session/store*) "")]
@@ -397,7 +405,7 @@
                        :value (or (:name @locations) "")
                        :update! #(swap! locations assoc :name %)})
 
-      (when debug? [:pre "@locations: " (util/preify @locations)])])
+      (when @debug?* [:pre "@locations: " (util/preify @locations)])])
    [:br]
    [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby?"]
@@ -440,7 +448,10 @@
                                            :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                                            :welcome_flow_complete   true}]
                          (reset! settings* new-settings)
-                         (fetch-post "/settings/update" new-settings))}
+                         ; TODO: shouldn't have to refresh the data from Twitter at this stage (which is
+                         ; what's happening right now) - we just need to recalculate the distances based
+                         ; on the new location provided in the welcome flow
+                         (fetch-post "/settings/update" new-settings refresh-friends))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up
