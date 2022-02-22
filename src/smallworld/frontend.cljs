@@ -9,9 +9,9 @@
             [cljsjs.mapbox]
             [goog.dom]))
 
-(defonce friends (r/atom :loading))
-(defonce settings (r/atom :loading))
-(defonce email-address (r/atom :loading))
+(defonce friends*       (r/atom :loading))
+(defonce settings*      (r/atom :loading))
+(defonce email-address* (r/atom :loading))
 ; TODO: store this on the session so it doesn't get reset on refresh
 ; TODO: maybe this should only be show when they first sign up, not every time they log in
 
@@ -48,7 +48,7 @@
 (defn add-friends-to-map []
   (when @mapbox/the-map ; don't add friends to map if there is no map
     (doall ; force no lazy load
-     (for [friend @friends]
+     (for [friend @friends*]
        (let [main-coords (:main-coords friend)
              name-coords (:name-coords friend)]
 
@@ -135,12 +135,12 @@
           [:span.distance (round-to-int distance) " mile" (when (not= "1" (round-to-int distance)) "s") " away"])]]]]))
 
 (defn get-close-friends [distance-key max-distance]
-  (->> @friends
+  (->> @friends*
        (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
 (defn render-friends-list [friends-list-key verb-gerund location-name]
-  (let [friends-list      (if (= :loading @friends)
+  (let [friends-list      (if (= :loading @friends*)
                             []
                             (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
@@ -148,7 +148,7 @@
         say-pluralized    (if (= list-count 1) "says" "say")]
 
     [:div.friends-list
-     (if (= :loading @friends)
+     (if (= :loading @friends*)
        [:div.loading
         (decorations/simple-loading-animation)
         "the first time takes a while to load"]
@@ -172,21 +172,21 @@
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages
 (fetch "/friends" (fn [result]
-                    (reset! friends result)
+                    (reset! friends* result)
                     ; TODO: only run this on the main page, otherwise you'll get errors
                     ; wait for the map to load – this is a hack & may be a source of errors ;)
                     (js/setTimeout add-friends-to-map 2000))
        :retry? true)
 
 (fetch "/settings" (fn [result]
-                     (reset! settings result)
-                     (reset! email-address (:email result))))
+                     (reset! settings*      result)
+                     (reset! email-address* (:email result))))
 
 ; fetch current-user once & then again every 30 seconds
 (fetch "/session" #((session/update! %)
-                    (reset! email-address (:email %))))
+                    (reset! email-address* (:email %))))
 (js/setInterval (fn [] (fetch "/session" #((session/update! %)
-                                           (reset! email-address (:email %)))))
+                                           (reset! email-address* (:email %)))))
                 (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -233,6 +233,9 @@
       [:div.container
        [:div.current-user (render-user nil @session/store*)]
 
+       [:br]
+       [:pre (util/preify @settings*)]
+
        [:<>
         (when (and (empty? main-location)
                    (empty? name-location))
@@ -249,10 +252,10 @@
            [:br]
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
-        (when (not= :loading @friends)
+        (when (not= :loading @friends*)
           [:div.category {:style {:line-height "1.2em" :padding "12px 6px"}}
            [:p.you-are-following-count-info
-            "you are following " [:b (count @friends)] " people on Twitter.  "
+            "you are following " [:b (count @friends*)] " people on Twitter.  "
             "if they've shared a location, they'll show up in the map below."]])
 
         (when-not (empty? main-location)
@@ -267,7 +270,7 @@
            (render-friends-list :name-name "living"   name-location)
            (render-friends-list :name-main "visiting" name-location)])
 
-        (when (= :loading @friends)
+        (when (= :loading @friends*)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
            "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
@@ -281,7 +284,7 @@
                                        (fn [result]
                                          (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
                                                      @mapbox/markers))
-                                         (reset! friends result)
+                                         (reset! friends* result)
                                          (add-friends-to-map))))}
             "refresh friends"]
            [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
@@ -292,9 +295,9 @@
            [:br]
            [:pre "@current-user:\n\n"  (util/preify @session/store*)]
            [:br]
-           (if (= @friends :loading)
-             [:pre "@friends is still :loading"]
-             [:pre "@friends (" (count @friends) "):\n\n" (util/preify @friends)])])]]
+           (if (= @friends* :loading)
+             [:pre "@friends* is still :loading"]
+             [:pre "@friends* (" (count @friends*) "):\n\n" (util/preify @friends*)])])]]
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
@@ -341,7 +344,7 @@
                                    (or other ""))))
 
 (defn welcome-flow-screen []
-  (when (nil? @email-address) (reset! email-address (:email @session/store*)))
+  (when (nil? @email-address*) (reset! email-address* (:email @session/store*)))
   [:div.welcome-flow
    [:<>
     [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px"}}
@@ -421,11 +424,11 @@
                :tab-index "4"
                :id "email-address-input"
                :name "email-address-input"
-               :value @email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
+               :value @email-address* ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
                :auto-complete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
-                             (reset! email-address new-value))
+                             (reset! email-address* new-value))
                :placeholder "email address"}]
       (decorations/edit-icon)]]]
    [:br]
@@ -436,7 +439,7 @@
                                            :email_address           (.-value (input-by-name "email-address-input"))
                                            :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                                            :welcome_flow_complete   true}]
-                         (reset! settings new-settings)
+                         (reset! settings* new-settings)
                          (fetch-post "/settings/update" new-settings))}
     "let's go!"]
    [:br] [:br] [:br]
@@ -448,7 +451,7 @@
      "because those features are complete." [:br] [:br] "thanks for being an early user!"]]
    [:br] [:br]])
 
-(defonce admin-data (r/atom :loading))
+(defonce admin-data* (r/atom :loading))
 (defn admin-screen []
   [:div.admin-screen
    (if-not (= "devonzuegel" (:screen-name @session/store*))
@@ -463,16 +466,16 @@
                :on-click #(fetch "/admin-data" (fn [result]
                                                  (println "successfully fetched /admin-data:")
                                                  (pp/pprint result)
-                                                 (reset! admin-data result)))}
+                                                 (reset! admin-data* result)))}
        "load admin data"]
       [:br] [:br] [:br]
-      (when (not= :loading @admin-data)
+      (when (not= :loading @admin-data*)
         (map (fn [key] [:details {:open true} [:summary [:b key]]
-                        [:pre "count: " (count (get @admin-data key))]
+                        [:pre "count: " (count (get @admin-data* key))]
                         [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
-                                                         (get @admin-data key)))]
-                        [:pre {:id key} (util/preify (get @admin-data key))]])
-             (reverse (sort (keys @admin-data)))))])])
+                                                         (get @admin-data* key)))]
+                        [:pre {:id key} (util/preify (get @admin-data* key))]])
+             (reverse (sort (keys @admin-data*)))))])])
 
 (defn not-found-404-screen []
   [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
@@ -483,10 +486,11 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (condp = (:welcome_flow_complete @settings)
-            :loading (loading-screen)
-            true (logged-in-screen)
-            false (welcome-flow-screen)))
+          (if (= :loading @settings*)
+            (loading-screen)
+            (if (:welcome_flow_complete @settings*)
+              (logged-in-screen)
+              (welcome-flow-screen))))
     "/admin" (admin-screen)
     (not-found-404-screen)))
 
