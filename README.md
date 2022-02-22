@@ -72,15 +72,6 @@ bin/make-and-deploy.sh
 
 ### sql cheatsheet
 
-- reset a user:
-
-   ```sql
-   delete from profiles      where request_key = 'devon_dos';
-   delete from friends       where request_key = 'devon_dos';
-   delete from settings      where screen_name = 'devon_dos';
-   delete from access_tokens where request_key = 'devon_dos';
-   ```
-
 - view all tables:
 
    ```sql
@@ -93,5 +84,14 @@ bin/make-and-deploy.sh
    ```sql
    update settings
    set    welcome_flow_complete = false
-   where  screen_name = 'devonzuegel';
+   where  screen_name           = 'devon_dos';
+   ```
+
+- reset a user: (BE CAREFUL, THIS IS VERY DESTRUCTIVE!)
+
+   ```sql
+   delete from profiles      where request_key = 'devon_dos';
+   delete from friends       where request_key = 'devon_dos';
+   delete from settings      where screen_name = 'devon_dos';
+   delete from access_tokens where request_key = 'devon_dos';
    ```
