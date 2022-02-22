@@ -277,8 +277,8 @@
         (when-not (empty? name-location)
           [:div.category
            [:span.current-user-location name-location]
-           (render-friends-list :name-name "living"   name-location)
-           (render-friends-list :name-main "visiting" name-location)])
+           (render-friends-list :name-main "living"   name-location)
+           (render-friends-list :name-name "visiting" name-location)])
 
         (when (= :loading @friends*)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
