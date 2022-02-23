@@ -201,6 +201,14 @@
            (reset! friends* result)
            (add-friends-to-map))))
 
+(defn recompute-friends []
+  (fetch "/friends/recompute"
+         (fn [result]
+           (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
+                       @mapbox/markers))
+           (reset! friends* result)
+           (add-friends-to-map))))
+
 (defn loading-screen []
   [:div.center-vh (decorations/simple-loading-animation)])
 
@@ -455,7 +463,7 @@
                          ; TODO: shouldn't have to refresh the data from Twitter at this stage (which is
                          ; what's happening right now) - we just need to recalculate the distances based
                          ; on the new location provided in the welcome flow
-                         (fetch-post "/settings/update" new-settings refresh-friends))}
+                         (fetch-post "/settings/update" new-settings recompute-friends))}
     "let's go!"]
    [:br] [:br] [:br]
    [:div.heads-up

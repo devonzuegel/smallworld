@@ -215,6 +215,7 @@
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; TODO: prepend data endpoints with /api/v1/
 ;; app is function that takes a request, and returns a response
 (defroutes smallworld-routes ; order matters in this function!
   ;; oauth & session endpoints
@@ -238,6 +239,22 @@
   (GET "/settings" req (generate-string (get-settings req)))
   (POST "/settings/update" req (update-settings req))
   (GET "/friends" req (get-users-friends req))
+  ; without fetching data from Twitter, recompute distances from new locations
+  (GET "/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
+                                      friends-full (:friends (memoized-friends screen-name))
+                                      settings     (get-settings req)
+                                      corrected-curr-user (merge
+                                                           (get-current-user req)
+                                                           {:main-location (:main_location_corrected settings)
+                                                            :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
+                                                            :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
+                                                            :name-location (:name_location_corrected settings)})
+                                      friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
+                                  (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
+                                  (swap! abridged-friends-cache
+                                         assoc screen-name friends-abridged)
+                                  (generate-string friends-abridged)))
+  ; re-fetch data from Twitter
   (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
                                     friends-result   (--fetch-friends screen-name)
                                     settings         (get-settings req)
