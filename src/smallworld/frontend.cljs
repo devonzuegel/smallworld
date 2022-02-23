@@ -466,7 +466,7 @@
      "because those features are complete." [:br] [:br] "thanks for being an early user!"]]
    [:br] [:br]])
 
-(defonce admin-data* (r/atom :loading))
+(defonce admin-summary* (r/atom :loading))
 (defn admin-screen []
   [:div.admin-screen
    (if-not (= "devonzuegel" (:screen-name @session/store*))
@@ -478,19 +478,19 @@
 
      [:<>
       [:a.btn {:href "#"
-               :on-click #(fetch "/admin-data" (fn [result]
-                                                 (println "successfully fetched /admin-data:")
-                                                 (pp/pprint result)
-                                                 (reset! admin-data* result)))}
+               :on-click #(fetch "/admin-summary" (fn [result]
+                                                    (println "successfully fetched /admin-summary:")
+                                                    (pp/pprint result)
+                                                    (reset! admin-summary* result)))}
        "load admin data"]
       [:br] [:br] [:br]
-      (when (not= :loading @admin-data*)
+      (when (not= :loading @admin-summary*)
         (map (fn [key] [:details {:open false} [:summary [:b key]]
-                        [:pre "count: " (count (get @admin-data* key))]
+                        [:pre "count: " (count (get @admin-summary* key))]
                         [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
-                                                         (get @admin-data* key)))]
-                        [:pre {:id key} (util/preify (get @admin-data* key))]])
-             (reverse (sort (keys @admin-data*)))))])])
+                                                         (get @admin-summary* key)))]
+                        [:pre {:id key} (util/preify (get @admin-summary* key))]])
+             (reverse (sort (keys @admin-summary*)))))])])
 
 (defn not-found-404-screen []
   [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
