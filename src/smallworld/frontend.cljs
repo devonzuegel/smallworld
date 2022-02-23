@@ -452,7 +452,6 @@
                :placeholder "email address"}]
       (decorations/edit-icon)]]]
    [:br]
-   ; TODO: add a nice animation for this transition
    [:a.btn {:href "#"
             :on-click #(let [new-settings {:main_location_corrected (.-value (input-by-name "main-location-input"))
                                            :name_location_corrected (.-value (input-by-name "name-location-input"))
@@ -465,14 +464,7 @@
                          ; on the new location provided in the welcome flow
                          (fetch-post "/settings/update" new-settings recompute-friends))}
     "let's go!"]
-   [:br] [:br] [:br]
-   [:div.heads-up
-    [:pre "🚧  heads up  🚧" [:br] [:br]
-     "I'm currently working on this sign in flow, so you updated your location "
-     "data on this page, it won't saved (yet!).  " [:br] [:br]
-     "any other data entry you do on future screens will be saved as you'd expect "
-     "because those features are complete." [:br] [:br] "thanks for being an early user!"]]
-   [:br] [:br]])
+   [:br] [:br] [:br] [:br] [:br]])
 
 (defonce admin-summary* (r/atom :loading))
 (defn admin-screen []
