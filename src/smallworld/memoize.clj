@@ -1,7 +1,6 @@
 (ns smallworld.memoize
   (:refer-clojure :exclude [memoize])
   (:require [smallworld.db :as db]
-            [clojure.pprint :as pp]
             [clojure.walk :as walk]))
 
 (def debug? false)
