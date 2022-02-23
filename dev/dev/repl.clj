@@ -7,11 +7,11 @@
 
 (def PORT 3001)
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn restart-server []
   (use 'smallworld.web :reload)
   (backend/stop!)
   (backend/start! PORT))
-
 
 (defn initialize-repl []
   (println (str "\n\n🌎 starting the small world server (backend): http://localhost:" PORT " 🌍\n"))
