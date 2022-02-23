@@ -87,6 +87,14 @@ bin/make-and-deploy.sh
    where  screen_name           = 'devon_dos';
    ```
 
+- get column names of a table:
+
+   ```sql
+   select column_name, data_type
+   from   information_schema.columns
+   where  table_name = 'friends';
+   ```
+
 - reset a user: (BE CAREFUL, THIS IS VERY DESTRUCTIVE!)
 
    ```sql
