@@ -176,7 +176,7 @@
 (def memoized-abridged-friends
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
-(defn get-users-friends [req]
+(defn get-users-friends [req & [screen-name]]
   (let [main-location (or (:main_location_corrected (get-settings req)) "")
         name-location (or (:name_location_corrected (get-settings req)) "")
         corrected-curr-user (merge
@@ -186,7 +186,7 @@
                               :name-coords (coordinates/memoized name-location)
                               :name-location name-location})
         logged-in?    (not= session/blank corrected-curr-user)
-        screen-name   (:screen-name corrected-curr-user)
+        screen-name   (or screen-name (:screen-name corrected-curr-user))
         result        (if logged-in?
                         (memoized-abridged-friends screen-name corrected-curr-user)
                         [])]
@@ -222,7 +222,17 @@
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/session"    req (generate-string (get-current-user req)))
   (GET "/logout"     req (logout req))
-  (GET "/admin-data" req (admin-data req))
+
+  ;; admin endpoints
+  (GET "/admin/summary" req (admin-data req))
+  (GET "/admin/friends/:screen_name" req (fn [{params :params}]
+                                           (let [curr-user-screen-name (:screen-name (get-current-user req))
+                                                 target-screen-name    (:screen_name params)]
+                                             (println "params:             " params)
+                                             (println "target-screen-name: " target-screen-name)
+                                             (if-not (= "devonzuegel" curr-user-screen-name)
+                                               (response/bad-request {:message "you don't have access to this page"})
+                                               (get-users-friends req target-screen-name)))))
 
   ;; app data endpoints
   (GET "/settings" req (generate-string (get-settings req)))
