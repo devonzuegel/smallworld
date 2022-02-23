@@ -485,7 +485,7 @@
        "load admin data"]
       [:br] [:br] [:br]
       (when (not= :loading @admin-data*)
-        (map (fn [key] [:details {:open true} [:summary [:b key]]
+        (map (fn [key] [:details {:open false} [:summary [:b key]]
                         [:pre "count: " (count (get @admin-data* key))]
                         [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
                                                          (get @admin-data* key)))]
