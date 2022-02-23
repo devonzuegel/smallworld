@@ -34,33 +34,32 @@
    (+ (random-offset) (second lng-lat))])
 
 (defn add-user-marker [{lng-lat     :lng-lat
-                        location    :location
+                        ;; location    :location
                         img-url     :img-url
                         user-name   :user-name
                         screen-name :screen-name
                         classname   :classname}]
-  (try (do
-         (assert-long-lat lng-lat)
-         (let [element  (.createElement js/document "div")
-               name-div (.createElement js/document "div")
-               marker   (new js/mapboxgl.Marker element)]
+  (try  (assert-long-lat lng-lat)
+        (let [element  (.createElement js/document "div")
+              name-div (.createElement js/document "div")
+              marker   (new js/mapboxgl.Marker element)]
 
-           (.setLngLat marker (clj->js (if (= classname "current-user")
-                                         lng-lat
-                                         (with-offset lng-lat))))
-           (.addTo marker @the-map)
-           (swap! markers conj marker)
+          (.setLngLat marker (clj->js (if (= classname "current-user")
+                                        lng-lat
+                                        (with-offset lng-lat))))
+          (.addTo marker @the-map)
+          (swap! markers conj marker)
 
           ;;  (.setProperty (.-id element) screen-name)
-           (set! (.-id element) screen-name)
-           (set! (.-className element) (str "marker " classname))
-           (.setProperty (.-style element) "background-image" (str "url(" img-url ")"))
+          (set! (.-id element) screen-name)
+          (set! (.-className element) (str "marker " classname))
+          (.setProperty (.-style element) "background-image" (str "url(" img-url ")"))
 
            ; add name element to marker
-           (.appendChild name-div (.createTextNode js/document user-name))
-           (.appendChild element name-div)
-           (set! (.-className name-div) "user-name")))
-       (catch js/Error e (js/console.error e))))
+          (.appendChild name-div (.createTextNode js/document user-name))
+          (.appendChild element name-div)
+          (set! (.-className name-div) "user-name"))
+        (catch js/Error e (js/console.error e))))
 
 ; only remove marker if it's not the current user
 (defn remove-friend-marker [current-user-screen-name]
@@ -133,3 +132,36 @@
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
      (if @expanded "collapse map" "expand map")]
     [mapbox-dom current-user]]])
+
+(defn add-friends-to-map [friends]
+  (when @the-map ; don't add friends to map if there is no map
+    (doall ; force no lazy load
+     (for [friend friends]
+       (let [main-coords (:main-coords friend)
+             name-coords (:name-coords friend)]
+
+       ; TODO: make the styles for main vs name coords different
+         (let [lng (:lng main-coords)
+               lat (:lat main-coords)
+               has-coord (and main-coords lng lat)]
+           (when has-coord
+             (add-user-marker {:lng-lat     [lng lat]
+                               :location    (:location friend)
+                               :img-url     (:profile_image_url_large friend)
+                               :user-name   (:name friend)
+                               :screen-name (:screen-name friend)
+                               :classname   "main-coords"})))
+
+         (let [lng (:lng name-coords)
+               lat (:lat name-coords)
+               has-coord (and name-coords lng lat)]
+           (when has-coord
+             (add-user-marker {:lng-lat     [lng lat]
+                               :location    (:location friend)
+                               :img-url     (:profile_image_url_large friend)
+                               :user-name   (:name friend)
+                               :screen-name (:screen-name friend)
+                               :classname   "name-coords"}))))))
+    (when-not (nil? @the-map)
+      (.on @the-map "loaded" #((println "upating markers size")
+                               (update-markers-size))))))
