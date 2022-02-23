@@ -14,7 +14,7 @@
                  [cheshire "5.10.1"]
                  [oauth-clj "0.1.16"]
                  [cljsjs/mapbox "0.46.0-0"]
-                 [ring/ring-jetty-adapter "1.7.1"]
+                 [ring/ring-jetty-adapter "1.9.5"]
                  [ring/ring-ssl "0.3.0"]
                  [yesql "0.5.3"]
                  [org.clojure/data.json "2.4.0"]
