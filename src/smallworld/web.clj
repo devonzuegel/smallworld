@@ -16,7 +16,6 @@
             [cheshire.core :refer [generate-string]]
             [smallworld.user-data :as user-data]
             [clojure.data.json :as json]
-            [clojure.java.jdbc :as sql]
             [smallworld.coordinates :as coordinates]))
 
 (def debug? false)
@@ -205,6 +204,10 @@
                  (response/bad-request {:message "you don't have access to this page"})
                  {:profiles    (db/select-all db/profiles-table)
                   :settings    (db/select-all db/settings-table)
+                  :friends     (map #(-> %
+                                         (assoc :friends-count (count (get-in % [:data "friends"])))
+                                         (dissoc :data))
+                                    (db/select-all db/friends-table))
                   :coordinates (db/select-all db/coordinates-table)})]
     (generate-string result)))
 
