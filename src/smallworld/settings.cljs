@@ -8,9 +8,9 @@
             [smallworld.user-data   :as user-data]))
 
 (def debug? false)
-(defonce locations (r/atom :loading))
-(defonce settings*      (r/atom :loading))
-(defonce email-address* (r/atom :loading))
+(defonce *locations     (r/atom :loading))
+(defonce *settings      (r/atom :loading))
+(defonce *email-address (r/atom :loading))
 
 (defn location-field [{id          :id
                        tabindex    :tab-index
@@ -44,7 +44,7 @@
                                    (or other ""))))
 
 (defn welcome-flow-screen []
-  (when (nil? @email-address*) (reset! email-address* (:email @session/store*)))
+  (when (nil? @*email-address) (reset! *email-address (:email @session/store*)))
   [:div.welcome-flow
    [:<>
     [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px"}}
@@ -63,9 +63,9 @@
    (let [main-location (or (:main-location @session/store*) "")
          name-location (or (:name-location @session/store*) "")]
 
-     (when (= :loading @locations) ; TODO: clean this up, it's kinda hacky
-       (reset! locations {:main main-location
-                          :name name-location}))
+     (when (= :loading @*locations) ; TODO: clean this up, it's kinda hacky
+       (reset! *locations {:main main-location
+                           :name name-location}))
 
      [:div.location-fields
       [:br]
@@ -80,8 +80,8 @@
                                 [:<>
                                  "based on your profile location, you’re in..."])
                        :placeholder "what city do you live in?"
-                       :value (or (:main @locations) "")
-                       :update! #(swap! locations assoc :main %)})
+                       :value (or (:main @*locations) "")
+                       :update! #(swap! *locations assoc :main %)})
       [:br]
       (location-field {:id "name-location"
                        :tab-index "2"
@@ -93,10 +93,10 @@
                                 [:<>
                                  "based on your display name, you’re in..."])
                        :placeholder "any plans to travel?"
-                       :value (or (:name @locations) "")
-                       :update! #(swap! locations assoc :name %)})
+                       :value (or (:name @*locations) "")
+                       :update! #(swap! *locations assoc :name %)})
 
-      (when debug? [:pre "@locations: " (util/preify @locations)])])
+      (when debug? [:pre "@*locations: " (util/preify @*locations)])])
    [:br]
    [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby?"]
@@ -123,11 +123,11 @@
                :tab-index "4"
                :id "email-address-input"
                :name "email-address-input"
-               :value @email-address* ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
+               :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
                :auto-complete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
-                             (reset! email-address* new-value))
+                             (reset! *email-address new-value))
                :placeholder "email address"}]
       (decorations/edit-icon)]]]
    [:br]
@@ -137,7 +137,7 @@
                                            :email_address           (.-value (input-by-name "email-address-input"))
                                            :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                                            :welcome_flow_complete   true}]
-                         (reset! settings* new-settings)
+                         (reset! *settings new-settings)
                          ; TODO: shouldn't have to refresh the data from Twitter at this stage (which is
                          ; what's happening right now) - we just need to recalculate the distances based
                          ; on the new location provided in the welcome flow

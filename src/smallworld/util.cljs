@@ -37,8 +37,7 @@
                      #js {:method "POST"
                           :body (.stringify js/JSON (clj->js body))
                           :headers (new js/Headers #js{:Content-Type "application/json"})})]
-    (->
-     (js/fetch request)
-     (.then (fn [res] (.json res)))
-     (.then (fn [res] (.log js/console res)))
-     (.then (fn [res] (when callback (callback res)))))))
+    (-> (js/fetch request)
+        (.then (fn [res] (.json res)))
+        (.then (fn [res] (.log js/console res)))
+        (.then (fn [res] (when callback (callback res)))))))
