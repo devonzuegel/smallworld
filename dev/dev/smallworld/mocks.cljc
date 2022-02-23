@@ -3,6 +3,7 @@
 ; TODO: find out how to only load this in development, not in production
 ; use during development when you don't want to fetch from Twitter
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (def current-user
   {:profile_image_url_large
    "https://pbs.twimg.com/profile_images/1410680490949058566/lIlsTIH6.jpg"
@@ -36,6 +37,7 @@
     :main-main nil
     :main-name nil}})
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (def friends [friend
               friend
               friend
