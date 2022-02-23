@@ -7,7 +7,7 @@
             [smallworld.session :as session]
             [smallworld.decorations :as decorations]))
 
-(defonce friends* (r/atom :loading))
+(defonce *friends (r/atom :loading))
 
 (defn closer-than [max-distance dist-key]
   (fn [friend]
@@ -53,12 +53,12 @@
           [:span.distance (round-to-int distance) " mile" (when (not= "1" (round-to-int distance)) "s") " away"])]]]]))
 
 (defn get-close-friends [distance-key max-distance]
-  (->> @friends*
+  (->> @*friends
        (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
 (defn render-friends-list [friends-list-key verb-gerund location-name]
-  (let [friends-list      (if (= :loading @friends*)
+  (let [friends-list      (if (= :loading @*friends)
                             []
                             (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
@@ -66,7 +66,7 @@
         say-pluralized    (if (= list-count 1) "says" "say")]
 
     [:div.friends-list
-     (if (= :loading @friends*)
+     (if (= :loading @*friends)
        [:div.loading
         (decorations/simple-loading-animation)
         "the first time takes a while to load"]
@@ -89,13 +89,13 @@
               (fn [result]
                 (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
                             @mapbox/markers))
-                (reset! friends* result)
-                (mapbox/add-friends-to-map @friends*))))
+                (reset! *friends result)
+                (mapbox/add-friends-to-map @*friends))))
 
 (defn recompute-friends []
   (util/fetch "/friends/recompute"
               (fn [result]
                 (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
                             @mapbox/markers))
-                (reset! friends* result)
-                (mapbox/add-friends-to-map @friends*))))
+                (reset! *friends result)
+                (mapbox/add-friends-to-map @*friends))))

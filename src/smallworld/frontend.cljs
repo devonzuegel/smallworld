@@ -10,7 +10,7 @@
             [goog.dom]
             [smallworld.user-data :as user-data]))
 
-(def debug?* (r/atom false))
+(def *debug? (r/atom false))
 
 (defn nav []
   [:div.nav
@@ -28,22 +28,22 @@
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages
 (util/fetch "/friends" (fn [result]
-                         (reset! user-data/friends* result)
+                         (reset! user-data/*friends result)
                          ; TODO: only run this on the main page, otherwise you'll get errors
                          ; wait for the map to load – this is a hack & may be a source of errors ;)
-                         (js/setTimeout (mapbox/add-friends-to-map @user-data/friends*)
+                         (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends)
                                         2000))
             :retry? true)
 
 (util/fetch "/settings" (fn [result]
-                          (reset! settings/settings*      result)
-                          (reset! settings/email-address* (:email result))))
+                          (reset! settings/*settings      result)
+                          (reset! settings/*email-address (:email result))))
 
 ; fetch current-user once & then again every 30 seconds
 (util/fetch "/session" #((session/update! %)
-                         (reset! settings/email-address* (:email %))))
+                         (reset! settings/*email-address (:email %))))
 (js/setInterval (fn [] (util/fetch "/session" #((session/update! %)
-                                                (reset! settings/email-address* (:email %)))))
+                                                (reset! settings/*email-address (:email %)))))
                 (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -84,15 +84,15 @@
 (defn logged-in-screen []
   [:<>
    (nav)
-   (let [main-location (or (:main_location_corrected @settings/settings*) (:main-location @session/store*))
-         name-location (or (:name_location_corrected @settings/settings*) (:name-location @session/store*))]
+   (let [main-location (or (:main_location_corrected @settings/*settings) (:main-location @session/store*))
+         name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/store*))]
      [:<>
       [:div.container
        [:div.current-user (user-data/render-user nil @session/store*)]
 
-       (when @debug?*
+       (when @*debug?
          [:br]
-         [:pre (util/preify @settings/settings*)])
+         [:pre (util/preify @settings/*settings)])
 
        [:<>
         (when (and (empty? main-location)
@@ -110,10 +110,10 @@
            [:br]
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
-        (when (not= :loading @user-data/friends*)
+        (when (not= :loading @user-data/*friends)
           [:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
            [:div.you-are-following-count-info
-            [:p "you follow " [:b (count @user-data/friends*)] " people on Twitter:"]
+            [:p "you follow " [:b (count @user-data/*friends)] " people on Twitter:"]
             [:ul
              [:li
               "if they're near the location you set on your Twitter profile or "
@@ -132,12 +132,12 @@
            (user-data/render-friends-list :name-main "living near" name-location)
            (user-data/render-friends-list :name-name "visiting"    name-location)])
 
-        (when (= :loading @user-data/friends*)
+        (when (= :loading @user-data/*friends)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
            "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
 
-        (when @debug?*
+        (when @*debug?
           [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
            [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
             "does the data for your friends look out of date?"]
@@ -146,19 +146,19 @@
            [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
             "note: this takes several seconds to run"]])
 
-        (when @debug?*
+        (when @*debug?
           [:<>
            [:br]
            [:pre "@current-user:\n\n"  (util/preify @session/store*)]
            [:br]
-           (if (= @user-data/friends* :loading)
-             [:pre "@user-data/friends* is still :loading"]
-             [:pre "@user-data/friends* (" (count @user-data/friends*) "):\n\n" (util/preify @user-data/friends*)])])
+           (if (= @user-data/*friends :loading)
+             [:pre "@user-data/*friends is still :loading"]
+             [:pre "@user-data/*friends (" (count @user-data/*friends) "):\n\n" (util/preify @user-data/*friends)])])
 
         [:br] [:br] [:br]
         [:p {:style {:text-align "center"}}
-         [:a {:on-click #(reset! debug?* (not @debug?*)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-          "toggle debug – currently " (if @debug?* "on 🟢" "off 🔴")]]]]
+         [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]]
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
@@ -206,9 +206,9 @@
     "/" (condp = @session/store*
           :loading (loading-screen)
           session/blank (logged-out-screen)
-          (if (= :loading @settings/settings*)
+          (if (= :loading @settings/*settings)
             (loading-screen)
-            (if (:welcome_flow_complete @settings/settings*)
+            (if (:welcome_flow_complete @settings/*settings)
               (logged-in-screen)
               (settings/welcome-flow-screen))))
     "/admin" (admin-screen)
