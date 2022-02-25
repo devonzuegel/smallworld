@@ -680,6 +680,17 @@ input[type='radio']:focus {
 .welcome-flow .mapbox-container .mapboxgl-map {
   height: 100% !important;
 }
+@keyframes color {
+  0% {
+    background-color: #1d7a42;
+  }
+  50% {
+    background-color: #013917;
+  }
+  100% {
+    background-color: #1d7a42;
+  }
+}
 .welcome-flow .mapbox-container .center-point {
   width: 10px;
   height: 10px;
@@ -690,6 +701,9 @@ input[type='radio']:focus {
   left: calc(50%);
   top: calc(-50%);
   transform: translateX(-50%) translateY(-50%);
+  animation-name: color;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
 }
 .welcome-flow .mapbox-container .mapboxgl-canvas {
   position: relative !important;
