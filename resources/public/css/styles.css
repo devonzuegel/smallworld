@@ -835,8 +835,15 @@ a.btn {
   font-weight: bold;
   background-color: #d9d3cc;
   color: #013917;
-  padding: 3px 16px 4px 16px;
+  padding: 4px 16px 4px 16px;
   border-radius: 12px;
+  cursor: pointer;
+  transition: all 80ms ease-out;
+}
+button.btn:hover,
+a.btn:hover {
+  background: #e9e3dc;
+  transition: all 80ms ease-out;
 }
 /************************************************************/
 /** utils ***************************************************/
