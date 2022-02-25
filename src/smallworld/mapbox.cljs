@@ -61,7 +61,6 @@
         (let [element  (.createElement js/document "div")
               marker   (new js/mapboxgl.Marker element)
               popup    (new js/mapboxgl.Popup #js{:offset 38
-                                                  :id (str "popup--" screen-name)
                                                   :closeButton false
                                                   :anchor "left"})]
 
