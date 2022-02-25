@@ -27,3 +27,8 @@
       (pp/pprint response)
       (println "=======================================================\n")
       response)))
+
+(defn rand-str [len]
+  (apply str
+         (for [i (range len)]
+           (char (+ (rand 26) 65)))))
