@@ -9,27 +9,40 @@
 
 (def debug? false)
 (defonce *locations      (r/atom :loading))
-;; (defonce *minimap-coords (r/atom {}))
 (defonce *minimaps       (r/atom {}))
+;; (defonce *minimap-coords (r/atom {}))
+;; (defonce *markers        (r/atom {}))
 (defonce *settings       (r/atom :loading))
 (defonce *email-address  (r/atom :loading))
 (defonce *form-errors    (r/atom {}))
 
-; fetch coordinates with memoization
+;; (defn update-minimap-marker! [minimap-id lng-lat]
+;;   (let [the-map (get @*minimaps minimap-id)
+;;         element (.createElement js/document "div")
+;;         marker  (new js/mapboxgl.Marker element)
+;;         old-marker (get @*markers minimap-id)]
+
+;;     (when old-marker (.remove old-marker))
+;;     (swap! *markers assoc minimap-id marker)
+
+;;     (.setLngLat marker (clj->js lng-lat))
+;;     (.addTo marker the-map)
+;;     (set! (.-className element) "minimap-marker")))
+
 (defn fetch-coordinates! [minimap-id input]
   (util/fetch-post "/coordinates" {:location-name input}
                    (fn [result]
-                     ; TODO: add a marker
-                     (js/console.log "fetched coordinates for" input)
-                     (js/console.log "setting center...")
-                     (.setCenter (get @*minimaps minimap-id) #js[(:lng result) (:lat result)])
+                     (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is considered essential with respect to prefers-reduced-motion
+                                                             :zoom 4
+                                                             :center #js[(:lng result) (:lat result)]})
+                    ;;  (update-minimap-marker! minimap-id [(:lng result) (:lat result)])
                      #_(swap! *minimap-coords assoc minimap-id result))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
 
-(defn minimap [minimap-id]
+(defn minimap [minimap-id location-name]
   (r/create-class {:component-did-mount
                    (fn [] ; this should be called just once when the component is mounted
                      (swap! *minimaps assoc minimap-id
@@ -38,10 +51,14 @@
                                      :key    (get-in mapbox/config [mapbox/style :access-token])
                                      :style  (get-in mapbox/config [mapbox/style :style])
                                      :center (clj->js mapbox/Miami) ; TODO: center on location they provie to Twitter
+                                     :interactive false ; makes the map not zoomable or draggable
                                      :attributionControl false ; removes the Mapbox copyright symbol
-                                     :zoom 2
+                                     :zoom 4
                                      :maxZoom 8
-                                     :minZoom 0})))
+                                     :minZoom 0}))
+                     ; zoom out if they haven't provided a location
+                     (if (clojure.string/blank? location-name)
+                       (.setZoom (get @*minimaps minimap-id) 0)))
                    :reagent-render (fn [] [:div {:id minimap-id}])}))
 
 (defn location-field [{id          :id
@@ -63,6 +80,7 @@
         :name (str id "-input")
         :value value
         :autoComplete "off"
+        :auto-complete "off"
         :on-change #(let [input-elem (.-target %)
                           new-value  (.-value input-elem)]
                       (fetch-coordinates-debounced! minimap-id new-value)
@@ -71,7 +89,12 @@
       (decorations/edit-icon)]
      [:div.small-info-text "this will not update your Twitter profile"]
      [:br]
-     [:div.mapbox-container [minimap minimap-id]]]))
+     [:div.mapbox-container
+      (println "value: ")
+      (js/console.log value)
+      [minimap minimap-id value]
+      (when-not (clojure.string/blank? value)
+        [:div.center-point])]]))
 
 (defn input-by-name [name & [other]]
   (.querySelector js/document (str "input[name= \"" name "\"]"
@@ -196,6 +219,7 @@
                :name "email-address-input"
                :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
                :autoComplete "off"
+               :auto-complete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
                              (reset! *email-address new-value))
