@@ -3,7 +3,7 @@
             [smallworld.session     :as session]
             [smallworld.decorations :as decorations]
             [smallworld.util        :as util]
-            [clojure.pprint         :as pp]
+            [smallworld.mapbox      :as mapbox]
             [clojure.string         :as str]
             [smallworld.user-data   :as user-data]))
 
@@ -14,6 +14,21 @@
 (defonce *form-errors   (r/atom {}))
 
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
+
+(defn minimap [lng-lat minimap-id]
+  (r/create-class {:component-did-mount
+                   (fn [] ; this should be called just once when the component is mounted
+                     (new js/mapboxgl.Map
+                          #js{:container minimap-id
+                              :key    (get-in mapbox/config [mapbox/style :access-token])
+                              :style  (get-in mapbox/config [mapbox/style :style])
+                              :center (clj->js lng-lat)
+                              :attributionControl false ; removes the Mapbox copyright symbol
+                              :zoom 0
+                              :maxZoom 0
+                              :minZoom 0}))
+                   :reagent-render (fn [] [:div {:id minimap-id}])}))
+
 (defn location-field [{id          :id
                        tabindex    :tab-index
                        auto-focus  :auto-focus
@@ -39,7 +54,7 @@
     (decorations/edit-icon)]
    [:div.small-info-text "this will not update your Twitter profile"]
    [:br]
-   [:iframe {:width "200px" :height "100px" :src "https://api.mapbox.com/styles/v1/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp.html?title=false&access_token=pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA&zoomwheel=false#3.48/36.44/-121.17" :title "Curios Bright" :style {:border "none" :background "#9dc7d9" :border-radius "40px"}}]])
+   [:div.mapbox-container [minimap mapbox/middle-of-USA (str "minimap--" id)]]])
 
 (defn input-by-name [name & [other]]
   (.querySelector js/document (str "input[name= \"" name "\"]"
@@ -52,10 +67,8 @@
         regex-result (re-matches regex-pattern email)]
     (nil? regex-result)))
 
-(defn valid-inputs!? [{main_location_corrected :main_location_corrected
-                       name_location_corrected :name_location_corrected
-                       email_address           :email_address
-                       email_notifications     :email_notifications}]
+(defn valid-inputs!? [{email_address       :email_address
+                       email_notifications :email_notifications}]
   (reset! *form-errors {})
 
   ; email_notifications

@@ -546,6 +546,9 @@ tr:nth-child(even) {
   padding: 16px 0;
   border-radius: 12px;
 }
+.welcome-flow .location-field {
+  padding: 24px 0;
+}
 .welcome-flow .email-options,
 .welcome-flow .location-field {
   border: 1px solid #ffffff33;
@@ -663,6 +666,21 @@ input[type='radio']:focus {
   text-align: center;
   text-align: center;
   width: 289px;
+}
+.welcome-flow .mapbox-container {
+  margin: auto;
+  width: min(300px, calc(100% - 64px));
+  height: 140px;
+  margin: 0 auto;
+  border-radius: 100px;
+  background: #ffffff11;
+  border: 1px solid #ffffff33;
+  overflow: hidden;
+  background: #9dc7d9;
+}
+.welcome-flow .mapbox-container .mapboxgl-canvas {
+  position: relative !important;
+  background: #9dc7d9;
 }
 
 /******************************************************************************/

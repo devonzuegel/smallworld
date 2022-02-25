@@ -70,14 +70,14 @@
         (.remove marker)))))
 
 ; note – the mapbox access-token is paired with each style, rather than a per-account basis
-(def mapbox-config {:curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
-                                    :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}
+(def config {:curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
+                             :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}
                     ; for some reason, this is broken right now...
-                    :smallworld {:style "mapbox://styles/devonzuegel/ckzsrsamc000l15mubod1gev5"
-                                 :access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"}})
-(def mapbox-style :curios-bright)
+             :smallworld {:style "mapbox://styles/devonzuegel/ckzsrsamc000l15mubod1gev5"
+                          :access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"}})
+(def style :curios-bright)
 
-(set! (.-accessToken js/mapboxgl) (get-in mapbox-config [mapbox-style :access-token]))
+(set! (.-accessToken js/mapboxgl) (get-in config [style :access-token]))
 
 (def middle-of-USA [-90, 40])
 
@@ -96,8 +96,8 @@
   (reset! the-map
           (new js/mapboxgl.Map
                #js{:container "mapbox"
-                   :key    (get-in mapbox-config [mapbox-style :access-token])
-                   :style  (get-in mapbox-config [mapbox-style :style])
+                   :key    (get-in config [style :access-token])
+                   :style  (get-in config [style :style])
                    :center (clj->js (or (:lng-lat current-user) middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
                    :zoom 2
