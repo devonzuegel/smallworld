@@ -35,16 +35,11 @@
                                         2000))
             :retry? true)
 
+(util/fetch "/session" #(session/update! %))
+
 (util/fetch "/settings" (fn [result]
                           (reset! settings/*settings      result)
                           (reset! settings/*email-address (:email result))))
-
-; fetch current-user once & then again every 30 seconds
-(util/fetch "/session" #((session/update! %)
-                         (reset! settings/*email-address (:email %))))
-(js/setInterval (fn [] (util/fetch "/session" #((session/update! %)
-                                                (reset! settings/*email-address (:email %)))))
-                (* 30 1000))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -172,7 +167,7 @@
           :screen-name (:screen-name @session/store*)}))])])
 
 (defonce admin-summary* (r/atom :loading))
-(defn admin-screen []
+(defn admin-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
   [:div.admin-screen
    (if-not (= "devonzuegel" (:screen-name @session/store*))
 
@@ -184,7 +179,6 @@
      [:<>
       [:a.btn {:href "#"
                :on-click #(util/fetch "/admin-summary" (fn [result]
-                                                         (println "successfully fetched /admin-summary:")
                                                          (pp/pprint result)
                                                          (reset! admin-summary* result)))}
        "load admin data"]

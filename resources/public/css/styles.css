@@ -648,6 +648,22 @@ input[type='radio']:focus {
   outline: 0.1em solidwhite;
   outline-offset: max(2px, 0.15em);
 }
+:not(.error) .error-msg {
+  display: none;
+}
+.error .error-msg {
+  display: block;
+  background: #ffdfe1;
+  border-radius: 4px;
+  color: #c2000d;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin: 2px auto 0;
+  padding: 4px;
+  text-align: center;
+  text-align: center;
+  width: 289px;
+}
 
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
@@ -814,6 +830,7 @@ input[type='radio']:focus {
   font-family: 'Inria Serif', serif;
   font-style: italic;
 }
+button.btn,
 a.btn {
   font-weight: bold;
   background-color: #d9d3cc;
