@@ -10,33 +10,17 @@
 (def debug? false)
 (defonce *locations      (r/atom :loading))
 (defonce *minimaps       (r/atom {}))
-;; (defonce *minimap-coords (r/atom {}))
-;; (defonce *markers        (r/atom {}))
 (defonce *settings       (r/atom :loading))
 (defonce *email-address  (r/atom :loading))
 (defonce *form-errors    (r/atom {}))
 
-;; (defn update-minimap-marker! [minimap-id lng-lat]
-;;   (let [the-map (get @*minimaps minimap-id)
-;;         element (.createElement js/document "div")
-;;         marker  (new js/mapboxgl.Marker element)
-;;         old-marker (get @*markers minimap-id)]
-
-;;     (when old-marker (.remove old-marker))
-;;     (swap! *markers assoc minimap-id marker)
-
-;;     (.setLngLat marker (clj->js lng-lat))
-;;     (.addTo marker the-map)
-;;     (set! (.-className element) "minimap-marker")))
-
 (defn fetch-coordinates! [minimap-id input]
   (util/fetch-post "/coordinates" {:location-name input}
                    (fn [result]
-                     (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is considered essential with respect to prefers-reduced-motion
-                                                             :zoom 4
-                                                             :center #js[(:lng result) (:lat result)]})
-                    ;;  (update-minimap-marker! minimap-id [(:lng result) (:lat result)])
-                     #_(swap! *minimap-coords assoc minimap-id result))))
+                     (.flyTo (get @*minimaps minimap-id)
+                             #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
+                                 :zoom 4
+                                 :center #js[(:lng result) (:lat result)]}))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
@@ -90,8 +74,6 @@
      [:div.small-info-text "this will not update your Twitter profile"]
      [:br]
      [:div.mapbox-container
-      (println "value: ")
-      (js/console.log value)
       [minimap minimap-id value]
       (when-not (clojure.string/blank? value)
         [:div.center-point])]]))
@@ -107,7 +89,6 @@
         regex-result (re-matches regex-pattern email)]
     (nil? regex-result)))
 
-; TODO: fail if the locations don't match a lng-lat pair
 (defn valid-inputs!? [{email_address       :email_address
                        email_notifications :email_notifications}]
   (reset! *form-errors {})
