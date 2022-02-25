@@ -238,6 +238,12 @@
   ;; app data endpoints
   (GET "/settings" req (generate-string (get-settings req)))
   (POST "/settings/update" req (update-settings req))
+  (POST "/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
+                                 location-name (:location-name parsed-body)]
+                             (println "parsed-body:")
+                             (pp/pprint parsed-body)
+                             (println "location-name: " location-name)
+                             (generate-string (coordinates/memoized location-name))))
   (GET "/friends" req (get-users-friends req))
   ; without fetching data from Twitter, recompute distances from new locations
   (GET "/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))

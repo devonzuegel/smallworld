@@ -8,29 +8,40 @@
             [smallworld.user-data   :as user-data]))
 
 (def debug? false)
-(defonce *locations     (r/atom :loading))
-(defonce *settings      (r/atom :loading))
-(defonce *email-address (r/atom :loading))
-(defonce *form-errors   (r/atom {}))
+(defonce *locations      (r/atom :loading))
+;; (defonce *minimap-coords (r/atom {}))
+(defonce *minimaps       (r/atom {}))
+(defonce *settings       (r/atom :loading))
+(defonce *email-address  (r/atom :loading))
+(defonce *form-errors    (r/atom {}))
 
 ; fetch coordinates with memoization
-(defn fetch-coordinates! [input] (js/console.log "fetching coordinates: " input)) ; TODO: actually fetch coords
-(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 400))
+(defn fetch-coordinates! [minimap-id input]
+  (util/fetch-post "/coordinates" {:location-name input}
+                   (fn [result]
+                     ; TODO: add a marker
+                     (js/console.log "fetched coordinates for" input)
+                     (js/console.log "setting center...")
+                     (.setCenter (get @*minimaps minimap-id) #js[(:lng result) (:lat result)])
+                     #_(swap! *minimap-coords assoc minimap-id result))))
+
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
 
-(defn minimap [lng-lat minimap-id]
+(defn minimap [minimap-id]
   (r/create-class {:component-did-mount
                    (fn [] ; this should be called just once when the component is mounted
-                     (new js/mapboxgl.Map
-                          #js{:container minimap-id
-                              :key    (get-in mapbox/config [mapbox/style :access-token])
-                              :style  (get-in mapbox/config [mapbox/style :style])
-                              :center (clj->js lng-lat)
-                              :attributionControl false ; removes the Mapbox copyright symbol
-                              :zoom 0
-                              :maxZoom 0
-                              :minZoom 0}))
+                     (swap! *minimaps assoc minimap-id
+                            (new js/mapboxgl.Map
+                                 #js{:container minimap-id
+                                     :key    (get-in mapbox/config [mapbox/style :access-token])
+                                     :style  (get-in mapbox/config [mapbox/style :style])
+                                     :center (clj->js mapbox/Miami) ; TODO: center on location they provie to Twitter
+                                     :attributionControl false ; removes the Mapbox copyright symbol
+                                     :zoom 2
+                                     :maxZoom 8
+                                     :minZoom 0})))
                    :reagent-render (fn [] [:div {:id minimap-id}])}))
 
 (defn location-field [{id          :id
@@ -40,26 +51,27 @@
                        placeholder :placeholder
                        value       :value
                        update!     :update!}]
-  [:div.field.location-field {:id id}
-   [:label label] [:br]
-   [:div
-    [:input.location-input
-     {:type "text"
-      :tab-index tabindex
-      :auto-focus auto-focus
-      :id (str id "-input")
-      :name (str id "-input")
-      :value value
-      :auto-complete "off"
-      :on-change #(let [input-elem (.-target %)
-                        new-value  (.-value input-elem)]
-                    (fetch-coordinates-debounced! new-value)
-                    (update! new-value))
-      :placeholder placeholder}]
-    (decorations/edit-icon)]
-   [:div.small-info-text "this will not update your Twitter profile"]
-   [:br]
-   [:div.mapbox-container [minimap mapbox/middle-of-USA (str "minimap--" id)]]])
+  (let [minimap-id (str "minimap--" id)]
+    [:div.field.location-field {:id id}
+     [:label label] [:br]
+     [:div
+      [:input.location-input
+       {:type "text"
+        :tab-index tabindex
+        :auto-focus auto-focus
+        :id (str id "-input")
+        :name (str id "-input")
+        :value value
+        :autoComplete "off"
+        :on-change #(let [input-elem (.-target %)
+                          new-value  (.-value input-elem)]
+                      (fetch-coordinates-debounced! minimap-id new-value)
+                      (update! new-value))
+        :placeholder placeholder}]
+      (decorations/edit-icon)]
+     [:div.small-info-text "this will not update your Twitter profile"]
+     [:br]
+     [:div.mapbox-container [minimap minimap-id]]]))
 
 (defn input-by-name [name & [other]]
   (.querySelector js/document (str "input[name= \"" name "\"]"
@@ -183,7 +195,7 @@
                :id "email-address-input"
                :name "email-address-input"
                :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
-               :auto-complete "off"
+               :autoComplete "off"
                :on-change #(let [input-elem (.-target %)
                                  new-value  (.-value input-elem)]
                              (reset! *email-address new-value))

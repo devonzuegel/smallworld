@@ -69,6 +69,7 @@
                   friend-screen-name)
         (.remove marker)))))
 
+
 ; note – the mapbox access-token is paired with each style, rather than a per-account basis
 (def config {:curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
                              :style "mapbox://styles/devonzuegel/cj8rx2ti3aw2z2rnzhwwy3bvp"}
@@ -80,6 +81,7 @@
 (set! (.-accessToken js/mapboxgl) (get-in config [style :access-token]))
 
 (def middle-of-USA [-90, 40])
+(def Miami [-80.1947021484375 25.775083541870117])
 
 (defn update-markers-size [& [to-print]]
   (let [scale   (+ .1 (* (.getZoom @the-map) 0.1))
