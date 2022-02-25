@@ -13,6 +13,10 @@
 (defonce *email-address (r/atom :loading))
 (defonce *form-errors   (r/atom {}))
 
+; fetch coordinates with memoization
+(defn fetch-coordinates! [input] (js/console.log "fetching coordinates: " input)) ; TODO: actually fetch coords
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 400))
+
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
 
 (defn minimap [lng-lat minimap-id]
@@ -49,6 +53,7 @@
       :auto-complete "off"
       :on-change #(let [input-elem (.-target %)
                         new-value  (.-value input-elem)]
+                    (fetch-coordinates-debounced! new-value)
                     (update! new-value))
       :placeholder placeholder}]
     (decorations/edit-icon)]
@@ -67,6 +72,7 @@
         regex-result (re-matches regex-pattern email)]
     (nil? regex-result)))
 
+; TODO: fail if the locations don't match a lng-lat pair
 (defn valid-inputs!? [{email_address       :email_address
                        email_notifications :email_notifications}]
   (reset! *form-errors {})
