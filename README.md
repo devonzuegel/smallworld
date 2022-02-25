@@ -1,5 +1,8 @@
 # Small World
 
+you can find the live version of Small World at:
+https://small-world-friends.herokuapp.com
+
 ### local setup
 
 1. `lein install`
