@@ -173,9 +173,9 @@
      [:div.error-msg (:email-address-input @*form-errors)]]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
-   [:br] [:br]
-   [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
    (when debug?
+     [:br] [:br]
+     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
      [:div {:style {:text-align "left"}}
       [:br]
       [:pre "@session/store*: \n" (util/preify @session/store*)]
