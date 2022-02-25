@@ -1,4 +1,6 @@
-(ns smallworld.util (:require [clojure.pprint :as pp]))
+(ns smallworld.util
+  (:require [clojure.pprint :as pp])
+  (:import [goog.async Debouncer]))
 
 (def debug? false)
 
@@ -41,3 +43,8 @@
         (.then (fn [res] (.json res)))
         (.then (fn [res] (.log js/console res)))
         (.then (fn [res] (when callback (callback res)))))))
+
+(defn debounce [f interval]
+  (let [dbnc (Debouncer. f interval)]
+    ;; use apply here to support functions of various arities
+    (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
