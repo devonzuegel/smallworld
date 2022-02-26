@@ -157,11 +157,12 @@
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
+        (pp/pprint @session/store*)
         (mapbox/mapbox
          {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
                        (when main-coords [(:lng main-coords) (:lat main-coords)]))
-          :location (or name-location
-                        main-location)
+          :location (or (:name-location @session/store*)
+                        (:main-location @session/store*))
           :user-img (:profile_image_url_large @session/store*)
           :user-name (:name @session/store*)
           :screen-name (:screen-name @session/store*)}))])])
