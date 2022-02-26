@@ -1,5 +1,7 @@
 (ns smallworld.mapbox
   (:require [reagent.core           :as r]
+            [clojure.pprint         :as pp]
+            [clojure.string         :as str]
             [smallworld.util        :as util]
             [smallworld.decorations :as decorations]
             [reagent.dom.server]
@@ -39,8 +41,11 @@
   #(.toggle (.-classList (goog.dom/getElement elem-id))
             "expanded"))
 
+(defn round-two-decimals [num] (pp/cl-format nil "~,2f" num))
+
 (defn Popup-Content [{location    :location
                       info        :info
+                      lng-lat     :lng-lat
                       user-name   :user-name
                       screen-name :screen-name}]
   [:<>
@@ -48,10 +53,10 @@
     [:b.user-name user-name]
     [:a.screen-name {:href (str "http://twitter.com/" screen-name)} "@" screen-name]]
    ; TODO: display latest Tweet too (this requires some backend work)
-   (when-not (clojure.string/blank? location)
-     [:div.bottom-row {:title info}
-      (decorations/location-icon)
-      [:span.location location]])])
+   [:div.bottom-row {:title info}
+    (decorations/location-icon)
+    (when-not (clojure.string/blank? location) [:span.location location])
+    [:code (round-two-decimals (second lng-lat)) ", " (round-two-decimals (first lng-lat))]]])
 
 (defn User-Marker [{lng-lat     :lng-lat
                     location    :location
@@ -100,6 +105,7 @@
           (.setHTML popup (reagent.dom.server/render-to-string
                            (Popup-Content {:location    location
                                            :user-name   user-name
+                                           :lng-lat     lng-lat
                                            :info        info
                                            :screen-name screen-name}))))
         (catch js/Error e (js/console.error e))))
@@ -147,7 +153,7 @@
                    :center (clj->js (or (:lng-lat current-user) middle-of-USA))
                    :attributionControl false ; removes the Mapbox copyright symbol
                    :zoom 2
-                   :maxZoom 8
+                   :maxZoom 9
                    :minZoom 0}))
 
   (js/setInterval #(.resize @the-map) (* 10 1000)) ; make sure the map is properly sized

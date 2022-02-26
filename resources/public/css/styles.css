@@ -954,6 +954,11 @@ a.btn:hover {
   fill: #999;
   color: #999;
 }
+.mapboxgl-popup-content .bottom-row code {
+  margin-left: 10px;
+  font-family: 'Roboto Mono', monospace;
+  opacity: 0.6;
+}
 .mapboxgl-popup-content .bottom-row svg.location {
   transform: scale(0.85);
   margin-left: -2px;
