@@ -39,6 +39,20 @@
   #(.toggle (.-classList (goog.dom/getElement elem-id))
             "expanded"))
 
+(defn Popup-Content [{location    :location
+                      info        :info
+                      user-name   :user-name
+                      screen-name :screen-name}]
+  [:<>
+   [:div.top-row
+    [:b.user-name user-name]
+    [:a.screen-name {:href (str "http://twitter.com/" screen-name)} "@" screen-name]]
+   ; TODO: display latest Tweet too (this requires some backend work)
+   (when-not (clojure.string/blank? location)
+     [:div.bottom-row {:title info}
+      (decorations/location-icon)
+      [:span.location location]])])
+
 (defn User-Marker [{lng-lat     :lng-lat
                     location    :location
                     img-url     :img-url
@@ -63,11 +77,12 @@
               popup    (new js/mapboxgl.Popup #js{:offset 38
                                                   :closeButton false
                                                   :anchor "left"})]
-
+          ; set position
           (.setLngLat marker (clj->js (if (= classname "current-user")
                                         lng-lat
                                         (with-offset lng-lat))))
 
+          ; add to map + store in atom + render
           (.addTo marker @the-map)
           (swap! markers conj marker)
           (set! (.-id element) screen-name)
@@ -80,19 +95,13 @@
                                             :classname   classname}]
                               (goog.dom/getElement screen-name))
 
-          ; add the popup
+          ; add popup to the marker
+          (.setPopup marker popup)
           (.setHTML popup (reagent.dom.server/render-to-string
-                           [:<> ; TODO: extract into Popup-Content component
-                            [:div.top-row
-                             [:b.user-name user-name]
-                             [:a.screen-name {:href (str "http://twitter.com/" screen-name)}
-                              "@" screen-name]]
-                            ; TODO: display latest Tweet too (this requires some backend work)
-                            (when-not (clojure.string/blank? location)
-                              [:div.bottom-row {:title info}
-                               (decorations/location-icon)
-                               [:span.location location]])]))
-          (.setPopup marker popup))
+                           (Popup-Content {:location    location
+                                           :user-name   user-name
+                                           :info        info
+                                           :screen-name screen-name}))))
         (catch js/Error e (js/console.error e))))
 
 ; only remove marker if it's not the current user
