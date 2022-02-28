@@ -26,12 +26,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
-; and not for all the other pages
+; and not for all the other pages – use component-did-mount
 (util/fetch "/friends" (fn [result]
                          (reset! user-data/*friends result)
                          ; TODO: only run this on the main page, otherwise you'll get errors
                          ; wait for the map to load – this is a hack & may be a source of errors ;)
-                         (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends)
+                         (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/store*)
                                         2000))
             :retry? true)
 
@@ -157,7 +157,6 @@
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
-        (pp/pprint @session/store*)
         (mapbox/mapbox
          {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
                        (when main-coords [(:lng main-coords) (:lat main-coords)]))

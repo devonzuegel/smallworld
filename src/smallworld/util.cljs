@@ -50,3 +50,7 @@
   (let [dbnc (Debouncer. f interval)]
     ;; use apply here to support functions of various arities
     (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
+
+(defn average [list-of-nums]
+  (/ (reduce + list-of-nums)
+     (count list-of-nums)))

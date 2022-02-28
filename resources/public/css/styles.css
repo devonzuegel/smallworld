@@ -689,7 +689,8 @@ input[type='radio']:focus {
 .welcome-flow .mapbox-container .mapboxgl-map {
   height: 100% !important;
 }
-@keyframes color {
+/* pulsating background */
+@keyframes pulsingGreenBkgd {
   0% {
     background-color: #1d7a42;
   }
@@ -710,7 +711,7 @@ input[type='radio']:focus {
   left: calc(50%);
   top: calc(-50%);
   transform: translateX(-50%) translateY(-50%);
-  animation-name: color;
+  animation-name: pulsingGreenBkgd;
   animation-duration: 3s;
   animation-iteration-count: infinite;
 }
@@ -816,11 +817,50 @@ input[type='radio']:focus {
 .marker.current-user {
   z-index: 2;
 }
+.marker.current-user .avatar {
+  z-index: 1;
+}
+.marker.current-user:before {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  z-index: -1;
+  background: white;
+  background: #65a5c1cc;
+  background: #b09f8dbb;
+
+  -webkit-animation-name: fadecolor;
+  -webkit-animation-duration: 4s;
+  -webkit-animation-iteration-count: infinite;
+  transition: all 4s linear;
+}
+@-webkit-keyframes fadecolor {
+  0% {
+    width: 34px;
+    height: 34px;
+    position: absolute;
+    -webkit-transform: translate(-1px, -17px);
+    transform: translate(-1px, -17px);
+  }
+  50% {
+    width: 44px;
+    height: 44px;
+    -webkit-transform: translate(-6px, -22px);
+    transform: translate(-6px, -22px);
+  }
+  100% {
+    width: 34px;
+    height: 34px;
+    position: absolute;
+    -webkit-transform: translate(-1px, -17px);
+    transform: translate(-1px, -17px);
+  }
+}
 .marker .avatar {
   position: absolute; /* without this, you get the zoomy marker bug */
   transform: translateY(-50%);
-
   background-color: #013917;
+  background: #e7e2de;
   height: 30px;
   width: 30px;
   border-radius: 8px;
