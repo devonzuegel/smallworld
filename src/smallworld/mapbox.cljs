@@ -13,7 +13,7 @@
 (util/load-stylesheet "./css/mapbox-gl.inc.css")
 
 ; not defonce because we want to reset it to closed upon refresh
-(def expanded (r/atom true))
+(def expanded (r/atom false))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (defonce markers (r/atom []))
 
@@ -41,7 +41,8 @@
   #(.toggle (.-classList (goog.dom/getElement elem-id))
             "expanded"))
 
-(defn round-two-decimals [num] (pp/cl-format nil "~,2f" num))
+(defn round              [num] (js/parseFloat (pp/cl-format nil "~,0f" num)))
+(defn round-two-decimals [num] (js/parseFloat (pp/cl-format nil "~,2f" num)))
 
 (defn Popup-Content [{location    :location
                       info        :info
@@ -83,14 +84,15 @@
                                                   :closeButton false
                                                   :anchor "left"})]
           ; set position
-          (.setLngLat marker (clj->js (if (= classname "current-user")
-                                        lng-lat
-                                        (with-offset lng-lat))))
+          (.setLngLat marker (clj->js lng-lat))
 
           ; add to map + store in atom + render
           (.addTo marker @the-map)
           (swap! markers conj marker)
           (set! (.-id element) screen-name)
+          (set! (.-style element) (str "z-index: " (if (= classname "current-user")
+                                                     11 ; put current user's avatar on top
+                                                     (.ceil js/Math (rand 10)))))
           (r/render-component [User-Marker {:lng-lat     lng-lat
                                             :location    location
                                             :img-url     img-url
@@ -111,12 +113,10 @@
         (catch js/Error e (js/console.error e))))
 
 ; only remove marker if it's not the current user
-(defn remove-friend-marker [current-user-screen-name]
+(defn remove-friend-marker []
   (fn [marker]
     (let [friend-screen-name (.-id (.getElement marker))]
-      (when (not= current-user-screen-name
-                  friend-screen-name)
-        (.remove marker)))))
+      (.remove marker))))
 
 
 ; note – the mapbox access-token is paired with each style, rather than a per-account basis
@@ -156,18 +156,10 @@
                    :maxZoom 9
                    :minZoom 0}))
 
-  (js/setInterval #(.resize @the-map) (* 10 1000)) ; make sure the map is properly sized
+  (js/setInterval #(.resize @the-map) (* 5 1000)) ; make sure the map is properly sized
   ;; TODO: removed this bc it was bad for performance; try to find a way to put it back!
   ;; (.on @the-map "zoom" update-markers-size) ; calibrate markers' size according to the zoom
-  (.on @the-map "load" ; add the current user to the map
-       #(when (:lng-lat current-user) (add-user-marker {:lng-lat     (:lng-lat current-user)
-                                                        :location    (or (:name-location current-user)
-                                                                         (:main-location current-user)
-                                                                         (:location current-user))
-                                                        :img-url     (:user-img current-user)
-                                                        :user-name   (:user-name current-user)
-                                                        :screen-name (:screen-name current-user)
-                                                        :classname   "current-user"}))))
+  )
 
 
 ; this cannot be an anonymous function.  it needs to be a named function, because otherwise
@@ -175,6 +167,8 @@
 (defn mapbox-dom [current-user] (r/create-class
                                  {:component-did-mount #(component-did-mount current-user)
                                   :reagent-render      (fn [] [:div#mapbox])}))
+
+(def *groups (r/atom {}))
 
 (defn mapbox [current-user]
   [:<>
@@ -188,35 +182,69 @@
      (if @expanded "collapse map" "expand map")]
     [mapbox-dom current-user]]])
 
-(defn add-friends-to-map [friends]
+(defn add-friends-to-map [friends curr-user]
   (when @the-map ; don't add friends to map if there is no map
-    (doall ; force no lazy load
-     (for [friend friends]
-       (let [main-coords (:main-coords friend)
-             name-coords (:name-coords friend)]
+    (doseq [friend (conj friends curr-user)]
+      (let [main-coords (:main-coords friend)
+            name-coords (:name-coords friend)]
 
-       ; TODO: make the styles for main vs name coords different
-         (let [lng (:lng main-coords)
-               lat (:lat main-coords)
-               has-coord (and main-coords lng lat)]
-           (when has-coord
-             (add-user-marker {:lng-lat     [lng lat]
-                               :location    (:main-location friend)
-                               :img-url     (:profile_image_url_large friend)
-                               :user-name   (:name friend)
-                               :screen-name (:screen-name friend)
-                               :info        "Twitter location"})))
+        ; round to 1 decimal place so that metro regions are grouped together
+        (let [lng (round (:lng main-coords))
+              lat (round (:lat main-coords))
+              has-coord (and main-coords lng lat)]
+          (when has-coord
+            (let [group (get @*groups [lng lat])]
+              (swap! *groups assoc [lng lat]
+                     (conj group {:lng-lat     [(:lng main-coords)
+                                                (:lat main-coords)]
+                                  :location    (:main-location friend)
+                                  :img-url     (:profile_image_url_large friend)
+                                  :user-name   (:name friend)
+                                  :screen-name (:screen-name friend)
+                                  :classname   (when (= (:screen-name friend)
+                                                        (:screen-name curr-user))
+                                                 "current-user")
+                                  :info        "Twitter location"})))))
 
-         (let [lng (:lng name-coords)
-               lat (:lat name-coords)
-               has-coord (and name-coords lng lat)]
-           (when has-coord
-             (add-user-marker {:lng-lat     [lng lat]
-                               :location    (:name-location friend)
-                               :img-url     (:profile_image_url_large friend)
-                               :user-name   (:name friend)
-                               :screen-name (:screen-name friend)
-                               :info        "parsed from Twitter display name"}))))))
+        ; round to 1 decimal place so that metro regions are grouped together
+        (let [lng (round (:lng name-coords))
+              lat (round (:lat name-coords))
+              has-coord (and name-coords lng lat)]
+          (when has-coord
+            (let [group (get @*groups [lng lat])]
+              (swap! *groups assoc [lng lat]
+                     (conj group {:lng-lat     [(:lng name-coords)
+                                                (:lat name-coords)]
+                                  :location    (:name-location friend)
+                                  :img-url     (:profile_image_url_large friend)
+                                  :user-name   (:name friend)
+                                  :screen-name (:screen-name friend)
+                                  :classname   (when (= (:screen-name friend)
+                                                        (:screen-name curr-user))
+                                                 "current-user")
+                                  :info        "Twitter location"})))))))
+
+
+    (doseq [[group-key markers] @*groups]
+      (let [markers (sort-by #(if (= "current-user" (:classname %))
+                                1 (rand 2)) ; put the current-user in roughly the middle of the honeycomb cluster
+                             markers)
+            diameter (.sqrt js/Math (count markers)) ; # of avatars to show in each row/column
+            avg-lng (util/average (map #(first  (:lng-lat %)) markers))
+            avg-lat (util/average (map #(second (:lng-lat %)) markers))
+            [lng lat] group-key]
+        (doall (map-indexed
+                (fn [i marker-data]
+                  (let  [row (.ceil js/Math (mod i diameter))
+                         col (.floor js/Math (/ i diameter))
+                         col (if (even? row) ; to make the honeycomb effect
+                               (+ col .5)
+                               col)
+                         new-lat-lng [(+ avg-lng (* 0.070 col) (* -0.5 0.070 diameter))
+                                      (+ avg-lat (* 0.055 row) (* -0.5 0.055 diameter))]]
+                    (add-user-marker (merge marker-data {:lng-lat new-lat-lng}))))
+                markers))))
+
     (when-not (nil? @the-map)
       (.on @the-map "loaded" #((println "upating markers size")
                                (update-markers-size))))))

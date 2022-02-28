@@ -87,15 +87,13 @@
 (defn refresh-friends []
   (util/fetch "/friends/refresh"
               (fn [result]
-                (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                            @mapbox/markers))
+                (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
-                (mapbox/add-friends-to-map @*friends))))
+                (mapbox/add-friends-to-map @*friends @session/store*))))
 
 (defn recompute-friends []
   (util/fetch "/friends/recompute"
               (fn [result]
-                (doall (map (mapbox/remove-friend-marker (:screen-name @session/store*))
-                            @mapbox/markers))
+                (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
-                (mapbox/add-friends-to-map @*friends))))
+                (mapbox/add-friends-to-map @*friends @session/store*))))
