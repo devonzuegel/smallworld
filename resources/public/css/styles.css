@@ -946,6 +946,9 @@ a.btn:hover {
 /******************************************************************************/
 /** Mapbox popups *************************************************************/
 /******************************************************************************/
+.mapboxgl-popup {
+  z-index: 12; /* make sure the popups go over the avatars */
+}
 .mapboxgl-popup .mapboxgl-popup-content {
   padding: 5px 8px;
   box-shadow: 0 0 3px rgb(0 0 0 / 20%);
