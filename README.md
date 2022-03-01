@@ -75,6 +75,12 @@ bin/make-and-deploy.sh
 
 ### sql cheatsheet
 
+- open Heroku Postgres instance in terminal:
+
+   ```bash
+   heroku pg:psql postgresql-rigid-43177 --app small-world-friends
+   ```
+
 - view all tables:
 
    ```sql
