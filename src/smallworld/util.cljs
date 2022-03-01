@@ -1,5 +1,6 @@
 (ns smallworld.util
-  (:require [clojure.pprint :as pp])
+  (:require [clojure.pprint :as pp]
+            [reagent.core :as r])
   (:import [goog.async Debouncer]))
 
 (def debug? false)
@@ -54,3 +55,27 @@
 (defn average [list-of-nums]
   (/ (reduce + list-of-nums)
      (count list-of-nums)))
+
+(defn error-boundary [& children]
+  (let [err-state (r/atom nil)]
+    (r/create-class
+     {:display-name "error boundary"
+      :component-did-catch (fn [err info]
+                             (reset! err-state [err info]))
+      :reagent-render (fn [& children]
+                        (if (nil? @err-state)
+                          (into [:<>] children)
+                          (let [[_ info] @err-state]
+                            [:pre (pr-str info)])))})))
+
+(comment
+  "------------------------------ usage example: -----------------------------"
+
+  (defn my-happy-component [] [:b "This has no error at all, yay!"])
+  (defn my-error-component [] (throw (js/Error. "Oops! 👻")))
+
+  (defn error-boundary-example-1 [] [util/error-boundary [my-error-component]])
+  (defn error-boundary-example-2 [] [util/error-boundary [my-happy-component]])
+
+  [err-bound-example-1]
+  [err-bound-example-2])

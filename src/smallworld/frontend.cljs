@@ -83,7 +83,7 @@
          name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/store*))]
      [:<>
       [:div.container
-       [:div.current-user (user-data/render-user nil @session/store*)]
+       [:div.current-user [user-data/render-user nil @session/store*]]
 
        (when @*debug?
          [:br]
@@ -157,14 +157,15 @@
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
-        (mapbox/mapbox
-         {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
-                       (when main-coords [(:lng main-coords) (:lat main-coords)]))
-          :location (or (:name-location @session/store*)
-                        (:main-location @session/store*))
-          :user-img (:profile_image_url_large @session/store*)
-          :user-name (:name @session/store*)
-          :screen-name (:screen-name @session/store*)}))])])
+        [util/error-boundary
+         [mapbox/mapbox
+          {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
+                        (when main-coords [(:lng main-coords) (:lat main-coords)]))
+           :location (or (:name-location @session/store*)
+                         (:main-location @session/store*))
+           :user-img (:profile_image_url_large @session/store*)
+           :user-name (:name @session/store*)
+           :screen-name (:screen-name @session/store*)}]])])])
 
 (defonce admin-summary* (r/atom :loading))
 (defn admin-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
@@ -208,5 +209,7 @@
     "/admin" (admin-screen)
     (not-found-404-screen)))
 
-(r/render-component [app-container] (goog.dom/getElement "app"))
+(r/render-component
+ (fn [] [util/error-boundary [app-container]])
+ (goog.dom/getElement "app"))
 
