@@ -65,24 +65,25 @@
         friend-pluralized (if (= list-count 1) "friend" "friends")
         say-pluralized    (if (= list-count 1) "says" "say")]
 
-    [:div.friends-list
-     (if (= :loading @*friends)
-       [:div.loading
-        (decorations/simple-loading-animation)
-        "the first time takes a while to load"]
+    [util/error-boundary
+     [:div.friends-list
+      (if (= :loading @*friends)
+        [:div.loading
+         (decorations/simple-loading-animation)
+         "the first time takes a while to load"]
 
-       (if (> list-count 0)
-         [:<>
-          [:p.location-info [:<>
-                             list-count " "
-                             friend-pluralized " "
-                             say-pluralized " they're "
-                             verb-gerund " " location-name ":"]]
-          [:div.friends (map-indexed render-user friends-list)]]
+        (if (> list-count 0)
+          [:<>
+           [:p.location-info [:<>
+                              list-count " "
+                              friend-pluralized " "
+                              say-pluralized " they're "
+                              verb-gerund " " location-name ":"]]
+           [:div.friends (map-indexed render-user friends-list)]]
 
-         [:div.friends
-          [:div.no-friends-found
-           "0 friends shared that they're " verb-gerund " " location-name]]))]))
+          [:div.friends
+           [:div.no-friends-found
+            "0 friends shared that they're " verb-gerund " " location-name]]))]]))
 
 (defn refresh-friends []
   (util/fetch "/friends/refresh"
