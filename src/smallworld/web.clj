@@ -288,8 +288,59 @@
   (route/resources "/")
   (ANY "*"                      [] (io/resource "public/index.html")))
 
+(defn- https-url [url-string & [port]]
+  (let [url (java.net.URL. url-string)]
+    (str (java.net.URL. "https" (.getHost url) (or port -1) (.getFile url)))))
+
+(defn- get-request? [{method :request-method}]
+  (or (= method :head)
+      (= method :get)))
+
+; given a HTTP request, return a redirect response to the equivalent HTTPS url
+(defn ssl-redirect-response [request]
+  (-> (response/redirect (https-url (ring.util.request/request-url request)))
+      ; responding 301 to a POST changes it to a GET, because 301 is older & 307 is newer, so we need to respond to POST requests with a 307
+      (response/status   (if (get-request? request) 301 307))))
+
+; redirect any HTTP request to the equivalent HTTPS url
+(defn ssl-redirect [handler]
+  ; note: we also have a setting in Cloudflare that forces SSL, so if you remove
+  ; this, you'll probably still get an SSL redirect
+  (fn [request]
+    (let [url     (ring.util.request/request-url request)
+          host    (.getHost (java.net.URL. url))
+          headers (:headers request)]
+
+      (when debug?
+        (println)
+        (println "url:    " (.toString url))
+        (println "host:   " host)
+        (println "scheme: " (:scheme request)) ; still not sure why this doesn't match the x-forwarded-proto header when on HTTPS...
+        (println "header: " (headers "x-forwarded-proto"))
+        (println "headers:" headers)
+        (println))
+
+      ; normally we'd use `(:scheme request)` to check for HTTPS instead of `x-forwarded-proto`, but for some reason `(:scheme request)` always says HTTP even when it's HTTPS, which results in infinite redirects
+      (if (or  (clojure.string/includes? host "localhost") ; don't redirect localhost (it doesn't support SSL)
+               (= "https" (headers "x-forwarded-proto"))   ; don't redirect if already HTTPS
+               (= :https  (:scheme request)))
+        (handler request)
+        (ssl-redirect-response request)))))
+
+; redirect any `www.smallworld.kiwi` request to the equivalent raw domain `smallworld.kiwi` url
+(defn www-redirect [handler & [port]]
+  (fn [request]
+    (let [url  (java.net.URL. (ring.util.request/request-url request))
+          host (.getHost url)]
+
+      (if (= host "www.smallworld.kiwi")
+        (response/redirect (str (java.net.URL. "https" "smallworld.kiwi" (or port -1) (.getFile url))))
+        (handler request)))))
+
 (def app-handler
   (-> smallworld-routes
+      ssl-redirect
+      www-redirect
       (compojure.handler/site {:session
                                {:cookie-name "small-world-session"
                                 :store (cookie/cookie-store
