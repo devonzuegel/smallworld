@@ -122,6 +122,9 @@ input:focus {
 .no-animation * {
   animation: none !important;
 }
+.globe-loader.fa-globe-americas {
+  font-size: 8em;
+}
 .globe-loader > i.fa-plane {
   display: block;
   position: absolute;
@@ -488,9 +491,9 @@ tr:nth-child(even) {
   line-height: 2em;
 }
 .welcome .hero #logo-animation {
-  -ms-transform: scale(4); /* IE 9 */
-  -webkit-transform: scale(4); /* Safari */
-  transform: scale(4);
+  -ms-transform: scale(1); /* IE 9 */
+  -webkit-transform: scale(1); /* Safari */
+  transform: scale(1);
   margin: 90px 0;
   opacity: 0.25;
 }
