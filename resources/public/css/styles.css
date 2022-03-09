@@ -125,6 +125,9 @@ input:focus {
 .globe-loader.fa-globe-americas {
   font-size: 8em;
 }
+.nav .globe-loader.fa-globe-americas {
+  font-size: 2em;
+}
 .globe-loader > i.fa-plane {
   display: block;
   position: absolute;
