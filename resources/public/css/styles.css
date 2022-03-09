@@ -122,10 +122,7 @@ input:focus {
 .no-animation * {
   animation: none !important;
 }
-.nav .globe-loader > i {
-  font-size: 0.45em;
-}
-.globe-loader > i {
+.globe-loader > i.fa-plane {
   display: block;
   position: absolute;
   font-size: 0.3em;
@@ -136,9 +133,20 @@ input:focus {
   transform-origin: center bottom;
   animation: airplane-spin 2.5s infinite ease-in-out;
 }
-.globe-loader > i::before {
+.globe-loader > i.fa-plane#little-plane.hidden {
+  /* hide the plane for the first few seconds until the SVG has loaded */
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+.globe-loader > i.fa-plane#little-plane {
+  transition: opacity 200ms ease-out;
+}
+.globe-loader > i.fa-plane::before {
   position: relative;
   top: -1.26em;
+}
+.nav .globe-loader > i.fa-plane {
+  font-size: 0.45em;
 }
 @keyframes airplane-spin {
   from {
