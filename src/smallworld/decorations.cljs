@@ -41,6 +41,7 @@
 (defonce plane-animation-iterations (r/atom 0))
 
 ; this needs to get re-called in each function to get its fresh values
+; #logo-animation is the id of the parent wrapper where this animation is placed
 (defn get-animation-elem [] (goog.dom/getElement "logo-animation"))
 
 (defn start-animation []
@@ -63,4 +64,7 @@
                     (.addEventListener elem "animationiteration" stop-animation)
                     (when debug? (println "adding listeners to elem")))
                  1000) ; give time to load the animation
-  [:div {:class "globe-loader fas fa-globe-americas"} [:i.fas.fa-plane]])
+  (js/setTimeout #(gc/remove (goog.dom/getElement "little-plane") "hidden") 200)
+  [:div {:class "globe-loader fas fa-globe-americas"}
+   [:i.fas.fa-plane {:class "hidden" ; this will get removed after the timeout is completed
+                     :id "little-plane"}]])
