@@ -451,7 +451,7 @@ tr:nth-child(even) {
 }
 .welcome .hero {
   width: 98vw;
-  margin: 6vh auto 6vh;
+  margin: 8vh auto 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -494,7 +494,7 @@ tr:nth-child(even) {
   -ms-transform: scale(1); /* IE 9 */
   -webkit-transform: scale(1); /* Safari */
   transform: scale(1);
-  margin: 90px 0;
+  margin: 55px 0;
   opacity: 0.25;
 }
 .steps {
