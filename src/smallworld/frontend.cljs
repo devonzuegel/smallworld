@@ -109,17 +109,15 @@
         (when (not= :loading @user-data/*friends)
           [:div.twitter-data-explanation
            [:div.twitter-data
-            [:div.left
-             [:img {:src (:profile_image_url_large @session/store*)}]]
-            [:div.right
+            [:img {:src (:profile_image_url_large @session/store*)}]
+            [:div
              [:div.name     (:name @session/store*)]
              [:div.location (:main_location_corrected @settings/*settings)]]]
            [:div.explanation
             (decorations/twitter-icon)
-            [:span "Small World looks at the name & location you set on Twitter to find nearby friends"
-             [:span.dot-spacer " · "]
-             [:a {:href "https://twitter.com/settings/profile" :target "_blank"}
-              "update your profile"]]]]
+            [:span "Small World looks at the name & location you set on your "
+             [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
+             " to find nearby friends"]]]
 
           #_[:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
              [:div.you-are-following-count-info
