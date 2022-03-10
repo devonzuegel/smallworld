@@ -60,7 +60,8 @@
     [:p [:b "step 3:"] " see a map of who's nearby"]]
    [:div.info
     [:p "Small World uses the location from your" [:br]
-     [:a {:href "https://twitter.com/settings/profile"} "Twitter profile"] " to find nearby friends"]]
+     [:a {:href "https://twitter.com/settings/profile" :target "_blank"}
+      "Twitter profile"] " to find nearby friends"]]
    #_[:div.faq
       [:div.question
        [:p [:b "Q: how does small world work?"]]
@@ -83,7 +84,7 @@
          name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/store*))]
      [:<>
       [:div.container
-       [:div.current-user [user-data/render-user nil @session/store*]]
+       #_[:div.current-user [user-data/render-user nil @session/store*]]
 
        (when @*debug?
          [:br]
@@ -106,14 +107,28 @@
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
         (when (not= :loading @user-data/*friends)
-          [:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
-           [:div.you-are-following-count-info
-            [:p "you follow " [:b (count @user-data/*friends)] " people on Twitter:"]
-            [:ul
-             [:li
-              "if they're near the location you set on your Twitter profile or "
-              "in your display name, they'll show up in the lists below"]
-             [:li "if they've shared a location, they'll show up on the map"]]]])
+          [:div.twitter-data-explanation
+           [:div.twitter-data
+            [:div.left
+             [:img {:src (:profile_image_url_large @session/store*)}]]
+            [:div.right
+             [:div.name     (:name @session/store*)]
+             [:div.location (:main_location_corrected @settings/*settings)]]]
+           [:div.explanation
+            (decorations/twitter-icon)
+            [:span "Small World looks at the name & location you set on Twitter to find nearby friends"
+             [:span.dot-spacer " · "]
+             [:a {:href "https://twitter.com/settings/profile" :target "_blank"}
+              "update your profile"]]]]
+
+          #_[:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
+             [:div.you-are-following-count-info
+              [:p "you follow " [:b (count @user-data/*friends)] " people on Twitter:"]
+              [:ul
+               [:li
+                "if they're near the location you set on your Twitter profile or "
+                "in your display name, they'll show up in the lists below"]
+               [:li "if they've shared a location, they'll show up on the map"]]]])
 
         (when-not (empty? main-location)
           [:div.category

@@ -390,6 +390,72 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
 /******************************************************************************/
+.twitter-data-explanation > .twitter-data {
+  background: #ffffff11;
+  align-items: center;
+  display: flex;
+  padding: 8px 16px 8px 12px;
+  border-radius: 6px;
+  column-gap: 12px;
+}
+.twitter-data-explanation > .twitter-data .name {
+  font-size: 1.2em;
+  font-weight: 600;
+}
+.twitter-data-explanation > .twitter-data img {
+  height: 48px;
+  border-radius: 100%;
+  border: 2px solid #d9d3cc44;
+}
+.twitter-data-explanation > .explanation {
+  opacity: 0.8;
+  line-height: 1.4em;
+  display: flex;
+  padding: 4px;
+}
+.twitter-data-explanation > .explanation .dot-spacer {
+  margin: 0 6px;
+}
+.twitter-data-explanation > .explanation .twitter-icon {
+  height: 58px;
+  fill: #d9d3cc;
+  margin-left: 0;
+  margin-right: 12px;
+}
+.twitter-data-explanation > .explanation a {
+  font-weight: 500;
+  border-bottom: 3px solid #ffffff22;
+  transition: all 50ms ease-out;
+}
+.twitter-data-explanation > .explanation a:hover {
+  font-weight: 500;
+  border-bottom: 3px solid #ffffff44;
+}
+.twitter-data-explanation {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  flex-grow: 1;
+  row-gap: 8px;
+}
+.twitter-data-explanation > .explanation {
+  max-width: 400px;
+}
+@media screen and (min-width: 500px) {
+  .twitter-data-explanation {
+    margin: 12px 0 46px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    flex-grow: 1;
+    row-gap: 8px;
+    column-gap: 16px;
+  }
+  .twitter-data-explanation > * {
+    align-items: center;
+  }
+}
+
 .current-user .friend {
   margin-bottom: 24px;
 }
