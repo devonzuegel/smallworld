@@ -273,6 +273,9 @@ tr:nth-child(even) {
   border-radius: 10px;
   margin-top: 32px;
 }
+.category:first-of-type {
+  margin-top: 4px;
+}
 .category .current-user-location {
   transform: translateY(calc(-50% - 6px));
   color: #d9d3cc99;
@@ -317,7 +320,7 @@ tr:nth-child(even) {
   display: flex;
   flex-direction: row;
   gap: 12px;
-  background-color: #ffffff0a;
+  background-color: #ffffff0d;
 }
 .friends-list.header .small-info-text {
   text-align: left;
