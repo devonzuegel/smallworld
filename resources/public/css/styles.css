@@ -223,12 +223,6 @@ a:hover a {
   transition: all 50ms ease-out;
   // border-bottom: 3px solid #ffffff44;
 }
-.you-are-following-count-info {
-  opacity: 0.7;
-  font-size: 0.9em;
-  padding: 6px 12px;
-  color: #d9d3cc;
-}
 .location-info {
   opacity: 0.7;
   font-size: 0.9em;
@@ -299,6 +293,7 @@ tr:nth-child(even) {
   top: -14px;
 }
 .no-locations-info {
+  color: #d9d3cccc;
   padding: 24px;
   border: 2px solid #ffffff22;
   border-radius: 8px;
