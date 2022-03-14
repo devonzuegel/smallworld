@@ -56,7 +56,7 @@
          name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/store*))]
      [:<>
       [:div.container
-       #_[:div.current-user [user-data/render-user nil @session/store*]]
+       #_[:div.current-user [user-data/render-user nil @session/store*]] ; TODO: cleanup
 
        (when @*debug?
          [:br]
@@ -77,28 +77,6 @@
            [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
            [:br]
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
-
-        (when (not= :loading @user-data/*friends)
-          #_[:div.twitter-data-explanation
-             [:div.twitter-data
-              [:img {:src (:profile_image_url_large @session/store*)}]
-              [:div
-               [:div.name     (:name @session/store*)]
-               [:div.location (:main_location_corrected @settings/*settings)]]]
-             [:div.explanation
-              (decorations/twitter-icon)
-              [:span "Small World looks at the name & location on your "
-               [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
-               " to find nearby friends"]]]
-
-          #_[:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
-             [:div.you-are-following-count-info
-              [:p "you follow " [:b (count @user-data/*friends)] " people on Twitter:"]
-              [:ul
-               [:li
-                "if they're near the location you set on your Twitter profile or "
-                "in your display name, they'll show up in the lists below"]
-               [:li "if they've shared a location, they'll show up on the map"]]]])
 
         (when-not (empty? main-location)
           [:div.category
@@ -138,6 +116,21 @@
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
            "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
+
+        (when (not= :loading @user-data/*friends)
+          [:<>
+           [:br]
+           [:div.twitter-data-explanation
+            [:div.twitter-data
+             [:img {:src (:profile_image_url_large @session/store*)}]
+             [:div
+              [:div.name     (:name @session/store*)]
+              [:div.location (:main_location_corrected @settings/*settings)]]]
+            [:div.explanation
+             (decorations/twitter-icon)
+             [:span "Small World looks at the name & location on your "
+              [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
+              " to find nearby friends"]]]])
 
         (when @*debug?
           [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
