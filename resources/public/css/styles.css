@@ -313,12 +313,22 @@ tr:nth-child(even) {
     margin-top: -12px;
   }
 }
-.friends-list .small-info-text {
+.friends-list.header {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  background-color: #ffffff0a;
+}
+.friends-list.header .small-info-text {
   text-align: left;
 }
 .friends-list input {
   font-size: 1.5em;
   font-weight: 600;
+}
+.friends-list .mapbox-container .mapboxgl-map {
+  height: 100% !important;
+  border-radius: 80px;
 }
 
 /*****************************************/
@@ -791,7 +801,8 @@ input[type='radio']:focus {
     background-color: #1d7a42;
   }
 }
-.welcome-flow .mapbox-container .center-point {
+.welcome-flow .mapbox-container .center-point,
+.friends-list.header .mapbox-container .center-point {
   width: 10px;
   height: 10px;
   border: 1px solid white;
