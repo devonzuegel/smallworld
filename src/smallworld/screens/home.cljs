@@ -38,7 +38,7 @@
                                  #js{:container minimap-id
                                      :key    (get-in mapbox/config [mapbox/style :access-token])
                                      :style  (get-in mapbox/config [mapbox/style :style])
-                                     :center (clj->js mapbox/Miami) ; TODO: center on location they provie to Twitter
+                                     :center (clj->js mapbox/Miami) ; TODO: center on location they provide to Twitter
                                      :interactive false ; makes the map not zoomable or draggable
                                      :attributionControl false ; removes the Mapbox copyright symbol
                                      :zoom 3
@@ -102,7 +102,7 @@
              [minimap "name-location-map" name-location]
              (when-not (clojure.string/blank? name-location) [:div.center-point])]
             [:div.right-side
-             [:div.based-on "based on your location, you live in:"]
+             [:div.based-on "based on your name, you live in:"]
              [:input {:type "text"
                       :value name-location
                       :autoComplete "off"
