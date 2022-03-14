@@ -57,13 +57,19 @@
        (sort-by #(get-in % [:distance distance-key]))
        (filter (closer-than max-distance distance-key))))
 
+(def *collapsed? (r/atom {:main-main false
+                          :main-name false
+                          :name-main false
+                          :name-name false}))
+
 (defn render-friends-list [friends-list-key verb-gerund location-name]
   (let [friends-list      (if (= :loading @*friends)
                             []
                             (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
         friend-pluralized (if (= list-count 1) "friend" "friends")
-        say-pluralized    (if (= list-count 1) "says" "say")]
+        say-pluralized    (if (= list-count 1) "says" "say")
+        collapsed?        (get @*collapsed? friends-list-key)]
 
     [util/error-boundary
      [:div.friends-list
@@ -74,16 +80,20 @@
 
         (if (> list-count 0)
           [:<>
-           [:p.location-info [:<>
-                              list-count " "
-                              friend-pluralized " "
-                              say-pluralized " they're "
-                              verb-gerund " " location-name ":"]]
-           [:div.friends (map-indexed render-user friends-list)]]
+           [:p.location-info
+            {:on-click ; toggle collapsed state
+             #(swap! *collapsed? assoc friends-list-key (not collapsed?))}
+            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if collapsed? "right" "down")]))
+            [:<>
+             list-count " "
+             friend-pluralized " "
+             say-pluralized " they're "
+             verb-gerund " " location-name ":"]]
+           (when-not collapsed?
+             [:div.friends (map-indexed render-user friends-list)])]
 
-          [:div.friends
-           [:div.no-friends-found
-            "0 friends shared that they're " verb-gerund " " location-name]]))]]))
+          [:div.no-friends-found
+           "0 friends shared that they're " verb-gerund " " location-name]))]]))
 
 (defn refresh-friends []
   (util/fetch "/friends/refresh"
