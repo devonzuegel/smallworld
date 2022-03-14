@@ -67,8 +67,7 @@
                             []
                             (get-close-friends friends-list-key 100))
         list-count        (count friends-list)
-        friend-pluralized (if (= list-count 1) "friend" "friends")
-        say-pluralized    (if (= list-count 1) "says" "say")
+        friend-pluralized (if (= list-count 1) "friend is" "friends are")
         collapsed?        (get @*collapsed? friends-list-key)]
 
     [util/error-boundary
@@ -87,14 +86,13 @@
             [:<>
              list-count " "
              friend-pluralized " "
-             say-pluralized " they're "
              verb-gerund " " location-name ":"]]
            (when-not collapsed?
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)
-           "0 friends shared that they're " verb-gerund " " location-name]))]]))
+           "0 friends are " verb-gerund " " location-name]))]]))
 
 (defn refresh-friends []
   (util/fetch "/friends/refresh"
