@@ -93,6 +93,7 @@
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found
+           (decorations/x-icon)
            "0 friends shared that they're " verb-gerund " " location-name]))]]))
 
 (defn refresh-friends []
