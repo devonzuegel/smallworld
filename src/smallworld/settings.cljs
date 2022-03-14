@@ -41,7 +41,7 @@
                                      :maxZoom 8
                                      :minZoom 0}))
                      ; zoom out if they haven't provided a location
-                     (if (clojure.string/blank? location-name)
+                     (when (clojure.string/blank? location-name)
                        (.setZoom (get @*minimaps minimap-id) 0)))
                    :reagent-render (fn [] [:div {:id minimap-id}])}))
 

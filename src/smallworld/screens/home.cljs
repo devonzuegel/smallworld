@@ -1,5 +1,6 @@
 (ns smallworld.screens.home
-  (:require [smallworld.decorations :as decorations]
+  (:require [reagent.core           :as r]
+            [smallworld.decorations :as decorations]
             [smallworld.settings    :as settings]
             [smallworld.mapbox      :as mapbox]
             [smallworld.user-data   :as user-data]
@@ -7,6 +8,8 @@
             [smallworld.session     :as session]))
 
 (def debug? false)
+(defonce *locations (r/atom :loading))
+(defonce *minimaps  (r/atom {}))
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
@@ -26,6 +29,25 @@
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
    [:b.screen-name " @" (:screen-name @session/store*)]])
+
+(defn minimap [minimap-id location-name]
+  (r/create-class {:component-did-mount
+                   (fn [] ; this should be called just once when the component is mounted
+                     (swap! *minimaps assoc minimap-id
+                            (new js/mapboxgl.Map
+                                 #js{:container minimap-id
+                                     :key    (get-in mapbox/config [mapbox/style :access-token])
+                                     :style  (get-in mapbox/config [mapbox/style :style])
+                                     :center (clj->js mapbox/Miami) ; TODO: center on location they provie to Twitter
+                                     :interactive false ; makes the map not zoomable or draggable
+                                     :attributionControl false ; removes the Mapbox copyright symbol
+                                     :zoom 3
+                                     :maxZoom 8
+                                     :minZoom 0}))
+                     ; zoom out if they haven't provided a location
+                     (when (clojure.string/blank? location-name)
+                       (.setZoom (get @*minimaps minimap-id) 0)))
+                   :reagent-render (fn [] [:div {:id minimap-id}])}))
 
 (defn screen []
   [:<>
@@ -80,11 +102,12 @@
 
         (when-not (empty? main-location)
           [:div.category
-           [:div.friends-list {:style {:display "flex" :flex-direction "row" :gap "8px"}}
-            [:div.left-side.mapbox-container {:style {:width "80px" :border "1px solid blue"}}
-             "TODO: map goes here"]
+           [:div.friends-list.header
+            [:div.left-side.mapbox-container {:style {:width "90px"}}
+             [minimap "main-location-map" main-location]
+             (when-not (clojure.string/blank? main-location) [:div.center-point])]
             [:div.right-side
-             [:div.based-on "based on your name, you're visiting:"]
+             [:div.based-on "based on your location, you live in:"]
              [:input {:type "text"
                       :value main-location
                       :autoComplete "off"
