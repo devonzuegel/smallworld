@@ -7,7 +7,7 @@
             [smallworld.util        :as util]
             [smallworld.session     :as session]))
 
-(def debug? false)
+(def     *debug?    (r/atom false))
 (defonce *locations (r/atom :loading))
 (defonce *minimaps  (r/atom {}))
 
@@ -58,7 +58,7 @@
       [:div.container
        #_[:div.current-user [user-data/render-user nil @session/store*]]
 
-       (when debug?
+       (when @*debug?
          [:br]
          [:pre (util/preify @settings/*settings)])
 
@@ -139,7 +139,7 @@
            "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
 
-        (when debug?
+        (when @*debug?
           [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
            [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
             "does the data for your friends look out of date?"]
@@ -148,7 +148,7 @@
            [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
             "note: this takes several seconds to run"]])
 
-        (when debug?
+        (when @*debug?
           [:<>
            [:br]
            [:pre "@current-user:\n\n"  (util/preify @session/store*)]
@@ -159,8 +159,8 @@
 
         [:br] [:br] [:br]
         [:p {:style {:text-align "center"}}
-         [:a {:on-click #(reset! debug? (not debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-          "toggle debug – currently " (if debug? "on 🟢" "off 🔴")]]]]
+         [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]]
 
       (let [main-coords (:main-coords @session/store*)
             name-coords (:name-coords @session/store*)]
