@@ -197,7 +197,7 @@ input:focus {
   margin: auto;
   padding: 12px;
   padding-bottom: 180px;
-  max-width: 758px; /* leave space for 2 columns */
+  max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
 }
 pre {
   white-space: pre-wrap;
@@ -236,13 +236,24 @@ a:hover a {
   padding: 2px 6px 4px 6px;
   border-radius: 4px;
 }
-.friends-list .triangle {
+.friends-list svg.x,
+.friends-list svg.triangle {
   fill: white;
-  height: 8px;
-  transform: rotate(180deg);
+  margin-right: 6px;
+  opacity: 0.6;
+}
+.friends-list .no-friends-found:hover svg.x,
+.friends-list .location-info:hover svg.triangle {
+  opacity: 0.75;
+}
+.friends-list svg.x {
+  height: 11px;
+}
+.friends-list svg.triangle {
   margin-bottom: 1px;
-  margin-right: 5px;
-  transition: transform 160ms ease-in-out;
+  height: 9px;
+  transform: rotate(180deg);
+  transition: transform 140ms ease-out;
 }
 .friends-list .location-info .triangle.right {
   transform: rotate(90deg);
@@ -363,6 +374,11 @@ tr:nth-child(even) {
   gap: 12px;
   margin-top: 12px;
 }
+@media screen and (min-width: 720px) {
+  .friends-list .friends {
+    margin-left: 18px;
+  }
+}
 .friend {
   display: flex;
   align-items: center;
@@ -424,7 +440,7 @@ tr:nth-child(even) {
 .no-friends-found {
   font-size: 0.9em;
   opacity: 0.7;
-  // margin-bottom: 6px;
+  cursor: default;
 }
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
