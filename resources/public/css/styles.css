@@ -223,18 +223,32 @@ a:hover a {
   transition: all 50ms ease-out;
   // border-bottom: 3px solid #ffffff44;
 }
-.location-info {
+.friends-list .location-info {
   opacity: 0.7;
   font-size: 0.9em;
-  margin-bottom: 12px;
   color: #d9d3cc;
+  cursor: pointer;
 }
-.location-info .location {
+.friends-list .location-info .location {
   background-color: #002a0e;
   font-style: normal;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
   padding: 2px 6px 4px 6px;
   border-radius: 4px;
+}
+.friends-list .triangle {
+  fill: white;
+  height: 8px;
+  transform: rotate(180deg);
+  margin-bottom: 1px;
+  margin-right: 5px;
+  transition: transform 160ms ease-in-out;
+}
+.friends-list .location-info .triangle.right {
+  transform: rotate(90deg);
+}
+.friends-list .location-info .triangle.down {
+  transform: rotate(180deg);
 }
 .distance {
   font-family: 'Roboto Mono', monospace;
@@ -347,7 +361,7 @@ tr:nth-child(even) {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  // margin-top: 6px;
+  margin-top: 12px;
 }
 .friend {
   display: flex;
