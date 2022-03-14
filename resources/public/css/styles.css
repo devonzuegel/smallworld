@@ -36,7 +36,6 @@ input:focus {
 /**** nav ********************************/
 /*****************************************/
 .nav {
-  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,11 +101,8 @@ input:focus {
 .fill-nav-space {
   flex-grow: 1;
 }
-@media (max-width: 768px) /* mobile */ {
-  .nav > a > .screen-name {
-    /* to save nav space, don't show username on mobile */
-    display: none;
-  }
+.nav .screen-name {
+  margin-top: 6px;
 }
 
 /******************************************************************************/
@@ -392,11 +388,11 @@ tr:nth-child(even) {
 /******************************************************************************/
 .twitter-data-explanation > .twitter-data {
   background: #ffffff11;
-  align-items: center;
   display: flex;
   padding: 8px 16px 8px 10px;
   border-radius: 8px;
   column-gap: 12px;
+  // align-items: center;
 }
 .twitter-data-explanation > .twitter-data .name {
   font-size: 1.4em;
@@ -434,6 +430,7 @@ tr:nth-child(even) {
   border-bottom: 3px solid #ffffff44;
 }
 .twitter-data-explanation {
+  margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column-reverse;

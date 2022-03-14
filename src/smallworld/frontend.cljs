@@ -19,8 +19,7 @@
 
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
-   [:a {:href "/logout"}
-    "log out" [:b.screen-name " @" (:screen-name @session/store*)]]])
+   [:b.screen-name " @" (:screen-name @session/store*)]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -115,7 +114,7 @@
              [:div.location (:main_location_corrected @settings/*settings)]]]
            [:div.explanation
             (decorations/twitter-icon)
-            [:span "Small World looks at the name & location you set on your "
+            [:span "Small World looks at the name & location on your "
              [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
              " to find nearby friends"]]]
 
