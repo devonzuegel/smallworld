@@ -361,7 +361,8 @@ tr:nth-child(even) {
   font-weight: 600;
 }
 .friends-list .mapbox-container {
-  min-width: 60px;
+  min-width: 80px;
+  border-radius: 80px;
 }
 .friends-list .mapbox-container .mapboxgl-map {
   height: 100% !important;
