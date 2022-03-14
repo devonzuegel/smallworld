@@ -79,17 +79,17 @@
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
         (when (not= :loading @user-data/*friends)
-          [:div.twitter-data-explanation
-           [:div.twitter-data
-            [:img {:src (:profile_image_url_large @session/store*)}]
-            [:div
-             [:div.name     (:name @session/store*)]
-             [:div.location (:main_location_corrected @settings/*settings)]]]
-           [:div.explanation
-            (decorations/twitter-icon)
-            [:span "Small World looks at the name & location on your "
-             [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
-             " to find nearby friends"]]]
+          #_[:div.twitter-data-explanation
+             [:div.twitter-data
+              [:img {:src (:profile_image_url_large @session/store*)}]
+              [:div
+               [:div.name     (:name @session/store*)]
+               [:div.location (:main_location_corrected @settings/*settings)]]]
+             [:div.explanation
+              (decorations/twitter-icon)
+              [:span "Small World looks at the name & location on your "
+               [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
+               " to find nearby friends"]]]
 
           #_[:div.category {:style {:line-height "1.5em" :padding "12px 6px"}}
              [:div.you-are-following-count-info
