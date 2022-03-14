@@ -129,7 +129,17 @@
 
         (when-not (empty? main-location)
           [:div.category
-           [:span.current-user-location main-location]
+           [:div.friends-list {:style {:display "flex" :flex-direction "row" :gap "8px"}}
+            [:div.left-side.mapbox-container {:style {:width "80px" :border "1px solid blue"}}
+             "TODO: map goes here"]
+            [:div.right-side
+             [:div.based-on "based on your name, you're visiting:"]
+             [:input {:type "text"
+                      :value main-location
+                      :autoComplete "off"
+                      :auto-complete "off"
+                      :on-change #(print "TODO:")}]
+             [:div.small-info-text "this will not update your Twitter profile"]]]
            (user-data/render-friends-list :main-main "living near" main-location)
            (user-data/render-friends-list :main-name "visiting"    main-location)])
 

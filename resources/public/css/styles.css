@@ -26,6 +26,7 @@ body {
 input {
   color: #d9d3cc;
   transition: color 200ms ease-in-out;
+  font-family: Inter;
 }
 input:focus {
   color: #f1ece8;
@@ -271,7 +272,6 @@ tr:nth-child(even) {
   border: 1px solid #d9d3cc22;
   border-radius: 10px;
   margin-top: 32px;
-  padding-top: 6px;
 }
 .category .current-user-location {
   transform: translateY(calc(-50% - 6px));
@@ -299,6 +299,9 @@ tr:nth-child(even) {
     padding: 12px;
   }
 }
+.friends-list .based-on {
+  opacity: 0.8;
+}
 .friends-list:not(:first-of-type) {
   border-top: 1px solid #d9d3cc22;
 }
@@ -309,6 +312,13 @@ tr:nth-child(even) {
   .current-user-location + .friends-list {
     margin-top: -12px;
   }
+}
+.friends-list .small-info-text {
+  text-align: left;
+}
+.friends-list input {
+  font-size: 1.5em;
+  font-weight: 600;
 }
 
 /*****************************************/
