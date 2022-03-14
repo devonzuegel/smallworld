@@ -367,6 +367,9 @@ tr:nth-child(even) {
 .friends-list .mapbox-container .mapboxgl-map {
   height: 100% !important;
   width: 100% !important;
+}
+.friends-list .mapbox-container .mapboxgl-canvas-container,
+.friends-list .mapbox-container .mapboxgl-canvas-container canvas {
   border-radius: 80px;
 }
 
@@ -825,10 +828,14 @@ input[type='radio']:focus {
   width: min(300px, calc(100% - 64px));
   height: 140px;
   margin: 0 auto;
-  border-radius: 100px;
   background: #ffffff11;
   overflow: hidden;
   background: #9dc7d9;
+  border-radius: 100px;
+}
+.welcome-flow .mapbox-container .mapboxgl-canvas-container,
+.welcome-flow .mapbox-container .mapboxgl-canvas-container canvas {
+  border-radius: 100px;
 }
 .welcome-flow .mapbox-container .mapboxgl-map {
   height: 100% !important;
@@ -863,7 +870,7 @@ input[type='radio']:focus {
 .welcome-flow .mapbox-container .mapboxgl-canvas {
   position: relative !important;
   background: #9dc7d9;
-  height: 140px;
+  border-radius: 112px;
 }
 .welcome-flow .mapbox-container .minimap-marker {
   border: 14px solid red;
