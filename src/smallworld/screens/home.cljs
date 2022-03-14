@@ -119,7 +119,18 @@
 
         (when-not (empty? name-location)
           [:div.category
-           [:span.current-user-location name-location]
+           [:div.friends-list.header
+            [:div.left-side.mapbox-container {:style {:width "90px"}}
+             [minimap "name-location-map" name-location]
+             (when-not (clojure.string/blank? name-location) [:div.center-point])]
+            [:div.right-side
+             [:div.based-on "based on your location, you live in:"]
+             [:input {:type "text"
+                      :value name-location
+                      :autoComplete "off"
+                      :auto-complete "off"
+                      :on-change #(print "TODO:")}]
+             [:div.small-info-text "this will not update your Twitter profile"]]]
            (user-data/render-friends-list :name-main "living near" name-location)
            (user-data/render-friends-list :name-name "visiting"    name-location)])
 
