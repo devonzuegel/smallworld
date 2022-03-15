@@ -54,29 +54,30 @@
                        update!     :update!}]
   (let [minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id}
-     [:label label] [:br]
-     [:div
-      [:input.location-input
-       {:type "text"
-        :tab-index tabindex
-        :auto-focus auto-focus
-        :id (str id "-input")
-        :name (str id "-input")
-        :value value
-        :autoComplete "off"
-        :auto-complete "off"
-        :on-change #(let [input-elem (.-target %)
-                          new-value  (.-value input-elem)]
-                      (fetch-coordinates-debounced! minimap-id new-value)
-                      (update! new-value))
-        :placeholder placeholder}]
-      (decorations/edit-icon)]
-     [:div.small-info-text "this will not update your Twitter profile"]
-     [:br]
-     [:div.mapbox-container
-      [minimap minimap-id value]
-      (when-not (clojure.string/blank? value)
-        [:div.center-point])]]))
+     [:label label]
+     (when-not (str/blank? value)
+       [:<> [:div
+             [:input.location-input
+              {:type "text"
+               :tab-index tabindex
+               :auto-focus auto-focus
+               :id (str id "-input")
+               :name (str id "-input")
+               :value value
+               :autoComplete "off"
+               :auto-complete "off"
+               :on-change #(let [input-elem (.-target %)
+                                 new-value  (.-value input-elem)]
+                             (fetch-coordinates-debounced! minimap-id new-value)
+                             (update! new-value))
+               :placeholder placeholder}]
+             (decorations/edit-icon)]
+        [:div.small-info-text "don't worry, this will not update your Twitter profile :)"]
+        [:br]
+        [:div.mapbox-container
+         [minimap minimap-id value]
+         (when-not (clojure.string/blank? value)
+           [:div.center-point])]])]))
 
 (defn input-by-name [name & [other]]
   (.querySelector js/document (str "input[name= \"" name "\"]"
@@ -132,10 +133,21 @@
     [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
      "Small World"]]
 
-   [:hr]
+   [:hr] ; horizontal line
 
-   [:div.you-signed-in-as
-    (user-data/render-user nil @session/store*)]
+   [:div.twitter-data-explanation
+    [:div.explanation
+     (decorations/twitter-icon)
+     [:span "Small World looks at the name & location on your "
+      [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
+      " to find nearby friends"]]
+    [:div.twitter-data
+     [:img {:src (:profile_image_url_large @session/store*)}]
+     [:div.right-side
+      [:div.name     (:name @session/store*)]
+      [:div.location (:main_location_corrected @*settings)]]]]
+
+   [:br] [:br] ; line breaks
 
    (let [main-location (or (:main-location @session/store*) "")
          name-location (or (:name-location @session/store*) "")]
@@ -153,9 +165,9 @@
                                 [:<> ; TODO: improve the UX of this state
                                  "you haven't set a location on Twitter.  you can add one in your "
                                  [:a {:href "https://twitter.com/settings/profile"} "Twitter settings"]
-                                 " and then refresh, or you can add a location just to Small World:"]
+                                 " and then refresh, or you can add a location just to Small World:"  [:br]]
                                 [:<>
-                                 "based on your profile location, you’re in..."])
+                                 "based on your profile location, you’re in..."  [:br]])
                        :placeholder "what city do you live in?"
                        :value (or (:main @*locations) "")
                        :update! #(swap! *locations assoc :main %)})
@@ -164,11 +176,14 @@
                        :tab-index "2"
                        :label (if (str/blank? name-location)
                                 [:<> ; TODO: improve the UX of this state
-                                 "based on your display name, it looks like " [:br]
-                                 "you’re not traveling right now.  " [:br] [:br]
-                                 "add a destination to see who’s close by:"]
+                                 "we didn't find a destination in your" [:br]
+                                 "Twitter display name, but that's okay!" [:br]
+                                 [:br]
+                                 [:div.small-info-text
+                                  "when you add a city in your display name, Small World automatically "
+                                  "adds it to the list of destinations you're tracking"]]
                                 [:<>
-                                 "based on your display name, you’re in..."])
+                                 "based on your display name, you’re in..."  [:br]])
                        :placeholder "any plans to travel?"
                        :value (or (:name @*locations) "")
                        :update! #(swap! *locations assoc :name %)})])

@@ -193,7 +193,7 @@ input:focus {
 /******************************************************************************/
 /**** content *****************************************************************/
 /******************************************************************************/
-.container {
+.home-page {
   margin: auto;
   padding: 12px;
   padding-bottom: 180px;
@@ -455,6 +455,10 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
 /******************************************************************************/
+.welcome-flow .twitter-data-explanation {
+  max-width: 340px;
+  margin: auto;
+}
 .twitter-data-explanation > .twitter-data {
   background: #ffffff11;
   display: flex;
@@ -462,6 +466,12 @@ tr:nth-child(even) {
   border-radius: 8px;
   column-gap: 12px;
   // align-items: center;
+}
+.twitter-data-explanation > .twitter-data .right-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 2px;
 }
 .twitter-data-explanation > .twitter-data .name {
   font-size: 1.4em;
@@ -476,12 +486,16 @@ tr:nth-child(even) {
   border-radius: 100%;
   border: 2px solid #d9d3cc44;
 }
+.twitter-data-explanation {
+  text-align: left;
+}
 .twitter-data-explanation > .explanation {
   opacity: 0.8;
   line-height: 1.4em;
   align-items: center;
   display: flex;
   padding: 4px;
+  font-size: 0.95em;
 }
 .twitter-data-explanation > .explanation .twitter-icon {
   height: 58px;
@@ -502,12 +516,15 @@ tr:nth-child(even) {
   margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
-  flex-direction: column-reverse;
   flex-grow: 1;
   row-gap: 8px;
+  justify-content: center;
+}
+.home-page .twitter-data-explanation {
+  flex-direction: column-reverse;
 }
 @media screen and (min-width: 500px) {
-  .twitter-data-explanation {
+  .home-page .twitter-data-explanation {
     margin: 12px 0 46px;
     justify-content: center;
     display: flex;
@@ -517,10 +534,10 @@ tr:nth-child(even) {
     row-gap: 8px;
     column-gap: 16px;
   }
-  .twitter-data-explanation > .explanation {
+  .home-page .twitter-data-explanation > .explanation {
     max-width: 400px;
   }
-  .twitter-data-explanation > * {
+  .home-page .twitter-data-explanation > * {
     align-items: center;
   }
 }
@@ -705,7 +722,7 @@ tr:nth-child(even) {
   border-radius: 12px;
 }
 .welcome-flow .location-field {
-  padding: 24px 0;
+  padding: 24px 12px;
 }
 .welcome-flow .email-options,
 .welcome-flow .location-field {
@@ -734,7 +751,7 @@ tr:nth-child(even) {
   opacity: 0.5;
 }
 .welcome-flow input[type='text'] {
-  width: 260px;
+  width: 254px;
   padding: 4px 32px 4px 5px;
   background: #ffffff11;
   border-radius: 4px;
