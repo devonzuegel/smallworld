@@ -91,7 +91,7 @@
                       :autoComplete "off"
                       :auto-complete "off"
                       :on-change #(print "TODO:")}]
-             [:div.small-info-text "don't worry, this will not update your Twitter profile :)"]]]
+             [:div.small-info-text "don't worry, this won't update your Twitter profile :)"]]]
            (user-data/render-friends-list :main-main "living near" main-location)
            (user-data/render-friends-list :main-name "visiting"    main-location)])
 
@@ -108,7 +108,7 @@
                       :autoComplete "off"
                       :auto-complete "off"
                       :on-change #(print "TODO:")}]
-             [:div.small-info-text "don't worry, this will not update your Twitter profile :)"]]]
+             [:div.small-info-text "don't worry, this won't update your Twitter profile :)"]]]
            (user-data/render-friends-list :name-main "living near" name-location)
            (user-data/render-friends-list :name-name "visiting"    name-location)])
 
@@ -165,4 +165,5 @@
                          (:main-location @session/store*))
            :user-img (:profile_image_url_large @session/store*)
            :user-name (:name @session/store*)
-           :screen-name (:screen-name @session/store*)}]])])])
+           :screen-name (:screen-name @session/store*)}]])])
+   [:div.bug-report "report a bug"]])
