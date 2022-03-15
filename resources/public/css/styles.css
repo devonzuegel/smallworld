@@ -352,6 +352,7 @@ tr:nth-child(even) {
   flex-direction: row;
   gap: 12px;
   background-color: #ffffff0d;
+  border-radius: 8px 8px 0 0;
 }
 .friends-list.header .small-info-text {
   text-align: left;
