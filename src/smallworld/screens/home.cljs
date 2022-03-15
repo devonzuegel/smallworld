@@ -55,7 +55,7 @@
    (let [main-location (or (:main_location_corrected @settings/*settings) (:main-location @session/store*))
          name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/store*))]
      [:<>
-      [:div.container
+      [:div.home-page
        #_[:div.current-user [user-data/render-user nil @session/store*]] ; TODO: cleanup
 
        (when @*debug?
@@ -91,7 +91,7 @@
                       :autoComplete "off"
                       :auto-complete "off"
                       :on-change #(print "TODO:")}]
-             [:div.small-info-text "this will not update your Twitter profile"]]]
+             [:div.small-info-text "don't worry, this will not update your Twitter profile :)"]]]
            (user-data/render-friends-list :main-main "living near" main-location)
            (user-data/render-friends-list :main-name "visiting"    main-location)])
 
@@ -108,7 +108,7 @@
                       :autoComplete "off"
                       :auto-complete "off"
                       :on-change #(print "TODO:")}]
-             [:div.small-info-text "this will not update your Twitter profile"]]]
+             [:div.small-info-text "don't worry, this will not update your Twitter profile :)"]]]
            (user-data/render-friends-list :name-main "living near" name-location)
            (user-data/render-friends-list :name-name "visiting"    name-location)])
 
