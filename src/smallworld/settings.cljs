@@ -72,7 +72,7 @@
                              (update! new-value))
                :placeholder placeholder}]
              (decorations/edit-icon)]
-        [:div.small-info-text "don't worry, this will not update your Twitter profile :)"]
+        [:div.small-info-text "don't worry, this won't update your Twitter profile :)"]
         [:br]
         [:div.mapbox-container
          [minimap minimap-id value]
@@ -167,7 +167,7 @@
                                  [:a {:href "https://twitter.com/settings/profile"} "Twitter settings"]
                                  " and then refresh, or you can add a location just to Small World:"  [:br]]
                                 [:<>
-                                 "based on your profile location, you’re in..."  [:br]])
+                                 "based on your Twitter location, you’re in..."  [:br]])
                        :placeholder "what city do you live in?"
                        :value (or (:main @*locations) "")
                        :update! #(swap! *locations assoc :main %)})
@@ -180,8 +180,9 @@
                                  "Twitter display name, but that's okay!" [:br]
                                  [:br]
                                  [:div.small-info-text
-                                  "when you add a city in your display name, Small World automatically "
-                                  "adds it to the list of destinations you're tracking"]]
+                                  "when you add a city to the end of your Twitter "
+                                  "display name, Small World automatically adds it "
+                                  "to the list of places you're tracking"]]
                                 [:<>
                                  "based on your display name, you’re in..."  [:br]])
                        :placeholder "any plans to travel?"
@@ -232,4 +233,8 @@
       [:pre "@session/store*: \n" (util/preify @session/store*)]
       [:pre "@*locations:     \n" (util/preify @*locations)]
       [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])
-   [:br] [:br] [:br] [:br] [:br]])
+   [:br] [:br] [:br] [:br] [:br]
+   [:div.info-footer
+    [:a {:href "https://github.com/devonzuegel/smallworld"} "report a bug"]
+    [:span.dot-separator " · "]
+    [:a {:href "https://devonzuegel.com"} "who built this?"]]])

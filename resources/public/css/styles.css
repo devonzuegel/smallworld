@@ -10,15 +10,14 @@
 }
 html {
   color: #d9d3cc;
+  font-size: 16px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
-  font-size: 14px;
   background-color: #013917;
   background-image: url(../az-subtle.png);
 }
 body {
   margin: 0;
 }
-
 html,
 body {
   height: 100%;
@@ -31,6 +30,15 @@ input {
 input:focus {
   color: #f1ece8;
   transition: color 200ms ease-in-out;
+}
+/* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
+body {
+  line-height: 1.3em;
+  font-size: 16px;
+}
+input,
+select {
+  font-size: 100%;
 }
 
 /*****************************************/
@@ -474,11 +482,11 @@ tr:nth-child(even) {
   margin-bottom: 2px;
 }
 .twitter-data-explanation > .twitter-data .name {
-  font-size: 1.4em;
+  font-size: 1.2em;
   font-weight: 600;
 }
 .twitter-data-explanation > .twitter-data .location {
-  font-size: 1.1em;
+  font-size: 1em;
   opacity: 0.8;
 }
 .twitter-data-explanation > .twitter-data img {
@@ -495,12 +503,12 @@ tr:nth-child(even) {
   align-items: center;
   display: flex;
   padding: 4px;
-  font-size: 0.95em;
+  font-size: 0.8em;
 }
 .twitter-data-explanation > .explanation .twitter-icon {
   height: 58px;
   fill: #d9d3cc;
-  margin-left: 0;
+  margin-left: 3px;
   margin-right: 12px;
 }
 .twitter-data-explanation > .explanation a {
@@ -692,7 +700,7 @@ tr:nth-child(even) {
 /******************************************************************************/
 
 .welcome-flow {
-  margin: 36px 24px;
+  margin: 36px 16px;
   text-align: center;
 }
 .welcome-flow .friend {
@@ -718,11 +726,14 @@ tr:nth-child(even) {
 .welcome-flow .email-options {
   max-width: 340px;
   margin: auto;
-  padding: 16px 0;
+  padding: 16px 12px;
   border-radius: 12px;
 }
 .welcome-flow .location-field {
   padding: 24px 12px;
+}
+.welcome-flow .location-field label .small-info-text {
+  padding: 0 10px;
 }
 .welcome-flow .email-options,
 .welcome-flow .location-field {
@@ -756,7 +767,7 @@ tr:nth-child(even) {
   background: #ffffff11;
   border-radius: 4px;
   margin: 8px 4px;
-  font-size: 1em;
+  font-size: 0.9em;
   font-weight: bold;
   text-align: center;
 }
@@ -765,8 +776,9 @@ tr:nth-child(even) {
   font-size: 0.9em;
 }
 .small-info-text {
-  font-size: 0.7em;
-  opacity: 0.4;
+  font-size: 0.8em;
+  opacity: 0.5;
+  line-height: 1.3em;
   text-align: center;
 }
 .welcome-flow .email-options .radio-btns {
@@ -1206,4 +1218,18 @@ ul {
 }
 ul li {
   padding-left: 6px;
+}
+/************************************************************/
+/** footer **************************************************/
+/************************************************************/
+.info-footer {
+  padding-bottom: 12px;
+  font-size: 0.8em;
+  opacity: 0.5;
+}
+.info-footer .dot-separator {
+  margin: 0 6px;
+}
+.info-footer a:hover {
+  cursor: pointer;
 }
