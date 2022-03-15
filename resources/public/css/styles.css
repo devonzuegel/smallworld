@@ -781,6 +781,17 @@ tr:nth-child(even) {
   line-height: 1.3em;
   text-align: center;
 }
+.small-info-text a {
+  color: #f5f0eb;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+.small-info-text a:hover {
+  color: white;
+  transition: all 50ms ease-out;
+  border-bottom: 3px solid #ffffff22;
+}
 .welcome-flow .email-options .radio-btns {
   text-align: left;
   max-width: 400px;

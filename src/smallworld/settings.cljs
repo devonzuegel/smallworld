@@ -15,12 +15,16 @@
 (defonce *form-errors    (r/atom {}))
 
 (defn fetch-coordinates! [minimap-id input]
-  (util/fetch-post "/coordinates" {:location-name input}
-                   (fn [result]
-                     (.flyTo (get @*minimaps minimap-id)
-                             #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
-                                 :zoom 4
-                                 :center #js[(:lng result) (:lat result)]}))))
+  (if (str/blank? input)
+    (.flyTo (get @*minimaps minimap-id)
+            #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
+                :zoom 0})
+    (util/fetch-post "/coordinates" {:location-name input}
+                     (fn [result]
+                       (.flyTo (get @*minimaps minimap-id)
+                               #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
+                                   :zoom 4
+                                   :center #js[(:lng result) (:lat result)]})))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
@@ -50,12 +54,13 @@
                        auto-focus  :auto-focus
                        label       :label
                        placeholder :placeholder
+                       blank?      :blank?
                        value       :value
                        update!     :update!}]
   (let [minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id}
      [:label label]
-     (when-not (str/blank? value)
+     (when-not blank?
        [:<> [:div
              [:input.location-input
               {:type "text"
@@ -163,12 +168,14 @@
                        :auto-focus true
                        :label (if (str/blank? main-location)
                                 [:<> ; TODO: improve the UX of this state
-                                 "you haven't set a location on Twitter.  you can add one in your "
-                                 [:a {:href "https://twitter.com/settings/profile"} "Twitter settings"]
-                                 " and then refresh, or you can add a location just to Small World:"  [:br]]
+                                 "you haven't set a location on Twitter," [:br] "but that's okay!"
+                                 [:div.small-info-text {:style {:margin-top "12px"}}
+                                  "when you "  [:a {:href "https://twitter.com/settings/profile"} "update your location"] " on Twitter," [:br]
+                                  "Small World will automatically add it to the list of places you're tracking"]]
                                 [:<>
                                  "based on your Twitter location, you’re in..."  [:br]])
                        :placeholder "what city do you live in?"
+                       :blank? (str/blank? main-location)
                        :value (or (:main @*locations) "")
                        :update! #(swap! *locations assoc :main %)})
       [:br]
@@ -177,15 +184,14 @@
                        :label (if (str/blank? name-location)
                                 [:<> ; TODO: improve the UX of this state
                                  "we didn't find a destination in your" [:br]
-                                 "Twitter display name, but that's okay!" [:br]
-                                 [:br]
-                                 [:div.small-info-text
-                                  "when you add a city to the end of your Twitter "
-                                  "display name, Small World automatically adds it "
-                                  "to the list of places you're tracking"]]
+                                 "Twitter display name, but that's okay!"
+                                 [:div.small-info-text {:style {:margin-top "12px"}}
+                                  "when you " [:a {:href "https://twitter.com/settings/profile"} "add a city"] " to the end of your Twitter "
+                                  "display name, Small World will automatically add it to the list of places you're tracking"]]
                                 [:<>
                                  "based on your display name, you’re in..."  [:br]])
                        :placeholder "any plans to travel?"
+                       :blank? (str/blank? name-location)
                        :value (or (:name @*locations) "")
                        :update! #(swap! *locations assoc :name %)})])
    [:br]
