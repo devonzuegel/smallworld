@@ -184,18 +184,16 @@
 (defn add-friends-to-map [friends curr-user]
   (when @the-map ; don't add friends to map if there is no map
     (doseq [friend (conj friends curr-user)]
-      (let [main-coords (:main-coords friend)
-            name-coords (:name-coords friend)]
-
-        ; round to 1 decimal place so that metro regions are grouped together
-        (let [lng (round (:lng main-coords))
-              lat (round (:lat main-coords))
-              has-coord (and main-coords lng lat)]
+      (doseq [location (:locations friend)]
+         ; round to 1 decimal place so that metro regions are grouped together
+        (let [lng (round (:lng (:coords location)))
+              lat (round (:lat (:coords location)))
+              has-coord (and (:coords location) lng lat)]
           (when has-coord
             (let [group (get @*groups [lng lat])]
               (swap! *groups assoc [lng lat]
-                     (conj group {:lng-lat     [(:lng main-coords)
-                                                (:lat main-coords)]
+                     (conj group {:lng-lat     [(:lng (:coords location))
+                                                (:lat (:coords location))]
                                   :location    (:main-location friend)
                                   :img-url     (:profile_image_url_large friend)
                                   :user-name   (:name friend)
@@ -203,25 +201,8 @@
                                   :classname   (when (= (:screen-name friend)
                                                         (:screen-name curr-user))
                                                  "current-user")
-                                  :info        "Twitter location"})))))
-
-        ; round to 1 decimal place so that metro regions are grouped together
-        (let [lng (round (:lng name-coords))
-              lat (round (:lat name-coords))
-              has-coord (and name-coords lng lat)]
-          (when has-coord
-            (let [group (get @*groups [lng lat])]
-              (swap! *groups assoc [lng lat]
-                     (conj group {:lng-lat     [(:lng name-coords)
-                                                (:lat name-coords)]
-                                  :location    (:name-location friend)
-                                  :img-url     (:profile_image_url_large friend)
-                                  :user-name   (:name friend)
-                                  :screen-name (:screen-name friend)
-                                  :classname   (when (= (:screen-name friend)
-                                                        (:screen-name curr-user))
-                                                 "current-user")
-                                  :info        "Twitter location"})))))))
+                                  :special-status (:special-status location)})))))
+        (println location)))
 
 
     (doseq [[group-key markers] @*groups]
