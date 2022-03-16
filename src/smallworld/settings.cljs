@@ -133,7 +133,7 @@
     (reset! *email-address (:email @session/store*)))
   [:div.welcome-flow
    [:<>
-    [:p.serif {:style {:font-size "1.3em" :margin-bottom "2px"}}
+    [:p.serif {:style {:font-size "1.3em" :margin-bottom "12px"}}
      "welcome to"]
     [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
      "Small World"]]

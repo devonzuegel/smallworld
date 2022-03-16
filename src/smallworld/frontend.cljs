@@ -29,7 +29,10 @@
 (defn logged-out-screen []
   [:div.welcome
    [:div.hero
-    [:h1 "welcome to" [:br] "Small World"]
+    [:p.serif {:style {:font-size "1.5em" :margin-top "8px" :margin-bottom "4px"}}
+     "welcome to"]
+    [:h1 {:style {:font-weight "bold" :font-size "2.6em"}}
+     "Small World"]
     [:div#logo-animation.logo (decorations/animated-globe)]
     [:h2
      [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]]
