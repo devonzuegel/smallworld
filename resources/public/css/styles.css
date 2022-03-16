@@ -729,6 +729,26 @@ tr:nth-child(even) {
   padding: 16px 12px;
   border-radius: 12px;
 }
+.welcome-flow .track-new-location-field {
+  width: fit-content;
+  margin: auto;
+  padding: 12px 20px;
+  border-radius: 24px;
+  fill: #d9d3cc;
+  color: #d9d3cc;
+  background-color: #ffffff11;
+  transition: all 100ms ease-out;
+}
+.welcome-flow .track-new-location-field:hover {
+  fill: white;
+  color: white;
+  cursor: pointer;
+  background-color: #ffffff16;
+}
+.welcome-flow .track-new-location-field svg.plus {
+  margin-right: 10px;
+  margin-bottom: -2px;
+}
 .welcome-flow .location-field {
   padding: 24px 12px;
 }

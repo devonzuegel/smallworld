@@ -171,7 +171,7 @@
                                  "you haven't set a location on Twitter," [:br] "but that's okay!"
                                  [:div.small-info-text {:style {:margin-top "12px"}}
                                   "when you "  [:a {:href "https://twitter.com/settings/profile"} "update your location"] " on Twitter," [:br]
-                                  "Small World will automatically add it to the list of places you're tracking"]]
+                                  "Small World will automatically begin to track it for you"]]
                                 [:<>
                                  "based on your Twitter location, you’re in..."  [:br]])
                        :placeholder "what city do you live in?"
@@ -186,14 +186,19 @@
                                  "we didn't find a destination in your" [:br]
                                  "Twitter display name, but that's okay!"
                                  [:div.small-info-text {:style {:margin-top "12px"}}
-                                  "when you " [:a {:href "https://twitter.com/settings/profile"} "add a city"] " to the end of your Twitter "
-                                  "display name, Small World will automatically add it to the list of places you're tracking"]]
+                                  "when you " [:a {:href "https://twitter.com/settings/profile"} "add a destination"] " to the end of your " [:br]
+                                  "Twitter display name, Small World will " [:br]
+                                  "automatically track it for you"]]
                                 [:<>
                                  "based on your display name, you’re in..."  [:br]])
                        :placeholder "any plans to travel?"
                        :blank? (str/blank? name-location)
                        :value (or (:name @*locations) "")
-                       :update! #(swap! *locations assoc :name %)})])
+                       :update! #(swap! *locations assoc :name %)})
+      [:br]
+      [:div.track-new-location-field (decorations/plus-icon) "track another location"]
+      [:div.small-info-text {:style {:margin-top "6px"}}
+       "add a location to see who's nearby"]])
    [:br]
    [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
