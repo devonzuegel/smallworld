@@ -56,6 +56,12 @@
   (/ (reduce + list-of-nums)
      (count list-of-nums)))
 
+(def info-footer
+  [:div.info-footer
+   [:a {:href "https://github.com/devonzuegel/smallworld/issues"} "report a bug"]
+   [:span.dot-separator " · "]
+   [:a {:href "https://devonzuegel.com"} "who built this?"]])
+
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]
     (r/create-class

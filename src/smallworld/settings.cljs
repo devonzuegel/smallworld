@@ -240,7 +240,4 @@
       [:pre "@*locations:     \n" (util/preify @*locations)]
       [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])
    [:br] [:br] [:br] [:br] [:br]
-   [:div.info-footer
-    [:a {:href "https://github.com/devonzuegel/smallworld"} "report a bug"]
-    [:span.dot-separator " · "]
-    [:a {:href "https://devonzuegel.com"} "who built this?"]]])
+   util/info-footer])

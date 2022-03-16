@@ -470,16 +470,14 @@ tr:nth-child(even) {
 .twitter-data-explanation > .twitter-data {
   background: #ffffff11;
   display: flex;
-  padding: 8px 16px 8px 10px;
+  padding: 8px 16px;
   border-radius: 8px;
   column-gap: 12px;
-  // align-items: center;
 }
 .twitter-data-explanation > .twitter-data .right-side {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-bottom: 2px;
 }
 .twitter-data-explanation > .twitter-data .name {
   font-size: 1.2em;

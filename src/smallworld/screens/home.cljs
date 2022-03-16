@@ -166,4 +166,4 @@
            :user-img (:profile_image_url_large @session/store*)
            :user-name (:name @session/store*)
            :screen-name (:screen-name @session/store*)}]])])
-   [:div.bug-report "report a bug"]])
+   util/info-footer])
