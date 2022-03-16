@@ -58,10 +58,6 @@
       [:div.home-page
        #_[:div.current-user [user-data/render-user nil @session/*store]] ; TODO: cleanup
 
-       (when @*debug?
-         [:br]
-         [:pre (util/preify @settings/*settings)])
-
        [:<>
         (when (and (empty? main-location)
                    (empty? name-location))
@@ -120,28 +116,27 @@
            "🚧  this wil take a while to load, apologies.  I'm working on "
            "making it faster.  thanks for being Small World's first user!"])
 
-        (when @*debug?
-          [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
-           [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
-            "does the data for your friends look out of date?"]
-           [:a.btn {:href "#" :on-click user-data/refresh-friends}
-            "refresh friends"]
-           [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
-            "note: this takes several seconds to run"]])
-
-        (when @*debug?
-          [:<>
-           [:br]
-           [:pre "@current-user:\n\n"  (util/preify @session/*store)]
-           [:br]
-           (if (= @user-data/*friends :loading)
-             [:pre "@user-data/*friends is still :loading"]
-             [:pre "@user-data/*friends (" (count @user-data/*friends) "):\n\n" (util/preify @user-data/*friends)])])
-
         [:br] [:br] [:br]
         [:p {:style {:text-align "center"}}
          [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]]
+          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]
+
+        (when @*debug?
+          [:<> [:br] [:br] [:hr]
+           [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
+            [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
+             "does the data for your friends look out of date?"]
+            [:a.btn {:href "#" :on-click user-data/refresh-friends}
+             "refresh friends"]
+            [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
+             "note: this takes several seconds to run"]]
+
+           [:br]
+           [:pre "current-user:\n\n"  (util/preify @session/*store)]  [:br]
+           [:pre "settings:\n\n" (util/preify @settings/*settings)] [:br]
+           (if (= @user-data/*friends :loading)
+             [:pre "@user-data/*friends is still :loading"]
+             [:pre "@user-data/*friends (" (count @user-data/*friends) "):\n\n" (util/preify @user-data/*friends)])])]]
 
       (let [main-coords (:main-coords @session/*store)
             name-coords (:name-coords @session/*store)]
