@@ -15,18 +15,6 @@
       (and (< smallest-distance max-distance)
            (not (nil? smallest-distance))))))
 
-(defn round-to-int [num]
-  (let [formatted  (pp/cl-format nil "~,0f" num)
-        no-decimal (str/replace formatted #"\." "")]
-    no-decimal))
-
-(defn get-smallest-distance [friend]
-  (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
-                           (get-in friend [:distance :name-name])
-                           (get-in friend [:distance :name-main])
-                           (get-in friend [:distance :main-name])
-                           (get-in friend [:distance :main-main])])))
-
 (defn render-user [k user]
   (let [twitter-pic    (:profile_image_url_large user)
         twitter-name   (:name user)
@@ -35,8 +23,7 @@
         location       (:main-location user)
         twitter-href   {:href twitter-link :target "_blank" :title "Twitter"}
         lat            (:lat (:main-coords user))
-        lng            (:lng (:main-coords user))
-        distance       (get-smallest-distance user)]
+        lng            (:lng (:main-coords user))]
     [:div.friend {:key twitter-name}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
@@ -48,17 +35,7 @@
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :title "Google Maps"
             :target "_blank"}
-        [:span.location location]
-        (when (< distance 1000)
-          [:span.distance
-           (cond (< distance 20)  "<20 miles away"
-                 (< distance 50)  "<50 miles away"
-                 (< distance 100) "<100 miles away"
-                 (< distance 200) "<200 miles away"
-                 :else            ">200 miles away")
-
-          ;;  (round-to-int distance) " mile" (when (not= "1" (round-to-int distance)) "s") " away"
-           ])]]]]))
+        [:span.location location]]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @*friends
