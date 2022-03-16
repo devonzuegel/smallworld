@@ -269,12 +269,6 @@ a:hover a {
 .friends-list .location-info .triangle.down {
   transform: rotate(180deg);
 }
-.distance {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.8em;
-  margin-left: 12px;
-  opacity: 0.7;
-}
 
 /*****************************************/
 /**** table ******************************/

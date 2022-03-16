@@ -56,8 +56,7 @@
    ; TODO: display latest Tweet too (this requires some backend work)
    [:div.bottom-row {:title info}
     (decorations/location-icon)
-    (when-not (clojure.string/blank? location) [:span.location location])
-    [:code (round-two-decimals (second lng-lat)) ", " (round-two-decimals (first lng-lat))]]])
+    (when-not (clojure.string/blank? location) [:span.location location])]])
 
 (defn User-Marker [{lng-lat     :lng-lat
                     location    :location
