@@ -658,7 +658,7 @@ tr:nth-child(even) {
   -ms-transform: scale(1); /* IE 9 */
   -webkit-transform: scale(1); /* Safari */
   transform: scale(1);
-  margin: 55px 0;
+  margin: 54px 0 46px 0;
   opacity: 0.25;
 }
 .steps {
@@ -677,7 +677,8 @@ tr:nth-child(even) {
   display: inline-block;
 }
 .welcome .info {
-  font-size: 1em;
+  font-size: 0.85em;
+  opacity: 0.7;
   margin: 32px 10px 64px;
   max-width: 400px;
   line-height: 1.3;
