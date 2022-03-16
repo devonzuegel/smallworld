@@ -356,6 +356,7 @@ tr:nth-child(even) {
   }
 }
 .friends-list.header {
+  font-size: 0.85em;
   display: flex;
   flex-direction: row;
   gap: 12px;
@@ -398,6 +399,7 @@ tr:nth-child(even) {
   }
 }
 .friend {
+  font-size: 0.95em;
   display: flex;
   align-items: center;
   justify-items: center;
@@ -729,6 +731,7 @@ tr:nth-child(even) {
   padding: 16px 12px;
   border-radius: 12px;
 }
+.home-page .track-new-location-field,
 .welcome-flow .track-new-location-field {
   width: fit-content;
   margin: auto;
@@ -739,12 +742,14 @@ tr:nth-child(even) {
   background-color: #ffffff11;
   transition: all 100ms ease-out;
 }
+.home-page .track-new-location-field:hover,
 .welcome-flow .track-new-location-field:hover {
   fill: white;
   color: white;
   cursor: pointer;
   background-color: #ffffff16;
 }
+.home-page .track-new-location-field svg.plus,
 .welcome-flow .track-new-location-field svg.plus {
   margin-right: 10px;
   margin-bottom: -2px;
@@ -1253,6 +1258,7 @@ ul li {
 /** footer **************************************************/
 /************************************************************/
 .info-footer {
+  text-align: center;
   padding-bottom: 12px;
   font-size: 0.8em;
   opacity: 0.5;
