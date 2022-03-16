@@ -16,7 +16,7 @@
         name (str/replace name #"they/them" "")
         name (str/replace name #"she/her" "")
         name (str/replace name #"he/him" "")
-        split-name (str/split name #" in ")]
+        split-name (clojure.string/split name #" in |\|")] ; split on " in " or "|"
     (if (= 1 (count (or split-name "")))
       nil
       (last split-name))))
