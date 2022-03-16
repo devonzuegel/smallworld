@@ -17,7 +17,7 @@
                          (reset! user-data/*friends result)
                          ; TODO: only run this on the main page, otherwise you'll get errors
                          ; wait for the map to load – this is a hack & may be a source of errors ;)
-                         (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/store*)
+                         (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store)
                                         2000))
             :retry? true)
 
@@ -28,7 +28,7 @@
 
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
-   [:b.screen-name " @" (:screen-name @session/store*)]])
+   [:b.screen-name " @" (:screen-name @session/*store)]])
 
 (defn minimap [minimap-id location-name]
   (r/create-class {:component-did-mount
@@ -52,11 +52,11 @@
 (defn screen []
   [:<>
    (nav)
-   (let [main-location (or (:main_location_corrected @settings/*settings) (:main-location @session/store*))
-         name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/store*))]
+   (let [main-location (or (:main_location_corrected @settings/*settings) (:main-location @session/*store))
+         name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/*store))]
      [:<>
       [:div.home-page
-       #_[:div.current-user [user-data/render-user nil @session/store*]] ; TODO: cleanup
+       #_[:div.current-user [user-data/render-user nil @session/*store]] ; TODO: cleanup
 
        (when @*debug?
          [:br]
@@ -132,7 +132,7 @@
         (when @*debug?
           [:<>
            [:br]
-           [:pre "@current-user:\n\n"  (util/preify @session/store*)]
+           [:pre "@current-user:\n\n"  (util/preify @session/*store)]
            [:br]
            (if (= @user-data/*friends :loading)
              [:pre "@user-data/*friends is still :loading"]
@@ -143,15 +143,15 @@
          [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
           "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]]
 
-      (let [main-coords (:main-coords @session/store*)
-            name-coords (:name-coords @session/store*)]
+      (let [main-coords (:main-coords @session/*store)
+            name-coords (:name-coords @session/*store)]
         [util/error-boundary
          [mapbox/mapbox
           {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
                         (when main-coords [(:lng main-coords) (:lat main-coords)]))
-           :location (or (:name-location @session/store*)
-                         (:main-location @session/store*))
-           :user-img (:profile_image_url_large @session/store*)
-           :user-name (:name @session/store*)
-           :screen-name (:screen-name @session/store*)}]])])
+           :location (or (:name-location @session/*store)
+                         (:main-location @session/*store))
+           :user-img (:profile_image_url_large @session/*store)
+           :user-name (:name @session/*store)
+           :screen-name (:screen-name @session/*store)}]])])
    util/info-footer])

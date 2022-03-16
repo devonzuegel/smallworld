@@ -62,9 +62,9 @@
 (defonce admin-summary* (r/atom :loading))
 (defn admin-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
   [:div.admin-screen
-   (if-not (= "devonzuegel" (:screen-name @session/store*))
+   (if-not (= "devonzuegel" (:screen-name @session/*store))
 
-     (if (= :loading @session/store*)
+     (if (= :loading @session/*store)
        (loading-screen)
        [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
         "whoops, you don't have access to this page"])
@@ -90,7 +90,7 @@
 
 (defn app-container []
   (condp = (.-pathname (.-location js/window))
-    "/" (condp = @session/store*
+    "/" (condp = @session/*store
           :loading (loading-screen)
           session/blank (logged-out-screen)
           (if (= :loading @settings/*settings)

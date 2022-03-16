@@ -130,7 +130,7 @@
 
 (defn welcome-flow-screen []
   (when (nil? @*email-address)
-    (reset! *email-address (:email @session/store*)))
+    (reset! *email-address (:email @session/*store)))
   [:div.welcome-flow
    [:<>
     [:p.serif {:style {:font-size "1.3em" :margin-bottom "12px"}}
@@ -147,15 +147,15 @@
       [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
       " to find nearby friends"]]
     [:div.twitter-data
-     [:img {:src (:profile_image_url_large @session/store*)}]
+     [:img {:src (:profile_image_url_large @session/*store)}]
      [:div.right-side
-      [:div.name     (:name @session/store*)]
+      [:div.name     (:name @session/*store)]
       [:div.location (:main_location_corrected @*settings)]]]]
 
    [:br] [:br] ; line breaks
 
-   (let [main-location (or (:main-location @session/store*) "")
-         name-location (or (:name-location @session/store*) "")]
+   (let [main-location (or (:main-location @session/*store) "")
+         name-location (or (:name-location @session/*store) "")]
 
      (when (= :loading @*locations) ; TODO: clean this up, it's kinda hacky
        (reset! *locations {:main main-location
@@ -241,7 +241,7 @@
      [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
      [:div {:style {:text-align "left"}}
       [:br]
-      [:pre "@session/store*: \n" (util/preify @session/store*)]
+      [:pre "@session/*store: \n" (util/preify @session/*store)]
       [:pre "@*locations:     \n" (util/preify @*locations)]
       [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])
    [:br] [:br] [:br] [:br] [:br]
