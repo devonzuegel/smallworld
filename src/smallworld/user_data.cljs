@@ -20,10 +20,10 @@
         twitter-name   (:name user)
         twitter-handle (:screen-name user)
         twitter-link   (str "http://twitter.com/" twitter-handle)
-        location       (:main-location user)
         twitter-href   {:href twitter-link :target "_blank" :title "Twitter"}
-        lat            (:lat (:main-coords user))
-        lng            (:lng (:main-coords user))]
+        first-location (first (:locations user)) ; consider pulling from the "Twitter location" location or from the nearest location to the current user, instead of simply pulling the first location in the array
+        lat            (when first-location (:lat (:coords first-location)))
+        lng            (when first-location (:lng (:coords first-location)))]
     [:div.friend {:key twitter-name}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
@@ -35,7 +35,7 @@
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :title "Google Maps"
             :target "_blank"}
-        [:span.location location]]]]]))
+        [:span.location (:name first-location)]]]]]))
 
 (defn get-close-friends [distance-key max-distance]
   (->> @*friends
