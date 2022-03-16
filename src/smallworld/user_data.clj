@@ -60,12 +60,12 @@
      ; (i.e. if they are also the current-user) AND if they have set their email
      ; on Twitter, which is not required, so sometimes it'll be the empty string
      :email (:email friend)
-     :locations [(when (not (str/blank? friend-main-location)) {:special-status :twitter-location ; formerly called "main location"
+     :locations [(when (not (str/blank? friend-main-location)) {:special-status "twitter-location" ; formerly called "main location"
                                                                 :name friend-main-location
                                                                 :coords friend-main-coords
                                                                 :distances {:to-main (coordinates/distance-btwn current-name-coords friend-main-coords)
                                                                             :to-name (coordinates/distance-btwn current-main-coords friend-main-coords)}})
-                 (when (not (str/blank? friend-name-location)) {:special-status :from-display-name ; formerly called "name location"
+                 (when (not (str/blank? friend-name-location)) {:special-status "from-display-name" ; formerly called "name location"
                                                                 :name friend-name-location
                                                                 :coords friend-name-coords
                                                                 :distances {:to-main (coordinates/distance-btwn current-name-coords friend-name-coords)

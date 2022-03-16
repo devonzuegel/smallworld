@@ -138,14 +138,11 @@
              [:pre "@user-data/*friends is still :loading"]
              [:pre "@user-data/*friends (" (count @user-data/*friends) "):\n\n" (util/preify @user-data/*friends)])])]]
 
-      (let [main-coords (:main-coords @session/*store)
-            name-coords (:name-coords @session/*store)]
+      (let [top-location (first (remove nil? (:locations @session/*store)))]
         [util/error-boundary
          [mapbox/mapbox
-          {:lng-lat (or (when name-coords [(:lng name-coords) (:lat name-coords)])
-                        (when main-coords [(:lng main-coords) (:lat main-coords)]))
-           :location (or (:name-location @session/*store)
-                         (:main-location @session/*store))
+          {:lng-lat  (:coords top-location)
+           :location (:name top-location)
            :user-img (:profile_image_url_large @session/*store)
            :user-name (:name @session/*store)
            :screen-name (:screen-name @session/*store)}]])])

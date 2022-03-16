@@ -179,7 +179,7 @@
 (defn get-users-friends [req & [screen-name]]
   (let [main-location (or (:main_location_corrected (get-settings req)) "")
         name-location (or (:name_location_corrected (get-settings req)) "")
-        corrected-curr-user (merge
+        corrected-curr-user (merge ; TODO: if main- or name-coords have been updated, remove them from the list and add the updated ones
                              (get-current-user req)
                              {:main-location main-location
                               :main-coords (coordinates/memoized main-location)

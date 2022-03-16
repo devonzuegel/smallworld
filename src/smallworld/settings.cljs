@@ -159,14 +159,17 @@
 
    [:br] [:br] ; line breaks
 
-   (let [main-location (or (:main-location @session/*store) "")
-         name-location (or (:name-location @session/*store) "")]
+   (let [locations (:locations @session/*store)
+         main-location-info (first (filter #(= (:special-status %) "twitter-location")  locations))
+         name-location-info (first (filter #(= (:special-status %) "from-display-name") locations))
+         main-location (or (:name main-location-info) "")
+         name-location (or (:name name-location-info) "")]
 
      (when (= :loading @*locations) ; TODO: clean this up, it's kinda hacky
        (reset! *locations {:main main-location
                            :name name-location}))
 
-     [:div.location-fields
+     [:div.location-fields ; TODO: add a way to delete locations from the list
       [:br]
       (location-field {:id "main-location"
                        :tab-index "1"
