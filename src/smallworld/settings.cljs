@@ -84,9 +84,14 @@
          (when-not (clojure.string/blank? value)
            [:div.center-point])]])]))
 
-(defn input-by-name [name & [other]]
+(defn input-by-name [name & [additional-attrs]]
   (.querySelector js/document (str "input[name= \"" name "\"]"
-                                   (or other ""))))
+                                   (or additional-attrs ""))))
+
+(defn input-value-by-name [name]
+  (let [input-elem (input-by-name name)]
+    (when input-elem
+      (.-value input-elem))))
 
 (defn add-form-error [id error-msg] (swap! *form-errors assoc id error-msg))
 
@@ -119,9 +124,9 @@
 
 
 (defn submit-welcome-form []
-  (let [new-settings {:main_location_corrected (.-value (input-by-name "main-location-input"))
-                      :name_location_corrected (.-value (input-by-name "name-location-input"))
-                      :email_address           (.-value (input-by-name "email-address-input"))
+  (let [new-settings {:main_location_corrected (input-value-by-name "main-location-input")
+                      :name_location_corrected (input-value-by-name "name-location-input")
+                      :email_address           (input-value-by-name "email-address-input")
                       :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                       :welcome_flow_complete   true}]
     (when (valid-inputs!? new-settings)
