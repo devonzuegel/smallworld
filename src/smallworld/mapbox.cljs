@@ -196,7 +196,7 @@
                                                         :classname (when (= (:screen-name friend)
                                                                             (:screen-name curr-user))
                                                                      "current-user")
-                                                        :location       (:main-location friend)
+                                                        :location       (:name location)
                                                         :img-url        (:profile_image_url_large friend)
                                                         :user-name      (:name friend)
                                                         :screen-name    (:screen-name friend)

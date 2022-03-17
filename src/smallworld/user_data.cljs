@@ -37,23 +37,47 @@
             :target "_blank"}
         [:span.location (:name first-location)]]]]]))
 
-(defn get-close-friends [distance-key max-distance]
+; TODO: the logic in this needs some serious cleanup; probably requires refactoring the data model too
+(defn get-close-friends [curr-user-location-name friend-location-key max-distance]
   (->> @*friends
-       (sort-by #(get-in % [:distance distance-key]))
-       (filter (closer-than max-distance distance-key))))
+       (filter (fn [friend] ; not all friends will have both LOCATION and DISPLAY NAME LOCATION set, so filter those out
+                 (let [friend-locations (:locations friend)
+                       has-location? (-> #(= (:special-status %) friend-location-key)
+                                         (filter friend-locations)
+                                         first
+                                         nil?
+                                         not)]
+                   has-location?)))
 
-(def *collapsed? (r/atom {:main-main false
-                          :main-name false
-                          :name-main false
-                          :name-name false}))
+       (filter (fn [friend] (let [friend-locations (:locations friend)
+                                  friend-location  (-> #(= (:special-status %) friend-location-key)
+                                                       (filter friend-locations)
+                                                       first)
+                                  distance-to-curr-user-location (get-in friend-location
+                                                                         [:distances (keyword curr-user-location-name)])]
+                              (and (not (nil? distance-to-curr-user-location))
+                                   (> max-distance distance-to-curr-user-location)))))
 
-(defn render-friends-list [friends-list-key verb-gerund location-name]
-  (let [friends-list      (if (= :loading @*friends)
-                            []
-                            (get-close-friends friends-list-key 100))
+       (sort-by (fn [friend] (let [friend-locations (:locations friend)
+                                   friend-location  (-> #(= (:special-status %) friend-location-key)
+                                                        (filter friend-locations)
+                                                        first)
+                                   distance-to-curr-user-location (get-in friend-location
+                                                                          [:distances (keyword curr-user-location-name)])]
+                               distance-to-curr-user-location)))))
+
+(def *expanded? (r/atom {}))
+
+(defn render-friends-list [curr-user-location-i friend-location-key verb-gerund curr-user-location-name]
+  (assert (or (= friend-location-key "twitter-location")
+              (= friend-location-key "from-display-name"))) ; TODO: add Scheme to encode this more nicely
+  (let [key-pair        [curr-user-location-i friend-location-key]
+        friends-list    (if (= :loading @*friends)
+                          []
+                          (get-close-friends curr-user-location-name friend-location-key 100))
         list-count        (count friends-list)
         friend-pluralized (if (= list-count 1) "friend is" "friends are")
-        collapsed?        (get @*collapsed? friends-list-key)]
+        expanded?        (boolean (get @*expanded? key-pair))]
 
     [util/error-boundary
      [:div.friends-list
@@ -66,18 +90,18 @@
           [:<>
            [:p.location-info
             {:on-click ; toggle collapsed state
-             #(swap! *collapsed? assoc friends-list-key (not collapsed?))}
-            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if collapsed? "right" "down")]))
+             #(swap! *expanded? assoc key-pair (not expanded?))}
+            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "right" "down")]))
             [:<>
              list-count " "
              friend-pluralized " "
-             verb-gerund " " location-name ":"]]
-           (when-not collapsed?
+             verb-gerund " " curr-user-location-name ":"]]
+           (when-not expanded?
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)
-           "0 friends are " verb-gerund " " location-name]))]]))
+           "0 friends are " verb-gerund " " curr-user-location-name]))]]))
 
 (defn refresh-friends []
   (util/fetch "/friends/refresh"
