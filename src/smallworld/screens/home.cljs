@@ -53,9 +53,9 @@
 (defn screen []
   [:<>
    (nav)
-   (let [locations     (:locations @session/*store)
-         main-location (or (:main_location_corrected @settings/*settings) (first (filter #(= (:special-status %) "twitter-location")  locations)))
-         name-location (or (:name_location_corrected @settings/*settings) (first (filter #(= (:special-status %) "from-display-name") locations)))]
+   (let [curr-user-locations (remove nil? (:locations @session/*store))
+         main-location (or (:main_location_corrected @settings/*settings) (first (filter #(= (:special-status %) "twitter-location")  curr-user-locations)))
+         name-location (or (:name_location_corrected @settings/*settings) (first (filter #(= (:special-status %) "from-display-name") curr-user-locations)))]
      [:<>
       [:div.home-page
        #_[:div.current-user [user-data/render-user nil @session/*store]] ; TODO: cleanup
@@ -96,7 +96,7 @@
                                    [:div.small-info-text "this won't update your Twitter profile :)"]]]
                                  (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
                                  (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))
-                            (remove nil? locations)))
+                            curr-user-locations))
         [:br] [:br]
         ;; [:hr]
         ;; [:br] [:br]
