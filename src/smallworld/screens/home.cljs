@@ -5,7 +5,8 @@
             [smallworld.mapbox      :as mapbox]
             [smallworld.user-data   :as user-data]
             [smallworld.util        :as util]
-            [smallworld.session     :as session]))
+            [smallworld.session     :as session]
+            [clojure.string :as str]))
 
 (def     *debug?    (r/atom false))
 (defonce *locations (r/atom :loading))
@@ -52,8 +53,9 @@
 (defn screen []
   [:<>
    (nav)
-   (let [main-location (or (:main_location_corrected @settings/*settings) (:main-location @session/*store))
-         name-location (or (:name_location_corrected @settings/*settings) (:name-location @session/*store))]
+   (let [locations     (:locations @session/*store)
+         main-location (or (:main_location_corrected @settings/*settings) (first (filter #(= (:special-status %) "twitter-location")  locations)))
+         name-location (or (:name_location_corrected @settings/*settings) (first (filter #(= (:special-status %) "from-display-name") locations)))]
      [:<>
       [:div.home-page
        #_[:div.current-user [user-data/render-user nil @session/*store]] ; TODO: cleanup
@@ -74,39 +76,63 @@
            [:br]
            [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
-        (when-not (empty? main-location)
-          [:div.category
-           [:div.friends-list.header
-            [:div.left-side.mapbox-container {:style {:width "90px"}}
-             [minimap "main-location-map" main-location]
-             (when-not (clojure.string/blank? main-location) [:div.center-point])]
-            [:div.right-side
-             [:div.based-on "based on your location, you live in:"]
-             [:input {:type "text"
-                      :value main-location
-                      :autoComplete "off"
-                      :auto-complete "off"
-                      :on-change #(print "TODO:")}]
-             [:div.small-info-text "this won't update your Twitter profile :)"]]]
-           (user-data/render-friends-list :main-main "based near" main-location)
-           (user-data/render-friends-list :main-name "visiting"   main-location)])
+        (doall (map-indexed (fn [i location-data]
+                              (let [minimap-id (str "minimap-location-" i)]
+                                [:div.category {:key i}
+                                 [:div.friends-list.header
+                                  [:div.left-side.mapbox-container {:style {:width "90px"}}
+                                   [minimap minimap-id (:name location-data)]
+                                   (when-not (str/blank? (:name location-data)) [:div.center-point])]
+                                  [:div.right-side
+                                   [:div.based-on (condp = (:special-status location-data)
+                                                    "twitter-location"  "based on your location, you live in:"
+                                                    "from-display-name" "based on your name, you live in:"
+                                                    "another location you're tracking...")]
+                                   [:input {:type "text"
+                                            :value (:name location-data)
+                                            :autoComplete "off"
+                                            :auto-complete "off"
+                                            :on-change #(print "TODO:")}]
+                                   [:div.small-info-text "this won't update your Twitter profile :)"]]]
+                                 (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
+                                 (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))
+                            (remove nil? locations)))
+        [:br] [:br]
+        ;; [:hr]
+        ;; [:br] [:br]
+        ;; (when-not (empty? main-location)
+        ;;   [:div.category
+        ;;    [:div.friends-list.header
+        ;;     [:div.left-side.mapbox-container {:style {:width "90px"}}
+        ;;      [minimap "main-location-map" main-location]
+        ;;      (when-not (clojure.string/blank? main-location) [:div.center-point])]
+        ;;     [:div.right-side
+        ;;      [:div.based-on "based on your location, you live in:"]
+        ;;      [:input {:type "text"
+        ;;               :value main-location
+        ;;               :autoComplete "off"
+        ;;               :auto-complete "off"
+        ;;               :on-change #(print "TODO:")}]
+        ;;      [:div.small-info-text "this won't update your Twitter profile :)"]]]
+        ;;    (user-data/render-friends-list :main-main "based near" main-location)
+        ;;    (user-data/render-friends-list :main-name "visiting"   main-location)])
 
-        (when-not (empty? name-location)
-          [:div.category
-           [:div.friends-list.header
-            [:div.left-side.mapbox-container {:style {:width "90px"}}
-             [minimap "name-location-map" name-location]
-             (when-not (clojure.string/blank? name-location) [:div.center-point])]
-            [:div.right-side
-             [:div.based-on "based on your name, you live in:"]
-             [:input {:type "text"
-                      :value name-location
-                      :autoComplete "off"
-                      :auto-complete "off"
-                      :on-change #(print "TODO:")}]
-             [:div.small-info-text "this won't update your Twitter profile :)"]]]
-           (user-data/render-friends-list :name-main "based near" name-location)
-           (user-data/render-friends-list :name-name "visiting"   name-location)])
+        ;; (when-not (empty? name-location)
+        ;;   [:div.category
+        ;;    [:div.friends-list.header
+        ;;     [:div.left-side.mapbox-container {:style {:width "90px"}}
+        ;;      [minimap "name-location-map" name-location]
+        ;;      (when-not (clojure.string/blank? name-location) [:div.center-point])]
+        ;;     [:div.right-side
+        ;;      [:div.based-on "based on your name, you live in:"]
+        ;;      [:input {:type "text"
+        ;;               :value name-location
+        ;;               :autoComplete "off"
+        ;;               :auto-complete "off"
+        ;;               :on-change #(print "TODO:")}]
+        ;;      [:div.small-info-text "this won't update your Twitter profile :)"]]]
+        ;;    (user-data/render-friends-list :name-main "based near" name-location)
+        ;;    (user-data/render-friends-list :name-name "visiting"   name-location)])
 
         [:br]
         [:div.track-new-location-field (decorations/plus-icon) "track another location"]

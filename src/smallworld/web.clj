@@ -177,8 +177,8 @@
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 (defn get-users-friends [req & [screen-name]]
-  (let [main-location (or (:main_location_corrected (get-settings req)) "")
-        name-location (or (:name_location_corrected (get-settings req)) "")
+  (let [main-location (or (:main_location_corrected (get-settings req)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
+        name-location (or (:name_location_corrected (get-settings req)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
         corrected-curr-user (merge ; TODO: if main- or name-coords have been updated, remove them from the list and add the updated ones
                              (get-current-user req)
                              {:main-location main-location
