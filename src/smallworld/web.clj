@@ -16,7 +16,8 @@
             [cheshire.core :refer [generate-string]]
             [smallworld.user-data :as user-data]
             [clojure.data.json :as json]
-            [smallworld.coordinates :as coordinates]))
+            [smallworld.coordinates :as coordinates]
+            [smallworld.admin :as admin]))
 
 (def debug? false)
 
@@ -194,24 +195,6 @@
     (generate-string result)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; admin ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn admin-data [req]
-  (let [current-user (get-current-user req)
-        screen-name (:screen-name current-user)
-        result (if-not (= "devonzuegel" screen-name)
-                 (response/bad-request {:message "you don't have access to this page"})
-                 {:profiles    (db/select-all db/profiles-table)
-                  :settings    (db/select-all db/settings-table)
-                  :friends     (map #(-> %
-                                         (assoc :friends-count (count (get-in % [:data "friends"])))
-                                         (dissoc :data))
-                                    (db/select-all db/friends-table))
-                  :coordinates (db/select-all db/coordinates-table)})]
-    (generate-string result)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -225,15 +208,8 @@
   (GET "/logout"     req (logout req))
 
   ;; admin endpoints
-  (GET "/admin/summary" req (admin-data req))
-  (GET "/admin/friends/:screen_name" req (fn [{params :params}]
-                                           (let [curr-user-screen-name (:screen-name (get-current-user req))
-                                                 target-screen-name    (:screen_name params)]
-                                             (println "params:             " params)
-                                             (println "target-screen-name: " target-screen-name)
-                                             (if-not (= "devonzuegel" curr-user-screen-name)
-                                               (response/bad-request {:message "you don't have access to this page"})
-                                               (get-users-friends req target-screen-name)))))
+  (GET "/admin/summary" req (admin/summary-data get-current-user req))
+  (GET "/admin/friends/:screen_name" req (admin/friends-of-specific-user get-current-user get-users-friends req))
 
   ;; app data endpoints
   (GET "/settings" req (generate-string (get-settings req)))

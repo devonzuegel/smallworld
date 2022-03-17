@@ -7,7 +7,8 @@
             [smallworld.screens.home :as home]
             [clojure.pprint          :as pp]
             [cljsjs.mapbox]
-            [goog.dom]))
+            [goog.dom]
+            [smallworld.admin :as admin]))
 
 (def *debug? (r/atom false))
 
@@ -62,7 +63,7 @@
 (defonce admin-summary* (r/atom :loading))
 (defn admin-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
   [:div.admin-screen
-   (if-not (= "devonzuegel" (:screen-name @session/*store))
+   (if-not (= admin/screen-name (:screen-name @session/*store))
 
      (if (= :loading @session/*store)
        (loading-screen)
@@ -71,7 +72,7 @@
 
      [:<>
       [:a.btn {:href "#"
-               :on-click #(util/fetch "/admin-summary" (fn [result]
+               :on-click #(util/fetch "/admin/summary" (fn [result]
                                                          (pp/pprint result)
                                                          (reset! admin-summary* result)))}
        "load admin data"]
@@ -79,8 +80,8 @@
       (when (not= :loading @admin-summary*)
         (map (fn [key] [:details {:open false} [:summary [:b key]]
                         [:pre "count: " (count (get @admin-summary* key))]
-                        [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
-                                                         (get @admin-summary* key)))]
+                        #_[:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
+                                                           (get @admin-summary* key)))]
                         [:pre {:id key} (util/preify (get @admin-summary* key))]])
              (reverse (sort (keys @admin-summary*)))))])])
 
