@@ -97,43 +97,6 @@
                                  (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
                                  (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))
                             curr-user-locations))
-        [:br] [:br]
-        ;; [:hr]
-        ;; [:br] [:br]
-        ;; (when-not (empty? main-location)
-        ;;   [:div.category
-        ;;    [:div.friends-list.header
-        ;;     [:div.left-side.mapbox-container {:style {:width "90px"}}
-        ;;      [minimap "main-location-map" main-location]
-        ;;      (when-not (clojure.string/blank? main-location) [:div.center-point])]
-        ;;     [:div.right-side
-        ;;      [:div.based-on "based on your location, you live in:"]
-        ;;      [:input {:type "text"
-        ;;               :value main-location
-        ;;               :autoComplete "off"
-        ;;               :auto-complete "off"
-        ;;               :on-change #(print "TODO:")}]
-        ;;      [:div.small-info-text "this won't update your Twitter profile :)"]]]
-        ;;    (user-data/render-friends-list :main-main "based near" main-location)
-        ;;    (user-data/render-friends-list :main-name "visiting"   main-location)])
-
-        ;; (when-not (empty? name-location)
-        ;;   [:div.category
-        ;;    [:div.friends-list.header
-        ;;     [:div.left-side.mapbox-container {:style {:width "90px"}}
-        ;;      [minimap "name-location-map" name-location]
-        ;;      (when-not (clojure.string/blank? name-location) [:div.center-point])]
-        ;;     [:div.right-side
-        ;;      [:div.based-on "based on your name, you live in:"]
-        ;;      [:input {:type "text"
-        ;;               :value name-location
-        ;;               :autoComplete "off"
-        ;;               :auto-complete "off"
-        ;;               :on-change #(print "TODO:")}]
-        ;;      [:div.small-info-text "this won't update your Twitter profile :)"]]]
-        ;;    (user-data/render-friends-list :name-main "based near" name-location)
-        ;;    (user-data/render-friends-list :name-name "visiting"   name-location)])
-
         [:br]
         [:div.track-new-location-field (decorations/plus-icon) "track another location"]
 
