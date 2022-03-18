@@ -1,7 +1,12 @@
-(ns smallworld.admin #?(:clj (:require
-                              [ring.util.response :as response]
-                              [smallworld.db :as db]
-                              [cheshire.core :as cheshire])))
+(ns smallworld.admin
+  #?(:cljs (:require [reagent.core           :as r]
+                     [smallworld.session     :as session]
+                     [smallworld.util        :as util]
+                     [smallworld.decorations :as decorations]
+                     [clojure.pprint         :as pp]))
+  #?(:clj (:require [ring.util.response     :as response]
+                    [smallworld.db          :as db]
+                    [cheshire.core          :as cheshire])))
 
 (def screen-name "devon_dos")
 
@@ -10,6 +15,35 @@
   (= screen-name (:screen-name user)))
 
 (is-admin {:screen-name ""})
+
+
+#?(:cljs
+   (do
+     (defonce admin-summary* (r/atom :loading))
+
+     (defn summary-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
+       [:div.admin-screen
+        (if-not (= screen-name (:screen-name @session/*store))
+
+          (if (= :loading @session/*store)
+            (decorations/loading-screen)
+            [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
+             "whoops, you don't have access to this page"])
+
+          [:<>
+           [:a.btn {:href "#"
+                    :on-click #(util/fetch "/admin/summary" (fn [result]
+                                                              (pp/pprint result)
+                                                              (reset! admin-summary* result)))}
+            "load admin data"]
+           [:br] [:br] [:br]
+           (when (not= :loading @admin-summary*)
+             (map (fn [key] [:details {:open false} [:summary [:b key]]
+                             [:pre "count: " (count (get @admin-summary* key))]
+                             #_[:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
+                                                                (get @admin-summary* key)))]
+                             [:pre {:id key} (util/preify (get @admin-summary* key))]])
+                  (reverse (sort (keys @admin-summary*)))))])])))
 
 #?(:clj
    (do
