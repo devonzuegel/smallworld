@@ -1,7 +1,7 @@
 # Small World
 
 you can find the live version of Small World at:
-https://small-world-friends.herokuapp.com
+https://smallworld.kiwi
 
 ### local setup
 
