@@ -63,14 +63,15 @@
      :locations [(when (not (str/blank? friend-main-location)) {:special-status "twitter-location" ; formerly called "main location"
                                                                 :name friend-main-location
                                                                 :coords friend-main-coords
-                                                                :distances {(:name (second (:locations current-user))) (coordinates/distance-btwn current-name-coords friend-main-coords)
-                                                                            (:name (first  (:locations current-user))) (coordinates/distance-btwn current-main-coords friend-main-coords)}})
+                                                                :distances (when (not is-current-user?) ; distances aren't relevant if the friend whose data we're abridging is the current user
+                                                                             {(:name (second (:locations current-user))) (coordinates/distance-btwn current-name-coords friend-main-coords)
+                                                                              (:name (first  (:locations current-user))) (coordinates/distance-btwn current-main-coords friend-main-coords)})})
                  (when (not (str/blank? friend-name-location)) {:special-status "from-display-name" ; formerly called "name location"
                                                                 :name friend-name-location
                                                                 :coords friend-name-coords
-                                                                :distances {(:name (second (:locations current-user))) (coordinates/distance-btwn current-name-coords friend-name-coords)
-                                                                            (:name (first  (:locations current-user))) (coordinates/distance-btwn current-main-coords friend-name-coords)}})]
-    ;;  ; TODO: rm everything below this line
+                                                                :distances (when (not is-current-user?) ; distances aren't relevant if the friend whose data we're abridging is the current user
+                                                                             {(:name (second (:locations current-user))) (coordinates/distance-btwn current-name-coords friend-name-coords)
+                                                                              (:name (first  (:locations current-user))) (coordinates/distance-btwn current-main-coords friend-name-coords)})})]    ;;  ; TODO: rm everything below this line
     ;;  :distance (when (not is-current-user?)
     ;;              {:name-main (coordinates/distance-btwn current-name-coords friend-main-coords)
     ;;               :name-name (coordinates/distance-btwn current-name-coords friend-name-coords)
