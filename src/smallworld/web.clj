@@ -174,6 +174,7 @@
 (defn --fetch-abridged-friends [screen-name current-user]
   (map #(user-data/abridged % current-user)
        (:friends (memoized-friends screen-name)))) ; can add (take X) for debugging
+
 (def memoized-abridged-friends
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
@@ -186,11 +187,11 @@
                               :main-coords (coordinates/memoized main-location)
                               :name-coords (coordinates/memoized name-location)
                               :name-location name-location})
-        logged-in?    (not= session/blank corrected-curr-user)
+        logged-out?   (nil? (:screen-name corrected-curr-user))
         screen-name   (or screen-name (:screen-name corrected-curr-user))
-        result        (if logged-in?
-                        (memoized-abridged-friends screen-name corrected-curr-user)
-                        [])]
+        result        (if logged-out?
+                        []
+                        (memoized-abridged-friends screen-name corrected-curr-user))]
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
