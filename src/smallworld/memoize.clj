@@ -56,11 +56,12 @@
   ([expensive-fn cache]
    (when debug? (println "\ninitializing cache: " (str cache)))
    (fn [& [request-key & optional-args :as all-args]]
-     (assert (string? request-key) "my-memoize requires the request key to be a string")
-
      (when debug?
        (println "          all-args: " all-args)
-       (println "     optional-args: " (or optional-args "no optional args")))
+       (println "     optional-args: " (or optional-args "no optional args"))
+       (println "       request-key: " request-key))
+
+     (assert (string? request-key) "my-memoize requires the request key to be a string")
 
      (if (= ::not-found (read! cache request-key))
        ;; if we haven't seen the request before, then we need to compute the value
