@@ -17,9 +17,8 @@
 
 (defn fetch-coordinates! [minimap-id location-name-input index]
   (if (str/blank? location-name-input)
-    (.flyTo (get @*minimaps minimap-id)
-            #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
-                :zoom 0})
+    (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
+                                            :zoom 0})
     (util/fetch-post "/coordinates" {:location-name location-name-input}
                      (fn [result]
                        (.flyTo (get @*minimaps minimap-id)
