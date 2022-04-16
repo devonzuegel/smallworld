@@ -725,31 +725,35 @@ tr:nth-child(even) {
   padding: 16px 12px;
   border-radius: 12px;
 }
-.home-page .track-new-location-field,
-.welcome-flow .track-new-location-field {
+.home-page #track-new-location-field,
+.welcome-flow #track-new-location-field {
   width: fit-content;
   margin: auto;
-  padding: 12px 20px;
+  margin-top: 16px;
+  padding: 8px 14px;
   border-radius: 24px;
   fill: #d9d3cc;
+  font-size: 0.9em;
   color: #d9d3cc;
   background-color: #ffffff11;
   transition: all 100ms ease-out;
 }
-.home-page .track-new-location-field:hover,
-.welcome-flow .track-new-location-field:hover {
+.home-page #track-new-location-field:hover,
+.welcome-flow #track-new-location-field:hover {
   fill: white;
   color: white;
   cursor: pointer;
   background-color: #ffffff16;
 }
-.home-page .track-new-location-field svg.plus,
-.welcome-flow .track-new-location-field svg.plus {
-  margin-right: 10px;
-  margin-bottom: -2px;
+.home-page #track-new-location-field svg.plus,
+.welcome-flow #track-new-location-field svg.plus {
+  margin-right: 2px;
+  margin-bottom: -6px;
 }
 .welcome-flow .location-field {
   padding: 24px 12px;
+  padding-bottom: 6px;
+  margin-top: 14px;
 }
 .welcome-flow .location-field label .small-info-text {
   padding: 0 10px;
@@ -809,6 +813,9 @@ tr:nth-child(even) {
   color: white;
   transition: all 50ms ease-out;
   border-bottom: 3px solid #ffffff22;
+}
+.welcome-flow .email-options {
+  margin-top: 14px;
 }
 .welcome-flow .email-options .radio-btns {
   text-align: left;
@@ -888,6 +895,7 @@ input[type='radio']:focus {
   width: min(300px, calc(100% - 64px));
   height: 140px;
   margin: 0 auto;
+  margin-top: 10px;
   background: #ffffff11;
   overflow: hidden;
   background: #9dc7d9;
@@ -899,6 +907,11 @@ input[type='radio']:focus {
 }
 .welcome-flow .mapbox-container .mapboxgl-map {
   height: 100% !important;
+}
+.welcome-flow .btn {
+  padding: 8px 16px;
+  font-size: 1.5em;
+  border-radius: 50px;
 }
 /* pulsating background */
 @keyframes pulsingGreenBkgd {
