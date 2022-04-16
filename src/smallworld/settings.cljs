@@ -63,8 +63,9 @@
   (let [id         (str "location-" index)
         minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id :key id}
-     [:div {:on-click #(reset! *locations-new
-                               (util/rm-from-list @*locations-new index))}
+     [:div.delete-location-btn {:title "delete this location"
+                                :on-click #(when (js/confirm "are you sure you want to delete this location?")
+                                             (reset! *locations-new (util/rm-from-list @*locations-new index)))}
       (decorations/cancel-icon)]
      [:label label]
      (when-not (and not-provided? from-twitter?)

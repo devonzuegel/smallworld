@@ -74,20 +74,31 @@
                              (let [minimap-id (str "minimap-location-" i)]
                                [:div.category {:key i}
                                 [:div.friends-list.header
+
                                  [:div.left-side.mapbox-container {:style {:width "90px"}}
                                   [minimap minimap-id (:name location-data) (:coords location-data)]
                                   (when-not (str/blank? (:name location-data)) [:div.center-point])]
+
                                  [:div.right-side
                                   [:div.based-on (condp = (:special-status location-data)
                                                    "twitter-location"  "based on your Twitter location, you live in:"
                                                    "from-display-name" "based on your Twitter name, you live in:"
-                                                   "another location you're tracking...")]
+                                                   "you added this location manually:")]
                                   [:input {:type "text"
                                            :value (:name location-data)
                                            :autoComplete "off"
                                            :auto-complete "off"
                                            :on-change #(print "TODO:")}]
-                                  [:div.small-info-text "this won't update your Twitter profile :)"]]]
+                                  (if (or (= (:special-status location-data) "twitter-location")
+                                          (= (:special-status location-data) "from-display-name"))
+                                    [:div.small-info-text "this won't update your Twitter profile :)"]
+                                    [:div.small-info-text "here are your friends who are live in or are traveling to this place"])]
+
+                                 [:div.delete-location-btn {:title "delete this location"
+                                                            :on-click #(when (js/confirm "are you sure you want to delete this location?")
+                                                                         (swap! session/*store assoc :locations (util/rm-from-list curr-user-locations i)))}
+                                  (decorations/cancel-icon)]]
+
                                 (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
                                 (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))
                            curr-user-locations))
