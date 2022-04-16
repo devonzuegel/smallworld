@@ -1,12 +1,13 @@
 (ns smallworld.screens.home
-  (:require [reagent.core           :as r]
+  (:require [clojure.string :as str]
+            [goog.dom :as dom]
+            [reagent.core           :as r]
             [smallworld.decorations :as decorations]
-            [smallworld.settings    :as settings]
             [smallworld.mapbox      :as mapbox]
-            [smallworld.user-data   :as user-data]
-            [smallworld.util        :as util]
             [smallworld.session     :as session]
-            [clojure.string :as str]))
+            [smallworld.settings    :as settings]
+            [smallworld.user-data   :as user-data]
+            [smallworld.util        :as util]))
 
 (def     *debug?    (r/atom false))
 (defonce *minimaps  (r/atom {}))
@@ -107,7 +108,16 @@
                curr-user-locations))
        [:br]
        [:div#track-new-location-field
-        {:on-click #(js/alert "TODO: similar fn to settings.cljs")}
+        {:on-click (fn []
+                     (let [updated-locations (conj curr-user-locations {:special-status "added-manually"
+                                                                        :name "foobar" ; the value starts out blank
+                                                                        :coords {:lng 1 :lat 1}})]
+                       (swap! session/*store assoc :locations updated-locations) ; TODO: calculate this
+                       (util/fetch-post "/settings/update" {:locations updated-locations})
+                       (js/setTimeout #(.scrollIntoView ; scroll to the newly-added location field
+                                        (last (array-seq (dom/getElementsByClass "category")))
+                                        #js{:behavior "smooth" :block "center" :inline "center"})
+                                      50)))}
         (decorations/plus-icon "scale(0.15)") "TODO: follow another location"]
 
        (when (= :loading @user-data/*friends)
