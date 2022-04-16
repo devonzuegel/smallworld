@@ -117,11 +117,14 @@
             "note: this takes several seconds to run"]]
 
           [:br]
-          [:pre "current-user:\n\n"  (util/preify @session/*store)]  [:br]
-          [:pre "settings:\n\n" (util/preify @settings/*settings)] [:br]
+          [:b "current-user:"]
+          [:pre (util/preify @session/*store)]  [:br]
+          [:b "settings:"]
+          [:pre (util/preify @settings/*settings)] [:br]
+          [:b "@user-data/*friends:"]
           (if (= @user-data/*friends :loading)
             [:pre "@user-data/*friends is still :loading"]
-            [:pre "@user-data/*friends (" (count @user-data/*friends) "):\n\n" (util/preify @user-data/*friends)])])]
+            [:pre "count:" (count @user-data/*friends) "\n\n" (util/preify @user-data/*friends)])])]
 
       (let [top-location (first (remove nil? (:locations @session/*store)))]
         [util/error-boundary
