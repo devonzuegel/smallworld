@@ -56,6 +56,9 @@
   (/ (reduce + list-of-nums)
      (count list-of-nums)))
 
+(defn rm-from-list [col idx]
+  (filter identity (map-indexed #(when-not (= %1 idx) %2) col)))
+
 (def info-footer
   [:div.info-footer
    [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]

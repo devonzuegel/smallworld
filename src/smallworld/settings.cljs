@@ -63,7 +63,9 @@
   (let [id         (str "location-" index)
         minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id :key id}
-     (decorations/cancel-icon)
+     [:div {:on-click #(reset! *locations-new
+                               (util/rm-from-list @*locations-new index))}
+      (decorations/cancel-icon)]
      [:label label]
      (when-not (and not-provided? from-twitter?)
        [:<> [:div
@@ -145,7 +147,6 @@
     (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
       (swap! session/*store assoc :locations @*locations-new)
       ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
-
       (reset! *settings new-settings)
       (util/fetch-post "/settings/update" new-settings user-data/recompute-friends))))
 
