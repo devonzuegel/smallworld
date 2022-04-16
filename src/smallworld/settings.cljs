@@ -210,8 +210,8 @@
 
      [:div.location-fields ; TODO: add a way to delete locations from the list
       [:br]
-      [:pre {:style {:text-align "left"}} (util/preify @*locations-new)]
-      [:br]
+      (when debug?
+        [:pre {:style {:text-align "left"}} (util/preify @*locations-new)])
       (map-indexed (fn [i location]
                      (location-field
                       {:index         i
