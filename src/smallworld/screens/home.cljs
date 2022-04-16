@@ -30,7 +30,7 @@
    [:span.fill-nav-space]
    [:b.screen-name " @" (:screen-name @session/*store)]])
 
-(defn minimap [minimap-id location-name]
+(defn minimap [minimap-id location-name coords]
   (r/create-class {:component-did-mount
                    (fn [] ; this should be called just once when the component is mounted
                      (swap! *minimaps assoc minimap-id
@@ -38,7 +38,7 @@
                                  #js{:container minimap-id
                                      :key    (get-in mapbox/config [mapbox/style :access-token])
                                      :style  (get-in mapbox/config [mapbox/style :style])
-                                     :center (clj->js mapbox/Miami) ; TODO: center on location they provide to Twitter
+                                     :center (clj->js [(:lng coords) (:lat coords)])
                                      :interactive false ; makes the map not zoomable or draggable
                                      :attributionControl false ; removes the Mapbox copyright symbol
                                      :zoom 3
@@ -75,7 +75,7 @@
                                [:div.category {:key i}
                                 [:div.friends-list.header
                                  [:div.left-side.mapbox-container {:style {:width "90px"}}
-                                  [minimap minimap-id (:name location-data)]
+                                  [minimap minimap-id (:name location-data) (:coords location-data)]
                                   (when-not (str/blank? (:name location-data)) [:div.center-point])]
                                  [:div.right-side
                                   [:div.based-on (condp = (:special-status location-data)
