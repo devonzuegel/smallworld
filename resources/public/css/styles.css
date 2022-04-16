@@ -356,7 +356,6 @@ tr:nth-child(even) {
   gap: 12px;
   background-color: #ffffff0d;
   border-radius: 8px 8px 0 0;
-  overflow: hidden;
 }
 .friends-list.header .small-info-text {
   text-align: left;
@@ -750,20 +749,30 @@ tr:nth-child(even) {
   margin-right: 2px;
   margin-bottom: -6px;
 }
-.welcome-flow svg.cancel-icon {
+.welcome-flow svg.cancel-icon,
+.home-page .delete-location-btn svg.cancel-icon {
   float: right;
-  margin-right: -18px;
-  margin-top: -28px;
   cursor: pointer;
   transform: scale(1.1);
-  opacity: 0.5;
-  fill: #d9d3cc;
+  background: #013917; /* this is so the hole for the X isn't empty */
+  border-radius: 8px;
+  fill: #3b5f46;
   transition: all 100ms ease-in-out;
 }
-.welcome-flow svg.cancel-icon:hover {
-  opacity: 0.8;
+.welcome-flow svg.cancel-icon:hover,
+.home-page .delete-location-btn svg.cancel-icon:hover {
+  fill: #718371;
   transition: all 100ms ease-in-out;
-  transform: scale(1.15);
+  transform: scale(1.18);
+}
+.welcome-flow svg.cancel-icon {
+  margin-right: -18px;
+  margin-top: -28px;
+}
+.home-page .friends-list.header .delete-location-btn {
+  margin-left: auto;
+  margin-right: -18px;
+  margin-top: -16px;
 }
 .welcome-flow .location-field {
   padding: 24px 12px;
