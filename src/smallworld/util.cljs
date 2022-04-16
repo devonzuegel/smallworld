@@ -88,3 +88,6 @@
 
   [err-bound-example-1]
   [err-bound-example-2])
+
+(defn query-dom [selector]
+  (array-seq (.querySelectorAll js/document selector)))
