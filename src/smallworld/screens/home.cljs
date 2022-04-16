@@ -55,20 +55,20 @@
    (let [curr-user-locations (remove nil? (:locations @session/*store))]
      [:<>
       [:div.home-page
-       (when false #_(and (empty? main-location) ; TODO: handle the empty case
-                          (empty? name-location))
-             [:div.no-locations-info
+       [:br]
+       (when (= 0 (count curr-user-locations))
+         [:div.no-locations-info
               ; TODO: improve the design of this state
-              [:p "you haven't shared a location on Twitter, so we can't show you friends who are close by"]
-              [:br]
-              [:p "we pull from two places to find your location:"]
-              [:ol
-               [:li "your Twitter profile location"]
-               [:li "your Twitter display name"]]
-              [:br]
-              [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
-              [:br]
-              [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
+          [:p "you haven't shared a location on Twitter, so we can't show you friends who are close by"]
+          [:br]
+          [:p "we pull from two places to find your location:"]
+          [:ol
+           [:li "your Twitter profile location"]
+           [:li "your Twitter display name"]]
+          [:br]
+          [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
+          [:br]
+          [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
 
        (doall (map-indexed (fn [i location-data]
                              (let [minimap-id (str "minimap-location-" i)]
