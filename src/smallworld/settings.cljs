@@ -63,6 +63,7 @@
   (let [id         (str "location-" index)
         minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id :key id}
+     (decorations/cancel-icon)
      [:label label]
      (when-not (and not-provided? from-twitter?)
        [:<> [:div

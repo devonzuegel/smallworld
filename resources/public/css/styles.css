@@ -750,6 +750,21 @@ tr:nth-child(even) {
   margin-right: 2px;
   margin-bottom: -6px;
 }
+.welcome-flow svg.cancel-icon {
+  float: right;
+  margin-right: -18px;
+  margin-top: -28px;
+  cursor: pointer;
+  transform: scale(1.1);
+  opacity: 0.5;
+  fill: #d9d3cc;
+  transition: all 100ms ease-in-out;
+}
+.welcome-flow svg.cancel-icon:hover {
+  opacity: 0.8;
+  transition: all 100ms ease-in-out;
+  transform: scale(1.15);
+}
 .welcome-flow .location-field {
   padding: 24px 12px;
   padding-bottom: 6px;
