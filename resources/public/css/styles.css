@@ -204,8 +204,13 @@ select {
 .home-page {
   margin: auto;
   padding: 12px;
-  padding-bottom: 180px;
+  padding-bottom: 140px;
   max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
+  border: 3px solid orange;
+  min-height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 pre {
   white-space: pre-wrap;
@@ -1300,7 +1305,7 @@ ul li {
   opacity: 0.5;
 }
 .info-footer .dot-separator {
-  margin: 0 6px;
+  margin: 0 8px;
 }
 .info-footer a:hover {
   cursor: pointer;

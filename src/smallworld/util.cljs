@@ -61,9 +61,9 @@
 
 (def info-footer
   [:div.info-footer
-   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
+   [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
    [:span.dot-separator " · "]
-   [:a {:href "https://devonzuegel.com" :target "_blank"} "who built this?"]])
+   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]])
 
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]
