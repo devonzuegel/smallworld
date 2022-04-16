@@ -114,16 +114,12 @@
                                                        :name "" ; the value starts out blank
                                                        :coords nil}])]
                        (swap! session/*store assoc :locations updated-locations)
-                      ;;  (println (dom/query "input"))
-                      ;;  (println (.querySelectorAll js/document "input"))
-                       (println (last (array-seq (.querySelectorAll js/document ".friends-list input"))))
-                       (.focus (last (array-seq (.querySelectorAll js/document ".friends-list input"))))
-                      ;;  (util/fetch-post "/settings/update" {:locations updated-locations}) ; TODO: only hit the backend once the user has saved this location
+
                        (js/setTimeout #(do
-                                         (.focus (last (array-seq (.querySelectorAll js/document ".friends-list input"))))
-                                         (.scrollIntoView ; scroll to the newly-added location field
-                                          (last (array-seq (dom/getElementsByClass "category")))
-                                          #js{:behavior "smooth" :block "center" :inline "center"}))
+                                         (-> (last (util/query-dom ".friends-list input"))
+                                             .focus)
+                                         (-> (last (util/query-dom ".category"))
+                                             (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
                                       50)))}
         (decorations/plus-icon "scale(0.15)") "TODO: follow another location"]
 
