@@ -97,7 +97,9 @@
 
                      [:div.delete-location-btn {:title "delete this location"
                                                 :on-click #(when (js/confirm "are you sure you want to delete this location?")
-                                                             (swap! session/*store assoc :locations (util/rm-from-list curr-user-locations i)))}
+                                                             (let [updated-locations (util/rm-from-list curr-user-locations i)]
+                                                               (swap! session/*store assoc :locations updated-locations)
+                                                               (util/fetch-post "/settings/update" {:locations updated-locations})))}
                       (decorations/cancel-icon)]]
 
                     (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))

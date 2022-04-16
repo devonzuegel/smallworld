@@ -143,8 +143,6 @@
                       :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                       :locations               @*locations-new
                       :welcome_flow_complete   true}]
-    ; update the location list with the stored coords
-    ;; (reset! *locations-new (map #(merge % {:coords (get @*saved-coords (:name %))}) @*locations-new))
     (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
       (swap! session/*store assoc :locations @*locations-new)
       ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
