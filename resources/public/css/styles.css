@@ -206,7 +206,6 @@ select {
   padding: 12px;
   padding-bottom: 140px;
   max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
-  border: 3px solid orange;
   min-height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
