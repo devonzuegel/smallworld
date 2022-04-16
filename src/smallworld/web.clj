@@ -105,17 +105,19 @@
   (let [-current-user (get-current-user req)
         screen-name   (:screen-name -current-user)
         parsed-body   (json/read-str (slurp (:body req)) :key-fn keyword)
-        new-values    (merge parsed-body {:screen_name screen-name})]
+        new-settings  (merge parsed-body {:screen_name screen-name})]
     (when debug?
-      (println "update-settings - new-values:")
-      (pp/pprint new-values))
+      (println "new-settings:")
+      (pp/pprint new-settings))
     ; TODO: add try-catch to handle failures
-    (db/insert-or-update! db/settings-table :screen_name new-values)
-    (generate-string new-values)))
+    ; TODO: simplify where this stuff is stored
+    (db/insert-or-update! db/settings-table :screen_name new-settings)
+    (set-session (response/response (generate-string new-settings))
+                 (assoc-in (:session req) [:current-user :locations] (:locations new-settings)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ; TODO: save all this to the db
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (println "================================================================================================= start")
@@ -226,12 +228,8 @@
   (GET "/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
                                       friends-full (:friends (memoized-friends screen-name))
                                       settings     (get-settings req)
-                                      corrected-curr-user (merge
-                                                           (get-current-user req)
-                                                           {:main-location (:main_location_corrected settings)
-                                                            :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
-                                                            :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
-                                                            :name-location (:name_location_corrected settings)})
+                                      corrected-curr-user (merge (get-current-user req)
+                                                                 {:locations (:locations settings)})
                                       friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
                                   (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
                                   (swap! abridged-friends-cache
