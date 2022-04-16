@@ -244,6 +244,11 @@ a:hover a {
   padding: 2px 6px 4px 6px;
   border-radius: 4px;
 }
+.friends-list input::placeholder {
+  color: white;
+  opacity: 0.5;
+  font-size: 0.8em;
+}
 .friends-list svg.x,
 .friends-list svg.triangle {
   fill: white;

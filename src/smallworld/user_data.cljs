@@ -81,29 +81,30 @@
         friend-pluralized (if (= list-count 1) "friend is" "friends are")
         expanded?        (boolean (get @*expanded? key-pair))]
 
-    [util/error-boundary
-     [:div.friends-list
-      (if (= :loading @*friends)
-        [:div.loading
-         (decorations/simple-loading-animation)
-         "the first time takes a while to load"]
+    (when-not (str/blank? curr-user-location-name)
+      [util/error-boundary
+       [:div.friends-list
+        (if (= :loading @*friends)
+          [:div.loading
+           (decorations/simple-loading-animation)
+           "the first time takes a while to load"]
 
-        (if (> list-count 0)
-          [:<>
-           [:p.location-info
-            {:on-click ; toggle collapsed state
-             #(swap! *expanded? assoc key-pair (not expanded?))}
-            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "right" "down")]))
+          (if (> list-count 0)
             [:<>
-             list-count " "
-             friend-pluralized " "
-             verb-gerund " " curr-user-location-name ":"]]
-           (when-not expanded?
-             [:div.friends (map-indexed render-user friends-list)])]
+             [:p.location-info
+              {:on-click ; toggle collapsed state
+               #(swap! *expanded? assoc key-pair (not expanded?))}
+              (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "right" "down")]))
+              [:<>
+               list-count " "
+               friend-pluralized " "
+               verb-gerund " " curr-user-location-name ":"]]
+             (when-not expanded?
+               [:div.friends (map-indexed render-user friends-list)])]
 
-          [:div.no-friends-found
-           (decorations/x-icon)
-           "0 friends are " verb-gerund " " curr-user-location-name]))]]))
+            [:div.no-friends-found
+             (decorations/x-icon)
+             "0 friends are " verb-gerund " " curr-user-location-name]))]])))
 
 (defn refresh-friends []
   (util/fetch "/friends/refresh"

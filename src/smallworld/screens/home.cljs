@@ -90,7 +90,10 @@
                                :value (:name location-data)
                                :autoComplete "off"
                                :auto-complete "off"
-                               :on-change #(print "TODO:")}]
+                               :placeholder "enter a location to follow"
+                               :on-change #(let [input-elem (.-target %)
+                                                 new-value  (.-value input-elem)]
+                                             (swap! session/*store assoc-in [:locations i :name] new-value))}]
                       (if (or (= (:special-status location-data) "twitter-location")
                               (= (:special-status location-data) "from-display-name"))
                         [:div.small-info-text "this won't update your Twitter profile :)"]
