@@ -109,9 +109,10 @@
        [:br]
        [:div#track-new-location-field
         {:on-click (fn []
-                     (let [updated-locations (conj curr-user-locations {:special-status "added-manually"
-                                                                        :name "foobar" ; the value starts out blank
-                                                                        :coords {:lng 1 :lat 1}})]
+                     (let [updated-locations (concat curr-user-locations ; using concat instead of conj so it adds to the end
+                                                     [{:special-status "added-manually"
+                                                       :name "foobar" ; the value starts out blank
+                                                       :coords {:lng 1 :lat 1}}])]
                        (swap! session/*store assoc :locations updated-locations) ; TODO: calculate this
                        (util/fetch-post "/settings/update" {:locations updated-locations})
                        (js/setTimeout #(.scrollIntoView ; scroll to the newly-added location field
