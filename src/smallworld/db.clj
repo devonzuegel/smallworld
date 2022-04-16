@@ -16,16 +16,14 @@
                            ; I thought the following would work, but the db throws an error:
                            ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                            ])
-(def settings-schema [[:id                      :integer        "primary key"  "generated always as identity"]
-                      [:screen_name             "varchar(255)"  "not null"     "unique"]
-                      [:main_location_corrected "varchar(255)"]
-                      [:name_location_corrected "varchar(255)"]
-                      [:email_address           "varchar(255)"]
-                      [:email_notifications     "varchar(255)"]
-                      ;; [:screen_name  "varchar(255)" "not null" "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
-                      [:welcome_flow_complete   :boolean   "not null"    "default false"]
-                      [:created_at              :timestamp "default current_timestamp"]
-                      [:updated_at              :timestamp "default current_timestamp"]
+(def settings-schema [[:id                    :integer       "primary key" "generated always as identity"]
+                      [:screen_name           "varchar(255)" "not null"    "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
+                      [:welcome_flow_complete :boolean       "not null"    "default false"]
+                      [:locations             :json]
+                      [:email_address         "varchar(255)"]
+                      [:email_notifications   "varchar(255)"]
+                      [:created_at            :timestamp  "default current_timestamp"]
+                      [:updated_at            :timestamp  "default current_timestamp"]
                       ; TODO: get "on update current_timestamp" working for :updated_at
                       ; I thought the following would work, but the db throws an error:
                       ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]

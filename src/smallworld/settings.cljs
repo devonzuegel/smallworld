@@ -1,32 +1,35 @@
 (ns smallworld.settings
-  (:require [reagent.core           :as r]
-            [smallworld.session     :as session]
+  (:require [clojure.string         :as str]
+            [goog.dom               :as dom]
+            [reagent.core           :as r]
             [smallworld.decorations :as decorations]
-            [smallworld.util        :as util]
             [smallworld.mapbox      :as mapbox]
-            [clojure.string         :as str]
-            [smallworld.user-data   :as user-data]))
+            [smallworld.session     :as session]
+            [smallworld.user-data   :as user-data]
+            [smallworld.util        :as util]))
 
 (def debug? false)
-(defonce *locations      (r/atom :loading))
+(defonce *locations-new  (r/atom :loading))
 (defonce *minimaps       (r/atom {}))
 (defonce *settings       (r/atom :loading))
 (defonce *email-address  (r/atom :loading))
 (defonce *form-errors    (r/atom {}))
 
-(defn fetch-coordinates! [minimap-id input]
-  (if (str/blank? input)
+(defn fetch-coordinates! [minimap-id location-name-input index]
+  (if (str/blank? location-name-input)
     (.flyTo (get @*minimaps minimap-id)
             #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
                 :zoom 0})
-    (util/fetch-post "/coordinates" {:location-name input}
+    (util/fetch-post "/coordinates" {:location-name location-name-input}
                      (fn [result]
                        (.flyTo (get @*minimaps minimap-id)
                                #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
                                    :zoom 4
-                                   :center #js[(:lng result) (:lat result)]})))))
+                                   :center #js[(:lng result) (:lat result)]})
+                       (swap! *locations-new assoc index (merge (get @*locations-new index)
+                                                                {:coords result}))))))
 
-(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 200))
 
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
 
@@ -49,40 +52,47 @@
                        (.setZoom (get @*minimaps minimap-id) 0)))
                    :reagent-render (fn [] [:div {:id minimap-id}])}))
 
-(defn location-field [{id          :id
-                       tabindex    :tab-index
-                       auto-focus  :auto-focus
-                       label       :label
-                       placeholder :placeholder
-                       blank?      :blank?
-                       value       :value
-                       update!     :update!}]
-  (let [minimap-id (str "minimap--" id)]
-    [:div.field.location-field {:id id}
+(defn location-field [{index         :index
+                       auto-focus    :auto-focus
+                       label         :label
+                       placeholder   :placeholder
+                       not-provided? :not-provided?
+                       from-twitter? :from-twitter?
+                       value         :value
+                       update!       :update!}]
+  (let [id         (str "location-" index)
+        minimap-id (str "minimap--" id)]
+    [:div.field.location-field {:id id :key id}
      [:label label]
-     (when-not blank?
+     (when-not (and not-provided? from-twitter?)
        [:<> [:div
              [:input.location-input
               {:type "text"
-               :tab-index tabindex
+               :tab-index (str index)
                :auto-focus auto-focus
-               :id (str id "-input")
+               :id   (str id "-input")
+               :key  (str id "-input")
                :name (str id "-input")
                :value value
                :autoComplete "off"
                :auto-complete "off"
-               :on-change #(let [input-elem (.-target %)
-                                 new-value  (.-value input-elem)]
-                             (fetch-coordinates-debounced! minimap-id new-value)
+               :on-change #(let [new-value  (-> % .-target .-value)
+                                 _tmp       (fetch-coordinates-debounced! minimap-id new-value index)
+                                ;;  new-coords (get @*saved-coords new-value)
+                                 ]
+                            ;;  (println "saved-coords: " @*saved-coords)
+                            ;;  (println "  new-coords: " new-coords)
                              (update! new-value))
                :placeholder placeholder}]
              (decorations/edit-icon)]
-        [:div.small-info-text "don't worry, this won't update your Twitter profile :)"]
-        [:br]
+        (when from-twitter? ; only the first two locations
+          [:div.small-info-text {:style {:margin-bottom "12px"}}
+           "don't worry, this won't update your Twitter profile :)"])
         [:div.mapbox-container
          [minimap minimap-id value]
          (when-not (clojure.string/blank? value)
-           [:div.center-point])]])]))
+           [:div.center-point])]
+        [:br]])]))
 
 (defn input-by-name [name & [additional-attrs]]
   (.querySelector js/document (str "input[name= \"" name "\"]"
@@ -124,14 +134,49 @@
 
 
 (defn submit-welcome-form []
-  (let [new-settings {:main_location_corrected (input-value-by-name "main-location-input")
-                      :name_location_corrected (input-value-by-name "name-location-input")
-                      :email_address           (input-value-by-name "email-address-input")
+
+  (let [new-settings {:email_address           (input-value-by-name "email-address-input")
                       :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
+                      :locations               @*locations-new
                       :welcome_flow_complete   true}]
-    (when (valid-inputs!? new-settings)
+    ; update the location list with the stored coords
+    ;; (reset! *locations-new (map #(merge % {:coords (get @*saved-coords (:name %))}) @*locations-new))
+    (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
+      (swap! session/*store assoc :locations @*locations-new)
+      ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
+
       (reset! *settings new-settings)
       (util/fetch-post "/settings/update" new-settings user-data/recompute-friends))))
+
+(defn location-label [location]
+  (condp = (:special-status location)
+    "twitter-location" (if (str/blank? (:name-initial-value location))
+                         [:<> ; TODO: improve the UX of this state
+                          "you haven't set a location on Twitter," [:br] "but that's okay!"
+                          [:div.small-info-text {:style {:margin-top "12px"}}
+                           "when you "  [:a {:href "https://twitter.com/settings/profile"} "update your location"] " on Twitter," [:br]
+                           "Small World will automatically follow it for you"]]
+                         [:<>
+                          "based on your Twitter location, you’re in..."  [:br]])
+
+    "from-display-name" (if (str/blank? (:name-initial-value location))
+                          [:<> ; TODO: improve the UX of this state
+                           "we didn't find a destination in your" [:br]
+                           "Twitter display name, but that's okay!"
+                           [:div.small-info-text {:style {:margin-top "12px"}}
+                            "when you " [:a {:href "https://twitter.com/settings/profile"} "add a destination"] " to the end of your " [:br]
+                            "Twitter display name, Small World will " [:br]
+                            "automatically follow it for you"]]
+                          [:<>
+                           "based on your display name, you’re in..."  [:br]])
+
+    "added-manually" "add a location to follow"))
+
+(defn location-placeholder [location]
+  (condp = (:special-status location)
+    "twitter-location"  "what city do you live in?"
+    "from-display-name" "any plans to travel?"
+    "share a location"))
 
 (defn welcome-flow-screen []
   (when (nil? @*email-address)
@@ -157,56 +202,44 @@
       [:div.name     (:name @session/*store)]
       [:div.location (:main_location_corrected @*settings)]]]]
 
-   [:br] [:br] ; line breaks
-
-   (let [locations (:locations @session/*store)
-         main-location-info (first (filter #(= (:special-status %) "twitter-location")  locations))
-         name-location-info (first (filter #(= (:special-status %) "from-display-name") locations))
-         main-location (or (:name main-location-info) "")
-         name-location (or (:name name-location-info) "")]
-
-     (when (= :loading @*locations) ; TODO: clean this up, it's kinda hacky
-       (reset! *locations {:main main-location
-                           :name name-location}))
+   (let [locations (remove nil? (:locations @session/*store))]
+     (when (= :loading @*locations-new) ; TODO: clean this up, it's kinda hacky
+       (reset! *locations-new (vec (map ; store the original value pulled from Twitter so we have a record of it in case the user edits it
+                                    (fn [location] (merge location {:name-initial-value (:name location)}))
+                                    locations))))
 
      [:div.location-fields ; TODO: add a way to delete locations from the list
       [:br]
-      (location-field {:id "main-location"
-                       :tab-index "1"
-                       :auto-focus true
-                       :label (if (str/blank? main-location)
-                                [:<> ; TODO: improve the UX of this state
-                                 "you haven't set a location on Twitter," [:br] "but that's okay!"
-                                 [:div.small-info-text {:style {:margin-top "12px"}}
-                                  "when you "  [:a {:href "https://twitter.com/settings/profile"} "update your location"] " on Twitter," [:br]
-                                  "Small World will automatically begin to track it for you"]]
-                                [:<>
-                                 "based on your Twitter location, you’re in..."  [:br]])
-                       :placeholder "what city do you live in?"
-                       :blank? (str/blank? main-location)
-                       :value (or (:main @*locations) "")
-                       :update! #(swap! *locations assoc :main %)})
+      [:pre {:style {:text-align "left"}} (util/preify @*locations-new)]
       [:br]
-      (location-field {:id "name-location"
-                       :tab-index "2"
-                       :label (if (str/blank? name-location)
-                                [:<> ; TODO: improve the UX of this state
-                                 "we didn't find a destination in your" [:br]
-                                 "Twitter display name, but that's okay!"
-                                 [:div.small-info-text {:style {:margin-top "12px"}}
-                                  "when you " [:a {:href "https://twitter.com/settings/profile"} "add a destination"] " to the end of your " [:br]
-                                  "Twitter display name, Small World will " [:br]
-                                  "automatically track it for you"]]
-                                [:<>
-                                 "based on your display name, you’re in..."  [:br]])
-                       :placeholder "any plans to travel?"
-                       :blank? (str/blank? name-location)
-                       :value (or (:name @*locations) "")
-                       :update! #(swap! *locations assoc :name %)})
-      [:br]
-      [:div.track-new-location-field (decorations/plus-icon) "track another location"]
+      (map-indexed (fn [i location]
+                     (location-field
+                      {:index         i
+                       :auto-focus    (or (= 0 i) (= (:special-status location) "added-manually"))
+                       :label         (location-label location)
+                       :placeholder   (location-placeholder location)
+                       :from-twitter? (or (= (:special-status location) "twitter-location")
+                                          (= (:special-status location) "from-display-name"))
+                       :not-provided? (str/blank? (:name-initial-value location))
+                       :value         (or (:name location) "")
+                       :update!       (fn [new-name]
+                                        (swap! *locations-new assoc i (merge location {:name new-name})))}))
+                   @*locations-new)
+      [:div#track-new-location-field
+       {:on-click (fn []
+                    (reset! *locations-new (vec
+                                            (concat @*locations-new
+                                                    [{:special-status "added-manually"
+                                                      :name "" ; the value starts out blank
+                                                      :coords nil}])))
+                    ; scroll to the newly-added location field
+                    (js/setTimeout #(.scrollIntoView
+                                     (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                     #js{:behavior "smooth" :block "center" :inline "center"})
+                                   50))}
+       (decorations/plus-icon "scale(0.15)") "follow another location"]
       [:div.small-info-text {:style {:margin-top "6px"}}
-       "add a location to see who's nearby"]])
+       "you can always add more locations later"]])
    [:br]
    [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
@@ -250,7 +283,7 @@
      [:div {:style {:text-align "left"}}
       [:br]
       [:pre "@session/*store: \n" (util/preify @session/*store)]
-      [:pre "@*locations:     \n" (util/preify @*locations)]
+      [:pre "@*locations-new: \n" (util/preify @*locations-new)]
       [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])
    [:br] [:br] [:br] [:br] [:br]
    util/info-footer])

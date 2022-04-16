@@ -40,7 +40,9 @@
 ; TODO: the logic in this needs some serious cleanup; probably requires refactoring the data model too
 (defn get-close-friends [curr-user-location-name friend-location-key max-distance]
   (->> @*friends
-       (filter (fn [friend] ; not all friends will have both LOCATION and DISPLAY NAME LOCATION set, so filter those out
+
+       ; not all friends will have both LOCATION and DISPLAY NAME LOCATION set, so filter those out
+       (filter (fn [friend]
                  (let [friend-locations (:locations friend)
                        has-location? (-> #(= (:special-status %) friend-location-key)
                                          (filter friend-locations)
