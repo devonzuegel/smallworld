@@ -50,6 +50,7 @@
                        (.setZoom (get @*minimaps minimap-id) 0)))
                    :reagent-render (fn [] [:div {:id minimap-id}])}))
 
+; TODO: lots of low-hanging fruit to improve performance
 (defn fetch-coordinates! [minimap-id location-name-input i]
   (if (str/blank? location-name-input) ; don't fetch from the API if the input is blank
     (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
@@ -62,9 +63,9 @@
                                    :center #js[(:lng result) (:lat result)]})
                        (when (and (:lat result) (:lng result))
                          (swap! session/*store assoc-in [:locations i :coords] result)
-                         (util/fetch-post "/settings/update"
-                                          {:locations (:locations @session/*store)}))
-                       (user-data/recompute-friends #(swap! session/*store assoc-in [:locations i :loading] false))))))
+                         (user-data/recompute-friends #(do (swap! session/*store assoc-in [:locations i :loading] false)
+                                                           (util/fetch-post "/settings/update" ; persist the changes to the server
+                                                                            {:locations (:locations @session/*store)}))))))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
@@ -116,7 +117,8 @@
                                 :value (:name location-data)
                                 :autoComplete "off"
                                 :auto-complete "off"
-                                :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter location
+                                :style {:cursor (when-not (from-twitter? location-data) "pointer")}
+                                :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter locations
                                 :placeholder "type a location to follow"
                                 :on-change #(let [input-elem (.-target %)
                                                   new-value  (.-value input-elem)]
