@@ -252,6 +252,10 @@ a:hover a {
   color: white;
   opacity: 0.5;
   font-size: 0.8em;
+  vertical-align: middle;
+  transform: translateY(-2px);
+  margin-bottom: 4px;
+  font-weight: 400;
 }
 .friends-list svg.x,
 .friends-list svg.triangle {
@@ -336,8 +340,7 @@ tr:nth-child(even) {
   line-height: 1.3;
 }
 .friends-list {
-  padding: 12px;
-  // padding: 24px;
+  padding: 9px 6px;
 }
 // @media screen and (max-width: 720px) {
 //   .friends-list {
@@ -361,8 +364,8 @@ tr:nth-child(even) {
 .friends-list.header {
   font-size: 0.85em;
   display: flex;
+  min-height: 59px;
   flex-direction: row;
-  gap: 12px;
   background-color: #ffffff0d;
   border-radius: 8px 8px 0 0;
 }
@@ -376,6 +379,12 @@ tr:nth-child(even) {
 .friends-list .mapbox-container {
   min-width: 80px;
   border-radius: 80px;
+}
+
+@media (max-width: 768px) /* mobile */ {
+  .friends-list .mapbox-container {
+    min-width: 60px;
+  }
 }
 .friends-list .mapbox-container .mapboxgl-map {
   height: 100% !important;
@@ -467,6 +476,11 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
 /******************************************************************************/
+.welcome-flow .title {
+  margin: 20px -16px;
+  padding-bottom: 38px;
+  border-bottom: 1px solid #ffffff33;
+}
 .welcome-flow .twitter-data-explanation {
   max-width: 340px;
   margin: auto;
@@ -527,7 +541,6 @@ tr:nth-child(even) {
   display: flex;
   flex-wrap: wrap;
   flex-grow: 1;
-  row-gap: 8px;
   justify-content: center;
 }
 .home-page .twitter-data-explanation {
@@ -778,10 +791,24 @@ tr:nth-child(even) {
   margin-right: -18px;
   margin-top: -28px;
 }
+.home-page .friends-list.header .right-side {
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+@media (max-width: 768px) /* mobile */ {
+  .home-page .friends-list.header .right-side {
+    margin-left: 8px;
+  }
+  .home-page .friends-list.header {
+    font-size: 0.8em;
+  }
+}
 .home-page .friends-list.header .delete-location-btn {
   margin-left: auto;
-  margin-right: -18px;
-  margin-top: -16px;
+  margin-right: -14px;
+  margin-top: -14px;
 }
 .welcome-flow .location-field {
   padding: 24px 12px;
@@ -828,7 +855,7 @@ tr:nth-child(even) {
 }
 .welcome-flow input.location-input::placeholder {
   color: #d9d3cc55;
-  font-size: 0.9em;
+  padding-bottom: 2px;
 }
 .small-info-text {
   font-size: 0.8em;
