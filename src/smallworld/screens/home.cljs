@@ -63,7 +63,8 @@
                        (when (and (:lat result) (:lng result))
                          (swap! session/*store assoc-in [:locations i :coords] result)
                          (util/fetch-post "/settings/update"
-                                          {:locations (:locations @session/*store)}))))))
+                                          {:locations (:locations @session/*store)}))
+                       (user-data/recompute-friends)))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
@@ -112,6 +113,8 @@
                                 :placeholder "enter a location to follow"
                                 :on-change #(let [input-elem (.-target %)
                                                   new-value  (.-value input-elem)]
+                                              ; TODO:
+                                              (swap! session/*store assoc-in [:locations i :coords] nil) ; clear the coords so it shows as loading
                                               (fetch-coordinates-debounced! minimap-id new-value i)
                                               (swap! session/*store assoc-in [:locations i :name] new-value))}]
                        (if (or (= (:special-status location-data) "twitter-location")
@@ -146,7 +149,7 @@
                                           (-> (last (util/query-dom ".category"))
                                               (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
                                        50)))}
-         (decorations/plus-icon "scale(0.15)") "TODO: follow another location"]
+         (decorations/plus-icon "scale(0.15)") "follow another location"]
 
         (when (= :loading @user-data/*friends)
           [:pre {:style {:margin "24px auto" :max-width "360px"}}
