@@ -23,8 +23,8 @@
                      (fn [result]
                        (.flyTo (get @*minimaps minimap-id)
                                #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
-                                   :zoom 4
-                                   :center #js[(:lng result) (:lat result)]})
+                                   :zoom 3
+                                   :center (mapbox/coords-to-mapbox-array result)})
                        (swap! *locations-new assoc index (merge (get @*locations-new index)
                                                                 {:coords result}))))))
 
@@ -32,7 +32,9 @@
 
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
 
-(defn minimap [minimap-id location-name]
+(defn minimap [minimap-id location-name coords]
+  (println "coords: ")
+  (println coords)
   (r/create-class {:component-did-mount
                    (fn [] ; this should be called just once when the component is mounted
                      (swap! *minimaps assoc minimap-id
@@ -40,10 +42,11 @@
                                  #js{:container minimap-id
                                      :key    (get-in mapbox/config [mapbox/style :access-token])
                                      :style  (get-in mapbox/config [mapbox/style :style])
-                                     :center (clj->js mapbox/Miami) ; TODO: center on location they provie to Twitter
+                                     :center (or (mapbox/coords-to-mapbox-array coords)
+                                                 (clj->js mapbox/Miami))
                                      :interactive false ; makes the map not zoomable or draggable
                                      :attributionControl false ; removes the Mapbox copyright symbol
-                                     :zoom 4
+                                     :zoom 3
                                      :maxZoom 8
                                      :minZoom 0}))
                      ; zoom out if they haven't provided a location
@@ -58,6 +61,7 @@
                        not-provided? :not-provided?
                        from-twitter? :from-twitter?
                        value         :value
+                       coords        :coords
                        update!       :update!}]
   (let [id         (str "location-" index)
         minimap-id (str "minimap--" id)]
@@ -92,7 +96,7 @@
           [:div.small-info-text {:style {:margin-bottom "12px"}}
            "don't worry, this won't update your Twitter profile :)"])
         [:div.mapbox-container
-         [minimap minimap-id value]
+         [minimap minimap-id value coords]
          (when-not (clojure.string/blank? value)
            [:div.center-point])]
         [:br]])]))
@@ -157,7 +161,7 @@
                            "when you "  [:a {:href "https://twitter.com/settings/profile"} "update your location"] " on Twitter," [:br]
                            "Small World will automatically follow it for you"]]
                          [:<>
-                          "based on your Twitter location, you’re in..."  [:br]])
+                          "based on your Twitter location, you’re in"  [:br]])
 
     "from-display-name" (if (str/blank? (:name-initial-value location))
                           [:<> ; TODO: improve the UX of this state
@@ -168,7 +172,7 @@
                             "Twitter display name, Small World will " [:br]
                             "automatically follow it for you"]]
                           [:<>
-                           "based on your display name, you’re in..."  [:br]])
+                           "based on your display name, you’re in"  [:br]])
 
     "added-manually" "add a location to follow"))
 
@@ -183,12 +187,11 @@
     (reset! *email-address (:email @session/*store)))
   [:div.welcome-flow
    [:<>
-    [:p.serif {:style {:font-size "1.3em" :margin-bottom "12px"}}
-     "welcome to"]
-    [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
-     "Small World"]]
-
-   [:hr] ; horizontal line
+    [:div.title
+     [:p.serif {:style {:font-size "1.3em" :margin-bottom "12px"}}
+      "welcome to"]
+     [:h1 {:style {:font-weight "bold" :font-size "2.2em"}}
+      "Small World"]]]
 
    [:div.twitter-data-explanation
     [:div.explanation
@@ -222,6 +225,7 @@
                                           (= (:special-status location) "from-display-name"))
                        :not-provided? (str/blank? (:name-initial-value location))
                        :value         (or (:name location) "")
+                       :coords        (:coords location)
                        :update!       (fn [new-name]
                                         (swap! *locations-new assoc i (merge location {:name new-name})))}))
                    @*locations-new)

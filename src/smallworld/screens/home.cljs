@@ -42,7 +42,7 @@
                                      :center (clj->js [(:lng coords) (:lat coords)])
                                      :interactive false ; makes the map not zoomable or draggable
                                      :attributionControl false ; removes the Mapbox copyright symbol
-                                     :zoom 3
+                                     :zoom 1
                                      :maxZoom 8
                                      :minZoom 0}))
                      ; zoom out if they haven't provided a location
@@ -58,7 +58,7 @@
                      (fn [result]
                        (.flyTo (get @*minimaps minimap-id)
                                #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
-                                   :zoom 4
+                                   :zoom 1
                                    :center #js[(:lng result) (:lat result)]})
                        (when (and (:lat result) (:lng result))
                          (swap! session/*store assoc-in [:locations i :coords] result)
@@ -67,6 +67,10 @@
                        (user-data/recompute-friends #(swap! session/*store assoc-in [:locations i :loading] false))))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
+
+(defn from-twitter? [location-data]
+  (or (= (:special-status location-data) "twitter-location")
+      (= (:special-status location-data) "from-display-name")))
 
 (defn screen []
   [:<>
@@ -97,7 +101,7 @@
                     [:div.category {:key i}
                      [:div.friends-list.header
 
-                      [:div.left-side.mapbox-container {:style {:width "90px"}}
+                      [:div.left-side.mapbox-container
                        [minimap minimap-id (:name location-data) (:coords location-data)]
                        (when-not (str/blank? (:name location-data)) [:div.center-point])]
 
@@ -110,16 +114,15 @@
                                 :value (:name location-data)
                                 :autoComplete "off"
                                 :auto-complete "off"
-                                :placeholder "enter a location to follow"
+                                :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter location
+                                :placeholder "type a location to follow"
                                 :on-change #(let [input-elem (.-target %)
                                                   new-value  (.-value input-elem)]
                                               (swap! session/*store assoc-in [:locations i :loading] true)
                                               (fetch-coordinates-debounced! minimap-id new-value i)
                                               (swap! session/*store assoc-in [:locations i :name] new-value))}]
-                       (if (or (= (:special-status location-data) "twitter-location")
-                               (= (:special-status location-data) "from-display-name"))
-                         [:div.small-info-text "this won't update your Twitter profile :)"]
-                         [:div.small-info-text "here are your friends who are live in or are traveling to this place"])]
+                       (when (from-twitter? location-data)
+                         [:div.small-info-text "this won't update your Twitter profile :)"])]
 
                       [:div.delete-location-btn {:title "delete this location"
                                                  :on-click #(when (js/confirm "are you sure you want to delete this location?")

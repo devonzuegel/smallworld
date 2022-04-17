@@ -17,6 +17,9 @@
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (defonce markers (r/atom []))
 
+(defn coords-to-mapbox-array [coords]
+  #js[(:lng coords) (:lat coords)])
+
 (defn assert-long-lat [-coordinates]
   (let [[long lat] -coordinates]
     (assert (not (nil? -coordinates))
