@@ -83,8 +83,6 @@
 
        [:div ; this div is here to allow for the alignment of the footer
         [:br]
-        [:pre (util/preify (:locations @session/*store))]
-        [:br]
         (when (= 0 (count curr-user-locations))
           [:div.no-locations-info
               ; TODO: improve the design of this state
