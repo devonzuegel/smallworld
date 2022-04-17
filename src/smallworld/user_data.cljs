@@ -112,9 +112,10 @@
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))
 
-(defn recompute-friends []
+(defn recompute-friends [& [callback]]
   (util/fetch "/friends/recompute"
               (fn [result]
+                (when callback (callback))
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))
