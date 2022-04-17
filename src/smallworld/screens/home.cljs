@@ -64,7 +64,7 @@
                          (swap! session/*store assoc-in [:locations i :coords] result)
                          (util/fetch-post "/settings/update"
                                           {:locations (:locations @session/*store)}))
-                       (user-data/recompute-friends)))))
+                       (user-data/recompute-friends #(swap! session/*store assoc-in [:locations i :loading] false))))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
@@ -113,8 +113,7 @@
                                 :placeholder "enter a location to follow"
                                 :on-change #(let [input-elem (.-target %)
                                                   new-value  (.-value input-elem)]
-                                              ; TODO:
-                                              (swap! session/*store assoc-in [:locations i :coords] nil) ; clear the coords so it shows as loading
+                                              (swap! session/*store assoc-in [:locations i :loading] true)
                                               (fetch-coordinates-debounced! minimap-id new-value i)
                                               (swap! session/*store assoc-in [:locations i :name] new-value))}]
                        (if (or (= (:special-status location-data) "twitter-location")
@@ -129,10 +128,12 @@
                                                                 (util/fetch-post "/settings/update" {:locations updated-locations})))}
                        (decorations/cancel-icon)]]
 
-                     (when-not (nil? (:coords location-data))
-                       [:<>
-                        (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
-                        (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))])]))
+                     (if (get-in @session/*store [:locations i :loading])
+                       [:div.friends-list [:div.loading (decorations/simple-loading-animation)]]
+                       (when-not (nil? (:coords location-data))
+                         [:<>
+                          (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
+                          (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))]))
                 curr-user-locations))
         [:br]
         [:div#track-new-location-field
