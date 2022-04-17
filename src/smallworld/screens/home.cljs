@@ -63,9 +63,10 @@
                                    :center #js[(:lng result) (:lat result)]})
                        (when (and (:lat result) (:lng result))
                          (swap! session/*store assoc-in [:locations i :coords] result)
-                         (user-data/recompute-friends #(do (swap! session/*store assoc-in [:locations i :loading] false)
-                                                           (util/fetch-post "/settings/update" ; persist the changes to the server
-                                                                            {:locations (:locations @session/*store)}))))))))
+                         (user-data/recompute-friends
+                          #(swap! session/*store assoc-in [:locations i :loading] false))
+                         (util/fetch-post "/settings/update" ; persist the changes to the server
+                                          {:locations (:locations (assoc-in @session/*store [:locations i :loading] false))}))))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 

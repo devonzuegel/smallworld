@@ -7,13 +7,8 @@
             [smallworld.session :as session]
             [smallworld.decorations :as decorations]))
 
+(def debug? false)
 (defonce *friends (r/atom :loading))
-
-(defn closer-than [max-distance dist-key]
-  (fn [friend]
-    (let [smallest-distance (get-in friend [:distance dist-key])]
-      (and (< smallest-distance max-distance)
-           (not (nil? smallest-distance))))))
 
 (defn render-user [k user]
   (let [twitter-pic    (:profile_image_url_large user)
@@ -57,6 +52,13 @@
                                                        first)
                                   distance-to-curr-user-location (get-in friend-location
                                                                          [:distances (keyword curr-user-location-name)])]
+                              (when debug?
+                                (println)
+                                (println "       curr-user-location-name: " curr-user-location-name)
+                                (println "               friend-location: " friend-location)
+                                (println "distance-to-curr-user-location: " distance-to-curr-user-location)
+                                (println "                       boolean:" (and (not (nil? distance-to-curr-user-location))
+                                                                                (> max-distance distance-to-curr-user-location))))
                               (and (not (nil? distance-to-curr-user-location))
                                    (> max-distance distance-to-curr-user-location)))))
 
