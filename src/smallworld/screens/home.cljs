@@ -79,7 +79,9 @@
      [:<>
       [:div.home-page
 
-       [:div
+       [:div ; this div is here to allow for the alignment of the footer
+        [:br]
+        [:pre (util/preify (:locations @session/*store))]
         [:br]
         (when (= 0 (count curr-user-locations))
           [:div.no-locations-info
@@ -108,7 +110,7 @@
                       [:div.right-side
                        [:div.based-on (condp = (:special-status location-data)
                                         "twitter-location"  "based on your Twitter location, you live in:"
-                                        "from-display-name" "based on your Twitter name, you live in:"
+                                        "from-display-name" "based on your Twitter name, you're visiting:"
                                         "you added this location manually:")]
                        [:input {:type "text"
                                 :value (:name location-data)
@@ -121,8 +123,8 @@
                                               (swap! session/*store assoc-in [:locations i :loading] true)
                                               (fetch-coordinates-debounced! minimap-id new-value i)
                                               (swap! session/*store assoc-in [:locations i :name] new-value))}]
-                       (when (from-twitter? location-data)
-                         [:div.small-info-text "this won't update your Twitter profile :)"])]
+                       #_(when (from-twitter? location-data) ; no longer needed because they aren't editable
+                           [:div.small-info-text "this won't update your Twitter profile :)"])]
 
                       [:div.delete-location-btn {:title "delete this location"
                                                  :on-click #(when (js/confirm "are you sure you want to delete this location?")
