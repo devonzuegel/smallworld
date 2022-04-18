@@ -96,8 +96,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-settings [req]
-  (let [-current-user (get-current-user req)
-        screen-name   (:screen-name -current-user)]
+  (let [screen-name (:screen-name (get-current-user req))]
     ; TODO: set in the session for faster access
     (first (db/select-by-col db/settings-table :screen_name screen-name))))
 
@@ -197,6 +196,29 @@
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
+(defn refresh-friends-from-twitter [req screen-name]
+  (let [friends-result   (--fetch-friends screen-name)
+        settings         (get-settings req)
+        corrected-curr-user (merge
+                             (get-current-user req)
+                             {:main-location (:main_location_corrected settings)
+                              :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
+                              :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
+                              :name-location (:name_location_corrected settings)})
+        friends-abridged (map #(user-data/abridged % corrected-curr-user)
+                              friends-result)]
+    (if (= :failed friends-result)
+      (let [failure-message (str "could not refresh friends for @" screen-name)]
+        (println failure-message)
+        (generate-string (response/bad-request {:message failure-message})))
+      (do
+        (println (str "refreshing friends for @" screen-name
+                      " (count: " (count friends-abridged) ")"))
+        (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
+        (swap! abridged-friends-cache
+               assoc screen-name friends-abridged)
+        (generate-string friends-abridged)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -235,29 +257,8 @@
                                   (swap! abridged-friends-cache
                                          assoc screen-name friends-abridged)
                                   (generate-string friends-abridged)))
-  ; re-fetch data from Twitter
-  (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
-                                    friends-result   (--fetch-friends screen-name)
-                                    settings         (get-settings req)
-                                    corrected-curr-user (merge
-                                                         (get-current-user req)
-                                                         {:main-location (:main_location_corrected settings)
-                                                          :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
-                                                          :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
-                                                          :name-location (:name_location_corrected settings)})
-                                    friends-abridged (map #(user-data/abridged % corrected-curr-user)
-                                                          friends-result)]
-                                (if (= :failed friends-result)
-                                  (let [failure-message (str "could not refresh friends for @" screen-name)]
-                                    (println failure-message)
-                                    (generate-string (response/bad-request {:message failure-message})))
-                                  (do
-                                    (println (str "refreshing friends for @" screen-name
-                                                  " (count: " (count friends-abridged) ")"))
-                                    (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
-                                    (swap! abridged-friends-cache
-                                           assoc screen-name friends-abridged)
-                                    (generate-string friends-abridged)))))
+  ; re-fetch data from Twitter – TODO: this should be a POST not a GET
+  (GET "/friends/refresh" req (refresh-friends-from-twitter req (:screen-name (get-current-user req)))) ; TODO: keep refactoring
   ;; general resources
   (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")

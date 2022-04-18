@@ -20,6 +20,7 @@
                       [:screen_name           "varchar(255)" "not null"    "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
                       [:welcome_flow_complete :boolean       "not null"    "default false"]
                       [:locations             :json]
+                      [:friends_refresh       :json]
                       [:email_address         "varchar(255)"]
                       [:email_notifications   "varchar(255)"]
                       [:created_at            :timestamp  "default current_timestamp"]
