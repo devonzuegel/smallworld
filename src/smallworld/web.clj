@@ -95,10 +95,9 @@
 ;;; settings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn get-settings [req]
-  (let [screen-name (:screen-name (get-current-user req))]
+(defn get-settings [screen-name]
     ; TODO: set in the session for faster access
-    (first (db/select-by-col db/settings-table :screen_name screen-name))))
+  (first (db/select-by-col db/settings-table :screen_name screen-name)))
 
 (defn update-settings [req]
   (let [-current-user (get-current-user req)
@@ -180,8 +179,9 @@
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 (defn get-users-friends [req & [screen-name]]
-  (let [main-location (or (:main_location_corrected (get-settings req)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
-        name-location (or (:name_location_corrected (get-settings req)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
+  (let [-screen-name  (:screen-name (get-current-user req))
+        main-location (or (:main_location_corrected (get-settings -screen-name)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
+        name-location (or (:name_location_corrected (get-settings -screen-name)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
         corrected-curr-user (merge ; TODO: if main- or name-coords have been updated, remove them from the list and add the updated ones
                              (get-current-user req)
                              {:main-location main-location
@@ -198,7 +198,7 @@
 
 (defn refresh-friends-from-twitter [req screen-name]
   (let [friends-result   (--fetch-friends screen-name)
-        settings         (get-settings req)
+        settings         (get-settings screen-name)
         corrected-curr-user (merge
                              (get-current-user req)
                              {:main-location (:main_location_corrected settings)
@@ -237,7 +237,7 @@
   (GET "/admin/friends/:screen_name" req (admin/friends-of-specific-user get-current-user get-users-friends req))
 
   ;; app data endpoints
-  (GET "/settings" req (generate-string (get-settings req)))
+  (GET "/settings" req (generate-string (get-settings (:screen-name (get-current-user req)))))
   (POST "/settings/update" req (update-settings req))
   (POST "/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                  location-name (:location-name parsed-body)]
@@ -249,7 +249,7 @@
   ; without fetching data from Twitter, recompute distances from new locations
   (GET "/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
                                       friends-full (:friends (memoized-friends screen-name))
-                                      settings     (get-settings req)
+                                      settings     (get-settings screen-name)
                                       corrected-curr-user (merge (get-current-user req)
                                                                  {:locations (:locations settings)})
                                       friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
