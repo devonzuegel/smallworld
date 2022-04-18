@@ -112,3 +112,9 @@ bin/make-and-deploy.sh
    delete from settings      where screen_name = 'devon_dos';
    delete from access_tokens where request_key = 'devon_dos';
    ```
+
+- add a column:
+
+   ```sql
+   ALTER TABLE "settings" ADD COLUMN locations jsonb;
+   ```
