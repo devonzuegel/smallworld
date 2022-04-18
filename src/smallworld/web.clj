@@ -196,16 +196,10 @@
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
-(defn refresh-friends-from-twitter [req screen-name]
+(defn refresh-friends-from-twitter [screen-name]
   (let [friends-result   (--fetch-friends screen-name)
-        settings         (get-settings screen-name)
-        corrected-curr-user (merge
-                             (get-current-user req)
-                             {:main-location (:main_location_corrected settings)
-                              :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
-                              :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
-                              :name-location (:name_location_corrected settings)})
-        friends-abridged (map #(user-data/abridged % corrected-curr-user)
+        locations        (:locations (first (db/select-by-col db/settings-table :screen_name screen-name)))
+        friends-abridged (map #(user-data/abridged % {:screen-name screen-name :locations locations})
                               friends-result)]
     (if (= :failed friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
@@ -241,9 +235,6 @@
   (POST "/settings/update" req (update-settings req))
   (POST "/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                  location-name (:location-name parsed-body)]
-                             (println "parsed-body:")
-                             (pp/pprint parsed-body)
-                             (println "location-name: " location-name)
                              (generate-string (coordinates/memoized location-name))))
   (GET "/friends" req (get-users-friends req))
   ; without fetching data from Twitter, recompute distances from new locations
@@ -258,7 +249,7 @@
                                          assoc screen-name friends-abridged)
                                   (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
-  (GET "/friends/refresh" req (refresh-friends-from-twitter req (:screen-name (get-current-user req)))) ; TODO: keep refactoring
+  (GET "/friends/refresh" req (refresh-friends-from-twitter (:screen-name (get-current-user req)))) ; TODO: keep refactoring
   ;; general resources
   (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
