@@ -196,10 +196,12 @@
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
-(defn refresh-friends-from-twitter [screen-name]
-  (let [friends-result   (--fetch-friends screen-name)
-        locations        (:locations (first (db/select-by-col db/settings-table :screen_name screen-name)))
-        friends-abridged (map #(user-data/abridged % {:screen-name screen-name :locations locations})
+(defn refresh-friends-from-twitter [settings] ; optionallly pass in settings in case it's already computed so that we don't have to recompute
+  (let [screen-name      (:screen_name settings)
+        friends-result   (--fetch-friends screen-name)
+        curr-user-info   {:screen-name screen-name
+                          :locations (:locations settings)}
+        friends-abridged (map #(user-data/abridged % curr-user-info)
                               friends-result)]
     (if (= :failed friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
@@ -249,7 +251,9 @@
                                          assoc screen-name friends-abridged)
                                   (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
-  (GET "/friends/refresh" req (refresh-friends-from-twitter (:screen-name (get-current-user req)))) ; TODO: keep refactoring
+  (GET "/friends/refresh" req (let [screen-name (:screen-name (get-current-user req))
+                                    settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
+                                (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   ;; general resources
   (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
