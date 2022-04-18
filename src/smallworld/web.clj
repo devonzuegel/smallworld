@@ -69,7 +69,7 @@
          (db/memoized-insert-or-update! db/access_tokens-table
                                         screen-name
                                         {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
-         (db/memoized-insert-or-update! db/profiles-table
+         (db/memoized-insert-or-update! db/twitter-profiles-table
                                         screen-name
                                         {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
          (db/insert-or-update! db/settings-table
@@ -327,11 +327,11 @@
   (some-> @server* (.stop))
 
   ; create the tables if they don't already exists
-  (db/create-table db/settings-table      db/settings-schema)
-  (db/create-table db/profiles-table      db/memoized-data-schema)
-  (db/create-table db/friends-table       db/memoized-data-schema)
-  (db/create-table db/coordinates-table   db/memoized-data-schema)
-  (db/create-table db/access_tokens-table db/memoized-data-schema)
+  (db/create-table db/settings-table         db/settings-schema)
+  (db/create-table db/twitter-profiles-table db/memoized-data-schema)
+  (db/create-table db/friends-table          db/memoized-data-schema)
+  (db/create-table db/coordinates-table      db/memoized-data-schema)
+  (db/create-table db/access_tokens-table    db/memoized-data-schema)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]

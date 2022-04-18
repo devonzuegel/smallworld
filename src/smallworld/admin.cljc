@@ -51,13 +51,13 @@
        (let [current-user (get-current-user req)
              result (if-not (is-admin current-user)
                       (response/bad-request {:message "you don't have access to this page"})
-                      {:profiles    (db/select-all db/profiles-table)
-                       :settings    (db/select-all db/settings-table)
-                       :friends     (map #(-> %
-                                              (assoc :friends-count (count (get-in % [:data "friends"])))
-                                              (dissoc :data))
-                                         (db/select-all db/friends-table))
-                       :coordinates (db/select-all db/coordinates-table)})]
+                      {:twitter-profiles (db/select-all db/twitter-profiles-table)
+                       :settings         (db/select-all db/settings-table)
+                       :friends          (map #(-> %
+                                                   (assoc :friends-count (count (get-in % [:data "friends"])))
+                                                   (dissoc :data))
+                                              (db/select-all db/friends-table))
+                       :coordinates      (db/select-all db/coordinates-table)})]
          (cheshire/generate-string result)))
 
      (defn friends-of-specific-user [get-current-user get-users-friends req]
