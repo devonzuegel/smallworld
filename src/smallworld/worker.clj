@@ -8,14 +8,25 @@
 (defn log [string]
   (println (timestamp) "--" string))
 
+(defn try-to-refresh-friends [total-count]
+  (fn [i user]
+    (try
+      (log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
+      (backend/refresh-friends-from-twitter user)
+      (catch Throwable e
+        (println "\ncouldn't refresh friends for user" (:screen_name user))
+        (println e)
+        nil))))
+
 (defn -main []
   (println)
   (println "===============================================")
   (log "starting worker.clj")
   (println)
-  (let [all-users (db/select-all db/settings-table)]
-    (log (str "preparing to refresh friends for " (count all-users) " users"))
-    (map backend/refresh-friends-from-twitter all-users))
+  (let [all-users (db/select-all db/settings-table)
+        curried-refresh-friends (try-to-refresh-friends (count all-users))]
+    (log (str "preparing to refresh friends for " (count all-users) " users!"))
+    (map-indexed curried-refresh-friends all-users))
   (println)
   (log "finished worker.clj")
   (println "===============================================")
