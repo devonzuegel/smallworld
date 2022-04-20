@@ -208,11 +208,11 @@
         (println failure-message)
         (generate-string (response/bad-request {:message failure-message})))
       (do
-        (println (str "refreshing friends for @" screen-name
-                      " (count: " (count friends-abridged) ")"))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
+        (println (str "done refreshing friends for @" screen-name
+                      " (friends count: " (count friends-abridged) ")"))
         (generate-string friends-abridged)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
