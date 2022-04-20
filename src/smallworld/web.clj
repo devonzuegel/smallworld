@@ -110,7 +110,7 @@
       (pp/pprint new-settings))
 
     (when (:welcome_flow_complete new-settings)
-      (println (email/send {:email (:email_address new-settings)
+      (println (email/send {:to (:email_address new-settings)
                             :subject "welcome to small world 🥝"
                             :body "you just signed up for small world, welcome!\nkeep track of where your friends are at http://smallworld.kiwi"})))
     ; TODO: add try-catch to handle failures
