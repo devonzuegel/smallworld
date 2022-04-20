@@ -84,11 +84,7 @@
                :autoComplete "off"
                :auto-complete "off"
                :on-change #(let [new-value  (-> % .-target .-value)
-                                 _tmp       (fetch-coordinates-debounced! minimap-id new-value index)
-                                ;;  new-coords (get @*saved-coords new-value)
-                                 ]
-                            ;;  (println "saved-coords: " @*saved-coords)
-                            ;;  (println "  new-coords: " new-coords)
+                                 _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
                              (update! new-value))
                :placeholder placeholder}]
              (decorations/edit-icon)]
