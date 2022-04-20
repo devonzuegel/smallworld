@@ -7,6 +7,7 @@
 
 (defn- send-with-content [{to-email :to
                            subject :subject
+                           type :type
                            body :body}]
   (http/post
    "https://api.sendgrid.com/v3/mail/send"
@@ -15,7 +16,7 @@
     :form-params {:personalizations [{:to [{:email to-email}]
                                       :subject subject}]
                   :from {:email FROM_EMAIL}
-                  :content [{:type "text/html" :value body}]}}))
+                  :content [{:type (or type "text/html") :value body}]}}))
 
 (defn- send-with-template [{to-email :to template-id :template}]
   (when debug? (println)
