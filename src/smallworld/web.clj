@@ -109,10 +109,11 @@
       (println "new-settings:")
       (pp/pprint new-settings))
 
+    ; if user just completed the welcome flow, send welcome email
     (when (:welcome_flow_complete new-settings)
       (email/send {:to (:email_address new-settings)
-                   :subject "🥝 welcome to small world"
-                   :body "you just signed up for small world, welcome!\n\nkeep track of where your friends are at http://smallworld.kiwi"}))
+                   :template (:welcome email/TEMPLATES)}))
+
     ; TODO: add try-catch to handle failures
     ; TODO: simplify where this stuff is stored
     (db/insert-or-update! db/settings-table :screen_name new-settings)
