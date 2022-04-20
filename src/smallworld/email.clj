@@ -16,5 +16,5 @@
 (defn send [options]
   (let [result (-send options)]
     (if (= (:status result) 202)
-      (util/log (str "email sent successfully. options:" options))
+      (util/log (str "email sent successfully. options:\n" options))
       (util/log (str "error sending email:" result)))))
