@@ -3,7 +3,7 @@
 
 (def FROM_EMAIL "avery.sara.james@gmail.com") ; TODO: update this to hello@smallworld.kiwi once it's set up
 
-(defn- -send [{to-email :email subject :subject body :body}]
+(defn- -send [{to-email :to subject :subject body :body}]
   (http/post
    "https://api.sendgrid.com/v3/mail/send"
    {:headers {:authorization (str "Bearer " (util/get-env-var "SENDGRID_API_KEY"))}
