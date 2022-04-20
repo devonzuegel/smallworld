@@ -10,6 +10,8 @@
 
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
+    ; TODO: figure out why none of the stuff inside of here is printing when
+    ; it's run by the bash script, even though it is run when run from the repl
     (try
       (log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
       (backend/refresh-friends-from-twitter user)
