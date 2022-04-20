@@ -1,23 +1,24 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [compojure.core :refer [defroutes GET POST ANY]]
+  (:require [cheshire.core :refer [generate-string]]
+            [clojure.data.json :as json]
+            [clojure.java.io :as io]
+            [clojure.pprint :as pp]
+            [compojure.core :refer [ANY defroutes GET POST]]
             [compojure.handler]
             [compojure.route :as route]
-            [clojure.java.io :as io]
-            [ring.adapter.jetty :as jetty]
-            [ring.util.response :as response]
-            [ring.middleware.session.cookie :as cookie]
             [oauth.twitter :as oauth]
-            [clojure.pprint :as pp]
-            [smallworld.memoize :as m]
-            [smallworld.db :as db]
-            [smallworld.util :as util]
-            [smallworld.session :as session]
-            [cheshire.core :refer [generate-string]]
-            [smallworld.user-data :as user-data]
-            [clojure.data.json :as json]
+            [ring.adapter.jetty :as jetty]
+            [ring.middleware.session.cookie :as cookie]
+            [ring.util.response :as response]
+            [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
-            [smallworld.admin :as admin]))
+            [smallworld.db :as db]
+            [smallworld.email :as email]
+            [smallworld.memoize :as m]
+            [smallworld.session :as session]
+            [smallworld.user-data :as user-data]
+            [smallworld.util :as util]))
 
 (def debug? false)
 
@@ -107,6 +108,11 @@
     (when debug?
       (println "new-settings:")
       (pp/pprint new-settings))
+
+    (when (:welcome_flow_complete new-settings)
+      (println (email/send {:email (:email_address new-settings)
+                            :subject "welcome to small world 🥝"
+                            :body "you just signed up for small world, welcome!\nkeep track of where your friends are at http://smallworld.kiwi"})))
     ; TODO: add try-catch to handle failures
     ; TODO: simplify where this stuff is stored
     (db/insert-or-update! db/settings-table :screen_name new-settings)
