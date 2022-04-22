@@ -18,7 +18,9 @@
                   :from {:email FROM_EMAIL}
                   :content [{:type (or type "text/html") :value body}]}}))
 
-(defn- send-with-template [{to-email :to template-id :template}]
+(defn- send-with-template [{to-email :to
+                            template-id :template
+                            dynamic-template-data :dynamic_template_data}]
   (when debug? (println)
         (println "template-id: " template-id)
         (println "to-email:    " to-email)
@@ -28,7 +30,8 @@
    {:headers {:authorization (str "Bearer " (util/get-env-var "SENDGRID_API_KEY"))}
     :content-type :json
     :form-params {:template_id template-id
-                  :personalizations [{:to [{:email to-email}]}]
+                  :personalizations [{:to [{:email to-email}]
+                                      :dynamic_template_data dynamic-template-data}]
                   :from {:email FROM_EMAIL}}}))
 
 (defn send [options]

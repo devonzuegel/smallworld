@@ -112,7 +112,9 @@
     ; if user just completed the welcome flow, send welcome email
     (when (:welcome_flow_complete new-settings)
       (email/send {:to (:email_address new-settings)
-                   :template (:welcome email/TEMPLATES)}))
+                   :template (:welcome email/TEMPLATES)
+                   :dynamic_template_data {:twitter_screen_name screen-name
+                                           :twitter_url (str "https://twitter.com/" screen-name)}}))
 
     ; TODO: add try-catch to handle failures
     ; TODO: simplify where this stuff is stored
