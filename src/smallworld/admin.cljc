@@ -32,9 +32,9 @@
 
           [:<>
            [:a.btn {:href "#"
-                    :on-click #(util/fetch "/admin/summary" (fn [result]
-                                                              (pp/pprint result)
-                                                              (reset! admin-summary* result)))}
+                    :on-click #(util/fetch "/api/v1/admin/summary" (fn [result]
+                                                                     (pp/pprint result)
+                                                                     (reset! admin-summary* result)))}
             "load admin data"]
            [:br] [:br] [:br]
            (when (not= :loading @admin-summary*)

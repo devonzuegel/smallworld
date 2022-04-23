@@ -108,14 +108,14 @@
            "0 friends are " verb-gerund " " curr-user-location-name]))]]))
 
 (defn refresh-friends []
-  (util/fetch "/friends/refresh"
+  (util/fetch "/api/v1/friends/refresh"
               (fn [result]
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))
 
 (defn recompute-friends [& [callback]]
-  (util/fetch "/friends/recompute"
+  (util/fetch "/api/v1/friends/recompute"
               (fn [result]
                 (when callback (callback))
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))

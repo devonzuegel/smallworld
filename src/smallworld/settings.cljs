@@ -19,7 +19,7 @@
   (if (str/blank? location-name-input)
     (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
                                             :zoom 0})
-    (util/fetch-post "/coordinates" {:location-name location-name-input}
+    (util/fetch-post "/api/v1/coordinates" {:location-name location-name-input}
                      (fn [result]
                        (.flyTo (get @*minimaps minimap-id)
                                #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
@@ -146,7 +146,7 @@
       (swap! session/*store assoc :locations @*locations-new)
       ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
       (reset! *settings new-settings)
-      (util/fetch-post "/settings/update" new-settings user-data/recompute-friends))))
+      (util/fetch-post "/api/v1/settings/update" new-settings user-data/recompute-friends))))
 
 (defn location-label [location]
   (condp = (:special-status location)
