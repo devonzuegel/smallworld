@@ -67,7 +67,7 @@
         minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id :key id}
      [:div.delete-location-btn {:title "delete this location"
-                                :on-click #(when (js/confirm "are you sure you want to delete this location?")
+                                :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back any time")
                                              (reset! *locations-new (util/rm-from-list @*locations-new index)))}
       (decorations/cancel-icon)]
      [:label label]
@@ -274,6 +274,8 @@
                              (reset! *email-address new-value))
                :placeholder "email address"}]
       (decorations/edit-icon)]
+     (when (:email @session/*store)
+       [:div.small-info-text {:style {:margin-bottom "12px"}} "this  from Twitter"])
      [:div.error-msg (:email-address-input @*form-errors)]]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]

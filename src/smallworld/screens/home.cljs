@@ -128,7 +128,7 @@
                            [:div.small-info-text "this won't update your Twitter profile :)"])]
 
                       [:div.delete-location-btn {:title "delete this location"
-                                                 :on-click #(when (js/confirm "are you sure you want to delete this location?")
+                                                 :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
                                                               (let [updated-locations (util/rm-from-list curr-user-locations i)]
                                                                 (swap! session/*store assoc :locations updated-locations)
                                                                 (util/fetch-post "/settings/update" {:locations updated-locations})))}
@@ -138,8 +138,8 @@
                        [:div.friends-list [:div.loading (decorations/simple-loading-animation)]]
                        (when-not (nil? (:coords location-data))
                          [:<>
-                          (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
-                          (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))]))
+                          (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
+                          (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))]))]))
                 curr-user-locations))
         [:br]
         [:div#track-new-location-field
