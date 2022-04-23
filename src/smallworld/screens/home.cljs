@@ -14,12 +14,12 @@
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
-(util/fetch "/friends" (fn [result]
-                         (reset! user-data/*friends result)
-                         ; TODO: only run this on the main page, otherwise you'll get errors
-                         ; wait for the map to load – this is a hack & may be a source of errors ;)
-                         (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store)
-                                        2000))
+(util/fetch "/api/v1/friends"
+            (fn [result]
+              (reset! user-data/*friends result)
+              ; TODO: only run this on the main page, otherwise you'll get errors
+              ; wait for the map to load – this is a hack & may be a source of errors ;)
+              (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
             :retry? true)
 
 (defn nav []
@@ -55,7 +55,7 @@
   (if (str/blank? location-name-input) ; don't fetch from the API if the input is blank
     (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
                                             :zoom 0})
-    (util/fetch-post "/coordinates" {:location-name location-name-input}
+    (util/fetch-post "/api/v1/coordinates" {:location-name location-name-input}
                      (fn [result]
                        (.flyTo (get @*minimaps minimap-id)
                                #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
@@ -65,7 +65,7 @@
                          (swap! session/*store assoc-in [:locations i :coords] result)
                          (user-data/recompute-friends
                           #(swap! session/*store assoc-in [:locations i :loading] false))
-                         (util/fetch-post "/settings/update" ; persist the changes to the server
+                         (util/fetch-post "/api/v1/settings/update" ; persist the changes to the server
                                           {:locations (:locations (assoc-in @session/*store [:locations i :loading] false))}))))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
@@ -131,7 +131,7 @@
                                                  :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
                                                               (let [updated-locations (util/rm-from-list curr-user-locations i)]
                                                                 (swap! session/*store assoc :locations updated-locations)
-                                                                (util/fetch-post "/settings/update" {:locations updated-locations})))}
+                                                                (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
                        (decorations/cancel-icon)]]
 
                      (if (get-in @session/*store [:locations i :loading])

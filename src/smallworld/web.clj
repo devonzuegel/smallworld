@@ -232,39 +232,39 @@
 ;; app is function that takes a request, and returns a response
 (defroutes smallworld-routes ; order matters in this function!
   ;; oauth & session endpoints
-  (GET "/login"      _   (start-oauth-flow))
-  (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
-  (GET "/session"    req (generate-string (get-current-user req)))
-  (GET "/logout"     req (logout req))
+  (GET "/api/v1/login"      _   (start-oauth-flow))
+  (GET "/api/v1/authorized" req (store-fetched-access-token-then-redirect-home req))
+  (GET "/api/v1/session"    req (generate-string (get-current-user req)))
+  (GET "/api/v1/logout"     req (logout req))
 
   ;; admin endpoints
-  (GET "/admin/summary" req (admin/summary-data get-current-user req))
-  (GET "/admin/friends/:screen_name" req (admin/friends-of-specific-user get-current-user get-users-friends req))
+  (GET "/api/v1/admin/summary" req (admin/summary-data get-current-user req))
+  (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-current-user get-users-friends req))
 
   ;; app data endpoints
-  (GET "/settings" req (generate-string (get-settings (:screen-name (get-current-user req)))))
+  (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-current-user req)))))
   (POST "/settings/update" req (update-settings req))
   (POST "/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                  location-name (:location-name parsed-body)]
                              (generate-string (coordinates/memoized location-name))))
-  (GET "/friends" req (get-users-friends req))
+  (GET "/api/v1/friends" req (get-users-friends req))
   ; without fetching data from Twitter, recompute distances from new locations
-  (GET "/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
-                                      friends-full (:friends (memoized-friends screen-name))
-                                      settings     (get-settings screen-name)
-                                      corrected-curr-user (merge (get-current-user req)
-                                                                 {:locations (:locations settings)})
-                                      friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
-                                  (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
-                                  (swap! abridged-friends-cache
-                                         assoc screen-name friends-abridged)
-                                  (generate-string friends-abridged)))
+  (GET "/api/v1/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
+                                             friends-full (:friends (memoized-friends screen-name))
+                                             settings     (get-settings screen-name)
+                                             corrected-curr-user (merge (get-current-user req)
+                                                                        {:locations (:locations settings)})
+                                             friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
+                                         (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
+                                         (swap! abridged-friends-cache
+                                                assoc screen-name friends-abridged)
+                                         (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
-  (GET "/friends/refresh" req (let [screen-name (:screen-name (get-current-user req))
-                                    settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
-                                (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
+  (GET "/api/v1/friends/refresh" req (let [screen-name (:screen-name (get-current-user req))
+                                           settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
+                                       (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   ;; general resources
-  (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
+  (GET "/api/v1/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
   (ANY "*"                      [] (io/resource "public/index.html")))
 
