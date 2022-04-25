@@ -37,6 +37,7 @@
                   :from {:email FROM_EMAIL}}}))
 
 (defn send [options]
+  (println "sending email...")
   (try (if (:template options)
          (send-with-template options)
          (send-with-content  options))
@@ -45,7 +46,7 @@
          (util/log e))))
 
 (comment
-  (send-with-content {:to      "devonzuegel@gmail.com"
-                      :subject "test from CLI"
-                      :body    "test from CLI"
-                      :type    "text/plain"}))
+  (send {:to      "devonzuegel@gmail.com"
+         :subject "test from CLI"
+         :body    "test from CLI"
+         :type    "text/plain"}))
