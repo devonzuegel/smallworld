@@ -20,7 +20,7 @@
             [smallworld.user-data :as user-data]
             [smallworld.util :as util]))
 
-(def debug? false)
+(def debug? true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -110,6 +110,7 @@
       (pp/pprint new-settings))
 
     ; if user just completed the welcome flow, send welcome email
+    (println "outside of when...")
     (when (:welcome_flow_complete new-settings)
       (email/send {:to (:email_address new-settings)
                    :template (:welcome email/TEMPLATES)
