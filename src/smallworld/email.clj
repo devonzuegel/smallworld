@@ -2,7 +2,8 @@
                                [smallworld.util :as util]))
 
 (def debug? false)
-(def FROM_EMAIL "avery.sara.james@gmail.com") ; TODO: update this to hello@smallworld.kiwi once it's set up
+(def FROM_EMAIL "hello@smallworld.kiwi")
+(def FROM_NAME  "Small World")
 (def TEMPLATES {:welcome "d-4cb1507efaaa4a2eab8a9f18b0dabbc5"})
 
 (defn- send-with-content [{to-email :to
@@ -15,7 +16,8 @@
     :content-type :json
     :form-params {:personalizations [{:to [{:email to-email}]
                                       :subject subject}]
-                  :from {:email FROM_EMAIL}
+                  :from {:email FROM_EMAIL
+                         :name  FROM_NAME}
                   :content [{:type (or type "text/html") :value body}]}}))
 
 (defn- send-with-template [{to-email :to
@@ -41,3 +43,9 @@
        (catch Throwable e
          (util/log "failed to send email")
          (util/log e))))
+
+(comment
+  (send-with-content {:to      "devonzuegel@gmail.com"
+                      :subject "test from CLI"
+                      :body    "test from CLI"
+                      :type    "text/plain"}))
