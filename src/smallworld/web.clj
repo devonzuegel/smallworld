@@ -20,7 +20,7 @@
             [smallworld.user-data :as user-data]
             [smallworld.util :as util]))
 
-(def debug? true)
+(def debug? false)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -244,10 +244,10 @@
 
   ;; app data endpoints
   (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-current-user req)))))
-  (POST "/settings/update" req (update-settings req))
-  (POST "/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
-                                 location-name (:location-name parsed-body)]
-                             (generate-string (coordinates/memoized location-name))))
+  (POST "/api/v1/settings/update" req (update-settings req))
+  (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
+                                        location-name (:location-name parsed-body)]
+                                    (generate-string (coordinates/memoized location-name))))
   (GET "/api/v1/friends" req (get-users-friends req))
   ; without fetching data from Twitter, recompute distances from new locations
   (GET "/api/v1/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
