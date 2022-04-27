@@ -1,4 +1,8 @@
-(ns smallworld.settings
+; this file contains the code for the:
+;  - welcome screen (where the user first submits their settings)
+;  - settings screen (where the user can update the seetings they've set)
+
+(ns smallworld.screens.settings
   (:require [clojure.string         :as str]
             [goog.dom               :as dom]
             [reagent.core           :as r]
@@ -8,7 +12,21 @@
             [smallworld.user-data   :as user-data]
             [smallworld.util        :as util]))
 
-(def debug? false)
+(def debug? true)
+
+;
+;
+;
+;
+; TODO: need to figure out why the email isn't being properly stored...
+;       why is it just the empty string?
+;
+;
+;
+;
+;
+
+
 (defonce *locations-new  (r/atom :loading))
 (defonce *minimaps       (r/atom {}))
 (defonce *settings       (r/atom :loading))
@@ -28,13 +46,11 @@
                        (swap! *locations-new assoc index (merge (get @*locations-new index)
                                                                 {:coords result}))))))
 
-(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 200))
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
 (def email_notifications_options ["instant" "daily" "weekly" "muted"])
 
 (defn minimap [minimap-id location-name coords]
-  (println "coords: ")
-  (println coords)
   (r/create-class {:component-did-mount
                    (fn [] ; this should be called just once when the component is mounted
                      (swap! *minimaps assoc minimap-id
@@ -142,10 +158,13 @@
                       :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                       :locations               @*locations-new
                       :welcome_flow_complete   true}]
+
     (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
+      (swap! session/*store assoc :email (:email_address new-settings))
       (swap! session/*store assoc :locations @*locations-new)
       ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
       (reset! *settings new-settings)
+      ;; (util/fetch "/api/v1/session" #(session/update! %))
       (util/fetch-post "/api/v1/settings/update" new-settings user-data/recompute-friends))))
 
 (defn location-label [location]
@@ -178,10 +197,40 @@
     "from-display-name" "any plans to travel?"
     "share a location"))
 
+(defn render-email-options []
+  [:div.email-options {:tab-index "3"}
+   [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
+   [:div.radio-btns
+    [:div.radio-btn
+     [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
+     [:label {:for "instant"} "yes, notify me immediately"]]
+    [:div.radio-btn
+     [:input {:name "email_notification" :type "radio" :value "daily" :id "daily"}]
+     [:label {:for "daily"} "yes, send me daily digests"]]
+    [:div.radio-btn
+     [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
+     [:label {:for "weekly"} "yes, send me weekly digests"]]
+    [:div.radio-btn
+     [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
+     [:label {:for "muted"} "no, don't notify me by email"]]]
+   [:br]])
+
+(defn debug-data []
+  (when debug?
+    [:<> [:br] [:br]
+     [:div {:style {:text-align "left"}}
+      [:br]
+      [:pre "@*settings:      \n" (util/preify @*settings)]
+      [:pre "@*email-address: \n" (util/preify @*email-address)]
+      [:pre "@session/*store: \n" (util/preify @session/*store)]
+      [:pre "@*locations-new: \n" (util/preify @*locations-new)]
+      [:pre "@*form-errors:   \n" (util/preify @*form-errors)]]
+     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]]))
+
 (defn welcome-flow-screen []
   (when (nil? @*email-address)
     (reset! *email-address (:email @session/*store)))
-  [:div.welcome-flow
+  [:div.settings-screen
    [:<>
     [:div.title
      [:p.serif {:style {:font-size "1.3em" :margin-bottom "12px"}}
@@ -241,22 +290,7 @@
       [:div.small-info-text {:style {:margin-top "6px"}}
        "you can always add more locations later"]])
    [:br]
-   [:div.email-options {:tab-index "3"}
-    [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
-    [:div.radio-btns
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
-      [:label {:for "instant"} "yes, notify me immediately"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "daily" :id "daily"}]
-      [:label {:for "daily"} "yes, send me daily digests"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
-      [:label {:for "weekly"} "yes, send me weekly digests"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
-      [:label {:for "muted"} "no, don't notify me by email"]]]
-    [:br]]
+   (render-email-options)
    [:br]
    [:div.email-options {:class (when (:email-address-input @*form-errors) "error")}
     [:div.email-address
@@ -277,13 +311,42 @@
      [:div.error-msg (:email-address-input @*form-errors)]]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
-   (when debug?
-     [:br] [:br]
-     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
-     [:div {:style {:text-align "left"}}
-      [:br]
-      [:pre "@session/*store: \n" (util/preify @session/*store)]
-      [:pre "@*locations-new: \n" (util/preify @*locations-new)]
-      [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])
+   (debug-data)
    [:br] [:br] [:br] [:br] [:br]
    util/info-footer])
+
+#_(defn settings-screen []
+    (when (nil? @*email-address)
+      (reset! *email-address (:email_address @*settings)))
+    [:<>
+     (util/nav)
+     [:div.settings-screen
+      [:<>
+       [:p.serif {:style {:font-size "1.6em" :margin-top "48px" :margin-bottom "0"}}
+        "settings"]]
+
+      [:br]
+      (render-email-options)
+      [:br]
+      [:div.email-options {:class (when (:email-address-input @*form-errors) "error")}
+       [:div.email-address
+        [:label "what's your email address? *"] [:br]
+        [:div.field
+         [:input {:type "text"
+                  :tab-index "4"
+                  :id "email-address-input"
+                  :name "email-address-input"
+                  :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
+                  :autoComplete "off"
+                  :auto-complete "off"
+                  :on-change #(let [input-elem (.-target %)
+                                    new-value  (.-value input-elem)]
+                                (reset! *email-address new-value))
+                  :placeholder "email address"}]
+         (decorations/edit-icon)]
+        [:div.error-msg (:email-address-input @*form-errors)]]]
+      [:br] [:br]
+      [:button.btn.save-settings {:on-click submit-welcome-form} "save settings"]
+      (debug-data)
+      [:br] [:br] [:br] [:br] [:br]
+      util/info-footer]])
