@@ -274,8 +274,6 @@
                              (reset! *email-address new-value))
                :placeholder "email address"}]
       (decorations/edit-icon)]
-     (when (:email @session/*store)
-       [:div.small-info-text {:style {:margin-bottom "12px"}} "this  from Twitter"])
      [:div.error-msg (:email-address-input @*form-errors)]]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]

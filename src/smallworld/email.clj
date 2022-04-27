@@ -37,7 +37,7 @@
                   :from {:email FROM_EMAIL}}}))
 
 (defn send [options]
-  (println "sending email...")
+  (println "sending email: " options)
   (try (if (:template options)
          (send-with-template options)
          (send-with-content  options))
