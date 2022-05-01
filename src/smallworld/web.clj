@@ -233,10 +233,10 @@
 ;; app is function that takes a request, and returns a response
 (defroutes smallworld-routes ; order matters in this function!
   ;; oauth & session endpoints
-  (GET "/api/v1/login"      _   (start-oauth-flow))
-  (GET "/api/v1/authorized" req (store-fetched-access-token-then-redirect-home req))
-  (GET "/api/v1/session"    req (generate-string (get-current-user req)))
-  (GET "/api/v1/logout"     req (logout req))
+  (GET "/login"      _   (start-oauth-flow))
+  (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
+  (GET "/logout"     req (logout req))
+  (GET "/api/v1/session" req (generate-string (get-current-user req)))
 
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-current-user req))
