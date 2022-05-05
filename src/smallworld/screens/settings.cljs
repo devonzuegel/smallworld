@@ -14,6 +14,7 @@
 (defonce *settings       (r/atom :loading))
 (defonce *email-address  (r/atom :loading))
 (defonce *form-errors    (r/atom {}))
+(def     *form-message   (r/atom nil))  ; start with no message
 
 (defn fetch-coordinates! [minimap-id location-name-input index]
   (if (str/blank? location-name-input)
@@ -178,6 +179,21 @@
     "from-display-name" "any plans to travel?"
     "share a location"))
 
+
+
+(defn submit-settings-form []
+
+  (let [new-settings {:email_address       (input-value-by-name "email-address-input")
+                      :email_notifications (.-id (input-by-name "email_notification" ":checked"))}]
+    (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
+
+      (reset! *settings (merge @*settings new-settings))
+      (reset! *form-message "saving...")
+      (util/fetch-post "/api/v1/settings/update" (js->clj new-settings)
+                       (fn [response]
+                         (reset! *form-message "✓ settings saved!")
+                         (js/setTimeout #(reset! *form-message nil) 5000) ; clear the message after a few seconds
+                         (user-data/recompute-friends response))))))
 (defn welcome-flow-screen []
   (when (nil? @*email-address)
     (reset! *email-address (:email @session/*store)))
@@ -288,44 +304,7 @@
    [:br] [:br] [:br] [:br] [:br]
    util/info-footer])
 
-
-(defn submit-settings-form []
-
-  (let [new-settings {:email_address       (input-value-by-name "email-address-input")
-                      :email_notifications (.-id (input-by-name "email_notification" ":checked"))}]
-    (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
-
-
-
-
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO: submitting the new settings doesn't seem to save properly anymore... not sure what I did..
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO:
-      ; TODO:
-
-
-
-
-
-      (reset! *settings (merge @*settings new-settings))
-      ;; (swap! *settings merge new-settings)
-      ;; (println "about to post...")
-      (util/fetch-post "/api/v1/settings/update" (js->clj new-settings)
-                       (fn [response]
-                         (println "posted! response:")
-                         (println response) ; TODO: notify the user that the settings were saved
-                         #_(user-data/recompute-friends response))))))
-
-(defn component []
+(defn settings-screen []
   [:div.welcome-flow
    [:p.serif {:style {:font-size "1.3em" :padding-bottom "24px"}} "settings"]
    [:div.email-options {:tab-index "3"}
@@ -364,6 +343,7 @@
      [:div.error-msg (:email-address-input @*form-errors)]]]
    [:br]
    [:button.btn {:on-click submit-settings-form} "save settings"]
+   [:p.small-info-text @*form-message]
    (when debug?
      [:br] [:br]
      [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
@@ -372,70 +352,3 @@
       [:pre "@session/*store: \n" (util/preify @session/*store)]
       [:pre "@*locations-new: \n" (util/preify @*locations-new)]
       [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])])
-
-#_(defn component []
-    (r/create-class
-     {:component-did-mount
-      (fn [] ; this should be called just once when the component is mounted
-        (swap! *minimaps assoc minimap-id
-               (new js/mapboxgl.Map
-                    #js{:container minimap-id
-                        :key    (get-in mapbox/config [mapbox/style :access-token])
-                        :style  (get-in mapbox/config [mapbox/style :style])
-                        :center (or (mapbox/coords-to-mapbox-array coords)
-                                    (clj->js mapbox/Miami))
-                        :interactive false ; makes the map not zoomable or draggable
-                        :attributionControl false ; removes the Mapbox copyright symbol
-                        :zoom 3
-                        :maxZoom 8
-                        :minZoom 0}))
-                     ; zoom out if they haven't provided a location
-        (when (clojure.string/blank? location-name)
-          (.setZoom (get @*minimaps minimap-id) 0)))
-      :reagent-render (fn []
-                        [:div.welcome-flow
-                         [:p.serif {:style {:font-size "1.3em" :padding-bottom "24px"}} "settings"]
-                         [:div.email-options {:tab-index "3"}
-                          [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
-                          [:div.radio-btns
-                           [:div.radio-btn
-                            [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
-                            [:label {:for "instant"} "yes, notify me immediately"]]
-                           [:div.radio-btn
-                            [:input {:name "email_notification" :type "radio" :value "daily" :id "daily"}]
-                            [:label {:for "daily"} "yes, send me daily digests"]]
-                           [:div.radio-btn
-                            [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
-                            [:label {:for "weekly"} "yes, send me weekly digests"]]
-                           [:div.radio-btn
-                            [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
-                            [:label {:for "muted"} "no, don't notify me by email"]]]
-                          [:br]]
-                         [:br]
-                         [:div.email-options {:class (when (:email-address-input @*form-errors) "error")}
-                          [:div.email-address
-                           [:label "what's your email address? *"] [:br]
-                           [:div.field
-                            [:input {:type "text"
-                                     :tab-index "4"
-                                     :id "email-address-input"
-                                     :name "email-address-input"
-                                     :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
-                                     :autoComplete "off"
-                                     :auto-complete "off"
-                                     :on-change #(let [input-elem (.-target %)
-                                                       new-value  (.-value input-elem)]
-                                                   (reset! *email-address new-value))
-                                     :placeholder "email address"}]
-                            (decorations/edit-icon)]
-                           [:div.error-msg (:email-address-input @*form-errors)]]]
-                         [:br]
-                         [:button.btn {:on-click submit-settings-form} "save settings"]
-                         (when debug?
-                           [:br] [:br]
-                           [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
-                           [:div {:style {:text-align "left"}}
-                            [:br]
-                            [:pre "@session/*store: \n" (util/preify @session/*store)]
-                            [:pre "@*locations-new: \n" (util/preify @*locations-new)]
-                            [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])])}))
