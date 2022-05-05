@@ -140,14 +140,11 @@
   (update! settings-table :screen_name "aaa" {:welcome_flow_complete true})
   (update! settings-table :screen_name "aaa" {:screen_name "foo"})
   (update! settings-table :screen_name "foo" {:screen_name "aaa"})
-  (insert-or-update! settings-table
-                     :screen_name
+  (insert-or-update! settings-table :screen_name
                      {:screen_name "devonzuegel" :main_location_corrected "bbb"})
-  (insert-or-update! settings-table
-                     :screen_name
+  (insert-or-update! settings-table :screen_name
                      {:screen_name "devon_dos" :welcome_flow_complete false})
-  (insert-or-update! settings-table
-                     :screen_name
+  (insert-or-update! settings-table :screen_name
                      {:screen_name "devon_dos" :email_address "1@gmail.com"})
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
