@@ -5,12 +5,13 @@
             [smallworld.decorations :as decorations]
             [smallworld.mapbox      :as mapbox]
             [smallworld.session     :as session]
-            [smallworld.settings    :as settings]
+            [smallworld.screens.settings    :as settings]
             [smallworld.user-data   :as user-data]
             [smallworld.util        :as util]))
 
-(def     *debug?    (r/atom false))
-(defonce *minimaps  (r/atom {}))
+(def         *debug? (r/atom false))
+(def *settings-open? (r/atom false))
+(defonce   *minimaps (r/atom {}))
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
@@ -24,12 +25,13 @@
 
 (defn nav []
   [:div.nav
-   [:a#logo-animation.logo {:href "/"}
+   [:a#logo-animation.logo {:on-click #(reset! *settings-open? false)}
     (decorations/animated-globe)
 
     [:div.logo-text "small world"]]
    [:span.fill-nav-space]
-   [:b.screen-name " @" (:screen-name @session/*store)]])
+   [:a {:on-click #(reset! *settings-open? true) :style {:cursor "pointer"}}
+    [:b.screen-name " @" (:screen-name @session/*store)]]])
 
 (defn minimap [minimap-id location-name coords]
   (r/create-class {:component-did-mount
@@ -80,93 +82,93 @@
    (let [curr-user-locations (remove nil? (:locations @session/*store))]
      [:<>
       [:div.home-page
-
        [:div ; this div is here to allow for the alignment of the footer
-        [:br]
-        (when (= 0 (count curr-user-locations))
-          [:div.no-locations-info
+        (if @*settings-open?
+          (settings/component)
+          [:<> [:br]
+           (when (= 0 (count curr-user-locations))
+             [:div.no-locations-info
               ; TODO: improve the design of this state
-           [:p "you haven't shared a location on Twitter, so we can't show you friends who are close by"]
+              [:p "you haven't shared a location on Twitter, so we can't show you friends who are close by"]
+              [:br]
+              [:p "we pull from two places to find your location:"]
+              [:ol
+               [:li "your Twitter profile location"]
+               [:li "your Twitter display name"]]
+              [:br]
+              [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
+              [:br]
+              [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
+
+           (doall (map-indexed
+                   (fn [i location-data]
+                     (let [minimap-id (str "minimap-location-" i)]
+                       [:div.category {:key i}
+                        [:div.friends-list.header
+
+                         [:div.left-side.mapbox-container
+                          [minimap minimap-id (:name location-data) (:coords location-data)]
+                          (when-not (str/blank? (:name location-data)) [:div.center-point])]
+
+                         [:div.right-side
+                          [:div.based-on (condp = (:special-status location-data)
+                                           "twitter-location"  "based on your Twitter location, you live in:"
+                                           "from-display-name" "based on your Twitter name, you're visiting:"
+                                           "you added this location manually:")]
+                          [:input {:type "text"
+                                   :value (:name location-data)
+                                   :autoComplete "off"
+                                   :auto-complete "off"
+                                   :style {:cursor (when-not (from-twitter? location-data) "pointer")}
+                                   :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter locations
+                                   :placeholder "type a location to follow"
+                                   :on-change #(let [input-elem (.-target %)
+                                                     new-value  (.-value input-elem)]
+                                                 (swap! session/*store assoc-in [:locations i :loading] true)
+                                                 (fetch-coordinates-debounced! minimap-id new-value i)
+                                                 (swap! session/*store assoc-in [:locations i :name] new-value))}]
+                          #_(when (from-twitter? location-data) ; no longer needed because they aren't editable
+                              [:div.small-info-text "this won't update your Twitter profile :)"])]
+
+                         [:div.delete-location-btn {:title "delete this location"
+                                                    :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
+                                                                 (let [updated-locations (util/rm-from-list curr-user-locations i)]
+                                                                   (swap! session/*store assoc :locations updated-locations)
+                                                                   (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
+                          (decorations/cancel-icon)]]
+
+                        (if (get-in @session/*store [:locations i :loading])
+                          [:div.friends-list [:div.loading (decorations/simple-loading-animation)]]
+                          (when-not (nil? (:coords location-data))
+                            [:<>
+                             (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
+                             (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))]))]))
+                   curr-user-locations))
            [:br]
-           [:p "we pull from two places to find your location:"]
-           [:ol
-            [:li "your Twitter profile location"]
-            [:li "your Twitter display name"]]
-           [:br]
-           [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
-           [:br]
-           [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
+           [:div#track-new-location-field
+            {:on-click (fn []
+                         (let [updated-locations (vec (concat curr-user-locations ; using concat instead of conj so it adds to the end
+                                                              [{:special-status "added-manually"
+                                                                :name "" ; the value starts out blank
+                                                                :coords nil}]))]
+                           (swap! session/*store assoc :locations updated-locations)
 
-        (doall (map-indexed
-                (fn [i location-data]
-                  (let [minimap-id (str "minimap-location-" i)]
-                    [:div.category {:key i}
-                     [:div.friends-list.header
+                           (js/setTimeout #(do
+                                             (-> (last (util/query-dom ".friends-list input"))
+                                                 .focus)
+                                             (-> (last (util/query-dom ".category"))
+                                                 (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
+                                          50)))}
+            (decorations/plus-icon "scale(0.15)") "follow another location"]
 
-                      [:div.left-side.mapbox-container
-                       [minimap minimap-id (:name location-data) (:coords location-data)]
-                       (when-not (str/blank? (:name location-data)) [:div.center-point])]
-
-                      [:div.right-side
-                       [:div.based-on (condp = (:special-status location-data)
-                                        "twitter-location"  "based on your Twitter location, you live in:"
-                                        "from-display-name" "based on your Twitter name, you're visiting:"
-                                        "you added this location manually:")]
-                       [:input {:type "text"
-                                :value (:name location-data)
-                                :autoComplete "off"
-                                :auto-complete "off"
-                                :style {:cursor (when-not (from-twitter? location-data) "pointer")}
-                                :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter locations
-                                :placeholder "type a location to follow"
-                                :on-change #(let [input-elem (.-target %)
-                                                  new-value  (.-value input-elem)]
-                                              (swap! session/*store assoc-in [:locations i :loading] true)
-                                              (fetch-coordinates-debounced! minimap-id new-value i)
-                                              (swap! session/*store assoc-in [:locations i :name] new-value))}]
-                       #_(when (from-twitter? location-data) ; no longer needed because they aren't editable
-                           [:div.small-info-text "this won't update your Twitter profile :)"])]
-
-                      [:div.delete-location-btn {:title "delete this location"
-                                                 :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
-                                                              (let [updated-locations (util/rm-from-list curr-user-locations i)]
-                                                                (swap! session/*store assoc :locations updated-locations)
-                                                                (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
-                       (decorations/cancel-icon)]]
-
-                     (if (get-in @session/*store [:locations i :loading])
-                       [:div.friends-list [:div.loading (decorations/simple-loading-animation)]]
-                       (when-not (nil? (:coords location-data))
-                         [:<>
-                          (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
-                          (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))]))]))
-                curr-user-locations))
-        [:br]
-        [:div#track-new-location-field
-         {:on-click (fn []
-                      (let [updated-locations (vec (concat curr-user-locations ; using concat instead of conj so it adds to the end
-                                                           [{:special-status "added-manually"
-                                                             :name "" ; the value starts out blank
-                                                             :coords nil}]))]
-                        (swap! session/*store assoc :locations updated-locations)
-
-                        (js/setTimeout #(do
-                                          (-> (last (util/query-dom ".friends-list input"))
-                                              .focus)
-                                          (-> (last (util/query-dom ".category"))
-                                              (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
-                                       50)))}
-         (decorations/plus-icon "scale(0.15)") "follow another location"]
-
-        (when (= :loading @user-data/*friends)
-          [:pre {:style {:margin "24px auto" :max-width "360px"}}
-           "🚧  this wil take a while to load, apologies.  I'm working on "
-           "making it faster.  thanks for being Small World's first user!"])
-
+           (when (= :loading @user-data/*friends)
+             [:pre {:style {:margin "24px auto" :max-width "360px"}}
+              "🚧  this wil take a while to load, apologies.  I'm working on "
+              "making it faster.  thanks for being an early user!"])])
         [:br] [:br] [:br]
-        [:p {:style {:text-align "center"}}
-         [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
+        #_[:p {:style {:text-align "center"}}
+           [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+            "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
 
        util/info-footer
 
@@ -190,11 +192,12 @@
             [:pre "@user-data/*friends is still :loading"]
             [:pre "count:" (count @user-data/*friends) "\n\n" (util/preify @user-data/*friends)])])]
 
-      (let [top-location (first (remove nil? (:locations @session/*store)))]
-        [util/error-boundary
-         [mapbox/mapbox
-          {:lng-lat  (:coords top-location)
-           :location (:name top-location)
-           :user-img (:profile_image_url_large @session/*store)
-           :user-name (:name @session/*store)
-           :screen-name (:screen-name @session/*store)}]])])])
+      (when-not @*settings-open?
+        (let [top-location (last (remove nil? (:locations @session/*store)))]
+          [util/error-boundary
+           [mapbox/mapbox
+            {:lng-lat  (:coords top-location)
+             :location (:name top-location)
+             :user-img (:profile_image_url_large @session/*store)
+             :user-name (:name @session/*store)
+             :screen-name (:screen-name @session/*store)}]]))])])

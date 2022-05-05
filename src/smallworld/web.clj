@@ -101,16 +101,21 @@
   (first (db/select-by-col db/settings-table :screen_name screen-name)))
 
 (defn update-settings [req]
-  (let [-current-user (get-current-user req)
-        screen-name   (:screen-name -current-user)
-        parsed-body   (json/read-str (slurp (:body req)) :key-fn keyword)
-        new-settings  (merge parsed-body {:screen_name screen-name})]
+  (let [-current-user   (get-current-user req)
+        screen-name     (:screen-name -current-user)
+        parsed-body     (json/read-str (slurp (:body req)) :key-fn keyword)
+        new-settings    (merge parsed-body {:screen_name screen-name})
+        merged-settings (merge new-settings (:current-user (:session req)))]
     (when debug?
+      (println "----------------------------------------------")
+      (println "(:session req):")
+      (pp/pprint (:session req))
+      (println "----------------------------------------------")
       (println "new-settings:")
-      (pp/pprint new-settings))
+      (pp/pprint new-settings)
+      (println "----------------------------------------------"))
 
     ; if user just completed the welcome flow, send welcome email
-    (println "outside of when...")
     (when (:welcome_flow_complete new-settings)
       (email/send {:to (:email_address new-settings)
                    :template (:welcome email/TEMPLATES)
@@ -118,10 +123,10 @@
                                            :twitter_url (str "https://twitter.com/" screen-name)}}))
 
     ; TODO: add try-catch to handle failures
-    ; TODO: simplify where this stuff is stored
+    ; TODO: simplify/consolidate where the settings stuff is stored
     (db/insert-or-update! db/settings-table :screen_name new-settings)
     (set-session (response/response (generate-string new-settings))
-                 (assoc-in (:session req) [:current-user :locations] (:locations new-settings)))))
+                 (assoc-in (:session req) [:current-user] merged-settings))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
