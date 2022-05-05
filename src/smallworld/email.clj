@@ -37,12 +37,12 @@
                   :from {:email FROM_EMAIL}}}))
 
 (defn send [options]
-  (println "sending email: " options)
+  (util/log (str "sending email: " options))
   (try (if (:template options)
          (send-with-template options)
          (send-with-content  options))
        (catch Throwable e
-         (util/log "failed to send email")
+         (util/log "failed to send email (error below), continuing...")
          (util/log e))))
 
 (comment

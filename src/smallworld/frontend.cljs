@@ -2,7 +2,7 @@
   (:require [reagent.core            :as r]
             [smallworld.session      :as session]
             [smallworld.decorations  :as decorations]
-            [smallworld.settings     :as settings]
+            [smallworld.screens.settings     :as settings]
             [smallworld.util         :as util]
             [smallworld.screens.home :as home]
             [clojure.pprint          :as pp]
@@ -18,8 +18,11 @@
 (util/fetch "/api/v1/session" #(session/update! %))
 
 (util/fetch "/api/v1/settings" (fn [result]
+                                 (when @*debug?
+                                   (println "/api/v1/settings result:")
+                                   (pp/pprint result))
                                  (reset! settings/*settings      result)
-                                 (reset! settings/*email-address (:email result))))
+                                 (reset! settings/*email-address (:email_address result))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
