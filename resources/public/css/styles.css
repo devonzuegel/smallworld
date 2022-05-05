@@ -1067,6 +1067,7 @@ input[type='radio']:focus {
   box-shadow: 0px 0px 18px #ffffff55;
   border-top: 2px solid #013917;
   filter: saturate(50%);
+  overflow: hidden;
 }
 #mapbox {
   height: 100%;
