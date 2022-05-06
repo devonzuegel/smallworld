@@ -282,6 +282,11 @@ a:hover a {
 .friends-list .location-info .triangle.down {
   transform: rotate(180deg);
 }
+svg.question {
+  fill: white;
+  transform: scale(0.5);
+  opacity: 0.4;
+}
 
 /*****************************************/
 /**** table ******************************/
