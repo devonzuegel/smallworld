@@ -72,6 +72,13 @@
 
 (def *expanded? (r/atom {}))
 
+(defn location-info-explanation [verb-gerund]
+  [:div {:style {:float "right"}
+         :title (if (= verb-gerund "visiting")
+                  "when a friend includes a nearby location in their display name, they'll show up on this list"
+                  "when a friend's Twitter location is nearby, they'll show up on this list")}
+   (decorations/question-icon)])
+
 (defn render-friends-list [curr-user-location-i friend-location-key verb-gerund curr-user-location-name]
   (assert (or (= friend-location-key "twitter-location")
               (= friend-location-key "from-display-name"))) ; TODO: add Scheme to encode this more nicely
@@ -99,13 +106,15 @@
             [:<>
              list-count " "
              friend-pluralized " "
-             verb-gerund " " curr-user-location-name ":"]]
+             verb-gerund " " curr-user-location-name ":"]
+            (location-info-explanation verb-gerund)]
            (when-not expanded?
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)
-           "0 friends are " verb-gerund " " curr-user-location-name]))]]))
+           "0 friends are " verb-gerund " " curr-user-location-name
+           (location-info-explanation verb-gerund)]))]]))
 
 (defn refresh-friends []
   (util/fetch "/api/v1/friends/refresh"
