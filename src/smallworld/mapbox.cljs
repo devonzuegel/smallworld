@@ -8,10 +8,6 @@
             [cljsjs.mapbox]
             [goog.dom]))
 
-; Mapbox API docs: https://docs.mapbox.com/mapbox-gl-js/api/map
-
-(util/load-stylesheet "./css/mapbox-gl.inc.css")
-
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
