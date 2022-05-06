@@ -347,6 +347,10 @@ tr:nth-child(even) {
 .friends-list {
   padding: 9px 6px;
 }
+.friends-list .verb-gerund {
+  border-bottom: dashed 2px #ffffff55;
+  cursor: help;
+}
 // @media screen and (max-width: 720px) {
 //   .friends-list {
 //     padding: 12px;
