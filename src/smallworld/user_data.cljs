@@ -73,7 +73,7 @@
 (def *expanded? (r/atom {}))
 
 (defn location-info-explanation [verb-gerund]
-  [:div {:style {:float "right"}
+  [:div {:style {:float "right" :cursor "pointer"}
          :title (if (= verb-gerund "visiting")
                   "when a friend includes a nearby location in their display name, they'll show up on this list"
                   "when a friend's Twitter location is nearby, they'll show up on this list")}
