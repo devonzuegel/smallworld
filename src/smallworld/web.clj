@@ -270,9 +270,8 @@
                                            settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
                                        (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   ;; general resources
-  (GET "/api/v1/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
-  (ANY "*"                      [] (io/resource "public/index.html")))
+  (ANY "*" [] (io/resource "public/index.html")))
 
 (defn- https-url [url-string & [port]]
   (let [url (java.net.URL. url-string)]
