@@ -121,7 +121,7 @@
                                    :id :updated_at)
                            :locations (or (:locations data)
                                           (vec (:locations (first sql-results)))))]
-    (when debug?
+    (when true ; debug?
       (println "--- running fn: insert-or-update! ---------")
       (println "col-name:   " col-name)
       (println "col-value:  " col-value)
