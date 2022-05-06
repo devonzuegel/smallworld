@@ -119,7 +119,8 @@
         exists?     (not= 0 (count sql-results))
         new-data    (assoc (dissoc (merge (first sql-results) data)
                                    :id :updated_at)
-                           :locations (vec (:locations (first sql-results))))]
+                           :locations (or (:locations data)
+                                          (vec (:locations (first sql-results)))))]
     (when debug?
       (println "--- running fn: insert-or-update! ---------")
       (println "col-name:   " col-name)
@@ -135,6 +136,15 @@
       (update! table-name col-name col-value new-data))))
 
 (comment
+  (do
+    (println "--------------------------------")
+    (println)
+    (pp/pprint (:locations (first (select-by-col settings-table :screen_name "devon_dos"))))
+    (println)
+    (pp/pprint (:email_address (first (select-by-col settings-table :screen_name "devon_dos"))))
+    (println)
+    (println "--------------------------------"))
+
   (recreate-table settings-table settings-schema)
   (insert! settings-table {:screen_name "aaa" :main_location_corrected "bbb"})
   (update! settings-table :screen_name "aaa" {:welcome_flow_complete true})
@@ -148,15 +158,6 @@
                      {:screen_name "devon_dos" :email_address "1@gmail.com"})
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
-
-  (do
-    (println "--------------------------------")
-    (println)
-    (pp/pprint (:locations (first (select-by-col settings-table :screen_name "devon_dos"))))
-    (println)
-    (pp/pprint (:email_address (first (select-by-col settings-table :screen_name "devon_dos"))))
-    (println)
-    (println "--------------------------------"))
 
   (show-all twitter-profiles-table)
 
