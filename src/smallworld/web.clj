@@ -30,9 +30,8 @@
   (assoc response-so-far
          :session new-session))
 
-(defn get-current-user [req]
-  (get-in req [:session :current-user]
-          session/blank))
+(defn get-session [req]
+  (get-in req [:session] session/blank))
 
 ;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
 (defn fetch-current-user--with-access-token [access-token]
@@ -67,25 +66,22 @@
            (pp/pprint "twitter verify_credentials.json:")
            (pp/pprint api-response)
            (println "screen-name:  " screen-name))
-         (db/memoized-insert-or-update! db/access_tokens-table
-                                        screen-name
-                                        {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
-         (db/memoized-insert-or-update! db/twitter-profiles-table
-                                        screen-name
-                                        {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
-         (db/insert-or-update! db/settings-table
-                               :screen_name
-                               {:screen_name screen-name})
+         (db/memoized-insert-or-update! db/access_tokens-table    screen-name {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
+         (db/memoized-insert-or-update! db/twitter-profiles-table screen-name {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
+         (db/insert-or-update! db/settings-table :screen_name {:screen_name    screen-name
+                                                               :name           (:name api-response)
+                                                               :locations      (:locations current-user)
+                                                               :twitter_avatar (user-data/normal-img-to-full-size api-response)})
          (println (str "@" screen-name ") has successfully authorized small world to access their Twitter account"))
-         (set-session (response/redirect "/") {:current-user current-user
-                                               :access-token access-token}))
+         (set-session (response/redirect "/") {:access-token access-token
+                                               :screen-name  (:screen-name api-response)}))
        (catch Throwable e
          (println "user failed to log in")
          (println e)
          (response/redirect "/"))))
 
 (defn logout [req]
-  (let [screen-name (:screen-name (get-current-user req))
+  (let [screen-name (get-in req [:session :screen-name] session/blank)
         logout-msg (if (nil? screen-name)
                      "no-op: there was no active session"
                      (str "@" screen-name " has logged out"))]
@@ -101,11 +97,9 @@
   (first (db/select-by-col db/settings-table :screen_name screen-name)))
 
 (defn update-settings [req]
-  (let [-current-user   (get-current-user req)
-        screen-name     (:screen-name -current-user)
+  (let [screen-name     (get-in req [:session :screen-name] session/blank)
         parsed-body     (json/read-str (slurp (:body req)) :key-fn keyword)
-        new-settings    (merge parsed-body {:screen_name screen-name})
-        merged-settings (merge new-settings (:current-user (:session req)))]
+        new-settings    (merge parsed-body {:screen_name screen-name})]
     (when debug?
       (println "----------------------------------------------")
       (println "(:session req):")
@@ -125,8 +119,7 @@
     ; TODO: add try-catch to handle failures
     ; TODO: simplify/consolidate where the settings stuff is stored
     (db/insert-or-update! db/settings-table :screen_name new-settings)
-    (set-session (response/response (generate-string new-settings))
-                 (assoc-in (:session req) [:current-user] merged-settings))))
+    (response/response (generate-string new-settings))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -194,20 +187,12 @@
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 (defn get-users-friends [req & [screen-name]]
-  (let [-screen-name  (:screen-name (get-current-user req))
-        main-location (or (:main_location_corrected (get-settings -screen-name)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
-        name-location (or (:name_location_corrected (get-settings -screen-name)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
-        corrected-curr-user (merge ; TODO: if main- or name-coords have been updated, remove them from the list and add the updated ones
-                             (get-current-user req)
-                             {:main-location main-location
-                              :main-coords (coordinates/memoized main-location)
-                              :name-coords (coordinates/memoized name-location)
-                              :name-location name-location})
-        logged-out?   (nil? (:screen-name corrected-curr-user))
-        screen-name   (or screen-name (:screen-name corrected-curr-user))
+  (let [session-screen-name (get-in req [:session :screen-name] session/blank)
+        logged-out?   (nil? session-screen-name)
+        screen-name   (or screen-name session-screen-name)
         result        (if logged-out?
                         []
-                        (memoized-abridged-friends screen-name corrected-curr-user))]
+                        (memoized-abridged-friends screen-name (get-settings session-screen-name)))]
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
@@ -241,24 +226,24 @@
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/logout"     req (logout req))
-  (GET "/api/v1/session" req (generate-string (get-current-user req)))
+  (GET "/api/v1/session" req (generate-string (get-session req)))
 
   ;; admin endpoints
-  (GET "/api/v1/admin/summary" req (admin/summary-data get-current-user req))
-  (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-current-user get-users-friends req))
+  (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
+  (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-session get-users-friends req))
 
   ;; app data endpoints
-  (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-current-user req)))))
+  (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-session req)))))
   (POST "/api/v1/settings/update" req (update-settings req))
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         location-name (:location-name parsed-body)]
                                     (generate-string (coordinates/memoized location-name))))
   (GET "/api/v1/friends" req (get-users-friends req))
   ; without fetching data from Twitter, recompute distances from new locations
-  (GET "/api/v1/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
+  (GET "/api/v1/friends/recompute" req (let [screen-name  (:screen-name (get-session req))
                                              friends-full (:friends (memoized-friends screen-name))
                                              settings     (get-settings screen-name)
-                                             corrected-curr-user (merge (get-current-user req)
+                                             corrected-curr-user (merge (get-session req)
                                                                         {:locations (:locations settings)})
                                              friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
                                          (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
@@ -266,7 +251,7 @@
                                                 assoc screen-name friends-abridged)
                                          (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
-  (GET "/api/v1/friends/refresh" req (let [screen-name (:screen-name (get-current-user req))
+  (GET "/api/v1/friends/refresh" req (let [screen-name (:screen-name (get-session req))
                                            settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
                                        (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   ;; general resources

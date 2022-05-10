@@ -15,11 +15,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(util/fetch "/api/v1/session" #(session/update! %))
+(util/fetch "/api/v1/session" (fn [result]
+                                (when @*debug?
+                                  (println "/api/v1/session:")
+                                  (pp/pprint result))
+                                (session/update! result)))
 
 (util/fetch "/api/v1/settings" (fn [result]
                                  (when @*debug?
-                                   (println "/api/v1/settings result:")
+                                   (println "/api/v1/settings:")
                                    (pp/pprint result))
                                  (reset! settings/*settings      result)
                                  (reset! settings/*email-address (:email_address result))))

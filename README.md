@@ -124,10 +124,10 @@ https://dashboard.heroku.com/apps/small-world-friends/scheduler
 - reset a user: (BE CAREFUL, THIS IS VERY DESTRUCTIVE!)
 
    ```sql
-   delete from profiles      where request_key = 'devon_dos';
-   delete from friends       where request_key = 'devon_dos';
-   delete from settings      where screen_name = 'devon_dos';
-   delete from access_tokens where request_key = 'devon_dos';
+   delete from twitter_profiles where request_key = 'devon_dos';
+   delete from friends          where request_key = 'devon_dos';
+   delete from settings         where screen_name = 'devon_dos';
+   delete from access_tokens    where request_key = 'devon_dos';
    ```
 
 - add a column:

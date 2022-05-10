@@ -18,6 +18,8 @@
                            ])
 (def settings-schema [[:id                    :integer       "primary key" "generated always as identity"]
                       [:screen_name           "varchar(255)" "not null"    "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
+                      [:name                  "varchar(255)"]
+                      [:twitter_avatar        "varchar(255)"]
                       [:welcome_flow_complete :boolean       "not null"    "default false"]
                       [:locations             :json]
                       [:friends_refresh       :json]
@@ -139,7 +141,7 @@
   (do
     (println "--------------------------------")
     (println)
-    (pp/pprint (:locations (first (select-by-col settings-table :screen_name "devon_dos"))))
+    (pp/pprint (first (select-by-col settings-table :screen_name "devon_dos")))
     (println)
     (pp/pprint (:email_address (first (select-by-col settings-table :screen_name "devon_dos"))))
     (println)

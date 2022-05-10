@@ -144,10 +144,11 @@
                       :locations               @*locations-new
                       :welcome_flow_complete   true}]
     (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
-      (swap! session/*store assoc :locations @*locations-new)
       ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
       (reset! *settings new-settings)
-      (util/fetch-post "/api/v1/settings/update" new-settings user-data/recompute-friends))))
+      (util/fetch-post "/api/v1/settings/update"
+                       new-settings
+                       user-data/recompute-friends))))
 
 (defn location-label [location]
   (condp = (:special-status location)
@@ -179,7 +180,15 @@
     "from-display-name" "any plans to travel?"
     "share a location"))
 
-
+(defn debug-info []
+  (when debug?
+    [:br] [:br]
+    [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
+    [:div {:style {:text-align "left"}}
+     [:br]
+     [:pre "@session/*store: \n" (util/preify @session/*store)]
+     [:pre "@*locations-new: \n" (util/preify @*locations-new)]
+     [:pre "@*form-errors:   \n" (util/preify @*form-errors)]]))
 
 (defn submit-settings-form []
 
@@ -196,7 +205,7 @@
                          (user-data/recompute-friends response))))))
 (defn welcome-flow-screen []
   (when (nil? @*email-address)
-    (reset! *email-address (:email @session/*store)))
+    (reset! *email-address (:email @*settings)))
   [:div.welcome-flow
    [:<>
     [:div.title
@@ -212,12 +221,12 @@
       [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "Twitter profile"]
       " to find nearby friends"]]
     [:div.twitter-data
-     [:img {:src (:profile_image_url_large @session/*store)}]
+     [:img {:src (:twitter_avatar @*settings)}]
      [:div.right-side
-      [:div.name     (:name @session/*store)]
+      [:div.name     (:name @*settings)]
       [:div.location (:main_location_corrected @*settings)]]]]
 
-   (let [locations (remove nil? (:locations @session/*store))]
+   (let [locations (remove nil? (:locations @*settings))]
      (when (= :loading @*locations-new) ; TODO: clean this up, it's kinda hacky
        (reset! *locations-new (vec (map ; store the original value pulled from Twitter so we have a record of it in case the user edits it
                                     (fn [location] (merge location {:name-initial-value (:name location)}))
@@ -293,14 +302,7 @@
      [:div.error-msg (:email-address-input @*form-errors)]]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
-   (when debug?
-     [:br] [:br]
-     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
-     [:div {:style {:text-align "left"}}
-      [:br]
-      [:pre "@session/*store: \n" (util/preify @session/*store)]
-      [:pre "@*locations-new: \n" (util/preify @*locations-new)]
-      [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])
+   [debug-info]
    [:br] [:br] [:br] [:br] [:br]
    util/info-footer])
 
@@ -344,11 +346,4 @@
    [:br]
    [:button.btn {:on-click submit-settings-form} "save settings"]
    [:p.small-info-text @*form-message]
-   (when debug?
-     [:br] [:br]
-     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
-     [:div {:style {:text-align "left"}}
-      [:br]
-      [:pre "@session/*store: \n" (util/preify @session/*store)]
-      [:pre "@*locations-new: \n" (util/preify @*locations-new)]
-      [:pre "@*form-errors:   \n" (util/preify @*form-errors)]])])
+   [debug-info]])
