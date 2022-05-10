@@ -5,7 +5,7 @@
             [smallworld.decorations :as decorations]
             [smallworld.mapbox      :as mapbox]
             [smallworld.session     :as session]
-            [smallworld.screens.settings    :as settings]
+            [smallworld.screens.settings :as settings]
             [smallworld.user-data   :as user-data]
             [smallworld.util        :as util]))
 
@@ -64,11 +64,11 @@
                                    :zoom 1
                                    :center #js[(:lng result) (:lat result)]})
                        (when (and (:lat result) (:lng result))
-                         (swap! session/*store assoc-in [:locations i :coords] result)
+                         (swap! settings/*settings assoc-in [:locations i :coords] result)
                          (user-data/recompute-friends
-                          #(swap! session/*store assoc-in [:locations i :loading] false))
+                          #(swap! settings/*settings assoc-in [:locations i :loading] false))
                          (util/fetch-post "/api/v1/settings/update" ; persist the changes to the server
-                                          {:locations (:locations (assoc-in @session/*store [:locations i :loading] false))}))))))
+                                          {:locations (:locations (assoc-in @settings/*settings [:locations i :loading] false))}))))))
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
@@ -79,7 +79,7 @@
 (defn screen []
   [:<>
    (nav)
-   (let [curr-user-locations (remove nil? (:locations @session/*store))]
+   (let [curr-user-locations (remove nil? (:locations @settings/*settings))]
      [:<>
       [:div.home-page
        [:div ; this div is here to allow for the alignment of the footer
@@ -124,20 +124,25 @@
                                    :placeholder "type a location to follow"
                                    :on-change #(let [input-elem (.-target %)
                                                      new-value  (.-value input-elem)]
-                                                 (swap! session/*store assoc-in [:locations i :loading] true)
+                                                 (swap! settings/*settings assoc-in [:locations i :loading] true)
                                                  (fetch-coordinates-debounced! minimap-id new-value i)
-                                                 (swap! session/*store assoc-in [:locations i :name] new-value))}]
+                                                 (swap! settings/*settings assoc-in [:locations i :name] new-value)
+                                                 (util/fetch-post "/api/v1/settings/update" {:locations (:locations @settings/*settings)}))}]
                           #_(when (from-twitter? location-data) ; no longer needed because they aren't editable
                               [:div.small-info-text "this won't update your Twitter profile :)"])]
 
                          [:div.delete-location-btn {:title "delete this location"
                                                     :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
                                                                  (let [updated-locations (util/rm-from-list curr-user-locations i)]
-                                                                   (swap! session/*store assoc :locations updated-locations)
+                                                                   (println "settings/*settings :locations (BEFORE)")
+                                                                   (println (:locations @settings/*settings))
+                                                                   (swap! settings/*settings assoc :locations updated-locations)
+                                                                   (println "settings/*settings :locations (AFTER)")
+                                                                   (println (:locations @settings/*settings))
                                                                    (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
                           (decorations/cancel-icon)]]
 
-                        (if (get-in @session/*store [:locations i :loading])
+                        (if (get-in @settings/*settings [:locations i :loading])
                           [:div.friends-list [:div.loading (decorations/simple-loading-animation)]]
                           (when-not (nil? (:coords location-data))
                             [:<>
@@ -151,7 +156,7 @@
                                                               [{:special-status "added-manually"
                                                                 :name "" ; the value starts out blank
                                                                 :coords nil}]))]
-                           (swap! session/*store assoc :locations updated-locations)
+                           (swap! settings/*settings assoc :locations updated-locations)
 
                            (js/setTimeout #(do
                                              (-> (last (util/query-dom ".friends-list input"))
@@ -165,10 +170,10 @@
              [:pre {:style {:margin "24px auto" :max-width "360px"}}
               "🚧  this wil take a while to load, apologies.  I'm working on "
               "making it faster.  thanks for being an early user!"])])
-        [:br] [:br] [:br]
-        [:p {:style {:text-align "center"}}
-         [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
+        ;; [:br] [:br] [:br]
+        #_[:p {:style {:text-align "center"}}
+           [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+            "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
 
        util/info-footer
 
@@ -193,7 +198,7 @@
             [:pre "count:" (count @user-data/*friends) "\n\n" (util/preify @user-data/*friends)])])]
 
       (when-not @*settings-open?
-        (let [top-location (last (remove nil? (:locations @session/*store)))]
+        (let [top-location (last (remove nil? (:locations @settings/*settings)))]
           [util/error-boundary
            [mapbox/mapbox
             {:lng-lat  (:coords top-location)
