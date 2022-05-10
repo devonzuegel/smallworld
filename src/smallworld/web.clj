@@ -111,10 +111,10 @@
 
     ; if user just completed the welcome flow, send welcome email
     (when (:welcome_flow_complete new-settings)
-      (email/send {:to (:email_address new-settings)
-                   :template (:welcome email/TEMPLATES)
-                   :dynamic_template_data {:twitter_screen_name screen-name
-                                           :twitter_url (str "https://twitter.com/" screen-name)}}))
+      (email/send-email {:to (:email_address new-settings)
+                         :template (:welcome email/TEMPLATES)
+                         :dynamic_template_data {:twitter_screen_name screen-name
+                                                 :twitter_url (str "https://twitter.com/" screen-name)}}))
 
     ; TODO: add try-catch to handle failures
     ; TODO: simplify/consolidate where the settings stuff is stored
@@ -126,8 +126,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
-  (println "================================================================================================= start")
-  (println "fetching friends for " screen-name)
+  (when debug?
+    (println "================================================================================================= start")
+    (println "fetching friends for " screen-name))
 
   (try
     (let [; the sql-result should never be an empty list; if it is, that means the
@@ -154,12 +155,13 @@
               screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
-          (println "api-response keys:    " (keys api-response))
-          (println "(first screen-names): " (first screen-names))
-          (println "(count screen-names): " (count screen-names))
-          (println "next-cursor:          " next-cursor)
-          (println "new-result count:     " (count new-result))
-          (println "-----------------------------------------------------------------------------------------")
+          (when debug?
+            (println "api-response keys:    " (keys api-response))
+            (println "(first screen-names): " (first screen-names))
+            (println "(count screen-names): " (count screen-names))
+            (println "next-cursor:          " next-cursor)
+            (println "new-result count:     " (count new-result))
+            (println "-----------------------------------------------------------------------------------------"))
 
           (if (= next-cursor 0)
             new-result ; return final result if Twitter returns a cursor of 0
@@ -211,8 +213,8 @@
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
-        (println (str "done refreshing friends for @" screen-name
-                      " (friends count: " (count friends-abridged) ")"))
+        (when debug? (println (str "done refreshing friends for @" screen-name
+                                   " (friends count: " (count friends-abridged) ")")))
         (generate-string friends-abridged)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -36,7 +36,7 @@
                                       :dynamic_template_data dynamic-template-data}]
                   :from {:email FROM_EMAIL}}}))
 
-(defn send [options]
+(defn send-email [options]
   (util/log (str "sending email: " options))
   (try (if (:template options)
          (send-with-template options)
