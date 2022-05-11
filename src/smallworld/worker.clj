@@ -28,11 +28,9 @@
         n-users (count all-users)
         n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
-    (util/log (str "preparing to refresh friends for " n-users " users"))
-    (println)
+    (util/log (str "preparing to refresh friends for " n-users " users\n"))
     (doall (map-indexed curried-refresh-friends all-users))
-    (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures"))
-    (println)
+    (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
     (email/send-email {:to "avery.sara.james@gmail.com"
                        :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
                        :type "text/plain"
