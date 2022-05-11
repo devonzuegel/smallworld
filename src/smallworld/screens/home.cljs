@@ -9,13 +9,13 @@
             [smallworld.user-data   :as user-data]
             [smallworld.util        :as util]))
 
-(def         *debug? (r/atom false))
+(def         *debug? (r/atom true))
 (def *settings-open? (r/atom false))
 (defonce   *minimaps (r/atom {}))
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
-(util/fetch "/api/v1/friends"
+(util/fetch "/api/v1/friends/refresh-atom"
             (fn [result]
               (reset! user-data/*friends result)
               ; TODO: only run this on the main page, otherwise you'll get errors
@@ -170,15 +170,25 @@
              [:pre {:style {:margin "24px auto" :max-width "360px"}}
               "🚧  this wil take a while to load, apologies.  I'm working on "
               "making it faster.  thanks for being an early user!"])])
-        ;; [:br] [:br] [:br]
-        #_[:p {:style {:text-align "center"}}
-           [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-            "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
+        [:br] [:br] [:br]
+        [:p {:style {:text-align "center"}}
+         [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
 
        util/info-footer
 
        (when @*debug?
          [:<> [:br] [:br] [:hr]
+          [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
+           [:a.btn {:href "#"
+                    :on-click #(util/fetch "/api/v1/friends/refresh-atom"
+                                           (fn [result]
+                                             (reset! user-data/*friends result)
+                                             (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
+                                           :retry? true)}
+            "pull friends again (without refreshing from Twitter!)"]]
+
+          [:br]
           [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
            [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
             "does the data for your friends look out of date?"]

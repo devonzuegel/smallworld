@@ -112,15 +112,16 @@
            (decorations/x-icon)
            "0 friends are " verb-gerund " " curr-user-location-name]))]]))
 
+; TODO: consider running every 10 mins... might create rate-limiting issues
 (defn refresh-friends []
-  (util/fetch "/api/v1/friends/refresh"
+  (util/fetch "/api/v1/friends/refetch-twitter"
               (fn [result]
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))
 
 (defn recompute-friends [& [callback]]
-  (util/fetch "/api/v1/friends/recompute"
+  (util/fetch "/api/v1/friends/recompute-locations"
               (fn [result]
                 (when callback (callback))
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))

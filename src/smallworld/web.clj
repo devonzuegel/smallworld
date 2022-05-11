@@ -185,6 +185,13 @@
   (map #(user-data/abridged % current-user)
        (:friends (memoized-friends screen-name)))) ; can add (take X) for debugging
 
+(defn --fetch-abridged-friends--not-memoized [screen-name current-user]
+  (let [friends (get-in (first (db/select-by-col db/friends-table :request_key screen-name))
+                        [:data :friends])
+        result (map #(user-data/abridged % current-user) friends)]
+    (swap! abridged-friends-cache #(assoc % screen-name result))
+    result))
+
 (def memoized-abridged-friends
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
@@ -195,6 +202,16 @@
         result        (if logged-out?
                         []
                         (memoized-abridged-friends screen-name (get-settings session-screen-name)))]
+    (println (str "count (get-users-friends @" screen-name "): " (count result)))
+    (generate-string result)))
+
+; TODO: consolidate this with memoized-abridged-friends
+(defn get-users-friends--not-memoized [req]
+  (let [screen-name (get-in req [:session :screen-name] session/blank)
+        logged-out? (nil? screen-name)
+        result      (if logged-out?
+                      []
+                      (--fetch-abridged-friends--not-memoized screen-name (get-settings screen-name)))]
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
@@ -240,22 +257,23 @@
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         location-name (:location-name parsed-body)]
                                     (generate-string (coordinates/memoized location-name))))
-  (GET "/api/v1/friends" req (get-users-friends req))
-  ; without fetching data from Twitter, recompute distances from new locations
-  (GET "/api/v1/friends/recompute" req (let [screen-name  (:screen-name (get-session req))
-                                             friends-full (:friends (memoized-friends screen-name))
-                                             settings     (get-settings screen-name)
-                                             corrected-curr-user (merge (get-session req)
-                                                                        {:locations (:locations settings)})
-                                             friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
-                                         (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
-                                         (swap! abridged-friends-cache
-                                                assoc screen-name friends-abridged)
-                                         (generate-string friends-abridged)))
+  (GET "/api/v1/friends"      req (get-users-friends req))
+  (GET "/api/v1/friends/refresh-atom" req (get-users-friends--not-memoized req))
+  ; recompute distances from new locations, without fetching data from Twitter
+  (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
+                                                       friends-full (:friends (memoized-friends screen-name))
+                                                       settings     (get-settings screen-name)
+                                                       corrected-curr-user (merge (get-session req)
+                                                                                  {:locations (:locations settings)})
+                                                       friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
+                                                   (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
+                                                   (swap! abridged-friends-cache
+                                                          assoc screen-name friends-abridged)
+                                                   (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
-  (GET "/api/v1/friends/refresh" req (let [screen-name (:screen-name (get-session req))
-                                           settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
-                                       (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
+  (GET "/api/v1/friends/refetch-twitter" req (let [screen-name (:screen-name (get-session req))
+                                                   settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
+                                               (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   ;; general resources
   (route/resources "/")
   (ANY "*" [] (io/resource "public/index.html")))
