@@ -404,13 +404,7 @@
 (defn -main []
   (println "starting scheduler...")
   (timely/start-scheduler)
-  (timely/start-schedule
-   (timely/scheduled-item (timely/every 1 :hour)
-                          (fn []
-                            (println) (println)
-                            (println (str (java.util.Date.) ": this is the hourly scheduled job!"))
-                            (worker)
-                            (println) (println))))
+  (timely/start-schedule (timely/scheduled-item (timely/every 1 :hour) worker))
 
   (println "starting server...")
   (let [default-port 8080
