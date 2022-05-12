@@ -18,6 +18,7 @@
                  [ring/ring-jetty-adapter "1.9.5"]
                  [ring/ring-ssl "0.3.0"]
                  [yesql "0.5.3"]
+                 [factual/timely "0.0.3"]
                  [org.clojure/data.json "2.4.0"]
                  [clj-fuzzy "0.4.1"]
                  [prismatic/schema "1.2.0"]
