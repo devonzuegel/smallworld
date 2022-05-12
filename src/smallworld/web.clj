@@ -18,7 +18,8 @@
             [smallworld.memoize :as m]
             [smallworld.session :as session]
             [smallworld.user-data :as user-data]
-            [smallworld.util :as util]))
+            [smallworld.util :as util]
+            [timely.core :as timely]))
 
 (def debug? false)
 
@@ -358,7 +359,60 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(def failures (atom []))
+
+(defn try-to-refresh-friends [total-count]
+  (fn [i user]
+    (try
+      (util/log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
+      (refresh-friends-from-twitter user)
+      (catch Throwable e
+        (println "\ncouldn't refresh friends for user" (:screen_name user))
+        (swap! failures (conj user))
+        (println e)
+        nil))))
+
+(defn worker []
+  (println)
+  (println "===============================================")
+  (util/log "starting worker.clj")
+  (println)
+  (let [all-users (db/select-all db/settings-table)
+        n-users (count all-users)
+        n-failures (count @failures)
+        curried-refresh-friends (try-to-refresh-friends n-users)]
+    (util/log (str "preparing to refresh friends for " n-users " users\n"))
+    (doall (map-indexed curried-refresh-friends all-users))
+    (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
+    (email/send-email {:to "avery.sara.james@gmail.com"
+                       :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
+                       :type "text/plain"
+                       :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
+                                  "\n\n"
+                                  "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
+  (println)
+  (util/log "finished worker.clj")
+  (println "===============================================")
+  (println))
+
 (defn -main []
+  (println "starting scheduler...")
+  (timely/start-scheduler)
+  (timely/start-schedule
+   (timely/scheduled-item (timely/every 1 :hour)
+                          (fn []
+                            (println) (println)
+                            (println (str (java.util.Date.) ": this is the hourly scheduled job!"))
+                            (worker)
+                            (println) (println))))
+
+  (println "starting server...")
   (let [default-port 8080
         port (System/getenv "PORT")
         port (if (nil? port)
