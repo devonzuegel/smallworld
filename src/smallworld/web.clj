@@ -371,7 +371,10 @@
   (fn [i user]
     (try
       (util/log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
-      (refresh-friends-from-twitter user)
+      (let [result (refresh-friends-from-twitter user)]
+        ; this is a hack :) it will be fragile if the error message ever changes
+        (when (clojure.string/starts-with? result "caught exception")
+          (throw (Throwable. result))))
       (catch Throwable e
         (println "\ncouldn't refresh friends for user" (:screen_name user))
         (swap! failures (conj user))
@@ -390,21 +393,21 @@
     (util/log (str "preparing to refresh friends for " n-users " users\n"))
     (doall (map-indexed curried-refresh-friends all-users))
     (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
-    (email/send-email {:to "avery.sara.james@gmail.com"
-                       :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
-                       :type "text/plain"
-                       :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
-                                  "\n\n"
-                                  "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
+    #_(email/send-email {:to "avery.sara.james@gmail.com"
+                         :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
+                         :type "text/plain"
+                         :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
+                                    "\n\n"
+                                    "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
   (println)
   (util/log "finished worker.clj")
   (println "===============================================")
   (println))
 
 (defn -main []
-  (println "starting scheduler...")
+  (println "starting scheduler to run every 24 hours...")
   (timely/start-scheduler)
-  (timely/start-schedule (timely/scheduled-item (timely/every 1 :hour) worker))
+  (timely/start-schedule (timely/scheduled-item (timely/every 24 :hour) worker))
 
   (println "starting server...")
   (let [default-port 8080
