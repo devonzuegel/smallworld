@@ -8,7 +8,7 @@
                     [smallworld.db          :as db]
                     [cheshire.core          :as cheshire])))
 
-(def screen-name "devon_dos")
+(def screen-name "devonzuegel")
 
 (defn is-admin [user]
   (assert (not (nil? (:screen-name user))))
@@ -31,8 +31,12 @@
              "whoops, you don't have access to this page"])
 
           [:<>
-           [:a.btn {:href "#"
-                    :on-click #(util/fetch "/api/v1/admin/summary" (fn [result]
+           [:a.btn {:on-click #(util/fetch "/api/v1/admin/refresh_all_users_friends" (fn [result]
+                                                                                       (pp/pprint result)))}
+            "refresh all users' friends + send emails"] [:br]
+           [:p "this job runs every 24 hours; clicking this button will add an extra run"]
+           [:br] [:br] [:br]
+           [:a.btn {:on-click #(util/fetch "/api/v1/admin/summary" (fn [result]
                                                                      (pp/pprint result)
                                                                      (reset! admin-summary* result)))}
             "load admin data"]
