@@ -288,6 +288,55 @@
                                    " (friends count: " (count friends-abridged) ")")))
         (generate-string friends-abridged)))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; worker ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(def failures (atom []))
+
+(defn try-to-refresh-friends [total-count]
+  (fn [i user]
+    (try
+      (util/log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
+      (let [result (refresh-friends-from-twitter user)]
+        ; this is a hack :) it will be fragile if the error message ever changes
+        (when (clojure.string/starts-with? result "caught exception")
+          (throw (Throwable. result))))
+      (catch Throwable e
+        (println "\ncouldn't refresh friends for user" (:screen_name user))
+        (swap! failures (conj user))
+        (println e)
+        nil))))
+
+(defn worker []
+  (println)
+  (println "===============================================")
+  (util/log "starting worker.clj")
+  (println)
+  (let [all-users (db/select-all db/settings-table)
+        n-users (count all-users)
+        ;; n-failures (count @failures)
+        curried-refresh-friends (try-to-refresh-friends n-users)]
+    (util/log (str "preparing to refresh friends for " n-users " users\n"))
+    (doall (map-indexed curried-refresh-friends all-users))
+    (util/log (str "finished refreshing friends for " n-users " users"))
+
+    ;; TODO: put this back when we actually catch failures (currently, we don't)
+    ;; (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
+    ;; (email/send-email {:to "avery.sara.james@gmail.com"
+    ;;                    :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
+    ;;                    :type "text/plain"
+    ;;                    :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
+    ;;                               "\n\n"
+    ;;                               "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
+
+    (println)
+    (util/log "finished worker.clj")
+    (println "===============================================")
+    (println)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -304,6 +353,7 @@
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
   (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-session get-users-friends req))
+  (GET "/api/v1/admin/refresh_all_users_friends" _ (generate-string "hit endpoint: /api/v1/admin/refresh_all_users_friends"))
 
   ;; app data endpoints
   (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-session req)))))
@@ -412,59 +462,12 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(def failures (atom []))
-
-(defn try-to-refresh-friends [total-count]
-  (fn [i user]
-    (try
-      (util/log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
-      (let [result (refresh-friends-from-twitter user)]
-        ; this is a hack :) it will be fragile if the error message ever changes
-        (when (clojure.string/starts-with? result "caught exception")
-          (throw (Throwable. result))))
-      (catch Throwable e
-        (println "\ncouldn't refresh friends for user" (:screen_name user))
-        (swap! failures (conj user))
-        (println e)
-        nil))))
-
-(defn worker []
-  (println)
-  (println "===============================================")
-  (util/log "starting worker.clj")
-  (println)
-  (let [all-users (db/select-all db/settings-table)
-        n-users (count all-users)
-        n-failures (count @failures)
-        curried-refresh-friends (try-to-refresh-friends n-users)]
-    (util/log (str "preparing to refresh friends for " n-users " users\n"))
-    (doall (map-indexed curried-refresh-friends all-users))
-    (util/log (str "finished refreshing friends for " n-users " users"))
-
-    ;; TODO: put this back when we actually catch failures (currently, we don't)
-    ;; (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
-    ;; (email/send-email {:to "avery.sara.james@gmail.com"
-    ;;                    :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
-    ;;                    :type "text/plain"
-    ;;                    :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
-    ;;                               "\n\n"
-    ;;                               "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
-
-    (println)
-    (util/log "finished worker.clj")
-    (println "===============================================")
-    (println)))
-
 (defn -main []
-  (println "starting scheduler to run every 24 hours...")
+  (println "starting scheduler to run every day at 18:35")
   (timely/start-scheduler)
-  (timely/start-schedule (timely/scheduled-item (timely/every 24 :hours) worker))
+  (timely/start-schedule (timely/scheduled-item
+                          (timely/daily (timely/at (timely/hour 22) (timely/minute 35)))
+                          worker))
 
   (println "starting server...")
   (let [default-port 8080
