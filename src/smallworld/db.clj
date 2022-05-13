@@ -165,7 +165,7 @@
 
   (recreate-table friends-table memoized-data-schema)
   (select-by-col friends-table :request_key "devonzuegel")
-  (select-by-col friends-table :request_key "devon_dos")
+  (get-in (vec (select-by-col friends-table :request_key "devon_dos")) [0 :data :friends])
   (select-by-col friends-table :request_key "meadowmaus")
   (show-all friends-table)
 
