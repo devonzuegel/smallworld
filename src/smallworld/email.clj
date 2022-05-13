@@ -1,10 +1,11 @@
 (ns smallworld.email (:require [clj-http.client :as http]
                                [smallworld.util :as util]))
 
-(def debug? false)
+(def debug? true)
 (def FROM_EMAIL "hello@smallworld.kiwi")
 (def FROM_NAME  "Small World")
-(def TEMPLATES {:welcome "d-4cb1507efaaa4a2eab8a9f18b0dabbc5"})
+(def TEMPLATES {:welcome "d-4cb1507efaaa4a2eab8a9f18b0dabbc5"
+                :friends-on-the-move "d-75f5a6ca89484938b92b5f01d883de1b"})
 
 (defn- send-with-content [{to-email :to
                            subject :subject

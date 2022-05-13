@@ -218,7 +218,7 @@
     (generate-string result)))
 
 (defn select-location-fields [friend]
-  (select-keys friend [:location :screen-name :name]))
+  (merge (select-keys friend [:location :name :screen-name])))
 
 (defn refresh-friends-from-twitter [settings] ; optionallly pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
@@ -235,9 +235,30 @@
                          (get-in [0 :data :friends])))
         new-friends (map select-location-fields
                          (vec friends-result))
-        diff (group-by :screen-name
-                       (concat (set/difference (set old-friends) (set new-friends))
-                               (set/difference (set new-friends) (set old-friends))))]
+        diff (vec (vals (group-by :screen_name
+                                  (concat (set/difference (set old-friends) (set new-friends))
+                                          (set/difference (set new-friends) (set old-friends))))))
+        diff-list (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
+                    "none of your friends have updated their Twitter location or display name!"
+                    (clojure.string/join
+                     "<ul>"
+                     (remove nil?
+                             (flatten
+                              (map (fn [friend]
+                                     (let [before (first friend)
+                                           after  (second friend)
+                                           highlight #(str "<span class=\"highlight\">" % "</span>")]
+                                       [(when (not= (:name before) (:name after))
+                                          (str "<li><b>@" (:screen-name after) "</b> has updated their name from "
+                                               (highlight (:name before)) " to " (highlight (:name after)) "</li>"))
+
+                                        (when (not= (:location before) (:location after))
+                                          (str "<li><b>@" (:screen-name after) "</b> has updated their location from "
+                                               (highlight (:location before)) " to " (highlight (:location after)) "</li>"))]))
+                                   diff)))
+                     "</ul>"))
+        ;
+        ]
     (if (= :failed friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
         (println failure-message)
@@ -248,11 +269,18 @@
                               :email_address)]
         (println (str "\nhere are @" screen-name "'s friends that changed:"))
         (pp/pprint diff)
-        (when-not (empty diff)
+
+        (println (str "\n\nsending email to @" email-address " with the following data:"))
+        (pp/pprint {:to email-address
+                    :template (:friends-on-the-move email/TEMPLATES)
+                    :dynamic_template_data {:twitter_screen_name screen-name
+                                            :friends             diff-list}})
+        (println) (println)
+        (when-not (empty? diff)
           (email/send-email {:to email-address
-                             :subject "your friends are on the move!"
-                             :type "text/plain"
-                             :body (str "friends who have updated their location:\n\n" diff)}))
+                             :template (:friends-on-the-move email/TEMPLATES)
+                             :dynamic_template_data {:twitter_screen_name screen-name
+                                                     :friends             diff-list}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
@@ -411,28 +439,29 @@
   (println "===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users (db/select-all db/settings-table)
+  (let [all-users (db/select-by-col db/settings-table :screen_name "manicmaus_")
+        #_(db/select-all db/settings-table) ; TODO: undo me!
         n-users (count all-users)
         n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (util/log (str "preparing to refresh friends for " n-users " users\n"))
     (doall (map-indexed curried-refresh-friends all-users))
     (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
-    #_(email/send-email {:to "avery.sara.james@gmail.com"
-                         :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
-                         :type "text/plain"
-                         :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
-                                    "\n\n"
-                                    "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
+    (email/send-email {:to "avery.sara.james@gmail.com"
+                       :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
+                       :type "text/plain"
+                       :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
+                                  "\n\n"
+                                  "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
   (println)
   (util/log "finished worker.clj")
   (println "===============================================")
   (println))
 
 (defn -main []
-  (println "starting scheduler to run every 8 hours...")
+  (println "starting scheduler to run every 24 hours...")
   (timely/start-scheduler)
-  (timely/start-schedule (timely/scheduled-item (timely/every 8 :hours) worker))
+  (timely/start-schedule (timely/scheduled-item (timely/every 24 :hours) worker))
 
   (println "starting server...")
   (let [default-port 8080
