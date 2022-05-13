@@ -241,22 +241,23 @@
         diff-list (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (clojure.string/join
-                     "<ul>"
-                     (remove nil?
-                             (flatten
-                              (map (fn [friend]
-                                     (let [before (first friend)
-                                           after  (second friend)
-                                           highlight #(str "<span class=\"highlight\">" % "</span>")]
-                                       [(when (not= (:name before) (:name after))
-                                          (str "<li><b>@" (:screen-name after) "</b> has updated their name from "
-                                               (highlight (:name before)) " to " (highlight (:name after)) "</li>"))
+                     ["<ul>"
+                      (clojure.string/join
+                       (remove nil?
+                               (flatten
+                                (map (fn [friend]
+                                       (let [before (first friend)
+                                             after  (second friend)
+                                             highlight #(str "<span class=\"highlight\">" % "</span>")]
+                                         [(when (not= (:name before) (:name after))
+                                            (str "<li><b>@" (:screen-name after) "</b> has updated their name from "
+                                                 (highlight (:name before)) " to " (highlight (:name after)) "</li>"))
 
-                                        (when (not= (:location before) (:location after))
-                                          (str "<li><b>@" (:screen-name after) "</b> has updated their location from "
-                                               (highlight (:location before)) " to " (highlight (:location after)) "</li>"))]))
-                                   diff)))
-                     "</ul>"))
+                                          (when (not= (:location before) (:location after))
+                                            (str "<li><b>@" (:screen-name after) "</b> has updated their location from "
+                                                 (highlight (:location before)) " to " (highlight (:location after)) "</li>"))]))
+                                     diff))))
+                      "</ul>"]))
         ;
         ]
     (if (= :failed friends-result)
@@ -270,11 +271,6 @@
         (println (str "\nhere are @" screen-name "'s friends that changed:"))
         (pp/pprint diff)
 
-        (println (str "\n\nsending email to @" email-address " with the following data:"))
-        (pp/pprint {:to email-address
-                    :template (:friends-on-the-move email/TEMPLATES)
-                    :dynamic_template_data {:twitter_screen_name screen-name
-                                            :friends             diff-list}})
         (println) (println)
         (when-not (empty? diff)
           (email/send-email {:to email-address
@@ -439,24 +435,27 @@
   (println "===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users (db/select-by-col db/settings-table :screen_name "manicmaus_")
-        #_(db/select-all db/settings-table) ; TODO: undo me!
+  (let [all-users (db/select-all db/settings-table)
         n-users (count all-users)
         n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (util/log (str "preparing to refresh friends for " n-users " users\n"))
     (doall (map-indexed curried-refresh-friends all-users))
-    (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
-    (email/send-email {:to "avery.sara.james@gmail.com"
-                       :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
-                       :type "text/plain"
-                       :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
-                                  "\n\n"
-                                  "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
-  (println)
-  (util/log "finished worker.clj")
-  (println "===============================================")
-  (println))
+    (util/log (str "finished refreshing friends for " n-users " users"))
+
+    ;; TODO: put this back when we actually catch failures (currently, we don't)
+    ;; (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
+    ;; (email/send-email {:to "avery.sara.james@gmail.com"
+    ;;                    :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
+    ;;                    :type "text/plain"
+    ;;                    :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
+    ;;                               "\n\n"
+    ;;                               "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
+
+    (println)
+    (util/log "finished worker.clj")
+    (println "===============================================")
+    (println)))
 
 (defn -main []
   (println "starting scheduler to run every 24 hours...")
