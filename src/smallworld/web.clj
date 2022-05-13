@@ -4,6 +4,7 @@
             [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
+            [clojure.set :as set]
             [compojure.core :refer [ANY defroutes GET POST]]
             [compojure.handler]
             [compojure.route :as route]
@@ -216,18 +217,42 @@
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
+(defn select-location-fields [friend]
+  (select-keys friend [:location :screen-name :name]))
+
 (defn refresh-friends-from-twitter [settings] ; optionallly pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
         friends-result   (--fetch-friends screen-name)
         curr-user-info   {:screen-name screen-name
                           :locations (:locations settings)}
         friends-abridged (map #(user-data/abridged % curr-user-info)
-                              friends-result)]
+                              friends-result)
+        old-friends (map
+                     select-location-fields
+                     (-> db/friends-table
+                         (db/select-by-col :request_key screen-name)
+                         vec
+                         (get-in [0 :data :friends])))
+        new-friends (map select-location-fields
+                         (vec friends-result))
+        diff (group-by :screen-name
+                       (concat (set/difference (set old-friends) (set new-friends))
+                               (set/difference (set new-friends) (set old-friends))))]
     (if (= :failed friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
         (println failure-message)
         (generate-string (response/bad-request {:message failure-message})))
-      (do
+      (let [email-address (-> db/settings-table
+                              (db/select-by-col :screen_name screen-name)
+                              first
+                              :email_address)]
+        (println (str "\nhere are @" screen-name "'s friends that changed:"))
+        (pp/pprint diff)
+        (when-not (empty diff)
+          (email/send-email {:to email-address
+                             :subject "your friends are on the move!"
+                             :type "text/plain"
+                             :body (str "friends who have updated their location:\n\n" diff)}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
@@ -405,9 +430,9 @@
   (println))
 
 (defn -main []
-  (println "starting scheduler to run every 24 hours...")
+  (println "starting scheduler to run every 8 hours...")
   (timely/start-scheduler)
-  (timely/start-schedule (timely/scheduled-item (timely/every 24 :hour) worker))
+  (timely/start-schedule (timely/scheduled-item (timely/every 8 :hours) worker))
 
   (println "starting server...")
   (let [default-port 8080
