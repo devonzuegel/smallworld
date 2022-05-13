@@ -240,26 +240,30 @@
                                           (set/difference (set new-friends) (set old-friends))))))
         diff-list (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
-                    (clojure.string/join
-                     ["<ul>"
-                      (clojure.string/join
-                       (remove nil?
-                               (flatten
-                                (map (fn [friend]
-                                       (let [before (first friend)
-                                             after  (second friend)
-                                             highlight #(str "<span class=\"highlight\">" % "</span>")]
-                                         [(when (not= (:name before) (:name after))
-                                            (str "<li><b>@" (:screen-name after) "</b> has updated their name from "
-                                                 (highlight (:name before)) " to " (highlight (:name after)) "</li>"))
+                    (str "<ul>"
+                         (clojure.string/join
+                          (remove nil?
+                                  (flatten
+                                   (map (fn [friend]
+                                          (let [before (first friend)
+                                                after  (second friend)
+                                                name-before     (if (clojure.string/blank? (:name before))     "·" (:name before))
+                                                name-after      (if (clojure.string/blank? (:name after))      "·" (:name after))
+                                                location-before (if (clojure.string/blank? (:location before)) "·" (:location before))
+                                                location-after  (if (clojure.string/blank? (:location after))  "·" (:location after))
+                                                highlight #(str "<span style=\"background: white; margin: 0 4px; padding: 3px 8px;  display: inline-block; border-radius: 12px;  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.05), 0 1px 6px rgba(0, 0, 0, 0.05);\">" % "</span>")]
 
-                                          (when (not= (:location before) (:location after))
-                                            (str "<li><b>@" (:screen-name after) "</b> has updated their location from "
-                                                 (highlight (:location before)) " to " (highlight (:location after)) "</li>"))]))
-                                     diff))))
-                      "</ul>"]))
-        ;
-        ]
+                                            [(when (not= (:name before) (:name after))
+                                               (str "<li><b>@" (:screen-name after) "</b> updated their name: "
+                                                    (highlight name-before) " → " (highlight name-after)
+                                                    "<br/></li>"))
+
+                                             (when (not= (:location before) (:location after))
+                                               (str "<li><b>@" (:screen-name after) "</b> updated their location: "
+                                                    (highlight location-before) " → " (highlight location-after)
+                                                    "<br/></li>"))]))
+                                        diff))))
+                         "</ul>"))]
     (if (= :failed friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
         (println failure-message)
