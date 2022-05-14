@@ -3,6 +3,17 @@
 you can find the live version of Small World at:
 https://smallworld.kiwi
 
+##### table of contents:
+- [run, build, & deploy](#run-build--deploy)
+  - [local setup](#local-setup)
+  - [local development](#local-development)
+  - [update code running in the repl](#update-code-running-in-the-repl)
+  - [deploy to Heroku](#deploy-to-heroku)
+- [initial designs](#initial-designs)
+- [emails & scheduled jobs](#emails--scheduled-jobs)
+- [sql cheatsheet](#sql-cheatsheet)
+
+## run, build, & deploy
 ### local setup
 
 1. `lein install`
@@ -73,7 +84,13 @@ bin/make-and-deploy.sh
 | -                                 | -                                                | -                                         |
 |                                   |                                                  |                                           |
 
-### sql cheatsheet
+## emails & scheduled jobs
+- the server sends emails via SendGrid.  view/edit the templates here:
+https://mc.sendgrid.com/dynamic-templates
+- jobs are scheduled through the Heroku Scheduler:
+https://dashboard.heroku.com/apps/small-world-friends/scheduler
+
+## sql cheatsheet
 
 - open Heroku Postgres instance in terminal:
 
@@ -112,3 +129,10 @@ bin/make-and-deploy.sh
    delete from settings      where screen_name = 'devon_dos';
    delete from access_tokens where request_key = 'devon_dos';
    ```
+
+- add a column:
+
+   ```sql
+   ALTER TABLE "settings" ADD COLUMN locations jsonb;
+   ```
+

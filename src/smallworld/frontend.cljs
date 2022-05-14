@@ -2,34 +2,38 @@
   (:require [reagent.core            :as r]
             [smallworld.session      :as session]
             [smallworld.decorations  :as decorations]
-            [smallworld.settings     :as settings]
+            [smallworld.screens.settings     :as settings]
             [smallworld.util         :as util]
             [smallworld.screens.home :as home]
             [clojure.pprint          :as pp]
             [cljsjs.mapbox]
-            [goog.dom]))
+            [goog.dom]
+            [smallworld.admin :as admin]))
 
 (def *debug? (r/atom false))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(util/fetch "/session" #(session/update! %))
+(util/fetch "/api/v1/session" #(session/update! %))
 
-(util/fetch "/settings" (fn [result]
-                          (reset! settings/*settings      result)
-                          (reset! settings/*email-address (:email result))))
+(util/fetch "/api/v1/settings" (fn [result]
+                                 (when @*debug?
+                                   (println "/api/v1/settings result:")
+                                   (pp/pprint result))
+                                 (reset! settings/*settings      result)
+                                 (reset! settings/*email-address (:email_address result))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn loading-screen []
-  [:div.center-vh (decorations/simple-loading-animation)])
 
 (defn logged-out-screen []
   [:div.welcome
    [:div.hero
-    [:h1 "welcome to" [:br] "Small World"]
+    [:p.serif {:style {:font-size "1.5em" :margin-top "8px" :margin-bottom "4px"}}
+     "welcome to"]
+    [:h1 {:style {:font-weight "bold" :font-size "2.6em"}}
+     "Small World"]
     [:div#logo-animation.logo (decorations/animated-globe)]
     [:h2
      [:a#login-btn {:href "login"} (decorations/twitter-icon) "log in with Twitter"]]]
@@ -56,46 +60,21 @@
        [:p "they may not have their location set on Twitter (either in their name or in the location field), or small world may not be able to parse the location yet."]
        [:p "if they have their location set but it's just not showing up in the app, please " [:a {:href "https://github.com/devonzuegel/smallworld"} "open a GitHub issue"] " and share more so I can improve the city parser."]]]])
 
-(defonce admin-summary* (r/atom :loading))
-(defn admin-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
-  [:div.admin-screen
-   (if-not (= "devonzuegel" (:screen-name @session/store*))
-
-     (if (= :loading @session/store*)
-       (loading-screen)
-       [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
-        "whoops, you don't have access to this page"])
-
-     [:<>
-      [:a.btn {:href "#"
-               :on-click #(util/fetch "/admin-summary" (fn [result]
-                                                         (pp/pprint result)
-                                                         (reset! admin-summary* result)))}
-       "load admin data"]
-      [:br] [:br] [:br]
-      (when (not= :loading @admin-summary*)
-        (map (fn [key] [:details {:open false} [:summary [:b key]]
-                        [:pre "count: " (count (get @admin-summary* key))]
-                        [:pre "keys: " (util/preify (map #(or (:request_key %) (:screen_name %))
-                                                         (get @admin-summary* key)))]
-                        [:pre {:id key} (util/preify (get @admin-summary* key))]])
-             (reverse (sort (keys @admin-summary*)))))])])
-
 (defn not-found-404-screen []
   [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
    "404 not found"])
 
 (defn app-container []
   (condp = (.-pathname (.-location js/window))
-    "/" (condp = @session/store*
-          :loading (loading-screen)
+    "/" (condp = @session/*store
+          :loading (decorations/loading-screen)
           session/blank (logged-out-screen)
           (if (= :loading @settings/*settings)
-            (loading-screen)
+            (decorations/loading-screen)
             (if (:welcome_flow_complete @settings/*settings)
               (home/screen)
               (settings/welcome-flow-screen))))
-    "/admin" (admin-screen)
+    "/admin" (admin/summary-screen)
     (not-found-404-screen)))
 
 (r/render-component

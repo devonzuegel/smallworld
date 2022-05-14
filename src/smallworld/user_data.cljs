@@ -7,36 +7,18 @@
             [smallworld.session :as session]
             [smallworld.decorations :as decorations]))
 
+(def debug? false)
 (defonce *friends (r/atom :loading))
-
-(defn closer-than [max-distance dist-key]
-  (fn [friend]
-    (let [smallest-distance (get-in friend [:distance dist-key])]
-      (and (< smallest-distance max-distance)
-           (not (nil? smallest-distance))))))
-
-(defn round-to-int [num]
-  (let [formatted  (pp/cl-format nil "~,0f" num)
-        no-decimal (str/replace formatted #"\." "")]
-    no-decimal))
-
-(defn get-smallest-distance [friend]
-  (apply min (remove nil? [9999999999999999 ; if distance couldn't be calculated, treat as very distant
-                           (get-in friend [:distance :name-name])
-                           (get-in friend [:distance :name-main])
-                           (get-in friend [:distance :main-name])
-                           (get-in friend [:distance :main-main])])))
 
 (defn render-user [k user]
   (let [twitter-pic    (:profile_image_url_large user)
         twitter-name   (:name user)
         twitter-handle (:screen-name user)
         twitter-link   (str "http://twitter.com/" twitter-handle)
-        location       (:main-location user)
         twitter-href   {:href twitter-link :target "_blank" :title "Twitter"}
-        lat            (:lat (:main-coords user))
-        lng            (:lng (:main-coords user))
-        distance       (get-smallest-distance user)]
+        first-location (first (:locations user)) ; consider pulling from the "Twitter location" location or from the nearest location to the current user, instead of simply pulling the first location in the array
+        lat            (when first-location (:lat (:coords first-location)))
+        lng            (when first-location (:lng (:coords first-location)))]
     [:div.friend {:key twitter-name}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
@@ -48,27 +30,65 @@
        [:a {:href (str "https://www.google.com/maps/search/" lat "%20" lng "?hl=en&source=opensearch")
             :title "Google Maps"
             :target "_blank"}
-        [:span.location location]
-        (when (< distance 1000)
-          [:span.distance (round-to-int distance) " mile" (when (not= "1" (round-to-int distance)) "s") " away"])]]]]))
+        [:span.location (:name first-location)]]]]]))
 
-(defn get-close-friends [distance-key max-distance]
+; TODO: the logic in this needs some serious cleanup; probably requires refactoring the data model too
+(defn get-close-friends [curr-user-location-name friend-location-key max-distance]
   (->> @*friends
-       (sort-by #(get-in % [:distance distance-key]))
-       (filter (closer-than max-distance distance-key))))
 
-(def *collapsed? (r/atom {:main-main false
-                          :main-name false
-                          :name-main false
-                          :name-name false}))
+       ; not all friends will have both LOCATION and DISPLAY NAME LOCATION set, so filter those out
+       (filter (fn [friend]
+                 (let [friend-locations (:locations friend)
+                       has-location? (-> #(= (:special-status %) friend-location-key)
+                                         (filter friend-locations)
+                                         first
+                                         nil?
+                                         not)]
+                   has-location?)))
 
-(defn render-friends-list [friends-list-key verb-gerund location-name]
-  (let [friends-list      (if (= :loading @*friends)
-                            []
-                            (get-close-friends friends-list-key 100))
+       (filter (fn [friend] (let [friend-locations (:locations friend)
+                                  friend-location  (-> #(= (:special-status %) friend-location-key)
+                                                       (filter friend-locations)
+                                                       first)
+                                  distance-to-curr-user-location (get-in friend-location
+                                                                         [:distances (keyword curr-user-location-name)])]
+                              (when debug?
+                                (println)
+                                (println "       curr-user-location-name: " curr-user-location-name)
+                                (println "               friend-location: " friend-location)
+                                (println "distance-to-curr-user-location: " distance-to-curr-user-location)
+                                (println "                       boolean:" (and (not (nil? distance-to-curr-user-location))
+                                                                                (> max-distance distance-to-curr-user-location))))
+                              (and (not (nil? distance-to-curr-user-location))
+                                   (> max-distance distance-to-curr-user-location)))))
+
+       (sort-by (fn [friend] (let [friend-locations (:locations friend)
+                                   friend-location  (-> #(= (:special-status %) friend-location-key)
+                                                        (filter friend-locations)
+                                                        first)
+                                   distance-to-curr-user-location (get-in friend-location
+                                                                          [:distances (keyword curr-user-location-name)])]
+                               distance-to-curr-user-location)))))
+
+(def *expanded? (r/atom {}))
+
+(defn location-info-explanation [verb-gerund]
+  [:div {:style {:float "right" :cursor "pointer"}
+         :title (if (= verb-gerund "visiting")
+                  "when a friend includes a nearby location in their display name, they'll show up on this list"
+                  "when a friend's Twitter location is nearby, they'll show up on this list")}
+   (decorations/question-icon)])
+
+(defn render-friends-list [curr-user-location-i friend-location-key verb-gerund curr-user-location-name]
+  (assert (or (= friend-location-key "twitter-location")
+              (= friend-location-key "from-display-name"))) ; TODO: add Scheme to encode this more nicely
+  (let [key-pair        [curr-user-location-i friend-location-key]
+        friends-list    (if (= :loading @*friends)
+                          []
+                          (get-close-friends curr-user-location-name friend-location-key 100))
         list-count        (count friends-list)
         friend-pluralized (if (= list-count 1) "friend is" "friends are")
-        collapsed?        (get @*collapsed? friends-list-key)]
+        expanded?        (boolean (get @*expanded? key-pair))]
 
     [util/error-boundary
      [:div.friends-list
@@ -81,29 +101,32 @@
           [:<>
            [:p.location-info
             {:on-click ; toggle collapsed state
-             #(swap! *collapsed? assoc friends-list-key (not collapsed?))}
-            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if collapsed? "right" "down")]))
+             #(swap! *expanded? assoc key-pair (not expanded?))}
+            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "right" "down")]))
             [:<>
              list-count " "
              friend-pluralized " "
-             verb-gerund " " location-name ":"]]
-           (when-not collapsed?
+             verb-gerund " " curr-user-location-name ":"]
+            (location-info-explanation verb-gerund)]
+           (when-not expanded?
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)
-           "0 friends are " verb-gerund " " location-name]))]]))
+           "0 friends are " verb-gerund " " curr-user-location-name
+           (location-info-explanation verb-gerund)]))]]))
 
 (defn refresh-friends []
-  (util/fetch "/friends/refresh"
+  (util/fetch "/api/v1/friends/refresh"
               (fn [result]
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
-                (mapbox/add-friends-to-map @*friends @session/store*))))
+                (mapbox/add-friends-to-map @*friends @session/*store))))
 
-(defn recompute-friends []
-  (util/fetch "/friends/recompute"
+(defn recompute-friends [& [callback]]
+  (util/fetch "/api/v1/friends/recompute"
               (fn [result]
+                (when callback (callback))
                 (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
-                (mapbox/add-friends-to-map @*friends @session/store*))))
+                (mapbox/add-friends-to-map @*friends @session/*store))))

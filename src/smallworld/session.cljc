@@ -4,5 +4,6 @@
 
 #?(:cljs
    (do
-     (defonce store* (r/atom :loading)) ; TODO: add (^:private) later
-     (defn update! [new-session-data] (reset! store* new-session-data))))
+     (defonce *store (r/atom :loading)) ; TODO: add (^:private) later
+
+     (defn update! [new-session-data] (reset! *store new-session-data))))

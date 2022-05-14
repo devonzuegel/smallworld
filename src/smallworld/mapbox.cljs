@@ -17,6 +17,9 @@
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (defonce markers (r/atom []))
 
+(defn coords-to-mapbox-array [coords]
+  #js[(:lng coords) (:lat coords)])
+
 (defn assert-long-lat [-coordinates]
   (let [[long lat] -coordinates]
     (assert (not (nil? -coordinates))
@@ -56,8 +59,7 @@
    ; TODO: display latest Tweet too (this requires some backend work)
    [:div.bottom-row {:title info}
     (decorations/location-icon)
-    (when-not (clojure.string/blank? location) [:span.location location])
-    [:code (round-two-decimals (second lng-lat)) ", " (round-two-decimals (first lng-lat))]]])
+    (when-not (clojure.string/blank? location) [:span.location location])]])
 
 (defn User-Marker [{lng-lat     :lng-lat
                     location    :location
@@ -185,44 +187,23 @@
 (defn add-friends-to-map [friends curr-user]
   (when @the-map ; don't add friends to map if there is no map
     (doseq [friend (conj friends curr-user)]
-      (let [main-coords (:main-coords friend)
-            name-coords (:name-coords friend)]
-
+      (doseq [location (:locations friend)]
         ; round to 1 decimal place so that metro regions are grouped together
-        (let [lng (round (:lng main-coords))
-              lat (round (:lat main-coords))
-              has-coord (and main-coords lng lat)]
+        (let [lng (round (:lng (:coords location)))
+              lat (round (:lat (:coords location)))
+              has-coord (and (:coords location) lng lat)
+              group (when has-coord (get @*groups [lng lat]))]
           (when has-coord
-            (let [group (get @*groups [lng lat])]
-              (swap! *groups assoc [lng lat]
-                     (conj group {:lng-lat     [(:lng main-coords)
-                                                (:lat main-coords)]
-                                  :location    (:main-location friend)
-                                  :img-url     (:profile_image_url_large friend)
-                                  :user-name   (:name friend)
-                                  :screen-name (:screen-name friend)
-                                  :classname   (when (= (:screen-name friend)
-                                                        (:screen-name curr-user))
-                                                 "current-user")
-                                  :info        "Twitter location"})))))
-
-        ; round to 1 decimal place so that metro regions are grouped together
-        (let [lng (round (:lng name-coords))
-              lat (round (:lat name-coords))
-              has-coord (and name-coords lng lat)]
-          (when has-coord
-            (let [group (get @*groups [lng lat])]
-              (swap! *groups assoc [lng lat]
-                     (conj group {:lng-lat     [(:lng name-coords)
-                                                (:lat name-coords)]
-                                  :location    (:name-location friend)
-                                  :img-url     (:profile_image_url_large friend)
-                                  :user-name   (:name friend)
-                                  :screen-name (:screen-name friend)
-                                  :classname   (when (= (:screen-name friend)
-                                                        (:screen-name curr-user))
-                                                 "current-user")
-                                  :info        "Twitter location"})))))))
+            (swap! *groups assoc [lng lat] (conj group {:lng-lat [(:lng (:coords location))
+                                                                  (:lat (:coords location))]
+                                                        :classname (when (= (:screen-name friend)
+                                                                            (:screen-name curr-user))
+                                                                     "current-user")
+                                                        :location       (:name location)
+                                                        :img-url        (:profile_image_url_large friend)
+                                                        :user-name      (:name friend)
+                                                        :screen-name    (:screen-name friend)
+                                                        :special-status (:special-status location)}))))))
 
 
     (doseq [[group-key markers] @*groups]

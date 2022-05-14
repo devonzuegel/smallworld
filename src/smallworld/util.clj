@@ -32,3 +32,8 @@
   (apply str
          (for [i (range len)]
            (char (+ (rand 26) 65)))))
+
+(defn timestamp [] (str (new java.util.Date)))
+
+(defn log [string]
+  (println (timestamp) "--" string))
