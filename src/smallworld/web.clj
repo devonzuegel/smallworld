@@ -331,8 +331,7 @@
   (println "===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users (db/select-by-col db/settings-table :screen_name "manicmaus_")
-   ; (db/select-all db/settings-table)
+  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "manicmaus_")
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
@@ -479,12 +478,14 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
+(def scheduled-time (timely/at (timely/hour 14) (timely/minute 20))) ; in UTC
+
 (defn -main []
-  (println "starting scheduler to run every day at 18:35")
+  (println "starting scheduler to run every day at"
+           (str (first (:hour scheduled-time)) ":" (first (:minute scheduled-time))) "UTC")
   (timely/start-scheduler)
-  (timely/start-schedule (timely/scheduled-item
-                          (timely/daily (timely/at (timely/hour 13) (timely/minute 35))) ; in UTC
-                          worker))
+  (timely/start-schedule (timely/scheduled-item (timely/daily scheduled-time)
+                                                worker))
 
   (println "starting server...")
   (let [default-port 8080
