@@ -235,10 +235,10 @@
                          (get-in [0 :data :friends])))
         new-friends (map select-location-fields
                          (vec friends-result))
-        diff (vec (vals (group-by :screen_name
+        diff (vec (vals (group-by :screen-name
                                   (concat (set/difference (set old-friends) (set new-friends))
                                           (set/difference (set new-friends) (set old-friends))))))
-        diff-list (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
+        diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
                          (clojure.string/join
@@ -272,15 +272,18 @@
                               (db/select-by-col :screen_name screen-name)
                               first
                               :email_address)]
-        (println (str "\nhere are @" screen-name "'s friends that changed:"))
+        (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
         (pp/pprint diff)
+        (println (str "\n\nhere is the generated HTML:"))
+        (pp/pprint diff-html)
+        (println "\n\n")
 
         (println) (println)
-        (when-not (empty? diff)
-          (email/send-email {:to email-address
-                             :template (:friends-on-the-move email/TEMPLATES)
-                             :dynamic_template_data {:twitter_screen_name screen-name
-                                                     :friends             diff-list}}))
+        #_(when-not (empty? diff)
+            (email/send-email {:to email-address
+                               :template (:friends-on-the-move email/TEMPLATES)
+                               :dynamic_template_data {:twitter_screen_name screen-name
+                                                       :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
@@ -466,7 +469,7 @@
   (println "starting scheduler to run every day at 18:35")
   (timely/start-scheduler)
   (timely/start-schedule (timely/scheduled-item
-                          (timely/daily (timely/at (timely/hour 22) (timely/minute 35)))
+                          (timely/daily (timely/at (timely/hour 1) (timely/minute 35))) ; in UTC
                           worker))
 
   (println "starting server...")
