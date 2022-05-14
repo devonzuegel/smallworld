@@ -16,27 +16,26 @@
                            ; I thought the following would work, but the db throws an error:
                            ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                            ])
-(def settings-schema [[:id                      :integer        "primary key"  "generated always as identity"]
-                      [:screen_name             "varchar(255)"  "not null"     "unique"]
-                      [:main_location_corrected "varchar(255)"]
-                      [:name_location_corrected "varchar(255)"]
-                      [:email_address           "varchar(255)"]
-                      [:email_notifications     "varchar(255)"]
-                      ;; [:screen_name  "varchar(255)" "not null" "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
-                      [:welcome_flow_complete   :boolean   "not null"    "default false"]
-                      [:created_at              :timestamp "default current_timestamp"]
-                      [:updated_at              :timestamp "default current_timestamp"]
+(def settings-schema [[:id                    :integer       "primary key" "generated always as identity"]
+                      [:screen_name           "varchar(255)" "not null"    "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
+                      [:welcome_flow_complete :boolean       "not null"    "default false"]
+                      [:locations             :json]
+                      [:friends_refresh       :json]
+                      [:email_address         "varchar(255)"]
+                      [:email_notifications   "varchar(255)"]
+                      [:created_at            :timestamp  "default current_timestamp"]
+                      [:updated_at            :timestamp  "default current_timestamp"]
                       ; TODO: get "on update current_timestamp" working for :updated_at
                       ; I thought the following would work, but the db throws an error:
                       ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                       ])
 
 ; table names
-(def profiles-table      :profiles)      ; store all data from Twitter sign up
-(def settings-table      :settings)      ; store Small World-specific settings
-(def friends-table       :friends)       ; memoized storage: friends of the user (request_key)
-(def coordinates-table   :coordinates)   ; memoized storage: map of city/country names to coordinates
-(def access_tokens-table :access_tokens) ; memoized storage: Twitter access tokens
+(def twitter-profiles-table :twitter_profiles) ; store all data from Twitter sign up
+(def settings-table         :settings)         ; store Small World-specific settings
+(def friends-table          :friends)          ; memoized storage: friends of the user (request_key)
+(def coordinates-table      :coordinates)      ; memoized storage: map of city/country names to coordinates
+(def access_tokens-table    :access_tokens)    ; memoized storage: Twitter access tokens
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
@@ -117,18 +116,23 @@
   (let [col-name    (keyword col-name)
         col-value   (get data col-name)
         sql-results (select-by-col table-name col-name col-value)
-        exists?     (not= 0 (count sql-results))]
+        exists?     (not= 0 (count sql-results))
+        new-data    (assoc (dissoc (merge (first sql-results) data)
+                                   :id :updated_at)
+                           :locations (vec (:locations (first sql-results))))]
     (when debug?
       (println "--- running fn: insert-or-update! ---------")
       (println "col-name:   " col-name)
       (println "col-value:  " col-value)
-      (println "data:       " data)
       (println "sql-results:" sql-results)
       (println "exists?     " exists?)
+      (println "data (arg): " data)
+      (println "new data (merged): ")
+      (pp/pprint new-data)
       (println "-------------------------------------------"))
     (if-not exists?
       (insert! table-name data)
-      (update! table-name col-name col-value data))))
+      (update! table-name col-name col-value new-data))))
 
 (comment
   (recreate-table settings-table settings-schema)
@@ -136,16 +140,25 @@
   (update! settings-table :screen_name "aaa" {:welcome_flow_complete true})
   (update! settings-table :screen_name "aaa" {:screen_name "foo"})
   (update! settings-table :screen_name "foo" {:screen_name "aaa"})
-  (insert-or-update! settings-table
-                     :screen_name
+  (insert-or-update! settings-table :screen_name
                      {:screen_name "devonzuegel" :main_location_corrected "bbb"})
-  (insert-or-update! settings-table
-                     :screen_name
+  (insert-or-update! settings-table :screen_name
                      {:screen_name "devon_dos" :welcome_flow_complete false})
+  (insert-or-update! settings-table :screen_name
+                     {:screen_name "devon_dos" :email_address "1@gmail.com"})
   (select-by-col settings-table :screen_name "devonzuegel")
   (show-all settings-table)
 
-  (show-all profiles-table)
+  (do
+    (println "--------------------------------")
+    (println)
+    (pp/pprint (:locations (first (select-by-col settings-table :screen_name "devon_dos"))))
+    (println)
+    (pp/pprint (:email_address (first (select-by-col settings-table :screen_name "devon_dos"))))
+    (println)
+    (println "--------------------------------"))
+
+  (show-all twitter-profiles-table)
 
   (recreate-table friends-table memoized-data-schema)
   (select-by-col friends-table :request_key "devonzuegel")

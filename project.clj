@@ -5,7 +5,8 @@
             :url ""}
   :clean-targets ^{:protect false} [:target-path "out" "resources/public/js"]
   :min-lein-version "2.5.3"
-  :repl-options {:init-ns dev.repl}
+  :repl-options {:init-ns dev.repl
+                 :timeout 380000}
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [org.clojure/clojurescript "1.10.520"]
                  [reagent "0.9.0-rc1"]

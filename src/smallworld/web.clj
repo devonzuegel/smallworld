@@ -1,22 +1,24 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [compojure.core :refer [defroutes GET POST ANY]]
+  (:require [cheshire.core :refer [generate-string]]
+            [clojure.data.json :as json]
+            [clojure.java.io :as io]
+            [clojure.pprint :as pp]
+            [compojure.core :refer [ANY defroutes GET POST]]
             [compojure.handler]
             [compojure.route :as route]
-            [clojure.java.io :as io]
-            [ring.adapter.jetty :as jetty]
-            [ring.util.response :as response]
-            [ring.middleware.session.cookie :as cookie]
             [oauth.twitter :as oauth]
-            [clojure.pprint :as pp]
-            [smallworld.memoize :as m]
+            [ring.adapter.jetty :as jetty]
+            [ring.middleware.session.cookie :as cookie]
+            [ring.util.response :as response]
+            [smallworld.admin :as admin]
+            [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
-            [smallworld.util :as util]
+            [smallworld.email :as email]
+            [smallworld.memoize :as m]
             [smallworld.session :as session]
-            [cheshire.core :refer [generate-string]]
             [smallworld.user-data :as user-data]
-            [clojure.data.json :as json]
-            [smallworld.coordinates :as coordinates]))
+            [smallworld.util :as util]))
 
 (def debug? false)
 
@@ -59,7 +61,7 @@
              oauth-verifier (get-in req [:params :oauth_verifier])
              access-token   (oauth/oauth-access-token (util/get-env-var "TWITTER_CONSUMER_KEY") oauth-token oauth-verifier)
              api-response   (fetch-current-user--with-access-token access-token)
-             current-user   (user-data/abridged api-response (get-current-user req))
+             current-user   (user-data/abridged api-response {:screen-name (:screen-name api-response)})
              screen-name    (:screen-name api-response)]
          (when debug?
            (pp/pprint "twitter verify_credentials.json:")
@@ -68,7 +70,7 @@
          (db/memoized-insert-or-update! db/access_tokens-table
                                         screen-name
                                         {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
-         (db/memoized-insert-or-update! db/profiles-table
+         (db/memoized-insert-or-update! db/twitter-profiles-table
                                         screen-name
                                         {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
          (db/insert-or-update! db/settings-table
@@ -94,27 +96,41 @@
 ;;; settings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn get-settings [req]
-  (let [-current-user (get-current-user req)
-        screen-name   (:screen-name -current-user)]
+(defn get-settings [screen-name]
     ; TODO: set in the session for faster access
-    (first (db/select-by-col db/settings-table :screen_name screen-name))))
+  (first (db/select-by-col db/settings-table :screen_name screen-name)))
 
 (defn update-settings [req]
-  (let [-current-user (get-current-user req)
-        screen-name   (:screen-name -current-user)
-        parsed-body   (json/read-str (slurp (:body req)) :key-fn keyword)
-        new-values    (merge parsed-body {:screen_name screen-name})]
+  (let [-current-user   (get-current-user req)
+        screen-name     (:screen-name -current-user)
+        parsed-body     (json/read-str (slurp (:body req)) :key-fn keyword)
+        new-settings    (merge parsed-body {:screen_name screen-name})
+        merged-settings (merge new-settings (:current-user (:session req)))]
     (when debug?
-      (println "update-settings - new-values:")
-      (pp/pprint new-values))
+      (println "----------------------------------------------")
+      (println "(:session req):")
+      (pp/pprint (:session req))
+      (println "----------------------------------------------")
+      (println "new-settings:")
+      (pp/pprint new-settings)
+      (println "----------------------------------------------"))
+
+    ; if user just completed the welcome flow, send welcome email
+    (when (:welcome_flow_complete new-settings)
+      (email/send {:to (:email_address new-settings)
+                   :template (:welcome email/TEMPLATES)
+                   :dynamic_template_data {:twitter_screen_name screen-name
+                                           :twitter_url (str "https://twitter.com/" screen-name)}}))
+
     ; TODO: add try-catch to handle failures
-    (db/insert-or-update! db/settings-table :screen_name new-values)
-    (generate-string new-values)))
+    ; TODO: simplify/consolidate where the settings stuff is stored
+    (db/insert-or-update! db/settings-table :screen_name new-settings)
+    (set-session (response/response (generate-string new-settings))
+                 (assoc-in (:session req) [:current-user] merged-settings))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ; TODO: save all this to the db
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (println "================================================================================================= start")
@@ -173,43 +189,46 @@
 (defn --fetch-abridged-friends [screen-name current-user]
   (map #(user-data/abridged % current-user)
        (:friends (memoized-friends screen-name)))) ; can add (take X) for debugging
+
 (def memoized-abridged-friends
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 (defn get-users-friends [req & [screen-name]]
-  (let [main-location (or (:main_location_corrected (get-settings req)) "")
-        name-location (or (:name_location_corrected (get-settings req)) "")
-        corrected-curr-user (merge
+  (let [-screen-name  (:screen-name (get-current-user req))
+        main-location (or (:main_location_corrected (get-settings -screen-name)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
+        name-location (or (:name_location_corrected (get-settings -screen-name)) "") ; TODO: instead of saving these to settings individually, save them as a list of :locations
+        corrected-curr-user (merge ; TODO: if main- or name-coords have been updated, remove them from the list and add the updated ones
                              (get-current-user req)
                              {:main-location main-location
                               :main-coords (coordinates/memoized main-location)
                               :name-coords (coordinates/memoized name-location)
                               :name-location name-location})
-        logged-in?    (not= session/blank corrected-curr-user)
+        logged-out?   (nil? (:screen-name corrected-curr-user))
         screen-name   (or screen-name (:screen-name corrected-curr-user))
-        result        (if logged-in?
-                        (memoized-abridged-friends screen-name corrected-curr-user)
-                        [])]
+        result        (if logged-out?
+                        []
+                        (memoized-abridged-friends screen-name corrected-curr-user))]
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; admin ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn admin-data [req]
-  (let [current-user (get-current-user req)
-        screen-name (:screen-name current-user)
-        result (if-not (= "devonzuegel" screen-name)
-                 (response/bad-request {:message "you don't have access to this page"})
-                 {:profiles    (db/select-all db/profiles-table)
-                  :settings    (db/select-all db/settings-table)
-                  :friends     (map #(-> %
-                                         (assoc :friends-count (count (get-in % [:data "friends"])))
-                                         (dissoc :data))
-                                    (db/select-all db/friends-table))
-                  :coordinates (db/select-all db/coordinates-table)})]
-    (generate-string result)))
+(defn refresh-friends-from-twitter [settings] ; optionallly pass in settings in case it's already computed so that we don't have to recompute
+  (let [screen-name      (:screen_name settings)
+        friends-result   (--fetch-friends screen-name)
+        curr-user-info   {:screen-name screen-name
+                          :locations (:locations settings)}
+        friends-abridged (map #(user-data/abridged % curr-user-info)
+                              friends-result)]
+    (if (= :failed friends-result)
+      (let [failure-message (str "could not refresh friends for @" screen-name)]
+        (println failure-message)
+        (generate-string (response/bad-request {:message failure-message})))
+      (do
+        (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
+        (swap! abridged-friends-cache
+               assoc screen-name friends-abridged)
+        (println (str "done refreshing friends for @" screen-name
+                      " (friends count: " (count friends-abridged) ")"))
+        (generate-string friends-abridged)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -221,70 +240,37 @@
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
-  (GET "/session"    req (generate-string (get-current-user req)))
   (GET "/logout"     req (logout req))
+  (GET "/api/v1/session" req (generate-string (get-current-user req)))
 
   ;; admin endpoints
-  (GET "/admin/summary" req (admin-data req))
-  (GET "/admin/friends/:screen_name" req (fn [{params :params}]
-                                           (let [curr-user-screen-name (:screen-name (get-current-user req))
-                                                 target-screen-name    (:screen_name params)]
-                                             (println "params:             " params)
-                                             (println "target-screen-name: " target-screen-name)
-                                             (if-not (= "devonzuegel" curr-user-screen-name)
-                                               (response/bad-request {:message "you don't have access to this page"})
-                                               (get-users-friends req target-screen-name)))))
+  (GET "/api/v1/admin/summary" req (admin/summary-data get-current-user req))
+  (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-current-user get-users-friends req))
 
   ;; app data endpoints
-  (GET "/settings" req (generate-string (get-settings req)))
-  (POST "/settings/update" req (update-settings req))
-  (POST "/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
-                                 location-name (:location-name parsed-body)]
-                             (println "parsed-body:")
-                             (pp/pprint parsed-body)
-                             (println "location-name: " location-name)
-                             (generate-string (coordinates/memoized location-name))))
-  (GET "/friends" req (get-users-friends req))
+  (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-current-user req)))))
+  (POST "/api/v1/settings/update" req (update-settings req))
+  (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
+                                        location-name (:location-name parsed-body)]
+                                    (generate-string (coordinates/memoized location-name))))
+  (GET "/api/v1/friends" req (get-users-friends req))
   ; without fetching data from Twitter, recompute distances from new locations
-  (GET "/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
-                                      friends-full (:friends (memoized-friends screen-name))
-                                      settings     (get-settings req)
-                                      corrected-curr-user (merge
-                                                           (get-current-user req)
-                                                           {:main-location (:main_location_corrected settings)
-                                                            :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
-                                                            :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
-                                                            :name-location (:name_location_corrected settings)})
-                                      friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
-                                  (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
-                                  (swap! abridged-friends-cache
-                                         assoc screen-name friends-abridged)
-                                  (generate-string friends-abridged)))
-  ; re-fetch data from Twitter
-  (GET "/friends/refresh" req (let [screen-name      (:screen-name (get-current-user req))
-                                    friends-result   (--fetch-friends screen-name)
-                                    settings         (get-settings req)
-                                    corrected-curr-user (merge
-                                                         (get-current-user req)
-                                                         {:main-location (:main_location_corrected settings)
-                                                          :main-coords (coordinates/memoized (or (:main_location_corrected settings) ""))
-                                                          :name-coords (coordinates/memoized (or (:name_location_corrected settings) ""))
-                                                          :name-location (:name_location_corrected settings)})
-                                    friends-abridged (map #(user-data/abridged % corrected-curr-user)
-                                                          friends-result)]
-                                (if (= :failed friends-result)
-                                  (let [failure-message (str "could not refresh friends for @" screen-name)]
-                                    (println failure-message)
-                                    (generate-string (response/bad-request {:message failure-message})))
-                                  (do
-                                    (println (str "refreshing friends for @" screen-name
-                                                  " (count: " (count friends-abridged) ")"))
-                                    (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
-                                    (swap! abridged-friends-cache
-                                           assoc screen-name friends-abridged)
-                                    (generate-string friends-abridged)))))
+  (GET "/api/v1/friends/recompute" req (let [screen-name  (:screen-name (get-current-user req))
+                                             friends-full (:friends (memoized-friends screen-name))
+                                             settings     (get-settings screen-name)
+                                             corrected-curr-user (merge (get-current-user req)
+                                                                        {:locations (:locations settings)})
+                                             friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
+                                         (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
+                                         (swap! abridged-friends-cache
+                                                assoc screen-name friends-abridged)
+                                         (generate-string friends-abridged)))
+  ; re-fetch data from Twitter – TODO: this should be a POST not a GET
+  (GET "/api/v1/friends/refresh" req (let [screen-name (:screen-name (get-current-user req))
+                                           settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
+                                       (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   ;; general resources
-  (GET "/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
+  (GET "/api/v1/css/mapbox-gl.inc.css" [] (io/resource "cljsjs/mapbox/production/mapbox-gl.inc.css"))
   (route/resources "/")
   (ANY "*"                      [] (io/resource "public/index.html")))
 
@@ -352,11 +338,11 @@
   (some-> @server* (.stop))
 
   ; create the tables if they don't already exists
-  (db/create-table db/settings-table      db/settings-schema)
-  (db/create-table db/profiles-table      db/memoized-data-schema)
-  (db/create-table db/friends-table       db/memoized-data-schema)
-  (db/create-table db/coordinates-table   db/memoized-data-schema)
-  (db/create-table db/access_tokens-table db/memoized-data-schema)
+  (db/create-table db/settings-table         db/settings-schema)
+  (db/create-table db/twitter-profiles-table db/memoized-data-schema)
+  (db/create-table db/friends-table          db/memoized-data-schema)
+  (db/create-table db/coordinates-table      db/memoized-data-schema)
+  (db/create-table db/access_tokens-table    db/memoized-data-schema)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]

@@ -8,6 +8,7 @@ pom.xml
 /.env
 /target
 !/target/smallworld.jar
+!/target/worker.jar
 /.lein-repl-history
 /.nrepl-port
 .clj-kondo/

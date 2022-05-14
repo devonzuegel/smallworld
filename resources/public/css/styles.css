@@ -10,15 +10,14 @@
 }
 html {
   color: #d9d3cc;
+  font-size: 16px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
-  font-size: 14px;
   background-color: #013917;
   background-image: url(../az-subtle.png);
 }
 body {
   margin: 0;
 }
-
 html,
 body {
   height: 100%;
@@ -31,6 +30,15 @@ input {
 input:focus {
   color: #f1ece8;
   transition: color 200ms ease-in-out;
+}
+/* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
+body {
+  line-height: 1.3em;
+  font-size: 16px;
+}
+input,
+select {
+  font-size: 16px;
 }
 
 /*****************************************/
@@ -193,11 +201,15 @@ input:focus {
 /******************************************************************************/
 /**** content *****************************************************************/
 /******************************************************************************/
-.container {
+.home-page {
   margin: auto;
   padding: 12px;
-  padding-bottom: 180px;
+  padding-bottom: 140px;
   max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
+  min-height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 pre {
   white-space: pre-wrap;
@@ -236,6 +248,15 @@ a:hover a {
   padding: 2px 6px 4px 6px;
   border-radius: 4px;
 }
+.friends-list input::placeholder {
+  color: white;
+  opacity: 0.5;
+  font-size: 0.8em;
+  vertical-align: middle;
+  transform: translateY(-2px);
+  margin-bottom: 4px;
+  font-weight: 400;
+}
 .friends-list svg.x,
 .friends-list svg.triangle {
   fill: white;
@@ -261,11 +282,10 @@ a:hover a {
 .friends-list .location-info .triangle.down {
   transform: rotate(180deg);
 }
-.distance {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.8em;
-  margin-left: 12px;
-  opacity: 0.7;
+svg.question {
+  fill: white;
+  transform: scale(0.5);
+  opacity: 0.4;
 }
 
 /*****************************************/
@@ -325,8 +345,7 @@ tr:nth-child(even) {
   line-height: 1.3;
 }
 .friends-list {
-  padding: 12px;
-  // padding: 24px;
+  padding: 9px 6px;
 }
 // @media screen and (max-width: 720px) {
 //   .friends-list {
@@ -348,12 +367,12 @@ tr:nth-child(even) {
   }
 }
 .friends-list.header {
+  font-size: 0.85em;
   display: flex;
+  min-height: 59px;
   flex-direction: row;
-  gap: 12px;
   background-color: #ffffff0d;
   border-radius: 8px 8px 0 0;
-  overflow: hidden;
 }
 .friends-list.header .small-info-text {
   text-align: left;
@@ -365,6 +384,12 @@ tr:nth-child(even) {
 .friends-list .mapbox-container {
   min-width: 80px;
   border-radius: 80px;
+}
+
+@media (max-width: 768px) /* mobile */ {
+  .friends-list .mapbox-container {
+    min-width: 60px;
+  }
 }
 .friends-list .mapbox-container .mapboxgl-map {
   height: 100% !important;
@@ -390,6 +415,7 @@ tr:nth-child(even) {
   }
 }
 .friend {
+  font-size: 0.95em;
   display: flex;
   align-items: center;
   justify-items: center;
@@ -455,20 +481,33 @@ tr:nth-child(even) {
 /******************************************************************************/
 /**** friend: current-user ********************************************************************/
 /******************************************************************************/
+.welcome-flow .title {
+  margin: 20px -16px;
+  padding-bottom: 38px;
+  border-bottom: 1px solid #ffffff33;
+}
+.welcome-flow .twitter-data-explanation {
+  max-width: 340px;
+  margin: auto;
+}
 .twitter-data-explanation > .twitter-data {
   background: #ffffff11;
   display: flex;
-  padding: 8px 16px 8px 10px;
+  padding: 8px 16px;
   border-radius: 8px;
   column-gap: 12px;
-  // align-items: center;
+}
+.twitter-data-explanation > .twitter-data .right-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .twitter-data-explanation > .twitter-data .name {
-  font-size: 1.4em;
+  font-size: 1.2em;
   font-weight: 600;
 }
 .twitter-data-explanation > .twitter-data .location {
-  font-size: 1.1em;
+  font-size: 1em;
   opacity: 0.8;
 }
 .twitter-data-explanation > .twitter-data img {
@@ -476,17 +515,21 @@ tr:nth-child(even) {
   border-radius: 100%;
   border: 2px solid #d9d3cc44;
 }
+.twitter-data-explanation {
+  text-align: left;
+}
 .twitter-data-explanation > .explanation {
   opacity: 0.8;
   line-height: 1.4em;
   align-items: center;
   display: flex;
   padding: 4px;
+  font-size: 0.8em;
 }
 .twitter-data-explanation > .explanation .twitter-icon {
   height: 58px;
   fill: #d9d3cc;
-  margin-left: 0;
+  margin-left: 3px;
   margin-right: 12px;
 }
 .twitter-data-explanation > .explanation a {
@@ -502,12 +545,14 @@ tr:nth-child(even) {
   margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
-  flex-direction: column-reverse;
   flex-grow: 1;
-  row-gap: 8px;
+  justify-content: center;
+}
+.home-page .twitter-data-explanation {
+  flex-direction: column-reverse;
 }
 @media screen and (min-width: 500px) {
-  .twitter-data-explanation {
+  .home-page .twitter-data-explanation {
     margin: 12px 0 46px;
     justify-content: center;
     display: flex;
@@ -517,10 +562,10 @@ tr:nth-child(even) {
     row-gap: 8px;
     column-gap: 16px;
   }
-  .twitter-data-explanation > .explanation {
+  .home-page .twitter-data-explanation > .explanation {
     max-width: 400px;
   }
-  .twitter-data-explanation > * {
+  .home-page .twitter-data-explanation > * {
     align-items: center;
   }
 }
@@ -620,6 +665,7 @@ tr:nth-child(even) {
 .welcome .hero h1 {
   font-size: 3em;
   font-weight: 700;
+  line-height: 1.2em;
   text-align: center;
 }
 .welcome .hero h2 {
@@ -632,7 +678,7 @@ tr:nth-child(even) {
   -ms-transform: scale(1); /* IE 9 */
   -webkit-transform: scale(1); /* Safari */
   transform: scale(1);
-  margin: 55px 0;
+  margin: 54px 0 46px 0;
   opacity: 0.25;
 }
 .steps {
@@ -651,7 +697,8 @@ tr:nth-child(even) {
   display: inline-block;
 }
 .welcome .info {
-  font-size: 1em;
+  font-size: 0.85em;
+  opacity: 0.7;
   margin: 32px 10px 64px;
   max-width: 400px;
   line-height: 1.3;
@@ -675,7 +722,7 @@ tr:nth-child(even) {
 /******************************************************************************/
 
 .welcome-flow {
-  margin: 36px 24px;
+  margin: 36px 16px;
   text-align: center;
 }
 .welcome-flow .friend {
@@ -701,11 +748,80 @@ tr:nth-child(even) {
 .welcome-flow .email-options {
   max-width: 340px;
   margin: auto;
-  padding: 16px 0;
+  padding: 16px 12px;
   border-radius: 12px;
 }
+.home-page #track-new-location-field,
+.welcome-flow #track-new-location-field {
+  width: fit-content;
+  margin: auto;
+  margin-top: 16px;
+  padding: 8px 14px;
+  border-radius: 24px;
+  fill: #d9d3cc;
+  font-size: 0.9em;
+  color: #d9d3cc;
+  background-color: #ffffff11;
+  transition: all 100ms ease-out;
+}
+.home-page #track-new-location-field:hover,
+.welcome-flow #track-new-location-field:hover {
+  fill: white;
+  color: white;
+  cursor: pointer;
+  background-color: #ffffff16;
+}
+.home-page #track-new-location-field svg.plus,
+.welcome-flow #track-new-location-field svg.plus {
+  margin-right: 2px;
+  margin-bottom: -6px;
+}
+.welcome-flow svg.cancel-icon,
+.home-page .delete-location-btn svg.cancel-icon {
+  float: right;
+  cursor: pointer;
+  transform: scale(1.1);
+  background: #013917; /* this is so the hole for the X isn't empty */
+  border-radius: 8px;
+  fill: #3b5f46;
+  transition: all 100ms ease-in-out;
+}
+.welcome-flow svg.cancel-icon:hover,
+.home-page .delete-location-btn svg.cancel-icon:hover {
+  fill: #718371;
+  transition: all 100ms ease-in-out;
+  transform: scale(1.18);
+}
+.welcome-flow svg.cancel-icon {
+  margin-right: -18px;
+  margin-top: -28px;
+}
+.home-page .friends-list.header .right-side {
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+@media (max-width: 768px) /* mobile */ {
+  .home-page .friends-list.header .right-side {
+    margin-left: 8px;
+  }
+  .home-page .friends-list.header {
+    font-size: 0.8em;
+  }
+}
+.home-page .friends-list.header .delete-location-btn {
+  margin-left: auto;
+  margin-right: -14px;
+  margin-top: -14px;
+}
 .welcome-flow .location-field {
-  padding: 24px 0;
+  padding: 24px 12px;
+  padding-bottom: 6px;
+  margin-top: 14px;
+}
+.welcome-flow .location-field label .small-info-text {
+  padding: 0 10px;
 }
 .welcome-flow .email-options,
 .welcome-flow .location-field {
@@ -729,28 +845,42 @@ tr:nth-child(even) {
   fill: white;
   height: 13px;
   margin-left: -36px;
-  margin-top: 13px;
+  margin-top: 15px;
   position: absolute;
   opacity: 0.5;
 }
 .welcome-flow input[type='text'] {
-  width: 260px;
+  width: 254px;
   padding: 4px 32px 4px 5px;
   background: #ffffff11;
   border-radius: 4px;
   margin: 8px 4px;
-  font-size: 1em;
   font-weight: bold;
   text-align: center;
 }
 .welcome-flow input.location-input::placeholder {
   color: #d9d3cc55;
-  font-size: 0.9em;
+  padding-bottom: 2px;
 }
 .small-info-text {
-  font-size: 0.7em;
-  opacity: 0.4;
+  font-size: 0.8em;
+  opacity: 0.5;
+  line-height: 1.3em;
   text-align: center;
+}
+.small-info-text a {
+  color: #f5f0eb;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+.small-info-text a:hover {
+  color: white;
+  transition: all 50ms ease-out;
+  border-bottom: 3px solid #ffffff22;
+}
+.welcome-flow .email-options {
+  margin-top: 14px;
 }
 .welcome-flow .email-options .radio-btns {
   text-align: left;
@@ -830,6 +960,7 @@ input[type='radio']:focus {
   width: min(300px, calc(100% - 64px));
   height: 140px;
   margin: 0 auto;
+  margin-top: 10px;
   background: #ffffff11;
   overflow: hidden;
   background: #9dc7d9;
@@ -841,6 +972,11 @@ input[type='radio']:focus {
 }
 .welcome-flow .mapbox-container .mapboxgl-map {
   height: 100% !important;
+}
+.welcome-flow .btn {
+  padding: 8px 16px;
+  font-size: 1.5em;
+  border-radius: 50px;
 }
 /* pulsating background */
 @keyframes pulsingGreenBkgd {
@@ -936,6 +1072,7 @@ input[type='radio']:focus {
   box-shadow: 0px 0px 18px #ffffff55;
   border-top: 2px solid #013917;
   filter: saturate(50%);
+  overflow: hidden;
 }
 #mapbox {
   height: 100%;
@@ -1189,4 +1326,19 @@ ul {
 }
 ul li {
   padding-left: 6px;
+}
+/************************************************************/
+/** footer **************************************************/
+/************************************************************/
+.info-footer {
+  text-align: center;
+  padding-bottom: 12px;
+  font-size: 0.8em;
+  opacity: 0.5;
+}
+.info-footer .dot-separator {
+  margin: 0 8px;
+}
+.info-footer a:hover {
+  cursor: pointer;
 }

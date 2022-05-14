@@ -56,6 +56,15 @@
   (/ (reduce + list-of-nums)
      (count list-of-nums)))
 
+(defn rm-from-list [col idx]
+  (filter identity (map-indexed #(when-not (= %1 idx) %2) col)))
+
+(def info-footer
+  [:div.info-footer
+   [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
+   [:span.dot-separator " · "]
+   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]])
+
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]
     (r/create-class
@@ -79,3 +88,6 @@
 
   [err-bound-example-1]
   [err-bound-example-2])
+
+(defn query-dom [selector]
+  (array-seq (.querySelectorAll js/document selector)))
