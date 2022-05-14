@@ -269,15 +269,15 @@
    [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
     [:div.radio-btns
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
-      [:label {:for "instant"} "yes, notify me immediately"]]
+     #_[:div.radio-btn
+        [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
+        [:label {:for "instant"} "yes, notify me immediately"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "daily" :id "daily"}]
       [:label {:for "daily"} "yes, send me daily digests"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
-      [:label {:for "weekly"} "yes, send me weekly digests"]]
+     #_[:div.radio-btn
+        [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
+        [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
       [:label {:for "muted"} "no, don't notify me by email"]]]
@@ -312,15 +312,15 @@
    [:div.email-options {:tab-index "3"}
     [:p "would you like email notifications" [:br] "when your friends are nearby? *"]
     [:div.radio-btns
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "instant" :id "instant" :default-checked (= "instant" (:email_notifications @*settings))}]
-      [:label {:for "instant"} "yes, notify me immediately"]]
+     #_[:div.radio-btn
+        [:input {:name "email_notification" :type "radio" :value "instant" :id "instant" :default-checked (= "instant" (:email_notifications @*settings))}]
+        [:label {:for "instant"} "yes, notify me immediately"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "daily" :id "daily" :default-checked (= "daily" (:email_notifications @*settings))}]
       [:label {:for "daily"} "yes, send me daily digests"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked (= "weekly" (:email_notifications @*settings))}]
-      [:label {:for "weekly"} "yes, send me weekly digests"]]
+     #_[:div.radio-btn
+        [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked (= "weekly" (:email_notifications @*settings))}]
+        [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted" :default-checked (= "muted" (:email_notifications @*settings))}]
       [:label {:for "muted"} "no, don't notify me by email"]]]
