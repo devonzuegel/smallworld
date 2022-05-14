@@ -1,9 +1,10 @@
-(ns smallworld.db (:require [clojure.java.jdbc :as sql] ; https://clojure.github.io/java.jdbc
+(ns smallworld.db (:require [clojure.java.io :as io]
+                            [clojure.java.jdbc :as sql] ; https://clojure.github.io/java.jdbc
                             [clojure.pprint :as pp]
-                            [smallworld.clj-postgresql.types] ; this enables the :json type
-                            [smallworld.util :as util]
+                            [clojure.string :as str]
                             [clojure.walk :as walk]
-                            [clojure.string :as str]))
+                            [smallworld.clj-postgresql.types] ; this enables the :json type
+                            [smallworld.util :as util]))
 
 (def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))
@@ -16,21 +17,7 @@
                            ; I thought the following would work, but the db throws an error:
                            ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
                            ])
-(def settings-schema [[:id                    :integer       "primary key" "generated always as identity"]
-                      [:screen_name           "varchar(255)" "not null"    "unique"] ; TODO: use this instead to enable faster lookup (avoid pointers)
-                      [:name                  "varchar(255)"]
-                      [:twitter_avatar        "varchar(255)"]
-                      [:welcome_flow_complete :boolean       "not null"    "default false"]
-                      [:locations             :json]
-                      [:friends_refresh       :json]
-                      [:email_address         "varchar(255)"]
-                      [:email_notifications   "varchar(255)"]
-                      [:created_at            :timestamp  "default current_timestamp"]
-                      [:updated_at            :timestamp  "default current_timestamp"]
-                      ; TODO: get "on update current_timestamp" working for :updated_at
-                      ; I thought the following would work, but the db throws an error:
-                      ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
-                      ])
+(def settings-schema (slurp (io/resource "sql/settings-schema.sql")))
 
 ; table names
 (def twitter-profiles-table :twitter_profiles) ; store all data from Twitter sign up
@@ -58,7 +45,9 @@
     (println "table" table-name "already exists")
     (do
       (println "creating table"  table-name)
-      (sql/db-do-commands url (sql/create-table-ddl (name table-name) schema)))))
+      (if (string? schema)
+        (sql/db-do-commands url (clojure.string/split schema #"--- split here ---"))
+        (sql/db-do-commands url (sql/create-table-ddl (name table-name) schema))))))
 
 (defn recreate-table [table-name schema] ; leave this commented out by default, since it's destructive
   (sql/db-do-commands url (str " drop table if exists " (name table-name)))
