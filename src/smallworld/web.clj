@@ -251,7 +251,7 @@
                                                 name-after      (if (clojure.string/blank? (:name after))      "·" (:name after))
                                                 location-before (if (clojure.string/blank? (:location before)) "·" (:location before))
                                                 location-after  (if (clojure.string/blank? (:location after))  "·" (:location after))
-                                                highlight #(str "<span style=\"background: white; margin: 0 4px; padding: 3px 8px;  display: inline-block; border-radius: 12px;  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.05), 0 1px 6px rgba(0, 0, 0, 0.05);\">" % "</span>")]
+                                                highlight #(str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; padding: 0 8px;  display: inline-block; border-radius: 12px;  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.05), 0 1px 6px rgba(0, 0, 0, 0.05);\">" % "</span>")]
 
                                             [(when (not= (:name before) (:name after))
                                                (str "<li><b>@" (:screen-name after) "</b> updated their name: "
@@ -277,10 +277,23 @@
         (println (str "\n\nhere is the generated HTML:"))
         (pp/pprint diff-html)
         (println "\n\n")
+        (println "email_notifications: " (:email_notifications settings))
+        (println "             daily?: " (= "daily" (:email_notifications settings)))
+        (println "        diff empty?: " (not-empty diff))
+        (println "        send email?: " (and (= "daily" (:email_notifications settings))
+                                              (not-empty diff)))
+        (println "\n\n")
 
         (println) (println)
-        #_(when-not (empty? diff)
-            (email/send-email {:to email-address
+        (when (and (= "daily" (:email_notifications settings))
+                   (not-empty diff))
+          (println "\n\nTODO: once I've seen a few runs of this that look correct, comment back in the email sending code")
+          (pp/pprint {:to email-address
+                      :template (:friends-on-the-move email/TEMPLATES)
+                      :dynamic_template_data {:twitter_screen_name screen-name
+                                              :friends             diff-html}})
+          (println "\n\n")
+          #_(email/send-email {:to email-address
                                :template (:friends-on-the-move email/TEMPLATES)
                                :dynamic_template_data {:twitter_screen_name screen-name
                                                        :friends             diff-html}}))
@@ -318,7 +331,8 @@
   (println "===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users (db/select-all db/settings-table)
+  (let [all-users (db/select-by-col db/settings-table :screen_name "manicmaus_")
+   ; (db/select-all db/settings-table)
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
@@ -469,7 +483,7 @@
   (println "starting scheduler to run every day at 18:35")
   (timely/start-scheduler)
   (timely/start-schedule (timely/scheduled-item
-                          (timely/daily (timely/at (timely/hour 1) (timely/minute 35))) ; in UTC
+                          (timely/daily (timely/at (timely/hour 13) (timely/minute 35))) ; in UTC
                           worker))
 
   (println "starting server...")
