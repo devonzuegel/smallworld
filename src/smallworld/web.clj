@@ -282,9 +282,8 @@
         (println "        diff empty?: " (not-empty diff))
         (println "        send email?: " (and (= "daily" (:email_notifications settings))
                                               (not-empty diff)))
-        (println "\n\n")
+        (println "\n\n\n")
 
-        (println) (println)
         (when (and (= "daily" (:email_notifications settings))
                    (not-empty diff))
           (println "\n\nTODO: once I've seen a few runs of this that look correct, comment back in the email sending code")
@@ -293,10 +292,10 @@
                       :dynamic_template_data {:twitter_screen_name screen-name
                                               :friends             diff-html}})
           (println "\n\n")
-          #_(email/send-email {:to email-address
-                               :template (:friends-on-the-move email/TEMPLATES)
-                               :dynamic_template_data {:twitter_screen_name screen-name
-                                                       :friends             diff-html}}))
+          (email/send-email {:to email-address
+                             :template (:friends-on-the-move email/TEMPLATES)
+                             :dynamic_template_data {:twitter_screen_name screen-name
+                                                     :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
