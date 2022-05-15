@@ -1,11 +1,16 @@
 (ns smallworld.email (:require [clj-http.client :as http]
-                               [smallworld.util :as util]))
+                               [smallworld.util :as util]
+                               [smallworld.db   :as db]))
 
 (def debug? true)
 (def FROM_EMAIL "hello@smallworld.kiwi")
 (def FROM_NAME  "Small World")
 (def TEMPLATES {:welcome "d-4cb1507efaaa4a2eab8a9f18b0dabbc5"
                 :friends-on-the-move "d-75f5a6ca89484938b92b5f01d883de1b"})
+
+(defn log-event [name data]
+  (db/insert! db/events-table {:event_name name :data data})
+  (util/log (str name ": " data)))
 
 (defn- send-with-content [{to-email :to
                            subject :subject
@@ -38,17 +43,17 @@
                   :from {:email FROM_EMAIL}}}))
 
 (defn send-email [options]
-  (util/log-event "send-email" options)
+  (log-event "send-email" options)
   (try (if (:template options)
          (send-with-template options)
          (send-with-content  options))
        (catch Throwable e
          (util/log "failed to send email (error below), continuing...")
-         (util/log-event "send-email-failed" {:error e})
+         (log-event "send-email-failed" {:error e})
          (util/log e))))
 
 (comment
-  (send {:to      "devonzuegel@gmail.com"
-         :subject "test from CLI"
-         :body    "test from CLI"
-         :type    "text/plain"}))
+  (send-email {:to      "devonzuegel@gmail.com"
+               :subject "test from CLI"
+               :body    "test from CLI"
+               :type    "text/plain"}))

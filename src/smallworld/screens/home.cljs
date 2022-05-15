@@ -9,7 +9,7 @@
             [smallworld.user-data   :as user-data]
             [smallworld.util        :as util]))
 
-(def         *debug? (r/atom true))
+(def         *debug? (r/atom false))
 (def *settings-open? (r/atom false))
 (defonce   *minimaps (r/atom {}))
 

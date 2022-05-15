@@ -24,6 +24,10 @@
 
 (def debug? false)
 
+(defn log-event [name data]
+  (db/insert! db/events-table {:event_name name :data data})
+  (util/log (str name ": " data)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +38,7 @@
 
 (defn get-session [req]
   (let [session-data (get-in req [:session] session/blank)]
-    (util/log-event "get-session" session-data)
+    (log-event "get-session" session-data)
     session-data))
 
 ;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
@@ -56,7 +60,7 @@
   (let [request-token (oauth/oauth-request-token (util/get-env-var "TWITTER_CONSUMER_KEY")
                                                  (util/get-env-var "TWITTER_CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
-    (util/log-event "start-oauth-flow" {:message "someone has started the oauth flow (we don't yet have the screen name)"})
+    (log-event "start-oauth-flow" {:message "someone has started the oauth flow (we don't yet have the screen name)"})
     (response/redirect redirect-url)))
 
 ;; step 2
@@ -77,8 +81,8 @@
                                                                :name           (:name api-response)
                                                                :locations      (:locations current-user)
                                                                :twitter_avatar (user-data/normal-img-to-full-size api-response)})
-         (util/log-event "new-authorization" {:screen-name screen-name
-                                              :message (str "@" screen-name ") has successfully authorized small world to access their Twitter account")})
+         (log-event "new-authorization" {:screen-name screen-name
+                                         :message (str "@" screen-name ") has successfully authorized small world to access their Twitter account")})
          (set-session (response/redirect "/") {:access-token access-token
                                                :screen-name  (:screen-name api-response)}))
        (catch Throwable e
@@ -91,7 +95,8 @@
         logout-msg (if (nil? screen-name)
                      "no-op: there was no active session"
                      (str "@" screen-name " has logged out"))]
-    (println logout-msg)
+    (log-event "logout" {:screen-name screen-name
+                         :message logout-msg})
     (set-session (response/redirect "/") {})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -100,16 +105,16 @@
 
 (defn get-settings [screen-name]
   (let [settings (first (db/select-by-col db/settings-table :screen_name screen-name))] ; TODO: set in the session for faster access
-    (util/log-event "get-settings" (if (nil? screen-name) {} {:screen-name screen-name
-                                                              :settings    settings}))
+    (log-event "get-settings" (if (nil? screen-name) {} {:screen-name screen-name
+                                                         :settings    settings}))
     settings))
 
 (defn update-settings [req]
   (let [screen-name     (get-in req [:session :screen-name] session/blank)
         parsed-body     (json/read-str (slurp (:body req)) :key-fn keyword)
         new-settings    (merge parsed-body {:screen_name screen-name})]
-    (util/log-event "update-settings" {:screen-name screen-name
-                                       :settings    new-settings})
+    (log-event "update-settings" {:screen-name screen-name
+                                  :settings    new-settings})
     (when debug?
       (println "----------------------------------------------")
       (println "(:session req):")
@@ -140,7 +145,7 @@
     (println "================================================================================================= start")
     (println "fetching friends for " screen-name))
 
-  (util/log-event "fetch-twitter-friends--begin" {:screen-name screen-name})
+  (log-event "fetch-twitter-friends--begin" {:screen-name screen-name})
   (try
     (let [; the sql-result should never be an empty list; if it is, that means the
           ; access token was deleted. it shouldn't be possible to get to this state,
@@ -155,8 +160,8 @@
       (loop [cursor -1 ; -1 is the first page, while future pages are gotten from previous_cursor & next_cursor
              result-so-far []]
 
-        (util/log-event "fetch-twitter-friends--page" {:screen-name screen-name
-                                                       :cursor cursor})
+        (log-event "fetch-twitter-friends--page" {:screen-name screen-name
+                                                  :cursor cursor})
         (let [api-response  (client {:method :get
                                      :url "https://api.twitter.com/1.1/friends/list.json"
                                      :body (str "count=200"
@@ -179,7 +184,7 @@
           (if (= next-cursor 0)
             new-result ; return final result if Twitter returns a cursor of 0
             (recur next-cursor new-result))))
-      (util/log-event "fetch-twitter-friends--end" {:screen-name screen-name}))
+      (log-event "fetch-twitter-friends--end" {:screen-name screen-name}))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (when (= 429 (get-in e [:data :status])) (println "you hit the Twitter rate limit!"))
@@ -216,8 +221,8 @@
         result        (if logged-out?
                         []
                         (memoized-abridged-friends screen-name (get-settings session-screen-name)))]
-    (util/log-event "get-users-friends" {:count (count result)
-                                         :screen-name screen-name})
+    (log-event "get-users-friends" {:count (count result)
+                                    :screen-name screen-name})
     (generate-string result)))
 
 ; TODO: consolidate this with memoized-abridged-friends
@@ -279,21 +284,21 @@
                          "</ul>"))]
     (if (= :failed friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
-        (util/log-event "refresh-twitter-friends--failed" {:screen-name screen-name
-                                                           :failure-message failure-message})
+        (log-event "refresh-twitter-friends--failed" {:screen-name screen-name
+                                                      :failure-message failure-message})
         (generate-string (response/bad-request {:message failure-message})))
       (let [email-address (-> db/settings-table
                               (db/select-by-col :screen_name screen-name)
                               first
                               :email_address)]
-        (util/log-event "refreshed-twitter-friends--success" {:screen-name screen-name
-                                                              :diff-count  (count diff)
-                                                              :diff-html   diff-html
-                                                              :email_notifications (:email_notifications settings)
-                                                              :send-email? (and (= "daily" (:email_notifications settings))
-                                                                                (not-empty diff))
+        (log-event "refreshed-twitter-friends--success" {:screen-name screen-name
+                                                         :diff-count  (count diff)
+                                                         :diff-html   diff-html
+                                                         :email_notifications (:email_notifications settings)
+                                                         :send-email? (and (= "daily" (:email_notifications settings))
+                                                                           (not-empty diff))
                                                               ;
-                                                              })
+                                                         })
 
         (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
         (pp/pprint diff)
@@ -345,11 +350,11 @@
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
-    (util/log-event "worker-start" {:count   n-users
-                                    :message (str "preparing to refresh friends for " n-users " users\n")})
+    (log-event "worker-start" {:count   n-users
+                               :message (str "preparing to refresh friends for " n-users " users\n")})
     (doall (map-indexed curried-refresh-friends all-users))
-    (util/log-event "worker-done" {:count   n-users
-                                   :message (str "finished refreshing friends for " n-users " users")})
+    (log-event "worker-done" {:count   n-users
+                              :message (str "finished refreshing friends for " n-users " users")})
 
     ;; TODO: put this back when we actually catch failures (currently, we don't)
     ;; (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
