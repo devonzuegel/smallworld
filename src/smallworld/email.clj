@@ -39,7 +39,8 @@
     :form-params {:template_id template-id
                   :personalizations [{:to [{:email to-email}]
                                       :dynamic_template_data dynamic-template-data}]
-                  :from {:email FROM_EMAIL}}}))
+                  :from {:email FROM_EMAIL
+                         :name FROM_NAME}}}))
 
 (defn send-email [options]
   (log-event "send-email" options)
