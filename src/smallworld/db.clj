@@ -8,16 +8,6 @@
 
 (def debug? false)
 (def url (util/get-env-var "DATABASE_URL"))
-(def memoized-data-schema [[:id          :integer   "primary key" "generated always as identity"]
-                           [:request_key :text      "not null" "unique"]
-                           [:data        :json]
-                           [:created_at  :timestamp "default current_timestamp"]
-                           [:updated_at  :timestamp "default current_timestamp"]
-                           ; TODO: get "on update current_timestamp" working for :updated_at
-                           ; I thought the following would work, but the db throws an error:
-                           ;; [:updated_at  :timestamp "default current_timestamp" "on update current_timestamp"]
-                           ])
-(def settings-schema (slurp (io/resource "sql/settings-schema.sql")))
 
 ; table names
 (def twitter-profiles-table :twitter_profiles) ; store all data from Twitter sign up
@@ -25,6 +15,12 @@
 (def friends-table          :friends)          ; memoized storage: friends of the user (request_key)
 (def coordinates-table      :coordinates)      ; memoized storage: map of city/country names to coordinates
 (def access_tokens-table    :access_tokens)    ; memoized storage: Twitter access tokens
+
+(def twitter-profiles-schema (slurp (io/resource "sql/twitter-profiles-schema.sql")))
+(def settings-schema         (slurp (io/resource "sql/settings-schema.sql")))
+(def friends-schema          (slurp (io/resource "sql/friends-schema.sql")))
+(def coordinates-schema      (slurp (io/resource "sql/coordinates-schema.sql")))
+(def access-tokens-schema    (slurp (io/resource "sql/access-tokens-schema.sql")))
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
@@ -152,7 +148,7 @@
 
   (show-all twitter-profiles-table)
 
-  (recreate-table friends-table memoized-data-schema)
+  (recreate-table friends-table friends-schema)
   (select-by-col friends-table :request_key "devonzuegel")
   (get-in (vec (select-by-col friends-table :request_key "devon_dos")) [0 :data :friends])
   (select-by-col friends-table :request_key "meadowmaus")
@@ -165,7 +161,7 @@
   (select-by-col access_tokens-table :request_key "devonzuegel")
   (select-by-col access_tokens-table :request_key "meadowmaus")
 
-  (recreate-table :coordinates memoized-data-schema)
+  (recreate-table :coordinates friends-schema)
   (show-all :coordinates)
   (pp/pprint (select-by-col :coordinates :request_key "Miami Beach"))
   (update! :coordinates :request_key "Miami Beach" {:data {:lat 25.792236328125 :lng -80.13484954833984}})

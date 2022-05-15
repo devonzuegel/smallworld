@@ -462,10 +462,10 @@
 
   ; create the tables if they don't already exists
   (db/create-table db/settings-table         db/settings-schema)
-  (db/create-table db/twitter-profiles-table db/memoized-data-schema)
-  (db/create-table db/friends-table          db/memoized-data-schema)
-  (db/create-table db/coordinates-table      db/memoized-data-schema)
-  (db/create-table db/access_tokens-table    db/memoized-data-schema)
+  (db/create-table db/twitter-profiles-table db/twitter-profiles-schema)
+  (db/create-table db/friends-table          db/friends-schema)
+  (db/create-table db/coordinates-table      db/coordinates-schema)
+  (db/create-table db/access_tokens-table    db/access-tokens-schema)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
