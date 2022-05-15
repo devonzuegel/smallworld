@@ -1,5 +1,6 @@
-(ns smallworld.util (:require [clojure.pprint :as pp]
-                              [clojure.java.io :as io]))
+(ns smallworld.util (:require [clojure.pprint  :as pp]
+                              [clojure.java.io :as io]
+                              [smallworld.db   :as db]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn store-to-file [filename data]
@@ -37,3 +38,7 @@
 
 (defn log [string]
   (println (timestamp) "--" string))
+
+(defn log-event [name data]
+  (db/insert! db/events-table {:event_name name :data data})
+  (log (str name ": " data)))
