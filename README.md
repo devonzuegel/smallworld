@@ -18,7 +18,7 @@ https://smallworld.kiwi
 
 1. `lein install`
 2. install postgres: https://postgresapp.com (database)
-3. create local postgres db called `smallworld-local`
+3. run `bin/setup` to create a local postgres db called `smallworld-local`
 ### local development
 1. run `bin/start-dev.sh`
    - sets the environment variables
