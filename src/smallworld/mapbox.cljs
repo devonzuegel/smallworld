@@ -185,21 +185,23 @@
     (doseq [friend (conj friends curr-user)]
       (doseq [location (:locations friend)]
         ; round to 1 decimal place so that metro regions are grouped together
-        (let [lng (round (:lng (:coords location)))
-              lat (round (:lat (:coords location)))
-              has-coord (and (:coords location) lng lat)
-              group (when has-coord (get @*groups [lng lat]))]
-          (when has-coord
-            (swap! *groups assoc [lng lat] (conj group {:lng-lat [(:lng (:coords location))
-                                                                  (:lat (:coords location))]
-                                                        :classname (when (= (:screen-name friend)
-                                                                            (:screen-name curr-user))
-                                                                     "current-user")
-                                                        :location       (:name location)
-                                                        :img-url        (:profile_image_url_large friend)
-                                                        :user-name      (:name friend)
-                                                        :screen-name    (:screen-name friend)
-                                                        :special-status (:special-status location)}))))))
+        (when (and (:lng (:coords location))
+                   (:lat (:coords location)))
+          (let [lng (round (:lng (:coords location)))
+                lat (round (:lat (:coords location)))
+                has-coord (and (:coords location) lng lat)
+                group (when has-coord (get @*groups [lng lat]))]
+            (when has-coord
+              (swap! *groups assoc [lng lat] (conj group {:lng-lat [(:lng (:coords location))
+                                                                    (:lat (:coords location))]
+                                                          :classname (when (= (:screen-name friend)
+                                                                              (:screen-name curr-user))
+                                                                       "current-user")
+                                                          :location       (:name location)
+                                                          :img-url        (:profile_image_url_large friend)
+                                                          :user-name      (:name friend)
+                                                          :screen-name    (:screen-name friend)
+                                                          :special-status (:special-status location)})))))))
 
 
     (doseq [[group-key markers] @*groups]
