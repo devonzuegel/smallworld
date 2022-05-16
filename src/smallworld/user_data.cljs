@@ -91,10 +91,7 @@
     [util/error-boundary
      [:div.friends-list
       (if (= :loading @*friends)
-        [:div.loading
-         (decorations/simple-loading-animation)
-         "the first time takes a while to load"]
-
+        [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]
         (if (> list-count 0)
           [:<>
            [:p.location-info

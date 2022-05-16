@@ -80,7 +80,7 @@
                          (util/fetch-post "/api/v1/settings/update" ; persist the changes to the server
                                           {:locations (:locations (assoc-in @settings/*settings [:locations i :loading] false))}))))))
 
-(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 400))
 
 (defn from-twitter? [location-data]
   (or (= (:special-status location-data) "twitter-location")
@@ -89,7 +89,8 @@
 (defn screen []
   [:<>
    (nav)
-   (let [curr-user-locations (remove nil? (:locations @settings/*settings))]
+   (let [curr-user-locations (remove nil? (:locations @settings/*settings))
+         update [:a {:href "https://twitter.com/settings/location" :target "_blank"} "update"]]
      [:<>
       [:div.home-page
        [:div ; this div is here to allow for the alignment of the footer
@@ -99,16 +100,11 @@
            (when (= 0 (count curr-user-locations))
              [:div.no-locations-info
               ; TODO: improve the design of this state
-              [:p "you haven't shared a location on Twitter, so we can't show you friends who are close by"]
-              [:br]
-              [:p "we pull from two places to find your location:"]
-              [:ol
-               [:li "your Twitter profile location"]
-               [:li "your Twitter display name"]]
-              [:br]
-              [:p "update these fields in your " [:a {:href "https://twitter.com/settings/location"} "Twitter settings"]]
-              [:br]
-              [:p "if you don't want to update your Twitter settings, you can still explore the map below"]])
+              [:p "3 ways to start following your first location:"]
+              [:ul
+               [:li update " your Twitter profile location"]
+               [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"]
+               [:li "add a location manually with the button below"]]])
 
            (doall (map-indexed
                    (fn [i location-data]
@@ -153,7 +149,7 @@
                           (decorations/cancel-icon)]]
 
                         (if (or (get-in @settings/*settings [:locations i :loading]) (= [] @user-data/*friends))
-                          [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your friends from Twitter..."]]
+                          [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]]
                           (when-not (nil? (:coords location-data))
                             [:<>
                              (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
