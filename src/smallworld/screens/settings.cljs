@@ -31,7 +31,7 @@
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 200))
 
-(def email_notifications_options ["instant" "daily" "weekly" "muted"])
+(def email_notifications_options [#_"instant" "daily" #_"weekly" "muted"])
 
 (defn minimap [minimap-id location-name coords]
   (println "coords: ")
@@ -273,10 +273,10 @@
         [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
         [:label {:for "instant"} "yes, notify me immediately"]]
      [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "daily" :id "daily"}]
+      [:input {:name "email_notification" :type "radio" :value "daily" :id "daily" :default-checked true}]
       [:label {:for "daily"} "yes, send me daily digests"]]
      #_[:div.radio-btn
-        [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked true}]
+        [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly"}]
         [:label {:for "weekly"} "yes, send me weekly digests"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
