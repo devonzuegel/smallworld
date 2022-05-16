@@ -182,9 +182,11 @@
             (println "-----------------------------------------------------------------------------------------"))
 
           (if (= next-cursor 0)
-            new-result ; return final result if Twitter returns a cursor of 0
-            (recur next-cursor new-result))))
-      (log-event "fetch-twitter-friends--end" {:screen-name screen-name}))
+            (do (log-event "fetch-twitter-friends--end" {:screen-name screen-name
+                                                         :cursor cursor
+                                                         :result-count (count new-result)})
+                new-result) ; return final result if Twitter returns a cursor of 0
+            (recur next-cursor new-result)))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (when (= 429 (get-in e [:data :status])) (println "you hit the Twitter rate limit!"))
