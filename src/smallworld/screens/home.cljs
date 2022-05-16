@@ -174,16 +174,12 @@
                                              (-> (last (util/query-dom ".category"))
                                                  (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
                                           50)))}
-            (decorations/plus-icon "scale(0.15)") "follow another location"]
-
-           (when (= :loading @user-data/*friends)
-             [:pre {:style {:margin "24px auto" :max-width "360px"}}
-              "🚧  this wil take a while to load, apologies.  I'm working on "
-              "making it faster.  thanks for being an early user!"])])
+            (decorations/plus-icon "scale(0.15)") "follow another location"]])
         [:br] [:br] [:br]
-        [:p {:style {:text-align "center"}}
-         [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
-          "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]]]
+        (when (= (.. js/window -location -hash) "#debug")
+          [:p {:style {:text-align "center"}}
+           [:a {:on-click #(reset! *debug? (not @*debug?)) :href "#" :style {:border-bottom "2px solid #ffffff33"}}
+            "toggle debug – currently " (if @*debug? "on 🟢" "off 🔴")]])]
 
        util/info-footer
 
