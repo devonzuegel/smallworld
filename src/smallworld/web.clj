@@ -346,7 +346,8 @@
   (println "===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "manicmaus_")
+  (let [all-users ; (db/select-all db/settings-table) ;
+        (db/select-by-col db/settings-table :screen_name "antimatter15")
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
@@ -385,7 +386,7 @@
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
   (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-session get-users-friends req))
-  (GET "/api/v1/admin/refresh_all_users_friends" _ (generate-string "hit endpoint: /api/v1/admin/refresh_all_users_friends"))
+  (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event worker))
 
   ;; app data endpoints
   (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-session req)))))

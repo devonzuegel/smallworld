@@ -11,8 +11,10 @@
 (def screen-name "devonzuegel")
 
 (defn is-admin [user]
-  (assert (not (nil? (:screen-name user))))
-  (= screen-name (:screen-name user)))
+  (and
+   (not-empty (:screen-name user))
+   (not (nil? (:screen-name user)))
+   (= screen-name (:screen-name user))))
 
 (is-admin {:screen-name ""})
 
@@ -51,9 +53,21 @@
 
 #?(:clj
    (do
-     (defn summary-data [get-current-user req]
-       (let [current-user (get-current-user req)
-             result (if-not (is-admin current-user)
+     (defn refresh-all-users-friends [current-session log-event worker]
+       (if-not (is-admin current-session)
+         (cheshire/generate-string (response/bad-request {:message "you don't have access to this page"}))
+
+         (let [endpoint "/api/v1/admin/refresh_all_users_friends"
+               message (str "hit endpoint: " endpoint)]
+           (log-event "worker" {:message message
+                                :endpoint endpoint
+                                :screen-name (:screen-name current-session)})
+           (worker)
+           (cheshire/generate-string message))))
+
+     (defn summary-data [get-current-session req]
+       (let [current-session (get-current-session req)
+             result (if-not (is-admin current-session)
                       (response/bad-request {:message "you don't have access to this page"})
                       {:twitter-profiles (db/select-all db/twitter-profiles-table)
                        :settings         (db/select-all db/settings-table)
@@ -64,11 +78,11 @@
                        :coordinates      (db/select-all db/coordinates-table)})]
          (cheshire/generate-string result)))
 
-     (defn friends-of-specific-user [get-current-user get-users-friends req]
+     (defn friends-of-specific-user [get-current-session get-users-friends req]
        (fn [{params :params}]
          (println "params:")
          (println params)
-         (let [curr-user-screen-name (:screen-name (get-current-user req))
+         (let [curr-user-screen-name (:screen-name (get-current-session req))
                target-screen-name    (:screen_name params)]
            (if-not (= screen-name curr-user-screen-name)
              (response/bad-request {:message "you don't have access to this page"})
