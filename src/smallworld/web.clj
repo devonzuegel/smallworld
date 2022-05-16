@@ -103,10 +103,12 @@
 ;;; settings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn get-settings [screen-name]
-  (let [settings (first (db/select-by-col db/settings-table :screen_name screen-name))] ; TODO: set in the session for faster access
+(defn get-settings [req screen-name]
+  (let [settings (first (db/select-by-col db/settings-table :screen_name screen-name)) ; TODO: set in the session for faster access
+        ip-address (or (get-in req [:headers "x-forwarded-for"]) (:remote-addr req))]
     (log-event "get-settings" (if (nil? screen-name) {} {:screen-name screen-name
-                                                         :settings    settings}))
+                                                         :settings    settings
+                                                         :ip-address ip-address}))
     settings))
 
 (defn update-settings [req]
@@ -222,7 +224,7 @@
         screen-name   (or screen-name session-screen-name)
         result        (if logged-out?
                         []
-                        (memoized-abridged-friends screen-name (get-settings session-screen-name)))]
+                        (memoized-abridged-friends screen-name (get-settings req session-screen-name)))]
     (log-event "get-users-friends" {:count (count result)
                                     :screen-name screen-name})
     (generate-string result)))
@@ -233,7 +235,7 @@
         logged-out? (nil? screen-name)
         result      (if logged-out?
                       []
-                      (--fetch-abridged-friends--not-memoized screen-name (get-settings screen-name)))]
+                      (--fetch-abridged-friends--not-memoized screen-name (get-settings req screen-name)))]
     (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
@@ -391,7 +393,7 @@
   (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event worker))
 
   ;; app data endpoints
-  (GET "/api/v1/settings" req (generate-string (get-settings (:screen-name (get-session req)))))
+  (GET "/api/v1/settings" req (generate-string (get-settings req (:screen-name (get-session req)))))
   (POST "/api/v1/settings/update" req (update-settings req))
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         location-name (:location-name parsed-body)]
@@ -401,7 +403,7 @@
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
                                                        friends-full (:friends (memoized-friends screen-name))
-                                                       settings     (get-settings screen-name)
+                                                       settings     (get-settings req screen-name)
                                                        corrected-curr-user (merge (get-session req)
                                                                                   {:locations (:locations settings)})
                                                        friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
