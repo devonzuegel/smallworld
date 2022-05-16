@@ -29,7 +29,7 @@
                        (swap! *locations-new assoc index (merge (get @*locations-new index)
                                                                 {:coords result}))))))
 
-(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 200))
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
 (def email_notifications_options [#_"instant" "daily" #_"weekly" "muted"])
 
