@@ -18,10 +18,20 @@
 (util/fetch "/api/v1/friends/refresh-atom"
             (fn [result]
               (reset! user-data/*friends result)
+              (println "first run - calling /api/v1/friends/refresh-atom")
               ; TODO: only run this on the main page, otherwise you'll get errors
               ; wait for the map to load – this is a hack & may be a source of errors ;)
               (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
             :retry? true)
+
+(js/setInterval #(when (= [] @user-data/*friends)
+                   (util/fetch "/api/v1/friends/refresh-atom"
+                               (fn [result]
+                                 (println "interval - calling /api/v1/friends/refresh-atom")
+                                 (reset! user-data/*friends result)
+                                 (mapbox/add-friends-to-map @user-data/*friends @session/*store))
+                               :retry? true))
+                500)
 
 (defn nav []
   [:div.nav
@@ -142,8 +152,8 @@
                                                                    (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
                           (decorations/cancel-icon)]]
 
-                        (if (get-in @settings/*settings [:locations i :loading])
-                          [:div.friends-list [:div.loading (decorations/simple-loading-animation)]]
+                        (if (or (get-in @settings/*settings [:locations i :loading]) (= [] @user-data/*friends))
+                          [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your friends from Twitter..."]]
                           (when-not (nil? (:coords location-data))
                             [:<>
                              (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
