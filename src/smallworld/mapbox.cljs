@@ -10,7 +10,7 @@
 
 ; Mapbox API docs: https://docs.mapbox.com/mapbox-gl-js/api/map
 
-(util/load-stylesheet "./css/mapbox-gl.inc.css")
+(util/load-stylesheet "/api/v1/css/mapbox-gl.inc.css")
 
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
