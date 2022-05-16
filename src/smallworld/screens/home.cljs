@@ -18,13 +18,14 @@
 (util/fetch "/api/v1/friends/refresh-atom"
             (fn [result]
               (reset! user-data/*friends result)
-              (println "first run - calling /api/v1/friends/refresh-atom")
               ; TODO: only run this on the main page, otherwise you'll get errors
               ; wait for the map to load – this is a hack & may be a source of errors ;)
               (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
             :retry? true)
 
-(js/setInterval #(when (= [] @user-data/*friends)
+(js/setInterval #(when (and (= [] @user-data/*friends)
+                            (not= :loading @session/*store)
+                            (not-empty @session/*store))
                    (util/fetch "/api/v1/friends/refresh-atom"
                                (fn [result]
                                  (println "interval - calling /api/v1/friends/refresh-atom")
