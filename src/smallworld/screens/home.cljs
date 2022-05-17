@@ -34,9 +34,6 @@
                                :retry? true))
                 (* 0.5 1000))
 
-(js/setInterval #(println "this is the version deployed in the new way!")
-                (* 3 1000))
-
 (defn nav []
   [:div.nav
    [:a#logo-animation.logo {:on-click #(reset! *settings-open? false)}
