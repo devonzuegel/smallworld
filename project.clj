@@ -22,6 +22,8 @@
                  [org.clojure/data.json "2.4.0"]
                  [clj-fuzzy "0.4.1"]
                  [prismatic/schema "1.2.0"]
+                 [clojure.jdbc/clojure.jdbc-c3p0 "0.3.1"]
+                 [org.clojure/java.jdbc "0.7.12"]
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [environ "1.1.0"]]
   :plugins [[lein-environ "1.1.0" :hooks false]

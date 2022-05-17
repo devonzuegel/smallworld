@@ -3,11 +3,25 @@
                             [clojure.pprint :as pp]
                             [clojure.string :as str]
                             [clojure.walk :as walk]
+                            [jdbc.pool.c3p0 :as pool]
                             [smallworld.clj-postgresql.types] ; this enables the :json type
                             [smallworld.util :as util]))
 
 (def debug? false)
-(def url (util/get-env-var "DATABASE_URL"))
+(def db-uri (java.net.URI. (util/get-env-var "DATABASE_URL")))
+(def user-and-password
+  (if (nil? (.getUserInfo db-uri))
+    nil (clojure.string/split (.getUserInfo db-uri) #":")))
+(def pool
+  (delay
+   (pool/make-datasource-spec
+    {:classname "org.postgresql.Driver"
+     :subprotocol "postgresql"
+     :user (get user-and-password 0)
+     :password (get user-and-password 1)
+     :subname (if (= -1 (.getPort db-uri))
+                (format "//%s%s" (.getHost db-uri) (.getPath db-uri))
+                (format "//%s:%s%s" (.getHost db-uri) (.getPort db-uri) (.getPath db-uri)))})))
 
 ; table names
 (def twitter-profiles-table :twitter_profiles) ; store all data from Twitter sign up
@@ -34,7 +48,7 @@
   (->> table-name
        name
        escape-str
-       (#(sql/query url (str "SELECT table_name FROM information_schema.tables where table_name = '" % "'")))
+       (#(sql/query @pool (str "SELECT table_name FROM information_schema.tables where table_name = '" % "'")))
        count
        (not= 0)))
 
@@ -44,24 +58,24 @@
     (do
       (println "creating table"  table-name)
       (if (string? schema)
-        (sql/db-do-commands url (clojure.string/split schema #"--- split here ---"))
-        (sql/db-do-commands url (sql/create-table-ddl (name table-name) schema))))))
+        (sql/db-do-commands @pool (clojure.string/split schema #"--- split here ---"))
+        (sql/db-do-commands @pool (sql/create-table-ddl (name table-name) schema))))))
 
 (defn recreate-table [table-name schema] ; leave this commented out by default, since it's destructive
-  (sql/db-do-commands url (str " drop table if exists " (name table-name)))
+  (sql/db-do-commands @pool (str " drop table if exists " (name table-name)))
   (create-table table-name schema)
   (when debug?
     (println "done dropping table named " table-name " (if it existed)")
     (println "done creating table named " table-name)))
 
 (defn select-all [table]
-  (sql/query url (str "select * from " (name table))))
+  (sql/query @pool (str "select * from " (name table))))
 
 (defn show-all [table-name]
   (println)
   (let [results (if (= table-name friends-table)
-                  (sql/query url (str "select request_key from " (name friends-table)))
-                  (sql/query url (str "select * from " (name table-name))))]
+                  (sql/query @pool (str "select request_key from " (name friends-table)))
+                  (sql/query @pool (str "select * from " (name table-name))))]
     (pp/pprint results)
     (when (= table-name friends-table)
       (println "not printing {:data {:friends}} because it's too long"))
@@ -74,20 +88,20 @@
   (if (nil? col-value)
     []
     (walk/keywordize-keys
-     (sql/query url (str "select * from " (name table-name)
-                         (where col-name col-value))))))
+     (sql/query @pool (str "select * from " (name table-name)
+                           (where col-name col-value))))))
 
 (defn insert! [table-name data]
   (when debug?
     (println "inserting the following data into" table-name)
     (pp/pprint data))
-  (sql/insert! url table-name data))
+  (sql/insert! @pool table-name data))
 
 ; TODO: this was meant to simplify the code, but it's best to just replace it
 ; everywhere with sql/update! probably
 (defn update! [table-name col-name col-value new-json]
-  (sql/update! url table-name new-json [(str (name col-name) " = ?")
-                                        col-value]))
+  (sql/update! @pool table-name new-json [(str (name col-name) " = ?")
+                                          col-value]))
 
 ; TODO: turn this into a single query to speed it up
 (defn memoized-insert-or-update! [table-name request_key data]
@@ -156,8 +170,8 @@
   (select-by-col friends-table :request_key "meadowmaus")
   (show-all friends-table)
 
-  (sql/delete! url friends-table         ["request_key = ?" "devonzuegel"])
-  (sql/delete! url access_tokens-table ["request_key = ?" "devonzuegel"])
+  (sql/delete! @pool friends-table       ["request_key = ?" "devonzuegel"])
+  (sql/delete! @pool access_tokens-table ["request_key = ?" "devonzuegel"])
   (show-all access_tokens-table)
 
   (select-by-col access_tokens-table :request_key "devonzuegel")
