@@ -350,8 +350,7 @@
   (println "===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users ; (db/select-all db/settings-table) ;
-        (db/select-by-col db/settings-table :screen_name "antimatter15")
+  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "antimatter15")
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
