@@ -32,7 +32,10 @@
                                  (reset! user-data/*friends result)
                                  (mapbox/add-friends-to-map @user-data/*friends @session/*store))
                                :retry? true))
-                500)
+                (* 0.5 1000))
+
+(js/setInterval #(println "this is the version deployed in the new way!")
+                (* 3 1000))
 
 (defn nav []
   [:div.nav
