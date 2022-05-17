@@ -1,1 +1,1 @@
-web: bin/run-server-jar.sh
+web: java $JVM_OPTS -jar target/smallworld.jar prod
