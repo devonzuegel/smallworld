@@ -28,7 +28,6 @@
                             (not-empty @session/*store))
                    (util/fetch "/api/v1/friends/refresh-atom"
                                (fn [result]
-                                 (println "interval - calling /api/v1/friends/refresh-atom")
                                  (reset! user-data/*friends result)
                                  (mapbox/add-friends-to-map @user-data/*friends @session/*store))
                                :retry? true))
