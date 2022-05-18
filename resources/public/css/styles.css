@@ -1036,6 +1036,7 @@ input[type='radio']:focus {
 #mapbox-container {
   pointer-events: none;
   overflow: hidden;
+  background: #b3c3ca;
   border: 2px solid #00230e;
   box-shadow: 0px 0px 18px #ffffff22;
   border-radius: 24px;
