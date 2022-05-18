@@ -203,13 +203,25 @@ select {
 /******************************************************************************/
 .home-page {
   margin: auto;
-  padding: 12px;
-  padding-bottom: 140px;
+  padding: 24px 16px 12px 16px;
   max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
-  min-height: calc(100vh - 200px);
+
+  /* the following is so the map is centered, even when it overflows*/
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+}
+.home-page p.info {
+  font-size: 0.9em;
+  opacity: 0.7;
+  text-align: center;
+}
+.home-page p.info a {
+  color: #d9d3cc;
+  border-bottom: 2px solid #d9d3cc55;
+}
+.home-page p.info a:hover {
+  border-bottom: 2px solid #d9d3cc88;
 }
 pre {
   white-space: pre-wrap;
@@ -312,6 +324,7 @@ tr:nth-child(even) {
   border: 1px solid #d9d3cc22;
   border-radius: 10px;
   margin-bottom: 12px;
+  width: 100%;
 }
 .category {
   margin-top: 18px;
@@ -334,6 +347,7 @@ tr:nth-child(even) {
   border: 2px solid #ffffff22;
   border-radius: 8px;
   line-height: 1.7;
+  margin-top: 16px;
 }
 .no-locations-info p,
 ul {
@@ -755,7 +769,7 @@ ul {
 .welcome-flow #track-new-location-field {
   width: fit-content;
   margin: auto;
-  margin-top: 16px;
+  margin-top: 12px;
   padding: 8px 14px;
   border-radius: 24px;
   fill: #d9d3cc;
@@ -775,9 +789,6 @@ ul {
 .welcome-flow #track-new-location-field svg.plus {
   margin-right: 2px;
   margin-bottom: -6px;
-}
-.home-page #track-new-location-field {
-  margin-bottom: 24px;
 }
 .welcome-flow svg.cancel-icon,
 .home-page .delete-location-btn svg.cancel-icon {
@@ -815,7 +826,7 @@ ul {
 }
 .home-page .friends-list.header .delete-location-btn {
   margin-left: auto;
-  margin-right: -14px;
+  margin-right: -11px;
   margin-top: -14px;
 }
 .welcome-flow .location-field {
@@ -1022,60 +1033,67 @@ input[type='radio']:focus {
 /******************************************************************************/
 /**** Mapbox ******************************************************************/
 /******************************************************************************/
-#mapbox-container.expanded {
-  height: 99vh; /* note that this includes the height of the button, not just the map */
-  transition: height 200ms ease-in-out;
-  // top: 0;
-  // margin-top: 1vh;
-}
-/* iOS devices only, to account for vertical space taken by iOS Safari search bar at bottom of screen */
-@supports (-webkit-touch-callout: none) {
-  #mapbox-container.expanded {
-    height: 90vh; /* note that this includes the height of the button, not just the map */
-  }
-}
-
 #mapbox-container {
   pointer-events: none;
-  height: 150px;
-  transition: height 200ms ease-in-out;
-  width: 100%;
-  position: fixed;
+  overflow: hidden;
+  border: 2px solid #00230e;
+  box-shadow: 0px 0px 18px #ffffff22;
+  border-radius: 24px;
+  position: relative; /* required so that position:absolute works for the .expand-me btn */
+}
+@media (max-width: 768px) /* mobile */ {
+  #mapbox-container {
+    width: calc(100vw - 32px);
+    height: calc(60vh - 40px - 41px); /* 41px accounts for the margin */
+    margin: 16px 0 20px 0;
+  }
+}
+@media (min-width: 768px) /* desktop */ {
+  #mapbox-container {
+    width: calc(100vw - 60px);
+    height: calc(60vh - 60px - 41px); /* 41px accounts for the margin */
+    margin: 16px 0 20px 0;
+  }
+}
+#mapbox-container.expanded {
+  transition: all 200ms ease-in-out; /* smooth the expand/collapse behavior */
+  position: absolute;
+  top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  height: 100%;
+  border: none;
+  width: 100%;
+  margin: 0 !important;
+  z-index: 1;
+  border-radius: 0;
+}
+#mapbox-container.expanded .mapboxgl-map {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
 #mapbox-container .expand-me {
+  position: absolute; /* #mapbox-container needs position:relative */
   pointer-events: auto;
-  background: #efeaef;
-  font-weight: bolder;
-  font-size: 1.2rem;
-  color: #013917;
-  border: 2px solid #013917;
-  filter: saturate(50%);
-  box-shadow: 0px 0px 18px #ffffff77;
-  padding: 6px 16px 8px 16px;
-  border-radius: 16px;
-  z-index: 1;
+  fill: #013917;
   cursor: pointer;
-  transform: translateY(50%);
-  transition: background 100ms ease-out;
-  width: 6.75em;
-  text-align: center;
+  filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.5));
+  z-index: 300;
+  margin-top: 12px;
+  margin-left: 12px;
 }
 #mapbox-container .expand-me:hover {
-  background: white;
-  transition: background 100ms ease-out;
+  fill: black;
+  filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.8));
 }
 #mapbox-container .mapboxgl-map {
   background: #9dc7d9;
-  box-shadow: 0px 0px 18px #ffffff55;
   border-top: 2px solid #013917;
-  filter: saturate(50%);
+  filter: saturate(40%);
   overflow: hidden;
+  border: 0;
 }
 #mapbox {
   height: 100%;
@@ -1161,7 +1179,7 @@ input[type='radio']:focus {
   white-space: pre;
   font-family: 'Roboto Mono', monospace;
 
-  transition: height width 500ms ease-out;
+  transition: height 500ms ease-out, width 500ms ease-out;
   animation: fadein 1s;
   -moz-animation: fadein 1s; /* Firefox */
   -webkit-animation: fadein 1s; /* Safari and Chrome */

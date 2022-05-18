@@ -262,7 +262,7 @@
                                      (last (array-seq (goog.dom/getElementsByClass "location-field")))
                                      #js{:behavior "smooth" :block "center" :inline "center"})
                                    50))}
-       (decorations/plus-icon "scale(0.15)") "follow another location"]
+       (decorations/plus-icon "scale(0.15)") "follow a new location"]
       [:div.small-info-text {:style {:margin-top "6px"}}
        "you can always add more locations later"]])
    [:br]

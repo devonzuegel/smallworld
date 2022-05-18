@@ -25,6 +25,14 @@
   [:svg {:class "question" :view-box "0 0 18 18" :width "22px" :height "22px"}
    [:g [:path {:style {:transform "scale(.75)"} :d "M14.601 21.5c0 1.38-1.116 2.5-2.499 2.5-1.378 0-2.499-1.12-2.499-2.5s1.121-2.5 2.499-2.5c1.383 0 2.499 1.119 2.499 2.5zm-2.42-21.5c-4.029 0-7.06 2.693-7.06 8h3.955c0-2.304.906-4.189 3.024-4.189 1.247 0 2.57.828 2.684 2.411.123 1.666-.767 2.511-1.892 3.582-2.924 2.78-2.816 4.049-2.816 7.196h3.943c0-1.452-.157-2.508 1.838-4.659 1.331-1.436 2.986-3.222 3.021-5.943.047-3.963-2.751-6.398-6.697-6.398z"}]]])
 
+(defn fullscreen-icon []
+  [:svg {:class "fullscreen" :view-box "0 0 18 18" :width "22px" :height "22px"}
+   [:g [:path {:style {:transform "scale(.75)"} :d "M10 5h-3l5-5 5 5h-3v3h-4v-3zm4 14h3l-5 5-5-5h3v-3h4v3zm-9-5v3l-5-5 5-5v3h3v4h-3zm14-4v-3l5 5-5 5v-3h-3v-4h3z"}]]])
+
+(defn minimize-icon []
+  [:svg {:class "fullscreen" :view-box "0 0 18 18" :width "22px" :height "22px"}
+   [:g [:path {:style {:transform "scale(.75)"} :d "M14 3h3l-5 5-5-5h3v-3h4v3zm-4 18h-3l5-5 5 5h-3v3h-4v-3zm-7-11v-3l5 5-5 5v-3h-3v-4h3zm18 4v3l-5-5 5-5v3h3v4h-3z"}]]])
+
 (defn location-icon []
   [:svg {:class "location" :view-box "0 0 6 6" :width "16px" :height "16px"}
    [:g [:path {:style {:transform "scale(0.25)"} :d "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"}]]])

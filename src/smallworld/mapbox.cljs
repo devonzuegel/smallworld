@@ -177,7 +177,7 @@
                   (doall
                    (for [i (range 105)]
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
-     (if @expanded "collapse map" "expand map")]
+     (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
     [mapbox-dom current-user]]])
 
 (defn add-friends-to-map [friends curr-user]
