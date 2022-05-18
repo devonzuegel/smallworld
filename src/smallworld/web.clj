@@ -383,7 +383,7 @@
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/logout"     req (logout req))
-  (GET "/api/v1/session" req (generate-string (get-session req)))
+  (GET "/api/v1/session" req (generate-string (select-keys (get-session req) [:screen-name])))
 
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
