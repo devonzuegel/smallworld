@@ -96,7 +96,23 @@
        [:div ; this div is here to allow for the alignment of the footer
         (if @*settings-open?
           (settings/settings-screen)
-          [:<> [:br]
+          [:<>
+           [:div#track-new-location-field
+            {:on-click (fn []
+                         (let [updated-locations (vec (concat curr-user-locations ; using concat instead of conj so it adds to the end
+                                                              [{:special-status "added-manually"
+                                                                :name "" ; the value starts out blank
+                                                                :coords nil}]))]
+                           (swap! settings/*settings assoc :locations updated-locations)
+
+                           (js/setTimeout #(do
+                                             (-> (last (util/query-dom ".friends-list input"))
+                                                 .focus)
+                                             (-> (last (util/query-dom ".category"))
+                                                 (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
+                                          50)))}
+            (decorations/plus-icon "scale(0.15)") "follow another location"]
+
            (when (= 0 (count curr-user-locations))
              [:div.no-locations-info
               ; TODO: improve the design of this state
@@ -104,7 +120,7 @@
               [:ul
                [:li update " your Twitter profile location"]
                [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"]
-               [:li "add a location manually with the button below"]]])
+               [:li "add a location manually with the button above"]]])
 
            (doall (map-indexed
                    (fn [i location-data]
@@ -154,23 +170,7 @@
                             [:<>
                              (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
                              (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))]))]))
-                   curr-user-locations))
-           [:br]
-           [:div#track-new-location-field
-            {:on-click (fn []
-                         (let [updated-locations (vec (concat curr-user-locations ; using concat instead of conj so it adds to the end
-                                                              [{:special-status "added-manually"
-                                                                :name "" ; the value starts out blank
-                                                                :coords nil}]))]
-                           (swap! settings/*settings assoc :locations updated-locations)
-
-                           (js/setTimeout #(do
-                                             (-> (last (util/query-dom ".friends-list input"))
-                                                 .focus)
-                                             (-> (last (util/query-dom ".category"))
-                                                 (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
-                                          50)))}
-            (decorations/plus-icon "scale(0.15)") "follow another location"]])
+                   curr-user-locations))])
         [:br] [:br] [:br]
         (when (= (.. js/window -location -hash) "#debug")
           [:p {:style {:text-align "center"}}
