@@ -154,10 +154,10 @@
                    :maxZoom 9
                    :minZoom 0}))
 
-  (js/setInterval #(.resize @the-map) (* 5 1000)) ; make sure the map is properly sized
-  ;; TODO: removed this bc it was bad for performance; try to find a way to put it back!
-  ;; (.on @the-map "zoom" update-markers-size) ; calibrate markers' size according to the zoom
-  )
+  ; minimize the map when the user hits ESCAPE
+  (.addEventListener js/document "keyup"
+                     #(when (= (.-key %) "Escape") (reset! expanded false))
+                     false))
 
 
 ; this cannot be an anonymous function.  it needs to be a named function, because otherwise
