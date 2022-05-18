@@ -25,7 +25,6 @@
 (def debug? false)
 
 (defn log-event [name data]
-  (db/insert! db/events-table {:event_name name :data data})
   (util/log (str name ": " data)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -487,7 +486,6 @@
   (db/create-table db/friends-table          db/friends-schema)
   (db/create-table db/coordinates-table      db/coordinates-schema)
   (db/create-table db/access_tokens-table    db/access-tokens-schema)
-  (db/create-table db/events-table           db/events-schema)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]

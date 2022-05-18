@@ -36,7 +36,6 @@
 (def friends-schema          (slurp (io/resource "sql/friends-schema.sql")))
 (def coordinates-schema      (slurp (io/resource "sql/coordinates-schema.sql")))
 (def access-tokens-schema    (slurp (io/resource "sql/access-tokens-schema.sql")))
-(def events-schema           (slurp (io/resource "sql/events-schema.sql")))
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
