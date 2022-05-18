@@ -148,7 +148,7 @@
         (settings/settings-screen)
 
         [:div.home-page
-         [:p.info "here's where your friends are, based on their Twitter locations:"]
+         [:p.info "here are your friends' Twitter locations:"]
 
          (let [top-location (first (remove nil? (:locations @settings/*settings)))]
            [util/error-boundary
