@@ -46,7 +46,10 @@
   [:<>
    [:div.top-row
     [:b.user-name user-name]
-    [:a.screen-name {:href (str "http://twitter.com/" screen-name)} "@" screen-name]]
+    [:a.screen-name {:href   (str "http://twitter.com/" screen-name)
+                     :target "_blank"
+                     :rel    "noopener"}
+     (str "@" screen-name)]]
    ; TODO: display latest Tweet too (this requires some backend work)
    [:div.bottom-row {:title info}
     (decorations/location-icon)
