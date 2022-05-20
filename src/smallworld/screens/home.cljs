@@ -31,9 +31,6 @@
 (doall (for [i (range 50)]
          (js/setTimeout refresh-atom (* (util/exponent 2 i) 1000))))
 
-(js/setInterval #(when (= [] @user-data/*friends) (refresh-atom))
-                (* 0.5 1000))
-
 (defn nav []
   [:div.nav
    [:a#logo-animation.logo {:on-click #(reset! *settings-open? false)}
