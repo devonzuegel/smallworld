@@ -98,6 +98,12 @@ https://dashboard.heroku.com/apps/small-world-friends/scheduler
    heroku pg:psql postgresql-rigid-43177 --app small-world-friends
    ```
 
+- open local Postgres instance in terminal:
+
+   ```bash
+   /Applications/Postgres.app/Contents/Versions/14/bin/psql -p5432 "devonzuegel"
+   ```
+
 - view all tables:
 
    ```sql
