@@ -9,7 +9,6 @@
                 :friends-on-the-move "d-75f5a6ca89484938b92b5f01d883de1b"})
 
 (defn log-event [name data]
-  (db/insert! db/events-table {:event_name name :data data})
   (util/log (str name ": " data)))
 
 (defn- send-with-content [{to-email :to
