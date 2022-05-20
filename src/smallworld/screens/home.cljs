@@ -15,22 +15,23 @@
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
-(util/fetch "/api/v1/friends/refresh-atom"
-            (fn [result]
-              (reset! user-data/*friends result)
+(defn refresh-atom []
+  (when (and
+         (not= :loading @session/*store)
+         (not-empty @session/*store))
+    (util/fetch "/api/v1/friends/refresh-atom"
+                (fn [result]
+                  (when *debug? (println "/api/v1/friends/refresh-atom: " (count result) " (" (.now js/Date) ")"))
+                  (reset! user-data/*friends result)
               ; TODO: only run this on the main page, otherwise you'll get errors
               ; wait for the map to load – this is a hack & may be a source of errors ;)
-              (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
-            :retry? true)
+                  (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
+                :retry? true)))
 
-(js/setInterval #(when (and (= [] @user-data/*friends)
-                            (not= :loading @session/*store)
-                            (not-empty @session/*store))
-                   (util/fetch "/api/v1/friends/refresh-atom"
-                               (fn [result]
-                                 (reset! user-data/*friends result)
-                                 (mapbox/add-friends-to-map @user-data/*friends @session/*store))
-                               :retry? true))
+(doall (for [i (range 50)]
+         (js/setTimeout refresh-atom (* (util/exponent 2 i) 1000)))) ; TODO: put 2 back in place of 1
+
+(js/setInterval #(when (= [] @user-data/*friends) (refresh-atom))
                 (* 0.5 1000))
 
 (defn nav []

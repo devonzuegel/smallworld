@@ -141,6 +141,8 @@
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
+(def abridged-friends-cache (atom {}))
+
 (defn --fetch-friends [screen-name] ;; use the memoized version of this function!
   (when debug?
     (println "================================================================================================= start")
@@ -171,17 +173,17 @@
                                                 "&include_user_entities=true")})
               page-of-friends (:users api-response)
               new-result      (concat result-so-far page-of-friends)
-              screen-names    (map :screen-name (:users api-response))
               next-cursor     (:next-cursor api-response)]
 
           (when debug?
-            (println "api-response keys:    " (keys api-response))
-            (println "(first screen-names): " (first screen-names))
-            (println "(count screen-names): " (count screen-names))
-            (println "next-cursor:          " next-cursor)
+            (println "\nnext-cursor:          " next-cursor)
             (println "new-result count:     " (count new-result))
-            (println "-----------------------------------------------------------------------------------------"))
+            (println "updating @" screen-name "'s friends... (partially!)")
+            (println "-----------------------------------------------------------------------------------------\n"))
 
+          (db/insert-or-update! db/friends-table :request_key
+                                {:request_key screen-name
+                                 :data        {:friends (vec new-result)}})
           (if (= next-cursor 0)
             (do (log-event "fetch-twitter-friends--end" {:screen-name screen-name
                                                          :cursor cursor
@@ -202,7 +204,6 @@
                              {:friends friends-result})))
                        db/friends-table))
 
-(def abridged-friends-cache (atom {}))
 (defn --fetch-abridged-friends [screen-name current-user]
   (map #(user-data/abridged % current-user)
        (:friends (memoized-friends screen-name)))) ; can add (take X) for debugging
@@ -235,7 +236,6 @@
         result      (if logged-out?
                       []
                       (--fetch-abridged-friends--not-memoized screen-name (get-settings req screen-name)))]
-    (println (str "count (get-users-friends @" screen-name "): " (count result)))
     (generate-string result)))
 
 (defn select-location-fields [friend]

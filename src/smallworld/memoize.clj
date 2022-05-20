@@ -36,7 +36,7 @@
       (println "            result: " (count result))
       (println table-name))
     ; store result so it doesn't have to be fetched again
-    (db/insert! table-name {:request_key request-key :data result})
+    (db/insert-or-update! table-name :request_key {:request_key request-key :data result})
     result)
   (read! [table-name request-key]
     (let [results (db/select-by-col table-name :request_key request-key)]

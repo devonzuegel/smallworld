@@ -118,10 +118,13 @@
         col-value   (get data col-name)
         sql-results (select-by-col table-name col-name col-value)
         exists?     (not= 0 (count sql-results))
-        new-data    (assoc (dissoc (merge (first sql-results) data)
-                                   :id :updated_at)
-                           :locations (or (:locations data)
-                                          (vec (:locations (first sql-results)))))]
+        new-data    (dissoc (merge (first sql-results) data)
+                            :id :updated_at)
+        new-data    (if (not= table-name settings-table)
+                      new-data
+                      (assoc new-data ; TODO: this only applies to settings table, not any others! yuck
+                             :locations (or (:locations data)
+                                            (vec (:locations (first sql-results))))))]
     (when debug?
       (println "--- running fn: insert-or-update! ---------")
       (println "col-name:   " col-name)

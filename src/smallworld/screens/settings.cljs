@@ -138,7 +138,6 @@
 
 
 (defn submit-welcome-form []
-
   (let [new-settings {:email_address           (input-value-by-name "email-address-input")
                       :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                       :locations               @*locations-new
