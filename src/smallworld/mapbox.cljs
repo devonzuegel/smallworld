@@ -91,6 +91,7 @@
           (set! (.-style element) (str "z-index: " (if (= classname "current-user")
                                                      11 ; put current user's avatar on top
                                                      (.ceil js/Math (rand 10)))))
+
           (r/render-component [User-Marker {:lng-lat     lng-lat
                                             :location    location
                                             :img-url     img-url
