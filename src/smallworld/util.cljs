@@ -58,11 +58,16 @@
 (defn rm-from-list [col idx]
   (filter identity (map-indexed #(when-not (= %1 idx) %2) col)))
 
-(def info-footer
+(defn info-footer [screen-name rm-markers]
   [:div.info-footer
    [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
    [:span.dot-separator " · "]
-   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]])
+   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
+   (when (= screen-name "devonzuegel")
+     [:<> [:span.dot-separator " · "]
+      [:a {:href "#" :on-click rm-markers} "remove all markers"]
+      [:span.dot-separator " · "]
+      [:a "v5"]])])
 
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]

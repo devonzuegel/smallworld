@@ -163,7 +163,7 @@
     [:a.expand-me
      {:on-click (fn []
                   (reset! expanded (not @expanded))
-                  (doall
+                  (doall ; TODO: replace with doseq, which is for side effects
                    (for [i (range 105)]
                      (js/setTimeout #(.resize @the-map) (* i 10)))))}
      (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]

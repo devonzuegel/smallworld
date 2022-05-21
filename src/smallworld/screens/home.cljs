@@ -224,9 +224,8 @@
            track-new-location-btn)
 
          [:br]
-         [:h1 "verifying: v4"]
-         [:br]
          (debugger-btn)
 
-         util/info-footer
+         (util/info-footer (:screen-name @session/*store)
+                           #(doall (map (mapbox/remove-friend-marker) @mapbox/markers))) ; TODO: replace with doseq, which is for side effects
          (debugger-info)])])])
