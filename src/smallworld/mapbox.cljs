@@ -1,4 +1,4 @@
-(ns smallworld.mapbox
+(ns smallworld.mapbox ; Mapbox GL docs: https://docs.mapbox.com/mapbox-gl-js/api/map
   (:require [reagent.core           :as r]
             [clojure.pprint         :as pp]
             [clojure.string         :as str]
@@ -128,19 +128,7 @@
 
 (set! (.-accessToken js/mapboxgl) (get-in config [style :access-token]))
 
-(def middle-of-USA [-90, 40])
 (def Miami [-80.1947021484375 25.775083541870117])
-
-(defn update-markers-size [& [to-print]]
-  (let [scale   (+ .4 (* (.getZoom @the-map) 0.15))
-        markers (array-seq (goog.dom/getElementsByClass "marker"))]
-    (doall (for [marker markers]
-             (let [new-diameter (str (* scale 30) "px")] ; min & max set in CSS
-               (println "new-diameter:" new-diameter
-                        " | scale:" scale
-                        "| (count markers):" (count markers))
-               (.setProperty (.-style marker.firstChild) "width" new-diameter)
-               (.setProperty (.-style marker.firstChild) "height" new-diameter))))))
 
 (defn component-did-mount [current-user] ; this should be called just once when the component is mounted
   ; create the map
@@ -149,13 +137,11 @@
                #js{:container "mapbox"
                    :key    (get-in config [style :access-token])
                    :style  (get-in config [style :style])
-                   :center (clj->js (or (:lng-lat current-user) middle-of-USA))
+                   :center (clj->js (or (:lng-lat current-user) Miami))
                    :attributionControl false ; removes the Mapbox copyright symbol
                    :zoom 2
                    :maxZoom 9
                    :minZoom 0}))
-
-  (js/setTimeout #(.resize @the-map) 500) ; make sure the map is properly sized + the markers are placed
 
   ; minimize the map when the user hits ESCAPE
   (.addEventListener js/document "keyup"
@@ -227,6 +213,5 @@
                     (add-user-marker (merge marker-data {:lng-lat new-lat-lng}))))
                 markers))))
 
-    (when-not (nil? @the-map)
-      (.on @the-map "loaded" #((println "upating markers size")
-                               (update-markers-size))))))
+    (println "add-friends-to-map:  (1) resizing the map + (2) update-markers-size")
+    (.resize @the-map)))

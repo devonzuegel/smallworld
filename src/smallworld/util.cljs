@@ -5,7 +5,6 @@
 
 (def debug? false)
 
-; Mapbox GL docs: https://docs.mapbox.com/mapbox-gl-js/guides/install 
 (defn load-stylesheet [href & [callback]]
   (let [head (aget (.getElementsByTagName js/document "head") 0)
         link (.createElement js/document "link")]

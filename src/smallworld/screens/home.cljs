@@ -125,7 +125,7 @@
   [:<>
    (nav)
    [:br]
-   [:h1 "verifying: v3"]
+   [:h1 "verifying: v4"]
    (let [curr-user-locations (remove nil? (:locations @settings/*settings))
          update [:a {:href "https://twitter.com/settings/location" :target "_blank"} "update"]
          track-new-location-btn [:div#track-new-location-field
