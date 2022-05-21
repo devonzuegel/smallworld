@@ -1095,6 +1095,7 @@ input[type='radio']:focus {
   filter: saturate(40%);
   overflow: hidden;
   border: 0;
+  border-radius: 24px; /* this needs to have border-radius, not just the parent, because otherwise it doesn't get rendered in iOS Safari */
 }
 #mapbox {
   height: 100%;
