@@ -155,8 +155,6 @@
                    :maxZoom 9
                    :minZoom 0}))
 
-  (js/setInterval #(.resize @the-map) 100) ; make sure the map is properly sized + the markers are placed
-
   ; minimize the map when the user hits ESCAPE
   (.addEventListener js/document "keyup"
                      #(when (= (.-key %) "Escape") (reset! expanded false))
