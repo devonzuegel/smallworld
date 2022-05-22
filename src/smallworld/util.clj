@@ -1,4 +1,5 @@
 (ns smallworld.util (:require [clojure.pprint  :as pp]
+                              [clojure.data.json :as json]
                               [clojure.java.io :as io]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -9,6 +10,9 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn read-from-file [filename]
   (read-string (slurp (io/resource filename))))
+
+(defn read-json-from-file [filename]
+  (json/read-str (slurp (io/resource filename)) :key-fn keyword))
 
 (defn get-env-var [key]
   (let [value (System/getenv key)]

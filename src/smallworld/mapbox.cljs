@@ -161,11 +161,7 @@
   [:<>
    [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
     [:a.expand-me
-     {:on-click (fn []
-                  (reset! expanded (not @expanded))
-                  (doall ; TODO: replace with doseq, which is for side effects
-                   (for [i (range 105)]
-                     (js/setTimeout #(.resize @the-map) (* i 10)))))}
+     {:on-click #(swap! expanded not)}
      (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
     [mapbox-dom current-user]]])
 
