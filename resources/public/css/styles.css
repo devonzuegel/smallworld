@@ -1070,11 +1070,6 @@ input[type='radio']:focus {
   z-index: 1;
   border-radius: 0;
 }
-#mapbox-container.expanded .mapboxgl-map {
-  margin-top: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-}
 #mapbox-container .expand-me {
   position: absolute; /* #mapbox-container needs position:relative */
   pointer-events: auto;
@@ -1096,6 +1091,12 @@ input[type='radio']:focus {
   overflow: hidden;
   border: 0;
   border-radius: 24px; /* this needs to have border-radius, not just the parent, because otherwise it doesn't get rendered in iOS Safari */
+}
+#mapbox-container.expanded .mapboxgl-map {
+  border-radius: 0;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
 #mapbox {
   height: 100%;

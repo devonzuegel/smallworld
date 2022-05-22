@@ -227,5 +227,6 @@
          (debugger-btn)
 
          (util/info-footer (:screen-name @session/*store)
-                           #(doall (map (mapbox/remove-friend-marker) @mapbox/markers))) ; TODO: replace with doseq, which is for side effects
+                           #(doall (map (mapbox/remove-friend-marker) @mapbox/markers))
+                           user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
          (debugger-info)])])])
