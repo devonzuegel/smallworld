@@ -25,7 +25,7 @@
                   (reset! user-data/*friends result)
                   ; TODO: only run this on the main page, otherwise you'll get errors
                   ; wait for the map to load – this is a hack & may be a source of errors ;)
-                  (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
+                  (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @settings/*settings) 2000))
                 :retry? true)))
 
 (doall (for [i (range 10)]
@@ -74,7 +74,8 @@
                :on-click #(util/fetch "/api/v1/friends/refresh-atom"
                                       (fn [result]
                                         (reset! user-data/*friends result)
-                                        (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @session/*store) 2000))
+                                        (println settings/*settings)
+                                        (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @settings/*settings) 2000))
                                       :retry? true)}
        "pull friends again (without refreshing from Twitter!)"]]
 

@@ -107,11 +107,13 @@
    [mapbox-dom current-user]])
 
 (defn add-friends-to-map [friends curr-user]
-
-
   (reset! *groups {})
+  (reset! *friends-computed [])
+
   (when @the-map ; don't add friends to map if there is no map
-    (doseq [friend (conj friends curr-user)]
+    (doseq [friend (conj friends ; TODO: updating the image/screen-name this way is hacky (should align the keys upstream instead)
+                         (merge curr-user {:profile_image_url_large (:twitter_avatar curr-user)
+                                           :screen-name (:screen_name curr-user)}))]
       (doseq [location (:locations friend)]
         ; round to 1 decimal place so that metro regions are grouped together
         (when (and (:lng (:coords location))
@@ -132,7 +134,6 @@
                                                           :screen-name    (:screen-name friend)
                                                           :special-status (:special-status location)})))))))
 
-    (reset! *friends-computed [])
     (doseq [[group-key markers] @*groups]
       (let [#_markers #_(sort-by #(if (= "current-user" (:classname %))
                                     1 (rand 2)) ; put the current-user in roughly the middle of the honeycomb cluster
