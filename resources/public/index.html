@@ -59,21 +59,5 @@
     <!-- Javascript (compiled from Clojurescript) -->
     <!-- v=x.x.x is to make sure that the browser gets updates rather than the cached version -->
     <script src="js/main.js?force_update=5" type="text/javascript"></script>
-
-    <!-- reset the favicon according to dark/light mode -->
-    <script type="text/javascript">
-      const changeFavicon = () => {
-        const faviconElem = document.getElementById('favicon')
-        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-        if (isDarkMode) {
-          faviconElem.href = './earth-favicon-white.ico'
-        } else {
-          faviconElem.href = './earth-favicon-green.ico'
-          faviconElem.href = './kiwi-favicon.png'
-        }
-      }
-      changeFavicon()
-      setInterval(changeFavicon, 1000)
-    </script>
   </body>
 </html>
