@@ -134,9 +134,9 @@
 
     (reset! *friends-computed [])
     (doseq [[group-key markers] @*groups]
-      (let [markers (sort-by #(if (= "current-user" (:classname %))
-                                1 (rand 2)) ; put the current-user in roughly the middle of the honeycomb cluster
-                             markers)
+      (let [#_markers #_(sort-by #(if (= "current-user" (:classname %))
+                                    1 (rand 2)) ; put the current-user in roughly the middle of the honeycomb cluster
+                                 markers)
             diameter (.sqrt js/Math (count markers)) ; # of avatars to show in each row/column
             avg-lng (util/average (map #(first  (:lng-lat %)) markers))
             avg-lat (util/average (map #(second (:lng-lat %)) markers))
