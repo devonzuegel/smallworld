@@ -182,7 +182,7 @@
                                                  (resolve)))))))
                         images))
 
-             (let [features #js []]
+             (let [features #js[]]
                (doseq [friend @*friends-computed]
                  (.push features (clj->js
                                   {:type "Feature"
@@ -199,7 +199,7 @@
                              #js{:type "geojson"
                                  :cluster true
                                  :clusterMaxZoom cluster-max-zoom
-                                 :clusterRadius 14
+                                 :clusterRadius 15
                                  :data #js{:type "FeatureCollection"
                                            :features features}})))
 
@@ -220,6 +220,7 @@
                           #js{:id "white-borders-layer"
                               :source source-name
                               :type "circle"
+                              :filter #js["!" #js["has" "point_count"]]
                               :paint #js{:circle-radius #js{:stops #js[#js[(+ cluster-max-zoom 0) 14]
                                                                        #js[(+ cluster-max-zoom 1) 10]
                                                                        #js[(+ cluster-max-zoom 2) 18]]}
@@ -234,6 +235,7 @@
                                        :source source-name
                                        :filter #js["has" "point_count"]
                                        :paint #js{:circle-color "white"
+                                                  :circle-opacity 0.4
                                                   :circle-radius #js["step" #js["get" "point_count"]
                                                                      15    ; base radius
                                                                      5 25  ; count of 5  -> radius of 25
@@ -248,7 +250,7 @@
                               :source source-name
                               :filter #js["has" "point_count"]
                               :layout #js{:text-field "{point_count_abbreviated}"
-                                          :text-font #js ["DIN Offc Pro Medium" "Arial Unicode MS Bold"],
+                                          :text-font #js["DIN Offc Pro Medium" "Arial Unicode MS Bold"],
                                           :text-size 14}}))
 
             ;;  (.on @the-map "zoom" #(println (.getZoom @the-map)))  ; for debugging
