@@ -115,7 +115,6 @@
 (defn refresh-friends []
   (util/fetch "/api/v1/friends/refetch-twitter"
               (fn [result]
-                (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))
 
@@ -123,6 +122,5 @@
   (util/fetch "/api/v1/friends/recompute-locations"
               (fn [result]
                 (when callback (callback))
-                (doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))

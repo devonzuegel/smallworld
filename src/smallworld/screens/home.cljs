@@ -21,7 +21,7 @@
          (not-empty @session/*store))
     (util/fetch "/api/v1/friends/refresh-atom"
                 (fn [result]
-                  (when *debug? (println "/api/v1/friends/refresh-atom: " (count result)))
+                  (when @*debug? (println "/api/v1/friends/refresh-atom: " (count result)))
                   (reset! user-data/*friends result)
                   ; TODO: only run this on the main page, otherwise you'll get errors
                   ; wait for the map to load – this is a hack & may be a source of errors ;)
@@ -227,6 +227,5 @@
          (debugger-btn)
 
          (util/info-footer (:screen-name @session/*store)
-                           #(doall (map (mapbox/remove-friend-marker) @mapbox/markers))
                            user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
          (debugger-info)])])])

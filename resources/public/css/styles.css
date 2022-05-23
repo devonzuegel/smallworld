@@ -1266,11 +1266,11 @@ a.btn:hover {
 }
 .mapboxgl-popup .mapboxgl-popup-content {
   padding: 5px 8px;
-  box-shadow: 0 0 3px rgb(0 0 0 / 20%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
 }
 .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
   margin-right: -6px;
-  box-shadow: 0px 0px 3px rgb(0 0 0 / 20%), -2px 0px 3px rgb(0 0 0 / 20%);
+  box-shadow: 0px 0px 3px rgb(0 0 0 / 10%), -2px 0px 3px rgb(0 0 0 / 10%);
   height: 10px;
   width: 10px;
   background: white;

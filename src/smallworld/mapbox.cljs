@@ -1,17 +1,18 @@
 (ns smallworld.mapbox ; Mapbox GL docs: https://docs.mapbox.com/mapbox-gl-js/api/map
-  (:require [reagent.core           :as r]
+  (:require [cljsjs.mapbox]
             [clojure.pprint         :as pp]
             [clojure.string         :as str]
-            [smallworld.util        :as util]
-            [smallworld.decorations :as decorations]
+            [clojure.walk :as walk]
+            [goog.dom]
+            [reagent.core           :as r]
             [reagent.dom.server]
-            [cljsjs.mapbox]
-            [goog.dom]))
+            [smallworld.decorations :as decorations]
+            [smallworld.util :as util]))
 
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
-(defonce markers (r/atom []))
+(def *friends-computed (r/atom []))
 
 (defn coords-to-mapbox-array [coords]
   #js[(:lng coords) (:lat coords)])
@@ -32,16 +33,7 @@
 
 (defn random-offset [] (- (rand 0.6) 0.3))
 
-(defn with-offset [lng-lat]
-  [(+ (random-offset) (first lng-lat))
-   (+ (random-offset) (second lng-lat))])
-
-(defn toggle-expanded [elem-id]
-  #(.toggle (.-classList (goog.dom/getElement elem-id))
-            "expanded"))
-
-(defn round              [num] (js/parseFloat (pp/cl-format nil "~,0f" num)))
-(defn round-two-decimals [num] (js/parseFloat (pp/cl-format nil "~,2f" num)))
+(defn round [num] (js/parseFloat (pp/cl-format nil "~,0f" num)))
 
 (defn Popup-Content [{location    :location
                       info        :info
@@ -56,67 +48,6 @@
    [:div.bottom-row {:title info}
     (decorations/location-icon)
     (when-not (clojure.string/blank? location) [:span.location location])]])
-
-(defn User-Marker [{lng-lat     :lng-lat
-                    location    :location
-                    img-url     :img-url
-                    user-name   :user-name
-                    screen-name :screen-name
-                    classname   :classname}]
-  [:div.marker {:class classname
-                :on-click (toggle-expanded screen-name)}
-   [:div.avatar {:style {:background-image (str "url(" img-url ")")}}]
-   #_[:div.user-name user-name]])
-
-(defn add-user-marker [{lng-lat     :lng-lat
-                        location    :location
-                        img-url     :img-url
-                        user-name   :user-name
-                        screen-name :screen-name
-                        info        :info
-                        classname   :classname}]
-  (try  (assert-long-lat lng-lat)
-        (let [element  (.createElement js/document "div")
-              marker   (new js/mapboxgl.Marker element)
-              popup    (new js/mapboxgl.Popup #js{:offset 38
-                                                  :closeButton false
-                                                  :anchor "left"})]
-          ; set position
-          (.setLngLat marker (clj->js lng-lat))
-
-          ; add to map + store in atom + render
-          (.addTo marker @the-map)
-          (swap! markers conj marker)
-          (set! (.-id element) screen-name)
-          (set! (.-style element) (str "z-index: " (if (= classname "current-user")
-                                                     11 ; put current user's avatar on top
-                                                     (.ceil js/Math (rand 10)))))
-
-          (r/render-component [User-Marker {:lng-lat     lng-lat
-                                            :location    location
-                                            :img-url     img-url
-                                            :user-name   user-name
-                                            :screen-name screen-name
-                                            :info        info
-                                            :classname   classname}]
-                              (goog.dom/getElement screen-name))
-
-          ; add popup to the marker
-          (.setPopup marker popup)
-          (.setHTML popup (reagent.dom.server/render-to-string
-                           (Popup-Content {:location    location
-                                           :user-name   user-name
-                                           :lng-lat     lng-lat
-                                           :info        info
-                                           :screen-name screen-name}))))
-        (catch js/Error e (js/console.error e))))
-
-; only remove marker if it's not the current user
-(defn remove-friend-marker []
-  (fn [marker]
-    (let [friend-screen-name (.-id (.getElement marker))]
-      (.remove marker))))
-
 
 ; note – the mapbox access-token is paired with each style, rather than a per-account basis
 (def config {:curios-bright {:access-token "pk.eyJ1IjoiZGV2b256dWVnZWwiLCJhIjoickpydlBfZyJ9.wEHJoAgO0E_tg4RhlMSDvA"
@@ -141,7 +72,7 @@
                    :attributionControl false ; removes the Mapbox copyright symbol
                    :zoom 2
                    :maxZoom 9
-                   :minZoom 0}))
+                   :minZoom 1}))
 
   ; minimize the map when the user hits ESCAPE
   (.addEventListener js/document "keyup"
@@ -158,14 +89,15 @@
 (def *groups (r/atom {}))
 
 (defn mapbox [current-user]
-  [:<>
-   [:div#mapbox-container {:class (if @expanded "expanded" "not-expanded")}
-    [:a.expand-me
-     {:on-click #(swap! expanded not)}
-     (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
-    [mapbox-dom current-user]]])
+  [:div#mapbox-container {:data-tap-disabled "true"
+                          :class (if @expanded "expanded" "not-expanded")}
+   [:a.expand-me
+    {:on-click #(swap! expanded not)}
+    (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
+   [mapbox-dom current-user]])
 
 (defn add-friends-to-map [friends curr-user]
+  (reset! *groups {})
   (when @the-map ; don't add friends to map if there is no map
     (doseq [friend (conj friends curr-user)]
       (doseq [location (:locations friend)]
@@ -188,7 +120,7 @@
                                                           :screen-name    (:screen-name friend)
                                                           :special-status (:special-status location)})))))))
 
-
+    (reset! *friends-computed [])
     (doseq [[group-key markers] @*groups]
       (let [markers (sort-by #(if (= "current-user" (:classname %))
                                 1 (rand 2)) ; put the current-user in roughly the middle of the honeycomb cluster
@@ -196,18 +128,136 @@
             diameter (.sqrt js/Math (count markers)) ; # of avatars to show in each row/column
             avg-lng (util/average (map #(first  (:lng-lat %)) markers))
             avg-lat (util/average (map #(second (:lng-lat %)) markers))
-            [lng lat] group-key]
-        (doall (map-indexed
-                (fn [i marker-data]
-                  (let  [row (.ceil js/Math (mod i diameter))
-                         col (.floor js/Math (/ i diameter))
-                         col (if (even? row) ; to make the honeycomb effect
-                               (+ col .5)
-                               col)
-                         new-lat-lng [(+ avg-lng (* 0.070 col) (* -0.5 0.070 diameter))
-                                      (+ avg-lat (* 0.055 row) (* -0.5 0.055 diameter))]]
-                    (add-user-marker (merge marker-data {:lng-lat new-lat-lng}))))
-                markers))))
+            [_lng _lat] group-key]
+        ; group the markers according to 1x1 lat-lng coordinates
+        (swap! *friends-computed concat (map-indexed
+                                         (fn [i marker-data]
+                                           (let  [row (.ceil js/Math (mod i diameter))
+                                                  col (.floor js/Math (/ i diameter))
+                                                  col (if (even? row) ; to make the honeycomb effect
+                                                        (+ col .5)
+                                                        col)
+                                                  new-lat-lng [(+ avg-lng (* 1.5 0.05 col) (* -0.5 0.070 diameter))
+                                                               (+ avg-lat (* 1   0.05 row) (* -0.5 0.055 diameter))]]
+                                           ;; (pp/pprint (merge marker-data {:lng-lat new-lat-lng}))
+                                             (merge marker-data {:lng-lat new-lat-lng})
+                                           ;
+                                             ))
+                                         markers))))
+    (let [source-name "friends-data"
+          cluster-max-zoom 7
+          images (map (fn [friend] {:url (-> (or (:img-url friend) "") ; use the smaller image size to improve performance
+                                             (str/replace #"(?i)\.png"  "_200x200.png")
+                                             (str/replace #"(?i)\.jpg"  "_200x200.jpg")
+                                             (str/replace #"(?i)\.jpeg" "_200x200.jpeg"))
+                                    :id  (:screen-name friend)})
+                      @*friends-computed)]
+      (.then (.all js/Promise
+                   (map (fn [img]
+                          (new js/Promise
+                               (fn [resolve _reject]
+                                 (if (.hasImage @the-map (:id img))
+                                   (resolve)
+                                   (.loadImage @the-map (:url img)
+                                               (fn [error result]
+                                                 (when error (throw error))
+                                                 (.addImage @the-map (:id img) result)
+                                                 (resolve)))))))
+                        images))
 
-    (println "add-friends-to-map:  (1) resizing the map + (2) update-markers-size")
-    (.resize @the-map)))
+             (let [features #js []]
+               (doseq [friend @*friends-computed]
+                 (.push features (clj->js
+                                  {:type "Feature"
+                                   :geometry {:type "Point" :coordinates (:lng-lat friend)}
+                                   :properties {:icon        (:screen-name friend)
+                                                :name        (:user-name   friend)
+                                                :location    (:location    friend)
+                                                :screen-name (:screen-name friend)}})))
+
+               (if (.getSource @the-map source-name)
+                 (.setData (.getSource @the-map source-name) #js{:type "FeatureCollection"
+                                                                 :features features})
+                 (.addSource @the-map source-name
+                             #js{:type "geojson"
+                                 :cluster true
+                                 :clusterMaxZoom cluster-max-zoom
+                                 :clusterRadius 90
+                                 :data #js{:type "FeatureCollection"
+                                           :features features}})))
+
+             (when-not (.getLayer @the-map "img-layer")
+               (.addLayer @the-map ; order matters – the white circles layer needs to go on top of the symbol layer
+                          #js{:id "img-layer"
+                              :source source-name
+                              :type "symbol"
+                              :layout #js{:icon-allow-overlap true
+                                          :icon-size #js{:base .5
+                                                         :stops #js[#js[(+ cluster-max-zoom 0) .13]
+                                                                    #js[(+ cluster-max-zoom 1) .09]
+                                                                    #js[(+ cluster-max-zoom 2) .17]]}
+                                          :icon-image #js["get" "icon"]}}))
+
+             (when-not (.getLayer @the-map "white-borders-layer")
+               (.addLayer @the-map ; order matters – the white circles layer needs to go on top of the symbol layer
+                          #js{:id "white-borders-layer"
+                              :source source-name
+                              :type "circle"
+                              :paint #js{:circle-radius #js{:stops #js[#js[(+ cluster-max-zoom 0) 14]
+                                                                       #js[(+ cluster-max-zoom 1) 10]
+                                                                       #js[(+ cluster-max-zoom 2) 18]]}
+                                         :circle-color "transparent"
+                                         :circle-stroke-color "white"
+                                         :circle-stroke-width #js{:stops #js[#js[(+ cluster-max-zoom 0) 4]
+                                                                             #js[(+ cluster-max-zoom 1) 3]
+                                                                             #js[(+ cluster-max-zoom 2) 6]]}}}))
+             (when-not (.getLayer  @the-map "cluster-layer")
+               (.addLayer @the-map #js{:id "cluster-layer"
+                                       :type "circle"
+                                       :source source-name
+                                       :filter #js["has" "point_count"]
+                                       :paint #js{:circle-color "white"
+                                                  :circle-radius #js["step" #js["get" "point_count"]
+                                                                     15    ; base radius
+                                                                     5 25  ; count of 5  -> radius of 25
+                                                                     10 35 ; count of 10 -> radius of 35
+                                                                     50 45 ; ... etc
+                                                                     100 55]}}))
+
+             (when-not (.getLayer  @the-map "cluster-count-layer")
+               (.addLayer @the-map
+                          #js{:id "cluster-count-layer"
+                              :type "symbol"
+                              :source source-name
+                              :filter #js["has" "point_count"]
+                              :layout #js{:text-field "{point_count_abbreviated}"
+                                          :text-font #js ["DIN Offc Pro Medium" "Arial Unicode MS Bold"],
+                                          :text-size 14}}))
+
+            ;;  (.on @the-map "zoom" #(println (.getZoom @the-map)))  ; for debugging
+
+             (.on @the-map "click" "cluster-layer"
+                  (fn [event]
+                    (.flyTo @the-map #js {:zoom (+ (.getZoom @the-map) 3)
+                                          :center (.-lngLat event)})))
+
+             (.on @the-map "click" "img-layer"
+                  (fn [e]
+                    (let [feature (first (.-features e))
+                          properties (-> feature
+                                         .-properties
+                                         js->clj
+                                         walk/keywordize-keys)
+                          coordinates (-> feature
+                                          .-geometry
+                                          .-coordinates)]
+                      (doto (js/mapboxgl.Popup. #js{:offset 38
+                                                    :closeButton false
+                                                    :anchor "left"})
+                        (.setLngLat coordinates)
+                        (.setHTML (reagent.dom.server/render-to-string
+                                   (Popup-Content {:location    (:location properties)
+                                                   :user-name   (:name properties)
+                                                   :screen-name (:screen-name properties)
+                                                   :lng-lat     coordinates})))
+                        (.addTo @the-map)))))))))
