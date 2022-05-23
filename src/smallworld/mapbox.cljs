@@ -104,8 +104,6 @@
    [:a {:on-click #(.zoomTo @the-map (+ (.getZoom @the-map) 2))} (decorations/zoom-in-icon)]
    [:a {:on-click #(.zoomTo @the-map (- (.getZoom @the-map) 2))} (decorations/zoom-out-icon)]
 
-
-
    [mapbox-dom current-user]])
 
 (defn add-friends-to-map [friends curr-user]
@@ -201,7 +199,7 @@
                              #js{:type "geojson"
                                  :cluster true
                                  :clusterMaxZoom cluster-max-zoom
-                                 :clusterRadius 90
+                                 :clusterRadius 14
                                  :data #js{:type "FeatureCollection"
                                            :features features}})))
 
