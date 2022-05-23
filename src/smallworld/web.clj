@@ -497,7 +497,7 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-(def scheduled-time (timely/at (timely/hour 2) (timely/minute 45))) ; in UTC
+(def scheduled-time (timely/at (timely/hour 2) (timely/minute 55))) ; in UTC
 
 (defn -main []
   (println "starting scheduler to run every day at"
