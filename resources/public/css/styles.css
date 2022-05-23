@@ -1070,6 +1070,8 @@ input[type='radio']:focus {
   z-index: 1;
   border-radius: 0;
 }
+#mapbox-container .zoom-in,
+#mapbox-container .zoom-out,
 #mapbox-container .expand-me {
   position: absolute; /* #mapbox-container needs position:relative */
   pointer-events: auto;
@@ -1080,9 +1082,17 @@ input[type='radio']:focus {
   margin-top: 12px;
   margin-left: 12px;
 }
+#mapbox-container .zoom-in:hover,
+#mapbox-container .zoom-out:hover,
 #mapbox-container .expand-me:hover {
   fill: black;
   filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.8));
+}
+#mapbox-container svg.zoom-in {
+  margin-left: 48px;
+}
+#mapbox-container svg.zoom-out {
+  margin-left: 80px;
 }
 #mapbox-container .mapboxgl-map {
   background: #9dc7d9;

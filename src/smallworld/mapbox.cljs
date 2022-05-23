@@ -101,6 +101,11 @@
                   (for [i (range 105)]
                     (js/setTimeout #(.resize @the-map) (* i 10)))))}
     (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
+   [:a {:on-click #(.zoomTo @the-map (+ (.getZoom @the-map) 2))} (decorations/zoom-in-icon)]
+   [:a {:on-click #(.zoomTo @the-map (- (.getZoom @the-map) 2))} (decorations/zoom-out-icon)]
+
+
+
    [mapbox-dom current-user]])
 
 (defn add-friends-to-map [friends curr-user]
@@ -265,7 +270,7 @@
                           coordinates (-> feature
                                           .-geometry
                                           .-coordinates)]
-                      (doto (js/mapboxgl.Popup. #js{:offset 38
+                      (doto (js/mapboxgl.Popup. #js{:offset 30
                                                     :closeButton false
                                                     :anchor "left"})
                         (.setLngLat coordinates)
