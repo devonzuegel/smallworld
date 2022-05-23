@@ -92,7 +92,11 @@
   [:div#mapbox-container {:data-tap-disabled "true"
                           :class (if @expanded "expanded" "not-expanded")}
    [:a.expand-me
-    {:on-click #(swap! expanded not)}
+    {:on-click (fn []
+                 (swap! expanded not)
+                 (doall
+                  (for [i (range 105)]
+                    (js/setTimeout #(.resize @the-map) (* i 10)))))}
     (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
    [mapbox-dom current-user]])
 
@@ -260,4 +264,7 @@
                                                    :user-name   (:name properties)
                                                    :screen-name (:screen-name properties)
                                                    :lng-lat     coordinates})))
-                        (.addTo @the-map)))))))))
+                        (.addTo @the-map)))))
+
+             ; make sure the map is properly sized + the markers are placed
+             (js/setTimeout #(.resize @the-map) 500)))))
