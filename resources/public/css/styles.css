@@ -1098,6 +1098,16 @@ input[type='radio']:focus {
   padding: 0 !important;
   border: 0 !important;
 }
+#mapbox-container .loading {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.5);
+}
+#mapbox-container .loading .loader path {
+  fill: #013917;
+}
 #mapbox {
   height: 100%;
   width: 100%;

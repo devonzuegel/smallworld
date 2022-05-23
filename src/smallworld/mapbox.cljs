@@ -11,6 +11,7 @@
 
 ; not defonce because we want to reset it to closed upon refresh
 (def expanded (r/atom false))
+(def *loading  (r/atom true))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (def *friends-computed (r/atom []))
 
@@ -91,6 +92,8 @@
 (defn mapbox [current-user]
   [:div#mapbox-container {:data-tap-disabled "true"
                           :class (if @expanded "expanded" "not-expanded")}
+   (when @*loading
+     [:div.loading (decorations/simple-loading-animation)])
    [:a.expand-me
     {:on-click (fn []
                  (swap! expanded not)
@@ -101,6 +104,8 @@
    [mapbox-dom current-user]])
 
 (defn add-friends-to-map [friends curr-user]
+
+
   (reset! *groups {})
   (when @the-map ; don't add friends to map if there is no map
     (doseq [friend (conj friends curr-user)]
@@ -156,6 +161,11 @@
                                              (str/replace #"(?i)\.jpeg" "_200x200.jpeg"))
                                     :id  (:screen-name friend)})
                       @*friends-computed)]
+
+      (.on @the-map "sourcedata" #(when (and (.getSource @the-map source-name)
+                                             (.isSourceLoaded @the-map source-name))
+                                    (js/setTimeout (reset! *loading false) 1000)))
+
       (.then (.all js/Promise
                    (map (fn [img]
                           (new js/Promise
