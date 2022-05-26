@@ -92,8 +92,9 @@
 (defn mapbox [current-user]
   [:div#mapbox-container {:data-tap-disabled "true"
                           :class (if @expanded "expanded" "not-expanded")}
-   (when @*loading
-     [:div.loading (decorations/simple-loading-animation)])
+   [:div.loading {:class (when-not @*loading "hidden")}
+    (decorations/simple-loading-animation) "fetching your Twitter friends..."]
+
    [:a.expand-me
     {:on-click (fn []
                  (swap! expanded not)
