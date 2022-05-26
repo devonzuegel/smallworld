@@ -90,7 +90,7 @@
          (response/redirect "/"))))
 
 (defn logout [req]
-  (let [screen-name (get-in req [:session :screen-name] session/blank)
+  (let [screen-name (:screen-name (get-session req))
         logout-msg (if (nil? screen-name)
                      "no-op: there was no active session"
                      (str "@" screen-name " has logged out"))]
@@ -111,7 +111,7 @@
     settings))
 
 (defn update-settings [req]
-  (let [screen-name     (get-in req [:session :screen-name] session/blank)
+  (let [screen-name     (:screen-name (get-session req))
         parsed-body     (json/read-str (slurp (:body req)) :key-fn keyword)
         new-settings    (merge parsed-body {:screen_name screen-name})]
     (log-event "update-settings" {:screen-name screen-name
@@ -219,7 +219,7 @@
   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
 
 (defn get-users-friends [req & [screen-name]]
-  (let [session-screen-name (get-in req [:session :screen-name] session/blank)
+  (let [session-screen-name (:screen-name (get-session req))
         logged-out?   (nil? session-screen-name)
         screen-name   (or screen-name session-screen-name)
         result        (if logged-out?
@@ -231,7 +231,7 @@
 
 ; TODO: consolidate this with memoized-abridged-friends
 (defn get-users-friends--not-memoized [req]
-  (let [screen-name (get-in req [:session :screen-name] session/blank)
+  (let [screen-name (:screen-name (get-session req))
         logged-out? (nil? screen-name)
         result      (if logged-out?
                       []
