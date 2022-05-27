@@ -173,17 +173,18 @@
                                     (js/setTimeout (reset! *loading false) 1000)))
 
       (.then (.all js/Promise
-                   (map (fn [img]
-                          (new js/Promise
-                               (fn [resolve _reject]
-                                 (if (.hasImage @the-map (:id img))
-                                   (resolve)
-                                   (.loadImage @the-map (:url img)
-                                               (fn [error result]
-                                                 (when error (throw error))
-                                                 (.addImage @the-map (:id img) result)
-                                                 (resolve)))))))
-                        images))
+                   (clj->js
+                    (mapv (fn [img]
+                            (new js/Promise
+                                 (fn [resolve _reject]
+                                   (if (.hasImage @the-map (:id img))
+                                     (resolve)
+                                     (.loadImage @the-map (:url img)
+                                                 (fn [error result]
+                                                   (when error (throw error))
+                                                   (.addImage @the-map (:id img) result)
+                                                   (resolve)))))))
+                          images)))
 
              (let [features #js[]]
                (doseq [friend @*friends-computed]
