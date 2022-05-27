@@ -32,7 +32,7 @@
          (js/setTimeout refresh-atom (* (util/exponent 2 i) 1000))))
 
 (defn nav []
-  [:div.nav
+  [:div.nav {:class (when (:impersonation? @session/*store) "admin-impersonation")}
    [:a#logo-animation.logo {:on-click #(reset! *settings-open? false)}
     (decorations/animated-globe)
 

@@ -113,6 +113,12 @@ select {
 .nav .screen-name {
   margin-top: 6px;
 }
+.nav.admin-impersonation {
+  background: black;
+}
+.nav.admin-impersonation:before {
+  display: none;
+}
 
 /******************************************************************************/
 /**** animated logo ************************************************************/

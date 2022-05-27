@@ -39,10 +39,12 @@
   (let [session-data (get-in req [:session] session/blank)
         screen-name  (:screen-name session-data)
         result       (if (= screen-name admin/screen-name)
-                       {:screen-name (:screen_name (db/select-first db/impersonation-table))
-                        :impersonation? true}
+                       (let [new-screen-name (:screen_name (db/select-first db/impersonation-table))]
+                         (if (nil? new-screen-name)
+                           session-data
+                           {:screen-name new-screen-name :impersonation? true}))
                        session-data)]
-    (log-event "get-session" session-data)
+    (log-event "get-session" result)
     result))
 
 ;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
