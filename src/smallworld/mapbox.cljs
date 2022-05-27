@@ -266,11 +266,6 @@
 
              (.on @the-map "click" "img-layer"
                   (fn [e]
-                    ;; (println "type of e:" (type e))
-                    ;; ;; (println "feature:")
-                    ;; ;; (js/console.log (first (.-features e)))
-                    ;; (js/console.log "type of feature:" (type (first (.-features e))))
-
                     ; these `obj/get` calls are hacks – should really be using externs to enable .-features
                     (let [feature (first (obj/get e "features"))
                           properties (-> feature
