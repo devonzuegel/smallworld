@@ -5,9 +5,8 @@ echo "--------------------------------------------------"
 
 echo ""
 echo "running command:"
-echo "    git push heroku master"
-echo ""
-echo "note: this will deploy the *existing* jar to the heroku app."
-echo "      run bin/make-jar.sh if you want to create a new jar."
+echo "    git push heroku HEAD:master   # push the current branch to Heroku, whatever it’s called"
 echo ""
 git push heroku HEAD:master # push the current branch to Heroku, whatever it’s called
+
+bin/heroku-logs.sh
