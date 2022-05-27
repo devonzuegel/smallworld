@@ -264,6 +264,10 @@
 
              (.on @the-map "click" "img-layer"
                   (fn [e]
+                    (println "feature:")
+                    (println        (first (.-features e)))
+                    (js/console.log (first (.-features e)))
+
                     (let [feature (first (.-features e))
                           properties (-> feature
                                          .-properties
