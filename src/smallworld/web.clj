@@ -36,9 +36,13 @@
          :session new-session))
 
 (defn get-session [req]
-  (let [session-data (get-in req [:session] session/blank)]
+  (let [session-data (get-in req [:session] session/blank)
+        screen-name  (:screen-name session-data)
+        result       (if (= screen-name admin/screen-name)
+                       {:screen-name "meadowmaus" :impersonation? true}
+                       session-data)]
     (log-event "get-session" session-data)
-    session-data))
+    result))
 
 ;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
 (defn fetch-current-user--with-access-token [access-token]
@@ -383,7 +387,7 @@
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/logout"     req (logout req))
-  (GET "/api/v1/session" req (generate-string (select-keys (get-session req) [:screen-name])))
+  (GET "/api/v1/session" req (generate-string (select-keys (get-session req) [:screen-name :impersonation?])))
 
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
