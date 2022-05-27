@@ -71,6 +71,9 @@
 (defn select-all [table]
   (sql/query @pool (str "select * from " (name table))))
 
+(defn select-first [table]
+  (first (sql/query @pool (str "select * from " (name table) " limit 1"))))
+
 (defn show-all [table-name]
   (println)
   (let [results (if (= table-name friends-table)

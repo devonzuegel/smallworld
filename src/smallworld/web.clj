@@ -39,7 +39,8 @@
   (let [session-data (get-in req [:session] session/blank)
         screen-name  (:screen-name session-data)
         result       (if (= screen-name admin/screen-name)
-                       {:screen-name "meadowmaus" :impersonation? true}
+                       {:screen-name (:screen_name (db/select-first db/impersonation-table))
+                        :impersonation? true}
                        session-data)]
     (log-event "get-session" session-data)
     result))
