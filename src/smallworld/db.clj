@@ -29,12 +29,14 @@
 (def friends-table          :friends)          ; memoized storage: friends of the user (request_key)
 (def coordinates-table      :coordinates)      ; memoized storage: map of city/country names to coordinates
 (def access_tokens-table    :access_tokens)    ; memoized storage: Twitter access tokens
+(def impersonation-table    :impersonation)    ; stores screen_name of the user who the admin is impersonating (for debug only)
 
 (def twitter-profiles-schema (slurp (io/resource "sql/twitter-profiles-schema.sql")))
 (def settings-schema         (slurp (io/resource "sql/settings-schema.sql")))
 (def friends-schema          (slurp (io/resource "sql/friends-schema.sql")))
 (def coordinates-schema      (slurp (io/resource "sql/coordinates-schema.sql")))
 (def access-tokens-schema    (slurp (io/resource "sql/access-tokens-schema.sql")))
+(def impersonation-schema    (slurp (io/resource "sql/impersonation-schema.sql")))
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
