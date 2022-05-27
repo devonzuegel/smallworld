@@ -31,12 +31,12 @@
 (def access_tokens-table    :access_tokens)    ; memoized storage: Twitter access tokens
 (def impersonation-table    :impersonation)    ; stores screen_name of the user who the admin is impersonating (for debug only)
 
-(def twitter-profiles-schema (slurp (io/resource "sql/twitter-profiles-schema.sql")))
-(def settings-schema         (slurp (io/resource "sql/settings-schema.sql")))
-(def friends-schema          (slurp (io/resource "sql/friends-schema.sql")))
-(def coordinates-schema      (slurp (io/resource "sql/coordinates-schema.sql")))
-(def access-tokens-schema    (slurp (io/resource "sql/access-tokens-schema.sql")))
-(def impersonation-schema    (slurp (io/resource "sql/impersonation-schema.sql")))
+(def twitter-profiles-schema (slurp (io/resource "sql/schema-twitter-profiles.sql")))
+(def settings-schema         (slurp (io/resource "sql/schema-settings.sql")))
+(def friends-schema          (slurp (io/resource "sql/schema-friends.sql")))
+(def coordinates-schema      (slurp (io/resource "sql/schema-coordinates.sql")))
+(def access-tokens-schema    (slurp (io/resource "sql/schema-access-tokens.sql")))
+(def impersonation-schema    (slurp (io/resource "sql/schema-impersonation.sql")))
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
