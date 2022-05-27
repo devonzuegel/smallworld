@@ -4,6 +4,7 @@
             [clojure.string         :as str]
             [clojure.walk :as walk]
             [goog.dom]
+            [goog.obj :as obj]
             [reagent.core           :as r]
             [reagent.dom.server]
             [smallworld.decorations :as decorations]
@@ -264,18 +265,19 @@
 
              (.on @the-map "click" "img-layer"
                   (fn [e]
-                    (println "feature:")
-                    (println        (first (.-features e)))
-                    (js/console.log (first (.-features e)))
+                    ;; (println "type of e:" (type e))
+                    ;; ;; (println "feature:")
+                    ;; ;; (js/console.log (first (.-features e)))
+                    ;; (js/console.log "type of feature:" (type (first (.-features e))))
 
-                    (let [feature (first (.-features e))
+                    (let [feature (first (obj/get e "features"))
                           properties (-> feature
-                                         .-properties
+                                         (obj/get "properties")
                                          js->clj
                                          walk/keywordize-keys)
                           coordinates (-> feature
-                                          .-geometry
-                                          .-coordinates)]
+                                          (obj/get "geometry")
+                                          (obj/get "coordinates"))]
                       (doto (js/mapboxgl.Popup. #js{:offset 30
                                                     :closeButton false
                                                     :anchor "left"})
