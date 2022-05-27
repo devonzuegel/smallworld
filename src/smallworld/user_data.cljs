@@ -19,7 +19,7 @@
         first-location (first (:locations user)) ; consider pulling from the "Twitter location" location or from the nearest location to the current user, instead of simply pulling the first location in the array
         lat            (when first-location (:lat (:coords first-location)))
         lng            (when first-location (:lng (:coords first-location)))]
-    [:div.friend {:key twitter-name}
+    [:div.friend {:key twitter-handle}
      [:a twitter-href
       [:div.twitter-pic [:img {:src twitter-pic :key k}]]]
      [:div.right-section
