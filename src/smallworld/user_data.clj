@@ -14,7 +14,7 @@
   (str/includes? (str/lower-case string) (str/lower-case substr)))
 
 (defn split-last [string splitter]
-  (last (str/split string splitter)))
+  (or (last (str/split string splitter)) ""))
 
 (defn remove-substr [string substr]
   (str/replace string substr ""))
