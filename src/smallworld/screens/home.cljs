@@ -28,7 +28,7 @@
                   (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @settings/*settings) 2000))
                 :retry? true)))
 
-(doall (for [i (range 10)]
+(doall (for [i (range 1)]
          (js/setTimeout refresh-atom (* (util/exponent 2 i) 1000))))
 
 (defn nav []
