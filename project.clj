@@ -44,12 +44,10 @@
                                          :source-paths ["src"]
                                          :figwheel true
                                          :compiler {:main "smallworld.frontend"
-                                                    ;; :preloads [devtools.preload]
                                                     :asset-path "js/out"
                                                     :output-to "resources/public/js/main.js"
                                                     :output-dir "resources/public/js/out"
                                                     :optimizations :none
-                                                    ;; :recompile-dependents true
                                                     :source-map true}}]}}
              :uberjar {:env {:production true}
                        :source-paths ["src"]
@@ -63,5 +61,5 @@
                                                         :asset-path "js/out"
                                                         :output-to "resources/public/js/main.js"
                                                         :output-dir "resources/public/js/out"
-                                                        :optimizations :advanced
+                                                        :optimizations :none
                                                         :pretty-print false}}]}}})
