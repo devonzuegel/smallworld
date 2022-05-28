@@ -483,7 +483,7 @@
                                 :store (cookie/cookie-store
                                         {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def scheduled-time (timely/at (timely/hour 2) (timely/minute 41))) ; in UTC
+(def scheduled-time (timely/at (timely/hour 2) (timely/minute 47))) ; in UTC
 
 (def schedule-id (atom nil))
 
