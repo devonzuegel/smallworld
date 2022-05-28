@@ -482,6 +482,15 @@
                                 :store (cookie/cookie-store
                                         {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
+(def scheduled-time (timely/at (timely/hour 1) (timely/minute 58))) ; in UTC
+
+(def schedule-id (atom nil))
+
+(defn end-schedule []
+  (println "ending schedule:" @schedule-id)
+  (timely/end-schedule @schedule-id)
+  (reset! schedule-id nil))
+
 (defonce server* (atom nil))
 
 (defn start! [port]
@@ -501,18 +510,29 @@
     (reset! server* server)))
 
 (defn stop! []
+  (if @schedule-id
+    (end-schedule)
+    (println "@schedule-id is nil – no schedule to end"))
   (if @server*
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-(def scheduled-time (timely/at (timely/hour 2) (timely/minute 55))) ; in UTC
-
 (defn -main []
+  (try (timely/start-scheduler)
+       (catch Exception e
+         (if (= (:cause (Throwable->map e)) "Scheduler already started")
+           (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
+           (throw e))))
+
   (println "starting scheduler to run every day at"
            (str (first (:hour scheduled-time)) ":" (first (:minute scheduled-time))) "UTC")
-  (timely/start-scheduler)
-  (timely/start-schedule (timely/scheduled-item (timely/daily scheduled-time)
-                                                worker))
+  (let [id (timely/start-schedule
+            #_(timely/scheduled-item (timely/every 1 :minutes) worker) ; this is just for debugging
+            (timely/scheduled-item (timely/daily scheduled-time) worker))]
+    (reset! schedule-id id)
+    (println "started scheduler with id:" @schedule-id))
+
+
 
   (println "starting server...")
   (let [default-port 8080
