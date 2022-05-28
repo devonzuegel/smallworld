@@ -161,6 +161,8 @@
           ; access token was deleted. it shouldn't be possible to get to this state,
           ; but if it does happen at some point, then we may need to add a way for
           ; the user to re-authenticate.
+          ; note – access tokens don't expire, though the user can revoke them:
+          ; https://developer.twitter.com/en/docs/authentication/faq#:~:text=How%20long%20does%20an%20access%20token%20last
           sql-result   (db/select-by-col db/access_tokens-table :request_key screen-name)
           access-token (get-in (first sql-result) [:data :access_token]) ; TODO: memoize this with an atom for faster, non-db access, a la: (get @access-tokens screen-name)
           client       (oauth/oauth-client (util/get-env-var "TWITTER_CONSUMER_KEY")
@@ -250,17 +252,17 @@
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
-        friends-result   (--fetch-friends screen-name)
-        curr-user-info   {:screen-name screen-name
-                          :locations (:locations settings)}
-        friends-abridged (map #(user-data/abridged % curr-user-info)
-                              friends-result)
-        old-friends (map
+        old-friends (map ; fetch the old friends before friends gets updated from the twitter fetch
                      select-location-fields
                      (-> db/friends-table
                          (db/select-by-col :request_key screen-name)
                          vec
                          (get-in [0 :data :friends])))
+        friends-result   (--fetch-friends screen-name)
+        curr-user-info   {:screen-name screen-name
+                          :locations (:locations settings)}
+        friends-abridged (map #(user-data/abridged % curr-user-info)
+                              friends-result)
         new-friends (map select-location-fields
                          (vec friends-result))
         diff (vec (vals (group-by :screen-name
@@ -367,17 +369,16 @@
                               :message (str "finished refreshing friends for " n-users " users")})
 
     ;; TODO: put this back when we actually catch failures (currently, we don't)
-    ;; (util/log (str "finished refreshing friends for " n-users " users: " n-failures " failures\n"))
-    ;; (email/send-email {:to "avery.sara.james@gmail.com"
-    ;;                    :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished: " n-failures " failures out of " n-users " users")
-    ;;                    :type "text/plain"
-    ;;                    :body (str "finished refreshing friends for " n-failures " users: " n-failures " failures"
-    ;;                               "\n\n"
-    ;;                               "users that failed:\n" (with-out-str (pp/pprint @failures)))}))
+    (email/send-email {:to "avery.sara.james@gmail.com"
+                       :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
+                       :type "text/plain"
+                       :body (str "finished refreshing friends for " n-users " users" ; ": " n-failures " failures"
+                                  #_"\n\n"
+                                  #_"users that failed:\n" #_(with-out-str (pp/pprint @failures)))}))
 
-    (println)
-    (println "===============================================")
-    (println)))
+  (println)
+  (println "===============================================")
+  (println))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -535,7 +536,7 @@
 
 
   (println "starting server...")
-  (let [default-port 8080
+  (let [default-port 3001
         port (System/getenv "PORT")
         port (if (nil? port)
                (do (println "PORT not defined. Defaulting to" default-port)
