@@ -369,12 +369,13 @@
                               :message (str "finished refreshing friends for " n-users " users")})
 
     ;; TODO: put this back when we actually catch failures (currently, we don't)
-    (email/send-email {:to "avery.sara.james@gmail.com"
-                       :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
-                       :type "text/plain"
-                       :body (str "finished refreshing friends for " n-users " users" ; ": " n-failures " failures"
-                                  #_"\n\n"
-                                  #_"users that failed:\n" #_(with-out-str (pp/pprint @failures)))}))
+    (when (= "prod-heroku" (util/get-env-var "ENVIRONMENT"))
+      (email/send-email {:to "avery.sara.james@gmail.com"
+                         :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
+                         :type "text/plain"
+                         :body (str "finished refreshing friends for " n-users " users" ; ": " n-failures " failures"
+                                    #_"\n\n"
+                                    #_"users that failed:\n" #_(with-out-str (pp/pprint @failures)))})))
 
   (println)
   (println "===============================================")
