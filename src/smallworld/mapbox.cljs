@@ -63,6 +63,8 @@
 
 (def Miami [-80.1947021484375 25.775083541870117])
 
+(def min-zoom 2)
+
 (defn component-did-mount [current-user] ; this should be called just once when the component is mounted
   ; create the map
   (reset! the-map
@@ -72,10 +74,9 @@
                    :style  (get-in config [style :style])
                    :center (clj->js (or (:lng-lat current-user) Miami))
                    :attributionControl false ; removes the Mapbox copyright symbol
-                   :zoom 2
+                   :zoom 0 ; this will almost immediately be updated to the true `min-zoom`; we're only starting at zero as a hacky way to force the images to load
                    :maxZoom 9
                    :minZoom 1}))
-
   ; minimize the map when the user hits ESCAPE
   (.addEventListener js/document "keyup"
                      #(when (= (.-key %) "Escape") (reset! expanded false))
@@ -107,6 +108,25 @@
    [:a {:on-click #(.zoomTo @the-map (- (.getZoom @the-map) 2))} (decorations/zoom-out-icon)]
 
    [mapbox-dom current-user]])
+
+(defn load-img [img]
+  (new js/Promise
+       (fn [resolve _reject]
+         (if (.hasImage @the-map (:id img))
+           (resolve)
+           (.loadImage @the-map (:url img)
+                       (fn [error result]
+                         (when error (throw error))
+                         (.addImage @the-map (:id img) result)
+                         (resolve)))))))
+
+(defn get-coords-from-curr-user [curr-user]
+  (let [coords (get-in curr-user [:locations 0 :coords])
+        lat (:lat coords)
+        lng (:lng coords)]
+    (if (and lng lat)
+      [lng lat]
+      nil)))
 
 (defn add-friends-to-map [friends curr-user]
   (reset! *groups {})
@@ -168,29 +188,31 @@
                                     :id  (:screen-name friend)})
                       @*friends-computed)]
 
-      (.on @the-map "sourcedata" #(when (and (.getSource @the-map source-name)
-                                             (.isSourceLoaded @the-map source-name))
-                                    (js/setTimeout (reset! *loading false) 1000)))
+      (.on @the-map "sourcedata" (fn []
+                                   (when (and (.getSource @the-map source-name)
+                                              @*loading ; only run this the first time that sourcedata is loaded
+                                              (.isSourceLoaded @the-map source-name))
+                                     (js/setTimeout (fn []
+                                                      (reset! *loading false)
+                                                      (.flyTo @the-map #js{:center (clj->js (or (get-coords-from-curr-user curr-user)
+                                                                                                Miami))
+                                                                           :zoom (+ (.getZoom @the-map) 1.5)
+                                                                           :speed .6
+                                                                           :essential true})
+                                                      (js/setTimeout #(.setMinZoom @the-map min-zoom) 1000))
+                                                    300))))
 
       (.then (.all js/Promise
                    (clj->js
-                    (mapv (fn [img]
-                            (new js/Promise
-                                 (fn [resolve _reject]
-                                   (if (.hasImage @the-map (:id img))
-                                     (resolve)
-                                     (.loadImage @the-map (:url img)
-                                                 (fn [error result]
-                                                   (when error (throw error))
-                                                   (.addImage @the-map (:id img) result)
-                                                   (resolve)))))))
-                          images)))
+                    (mapv load-img images)))
 
              (let [features #js[]]
                (doseq [friend @*friends-computed]
                  (.push features (clj->js
                                   {:type "Feature"
-                                   :geometry {:type "Point" :coordinates (:lng-lat friend)}
+                                   :geometry {:type "Point" ; round coords to 5 decimal places to improve performance: https://docs.mapbox.com/help/troubleshooting/working-with-large-geojson-data/#cleaning-up-your-data
+                                              :coordinates [(.toFixed (first  (:lng-lat friend)) 5)
+                                                            (.toFixed (second (:lng-lat friend)) 5)]}
                                    :properties {:icon        (:screen-name friend)
                                                 :name        (:user-name   friend)
                                                 :location    (:location    friend)
@@ -213,6 +235,7 @@
                               :source source-name
                               :type "symbol"
                               :layout #js{:icon-allow-overlap true
+                                          :icon-ignore-placement true
                                           :icon-size #js{:base .5
                                                          :stops #js[#js[(+ cluster-max-zoom 0) .13]
                                                                     #js[(+ cluster-max-zoom 1) .09]
@@ -257,12 +280,16 @@
                                           :text-font #js["DIN Offc Pro Medium" "Arial Unicode MS Bold"],
                                           :text-size 14}}))
 
-            ;;  (.on @the-map "zoom" #(println (.getZoom @the-map)))  ; for debugging
+             #_(.on @the-map "zoom" #(util/debounce (println (.getZoom @the-map)) 500)) ; for debugging
 
              (.on @the-map "click" "cluster-layer"
                   (fn [event]
-                    (.flyTo @the-map #js {:zoom (+ (.getZoom @the-map) 3)
-                                          :center (.-lngLat event)})))
+                    (let [feature (first (obj/get event "features"))
+                          coordinates (-> feature
+                                          (obj/get "geometry")
+                                          (obj/get "coordinates"))]
+                      (.flyTo @the-map #js {:zoom (+ (.getZoom @the-map) 3)
+                                            :center coordinates}))))
 
              (.on @the-map "click" "img-layer"
                   (fn [e]
