@@ -70,6 +70,13 @@
     (log-event "start-oauth-flow" {:message "someone has started the oauth flow (we don't yet have the screen name)"})
     (response/redirect redirect-url)))
 
+(defn location-sort-order [location]
+  (case (:special-status location)
+    "twitter-location"  1
+    "from-display-name" 2
+    "added-manually"    3
+    3))
+
 ;; step 2
 (defn store-fetched-access-token-then-redirect-home [req]
   (try (let [oauth-token    (get-in req [:params :oauth_token])
@@ -84,10 +91,23 @@
            (println "screen-name:  " screen-name))
          (db/memoized-insert-or-update! db/access_tokens-table    screen-name {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
          (db/memoized-insert-or-update! db/twitter-profiles-table screen-name {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
-         (db/insert-or-update! db/settings-table :screen_name {:screen_name    screen-name
-                                                               :name           (:name api-response)
-                                                               :locations      (:locations current-user)
-                                                               :twitter_avatar (user-data/normal-img-to-full-size api-response)})
+         (let [sql-results (db/select-by-col db/settings-table :screen_name screen-name)
+               exists?     (not= 0 (count sql-results))
+               new-settings {:screen_name    screen-name
+                             :name           (:name api-response)
+                             :locations      (:locations current-user)
+                             :twitter_avatar (user-data/normal-img-to-full-size api-response)}]
+           (if exists?
+             ; if the user already exists, update their locations to include the new locations
+             (let [old-locations (:locations (first sql-results))
+                   merged-locations (->> new-settings
+                                         :locations
+                                         set
+                                         (set/union (set old-locations))
+                                         (sort-by location-sort-order))]
+               (db/update! db/settings-table :screen_name screen-name (assoc new-settings :locations merged-locations)))
+             ; otherwise, create a new row with the new settings
+             (db/insert! db/settings-table new-settings)))
          (log-event "new-authorization" {:screen-name screen-name
                                          :message (str "@" screen-name ") has successfully authorized small world to access their Twitter account")})
          (set-session (response/redirect "/") {:access-token access-token
