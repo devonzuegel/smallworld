@@ -8,6 +8,12 @@ create table if not exists friends (
 
 --- split here ---
 
+-- add index on request_key
+CREATE INDEX index_request_key
+ON friends (request_key);
+
+--- split here ---
+
 CREATE OR REPLACE FUNCTION public.set_current_timestamp_updated_at()
  RETURNS trigger
  LANGUAGE plpgsql
