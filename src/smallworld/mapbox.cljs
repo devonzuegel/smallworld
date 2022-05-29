@@ -63,7 +63,7 @@
 
 (def Miami [-80.1947021484375 25.775083541870117])
 
-(def min-zoom 2)
+(def min-zoom 1)
 
 (defn component-did-mount [current-user] ; this should be called just once when the component is mounted
   ; create the map
@@ -288,8 +288,9 @@
                           coordinates (-> feature
                                           (obj/get "geometry")
                                           (obj/get "coordinates"))]
-                      (.flyTo @the-map #js {:zoom (+ (.getZoom @the-map) 3)
-                                            :center coordinates}))))
+                      (.flyTo @the-map #js {:zoom (+ (.getZoom @the-map) 10)
+                                            :center coordinates
+                                            :speed 1.5}))))
 
              (.on @the-map "click" "img-layer"
                   (fn [e]
