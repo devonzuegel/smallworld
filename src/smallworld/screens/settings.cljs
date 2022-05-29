@@ -16,6 +16,22 @@
 (defonce *form-errors    (r/atom {}))
 (def     *form-message   (r/atom nil))  ; start with no message
 
+; TODO: only do this on first load of logged-in-screen, not on every re-render
+; and not for all the other pages – use component-did-mount
+(defn refresh-friends-atom []
+  (println "running refresh-friends-atom")
+  (when (and
+         (not= :loading @session/*store)
+         (not-empty @session/*store))
+    (util/fetch "/api/v1/friends/refresh-atom"
+                (fn [result]
+                  (when true #_debug? (println "/api/v1/friends/refresh-atom: " (count result)))
+                  (reset! user-data/*friends result)
+                  ; TODO: only run this on the main page, otherwise you'll get errors
+                  ; wait for the map to load – this is a hack & may be a source of errors ;)
+                  (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @*settings) 2000))
+                :retry? true)))
+
 (defn fetch-coordinates! [minimap-id location-name-input index]
   (if (str/blank? location-name-input)
     (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
