@@ -1,14 +1,23 @@
 (ns smallworld.user-data
+  (:import (java.util.regex Pattern))
   (:require [smallworld.coordinates :as coordinates]
             [clojure.string :as str]))
 
 (def debug? false)
 
+(defn ^StringBuilder fast-replace [^StringBuilder sb ^Pattern pattern  ^String replacement]
+  (let [matcher (.matcher pattern sb)]
+    (loop [start 0]
+      (when (.find matcher start)
+        (.replace sb (.start matcher) (.end matcher) replacement)
+        (recur (+ (.start matcher) (.length replacement))))))
+  sb)
+
 (defn normal-img-to-full-size [friend]
   (let [original-url (:profile-image-url-https friend)]
     (if (nil? original-url)
       nil
-      (str/replace original-url "_normal" ""))))
+      (str (fast-replace (StringBuilder. original-url) #"_normal" "")))))
 
 (defn includes? [string substr]
   (str/includes? (str/lower-case string) (str/lower-case substr)))
@@ -16,14 +25,11 @@
 (defn split-last [string splitter]
   (or (last (str/split string splitter)) ""))
 
-(defn remove-substr [string substr]
-  (str/replace string substr ""))
+(defn remove-substr [^StringBuilder sb substr]
+  (fast-replace sb substr ""))
 
-(defn remove-emoji [string]
-  (remove-substr string #"[\uD83C-\uDBFF\uDC00-\uDFFF]+"))
-
-(defn normalize-location [name] ; case insensitive – used for coordinate lookup only, not for display
-  (let [_s (or name "")
+(defn normalize-location [^String name] ; case insensitive – used for coordinate lookup only, not for display
+  (let [_s (StringBuilder. (or name ""))
         _s (remove-substr _s #"(?i)they/them")
         _s (remove-substr _s #"(?i)she/her")
         _s (remove-substr _s #"(?i)he/him")
@@ -32,6 +38,7 @@
         _s (remove-substr _s #"(?i) still")
         _s (remove-substr _s #"(?i)Planet Earth")
         _s (remove-substr _s #"(?i)Earth")
+        _s (str _s)
         _s (if (= _s "Canada") "whiteshell provincial park, canada" _s) ; approx. center of population in Canada
         _s (if (= _s "Québec") "Québec, Québec, Canada" _s) ; they probably meant Quebec city, not Québec province
         _s (if (includes? _s "subscribe")     "" _s)
@@ -41,22 +48,25 @@
         _s (if (includes? _s "san francisco") "San Francisco, CA" _s)
         _s (if (includes? _s "sf, ")          "San Francisco, CA" _s)
         _s (if (includes? _s "nyc")           "New York City" _s)
-        _s (if (includes? _s "new york, ny")  "New York City" _s)
+        ^String _s (if (includes? _s "new york, ny")  "New York City" _s)
+        _s (StringBuilder. _s)
         _s (remove-substr _s #" \([^)]*\)") ; remove anything in parentheses (e.g. "sf (still!)" → "sf")
+        _s (str _s)
+        _s (split-last _s #"\/")
+        _s (split-last _s #" and ")
+        _s (split-last _s #"\|")
         _s (split-last _s #"→")
         _s (split-last _s #"·")
         _s (split-last _s #"•")
         _s (split-last _s #"✈️")
         _s (split-last _s #"🔜")
-        _s (split-last _s #"➡️")
-        _s (remove-emoji _s) ; this has to come after the splitting on specific emoji
-        _s (split-last _s #"\/")
-        _s (split-last _s #" and ")
-        _s (split-last _s #"\|")
-        _s (if (> (count (str/split _s #" ")) 3) "" _s) ; if there are more than 3 words, it's probably a sentence and not a place name
-        _s (str/trim _s)
+        ^String _s (split-last _s #"➡️")
+        _s (StringBuilder. _s)
         _s (remove-substr _s #",$") ; remove trailing comma
-        ]
+        _s (fast-replace _s #"[^a-zA-Z]" " ") ; remove any remaining non-letter/non-comma strings with spaces (e.g. emoji)
+        _s (str _s)
+        _s (if (> (count (str/split _s #" ")) 3) "" _s) ; if there are more than 3 words, it's probably a sentence and not a place name
+        ^String _s (str/trim _s)]
     _s))
 
 (defn location-from-name [name]
