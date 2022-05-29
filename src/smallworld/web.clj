@@ -476,13 +476,14 @@
         (handler request)))))
 
 (def app-handler
-  (-> smallworld-routes
-      ssl-redirect
-      www-redirect
-      (compojure.handler/site {:session
-                               {:cookie-name "small-world-session"
-                                :store (cookie/cookie-store
-                                        {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
+  (-> smallworld-routes       ; takes a request, returns response
+      ssl-redirect            ; middleware: takes a handler, returns a handler
+      www-redirect            ; middleware: takes a handler, returns a handler
+      (compojure.handler/site ; middleware: takes a handler, returns a handler
+       {:session {:cookie-name "small-world-session"
+                  :cookie-attrs {:expires "Sat May 29 20:42:00 EDT 2222"}
+                  :store (cookie/cookie-store
+                          {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
 (def scheduled-time (timely/at (timely/hour 2) (timely/minute 47))) ; in UTC
 
