@@ -172,7 +172,7 @@
                         [:div.based-on (condp = (:special-status location-data)
                                          "twitter-location"  "based on your Twitter location, you live in:"
                                          "from-display-name" "based on your Twitter name, you're visiting:"
-                                         "you added this location manually:")]
+                                         nil)]
                         [:input {:type "text"
                                  :value (:name location-data)
                                  :autoComplete "off"
