@@ -67,6 +67,7 @@
         _s (str _s)
         _s (if (> (count (str/split _s #" ")) 3) "" _s) ; if there are more than 3 words, it's probably a sentence and not a place name
         ^String _s (str/trim _s)]
+    (println "normalize-location: " _s)
     _s))
 
 (defn location-from-name [name]
