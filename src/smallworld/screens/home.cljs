@@ -13,25 +13,10 @@
 (def *settings-open? (r/atom false))
 (defonce   *minimaps (r/atom {}))
 
-; TODO: only do this on first load of logged-in-screen, not on every re-render
-; and not for all the other pages – use component-did-mount
-(defn refresh-atom []
-  (when (and
-         (not= :loading @session/*store)
-         (not-empty @session/*store))
-    (util/fetch "/api/v1/friends/refresh-atom"
-                (fn [result]
-                  (when @*debug? (println "/api/v1/friends/refresh-atom: " (count result)))
-                  (reset! user-data/*friends result)
-                  ; TODO: only run this on the main page, otherwise you'll get errors
-                  ; wait for the map to load – this is a hack & may be a source of errors ;)
-                  (js/setTimeout (mapbox/add-friends-to-map @user-data/*friends @settings/*settings) 2000))
-                :retry? true)))
-
 ; TODO: put in component did mount
-(refresh-atom)
+(settings/refresh-friends-atom)
 (doall (for [i (range 1 10)]
-         (js/setTimeout refresh-atom (* (util/exponent 2 i) 1000))))
+         (js/setTimeout settings/refresh-friends-atom (* (util/exponent 2 i) 1000))))
 
 (defn nav []
   [:div.nav {:class (when (:impersonation? @session/*store) "admin-impersonation")}
