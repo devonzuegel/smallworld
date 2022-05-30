@@ -129,7 +129,12 @@
       [lng lat]
       nil)))
 
+(defn set-map-cursor [cursor-style]
+  (set! (.. (.getCanvas @the-map) -style -cursor) cursor-style))
+
 (defn add-popup-to-map [e]
+  (set-map-cursor "pointer")
+
   ; these `obj/get` calls are hacks – should really be using externs to enable .-features
   (let [feature (first (obj/get e "features"))
         properties (-> feature
@@ -315,10 +320,15 @@
                                             :center coordinates
                                             :speed 1.5}))))
 
+             (.on @the-map "mouseover" "cluster-layer" #(set-map-cursor "pointer"))
+             (.on @the-map "mouseout"  "cluster-layer" #(set-map-cursor ""))
+
              (.on @the-map "click"     "img-layer" add-popup-to-map)
              (.on @the-map "mouseover" "img-layer" add-popup-to-map)
-             (.on @the-map "mouseout"  "img-layer" #(doseq [popup @*popups]
-                                                      (.remove popup)))
+             (.on @the-map "mouseout"  "img-layer" #(do
+                                                      (set-map-cursor "")
+                                                      (doseq [popup @*popups]
+                                                        (.remove popup))))
 
              ; make sure the map is properly sized + the markers are placed
              (js/setTimeout #(.resize @the-map) 500)))))
