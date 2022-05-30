@@ -499,13 +499,15 @@
         (response/redirect (str (java.net.URL. "https" "smallworld.kiwi" (or port -1) (.getFile url))))
         (handler request)))))
 
+(def one-year-in-seconds (* 60 #_seconds 60 #_minutes 24 #_hours 365 #_days))
+
 (def app-handler
   (-> smallworld-routes       ; takes a request, returns response
       ssl-redirect            ; middleware: takes a handler, returns a handler
       www-redirect            ; middleware: takes a handler, returns a handler
       (compojure.handler/site ; middleware: takes a handler, returns a handler
        {:session {:cookie-name "small-world-session"
-                  :cookie-attrs {:expires "Sat May 29 20:42:00 EDT 2222"}
+                  :cookie-attrs {:max-age one-year-in-seconds} ; Safari requires max-age, not expiry: https://www.reddit.com/r/webdev/comments/jfk6t8/setting_cookie_expiry_date_always_defaults_to/g9kqnh5
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
