@@ -76,8 +76,8 @@
           (if (= :loading @settings/*settings)
             (decorations/loading-screen)
             (if (:welcome_flow_complete @settings/*settings)
-              (home/screen)
-              (settings/welcome-flow-screen))))
+              [home/screen]
+              [settings/welcome-flow-screen])))
     "/admin" (admin/summary-screen)
     (not-found-404-screen)))
 

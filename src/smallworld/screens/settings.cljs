@@ -218,6 +218,7 @@
                          (reset! *form-message "✓ settings saved!")
                          (js/setTimeout #(reset! *form-message nil) 5000) ; clear the message after a few seconds
                          (user-data/recompute-friends response))))))
+
 (defn welcome-flow-screen []
   (when (nil? @*email-address)
     (reset! *email-address (:email @*settings)))
@@ -319,7 +320,7 @@
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
    [debug-info]
    [:br] [:br] [:br] [:br] [:br]
-   util/info-footer])
+   [util/info-footer]])
 
 (defn settings-screen []
   [:div.welcome-flow
