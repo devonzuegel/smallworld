@@ -764,7 +764,8 @@ ul {
 .welcome-flow .you-signed-in-as,
 .welcome-flow .location-field,
 .welcome-flow .heads-up,
-.welcome-flow .email-options {
+.welcome-flow .email-options,
+.welcome-flow .email-address {
   max-width: 340px;
   margin: auto;
   padding: 16px 12px;
@@ -794,6 +795,9 @@ ul {
   margin-right: 2px;
   margin-bottom: -6px;
 }
+.welcome-flow #track-new-location-field {
+  margin-top: 12px;
+}
 .welcome-flow svg.cancel-icon,
 .home-page .delete-location-btn svg.cancel-icon {
   float: right;
@@ -812,7 +816,7 @@ ul {
 }
 .welcome-flow svg.cancel-icon {
   margin-right: -18px;
-  margin-top: -28px;
+  margin-top: -20px;
 }
 .home-page .friends-list.header .right-side {
   margin-left: 12px;
@@ -841,8 +845,9 @@ ul {
 .welcome-flow .location-field label .small-info-text {
   padding: 0 10px;
 }
+.welcome-flow .location-field,
 .welcome-flow .email-options,
-.welcome-flow .location-field {
+.welcome-flow .email-address {
   border: 1px solid #ffffff33;
 }
 .welcome-flow input {
@@ -850,7 +855,8 @@ ul {
 }
 .welcome-flow .location-field:focus-within,
 .welcome-flow .email-options:focus-within,
-.welcome-flow .email-options:focus /* the radio btns field is different */ {
+.welcome-flow .email-options:focus /* the radio btns field is different */ 
+.welcome-flow .email-address:focus-within {
   border: 1px solid #ffffff55;
 }
 .welcome-flow .you-signed-in-as .friend {
@@ -866,6 +872,9 @@ ul {
   margin-top: 15px;
   position: absolute;
   opacity: 0.5;
+}
+.welcome-flow .field {
+  font-size: 0.95em;
 }
 .welcome-flow input[type='text'] {
   width: 254px;
@@ -899,6 +908,12 @@ ul {
 }
 .welcome-flow .email-options {
   margin-top: 14px;
+  padding-top: 6px;
+  padding-bottom: 0;
+}
+.welcome-flow .email-address {
+  margin-top: 14px;
+  padding-bottom: 12px;
 }
 .welcome-flow .email-options .radio-btns {
   text-align: left;
