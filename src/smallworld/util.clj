@@ -41,3 +41,6 @@
 
 (defn log [string]
   (println (timestamp) "--" string))
+
+(def ENVIRONMENTS {:prod  "prod-heroku"
+                   :local "dev-m1-macbook"})
