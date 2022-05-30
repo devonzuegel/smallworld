@@ -111,7 +111,6 @@
            (decorations/x-icon)
            "0 friends are " verb-gerund " " curr-user-location-name]))]]))
 
-; TODO: consider running every 10 mins... might create rate-limiting issues
 (defn refresh-friends []
   (util/fetch "/api/v1/friends/refetch-twitter"
               (fn [result]
