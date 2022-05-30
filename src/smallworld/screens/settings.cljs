@@ -279,8 +279,8 @@
       [:div.small-info-text {:style {:margin-top "6px"}}
        "you can always add more locations later"]])
    [:br]
-   [:div.email-options {:tab-index "3"}
-    [:p "should we email you when" [:br] "friends are nearby?"]
+   [:div.field.email-options {:tab-index "3"}
+    [:p "should we email you when friends are nearby?"]
     [:div.radio-btns
      #_[:div.radio-btn
         [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
@@ -296,23 +296,22 @@
       [:label {:for "muted"} "no, please don't"]]]
     [:br]]
    [:br]
-   [:div.email-options {:class (when (:email-address-input @*form-errors) "error")}
-    [:div.email-address
-     [:label "what's your email address? *"] [:br]
-     [:div.field
-      [:input {:type "text"
-               :tab-index "4"
-               :id "email-address-input"
-               :name "email-address-input"
-               :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
-               :autoComplete "off"
-               :auto-complete "off"
-               :on-change #(let [input-elem (.-target %)
-                                 new-value  (.-value input-elem)]
-                             (reset! *email-address new-value))
-               :placeholder "email address"}]
-      (decorations/edit-icon)]
-     [:div.error-msg (:email-address-input @*form-errors)]]]
+   [:div.field.email-address {:class (when (:email-address-input @*form-errors) "error")}
+    [:label "what's your email address? *"] [:br]
+    [:div.field
+     [:input {:type "text"
+              :tab-index "4"
+              :id "email-address-input"
+              :name "email-address-input"
+              :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
+              :autoComplete "off"
+              :auto-complete "off"
+              :on-change #(let [input-elem (.-target %)
+                                new-value  (.-value input-elem)]
+                            (reset! *email-address new-value))
+              :placeholder "email address"}]
+     (decorations/edit-icon)]
+    [:div.error-msg (:email-address-input @*form-errors)]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
    [debug-info]
