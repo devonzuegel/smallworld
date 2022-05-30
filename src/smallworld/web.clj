@@ -5,6 +5,7 @@
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
             [clojure.set :as set]
+            [clojure.string :as str]
             [compojure.core :refer [ANY defroutes GET POST]]
             [compojure.handler]
             [compojure.route :as route]
@@ -167,7 +168,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def abridged-friends-cache (atom {}))
 
@@ -292,16 +293,16 @@
         diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
-                         (clojure.string/join
+                         (str/join
                           (remove nil?
                                   (flatten
                                    (map (fn [friend]
                                           (let [before (first friend)
                                                 after  (second friend)
-                                                name-before     (if (clojure.string/blank? (:name before))     "·" (:name before))
-                                                name-after      (if (clojure.string/blank? (:name after))      "·" (:name after))
-                                                location-before (if (clojure.string/blank? (:location before)) "·" (:location before))
-                                                location-after  (if (clojure.string/blank? (:location after))  "·" (:location after))
+                                                name-before     (if (str/blank? (:name before))     "·" (:name before))
+                                                name-after      (if (str/blank? (:name after))      "·" (:name after))
+                                                location-before (if (str/blank? (:location before)) "·" (:location before))
+                                                location-after  (if (str/blank? (:location after))  "·" (:location after))
                                                 highlight #(str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; padding: 0 8px;  display: inline-block; border-radius: 12px;  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.05), 0 1px 6px rgba(0, 0, 0, 0.05);\">" % "</span>")]
 
                                             [(when (not= (:name before) (:name after))
@@ -366,7 +367,7 @@
       (util/log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
       (let [result (refresh-friends-from-twitter user)]
         ; this is a hack :) it will be fragile if the error message ever changes
-        (when (clojure.string/starts-with? result "caught exception")
+        (when (str/starts-with? result "caught exception")
           (throw (Throwable. result))))
       (catch Throwable e
         (println "\ncouldn't refresh friends for user" (:screen_name user))
@@ -483,7 +484,7 @@
         (println))
 
       ; normally we'd use `(:scheme request)` to check for HTTPS instead of `x-forwarded-proto`, but for some reason `(:scheme request)` always says HTTP even when it's HTTPS, which results in infinite redirects
-      (if (or  (clojure.string/includes? host "localhost") ; don't redirect localhost (it doesn't support SSL)
+      (if (or  (str/includes? host "localhost") ; don't redirect localhost (it doesn't support SSL)
                (= "https" (headers "x-forwarded-proto"))   ; don't redirect if already HTTPS
                (= :https  (:scheme request)))
         (handler request)
