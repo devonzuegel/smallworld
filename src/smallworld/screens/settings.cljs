@@ -239,7 +239,8 @@
      [:img {:src (:twitter_avatar @*settings)}]
      [:div.right-side
       [:div.name     (:name @*settings)]
-      [:div.location (:main_location_corrected @*settings)]]]]
+      [:div.location (:name (first (filter #(= (:special-status %) "twitter-location")
+                                           (:locations @*settings))))]]]]
 
    (let [locations (remove nil? (:locations @*settings))]
      (when (= :loading @*locations-new) ; TODO: clean this up, it's kinda hacky
