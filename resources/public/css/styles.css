@@ -209,7 +209,7 @@ select {
 /******************************************************************************/
 .home-page {
   margin: auto;
-  padding: 24px 16px 12px 16px;
+  padding: 12px 16px 12px 16px;
   max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
 
   /* the following is so the map is centered, even when it overflows*/
@@ -329,11 +329,11 @@ tr:nth-child(even) {
 .category {
   border: 1px solid #d9d3cc22;
   border-radius: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   width: 100%;
 }
-.category {
-  margin-top: 18px;
+#track-new-location-field + .category {
+  margin-top: 16px !important;
 }
 .category .current-user-location {
   transform: translateY(calc(-50% - 6px));
@@ -774,7 +774,6 @@ ul {
 .welcome-flow #track-new-location-field {
   width: fit-content;
   margin: auto;
-  margin-top: 12px;
   padding: 8px 14px;
   border-radius: 24px;
   fill: #d9d3cc;
@@ -1051,14 +1050,14 @@ input[type='radio']:focus {
   #mapbox-container {
     width: calc(100vw - 32px);
     height: calc(60vh - 40px - 41px); /* 41px accounts for the margin */
-    margin: 16px 0 20px 0;
+    margin: 16px 0;
   }
 }
 @media (min-width: 768px) /* desktop */ {
   #mapbox-container {
     width: calc(100vw - 60px);
     height: calc(60vh - 60px - 41px); /* 41px accounts for the margin */
-    margin: 16px 0 20px 0;
+    margin: 16px 0 16px 0;
   }
 }
 #mapbox-container.expanded {

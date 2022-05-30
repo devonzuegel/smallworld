@@ -129,8 +129,6 @@
         (settings/settings-screen)
 
         [:div.home-page
-         [:p.info "here are your friends' Twitter locations:"]
-
          (let [top-location (first (remove nil? (:locations @settings/*settings)))]
            [util/error-boundary
             [mapbox/mapbox
@@ -139,9 +137,6 @@
               :user-img (:profile_image_url_large @session/*store)
               :user-name (:name @session/*store)
               :screen-name (:screen-name @session/*store)}]])
-
-         [:p.info "follow locations to see a list of who's nearby:"]
-
 
          (if (= 0 (count curr-user-locations))
            [:div.no-locations-info
