@@ -530,8 +530,10 @@ ul {
 }
 .twitter-data-explanation > .twitter-data img {
   height: 50px;
+  width: 50px;
   border-radius: 100%;
   border: 2px solid #d9d3cc44;
+  background-color: #d9d3cc22;
 }
 .twitter-data-explanation {
   text-align: left;
