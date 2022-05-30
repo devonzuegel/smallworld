@@ -135,29 +135,30 @@
 (defn set-map-cursor [cursor-style]
   (set! (.. (.getCanvas @the-map) -style -cursor) cursor-style))
 
-(defn add-popup-to-map [e]
-  (set-map-cursor "pointer")
+(defn add-popup-to-map [remove-on-mouseout?]
+  (fn [e]
+    (set-map-cursor "pointer")
 
-  ; these `obj/get` calls are hacks – should really be using externs to enable .-features
-  (let [feature (first (obj/get e "features"))
-        properties (-> feature
-                       (obj/get "properties")
-                       js->clj
-                       walk/keywordize-keys)
-        coordinates (-> feature
-                        (obj/get "geometry")
-                        (obj/get "coordinates"))]
-    (swap! *popups conj
-           (doto (js/mapboxgl.Popup. #js{:offset 30
-                                         :closeButton false
-                                         :anchor "left"})
-             (.setLngLat coordinates)
-             (.setHTML (reagent.dom.server/render-to-string
-                        (Popup-Content {:location    (:location properties)
-                                        :user-name   (:name properties)
-                                        :screen-name (:screen-name properties)
-                                        :lng-lat     coordinates})))
-             (.addTo @the-map)))))
+    ; these `obj/get` calls are hacks – should really be using externs to enable .-features
+    (let [feature (first (obj/get e "features"))
+          properties (-> feature
+                         (obj/get "properties")
+                         js->clj
+                         walk/keywordize-keys)
+          coordinates (-> feature
+                          (obj/get "geometry")
+                          (obj/get "coordinates"))]
+      (let [popup (doto (js/mapboxgl.Popup. #js{:offset 30
+                                                :closeButton false
+                                                :anchor "left"})
+                    (.setLngLat coordinates)
+                    (.setHTML (reagent.dom.server/render-to-string
+                               (Popup-Content {:location    (:location properties)
+                                               :user-name   (:name properties)
+                                               :screen-name (:screen-name properties)
+                                               :lng-lat     coordinates})))
+                    (.addTo @the-map))]
+        (when remove-on-mouseout? (swap! *popups conj popup))))))
 
 (defn add-friends-to-map [friends curr-user]
   (reset! *groups {})
@@ -326,12 +327,13 @@
              (.on @the-map "mouseover" "cluster-layer" #(set-map-cursor "pointer"))
              (.on @the-map "mouseout"  "cluster-layer" #(set-map-cursor ""))
 
-             (.on @the-map "click"     "img-layer" add-popup-to-map)
-             (.on @the-map "mouseover" "img-layer" add-popup-to-map)
-             (.on @the-map "mouseout"  "img-layer" #(do
-                                                      (set-map-cursor "")
-                                                      (doseq [popup @*popups]
-                                                        (.remove popup))))
+             (.on @the-map "click"     "img-layer" (add-popup-to-map false))
+             (.on @the-map "mouseover" "img-layer" (add-popup-to-map true))
+             (.on @the-map "mouseout"  "img-layer" #(js/setTimeout (fn []
+                                                                     (set-map-cursor "")
+                                                                     (doseq [popup @*popups]
+                                                                       (.remove popup)))
+                                                                   0))
 
              ; make sure the map is properly sized + the markers are placed
              (js/setTimeout #(.resize @the-map) 500)))))
