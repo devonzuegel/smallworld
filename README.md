@@ -10,7 +10,7 @@ https://smallworld.kiwi
   - [update code running in the repl](#update-code-running-in-the-repl)
   - [deploy to Heroku](#deploy-to-heroku)
 - [initial designs](#initial-designs)
-- [emails & scheduled jobs](#emails--scheduled-jobs)
+- [emails](#emails)
 - [sql cheatsheet](#sql-cheatsheet)
 
 ## run, build, & deploy
@@ -84,11 +84,9 @@ bin/make-and-deploy.sh
 | -                                 | -                                                | -                                         |
 |                                   |                                                  |                                           |
 
-## emails & scheduled jobs
+## emails
 - the server sends emails via SendGrid.  view/edit the templates here:
 https://mc.sendgrid.com/dynamic-templates
-- jobs are scheduled through the Heroku Scheduler:
-https://dashboard.heroku.com/apps/small-world-friends/scheduler
 
 ## sql cheatsheet
 
