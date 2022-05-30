@@ -15,6 +15,7 @@
 (def *loading  (r/atom true))
 (def the-map (r/atom nil)) ; can't name it `map` since that's taken by the standard library
 (def *friends-computed (r/atom []))
+(def *popups (r/atom nil))
 
 (defn coords-to-mapbox-array [coords]
   #js[(:lng coords) (:lat coords)])
@@ -127,6 +128,28 @@
     (if (and lng lat)
       [lng lat]
       nil)))
+
+(defn add-popup-to-map [e]
+  ; these `obj/get` calls are hacks – should really be using externs to enable .-features
+  (let [feature (first (obj/get e "features"))
+        properties (-> feature
+                       (obj/get "properties")
+                       js->clj
+                       walk/keywordize-keys)
+        coordinates (-> feature
+                        (obj/get "geometry")
+                        (obj/get "coordinates"))]
+    (swap! *popups conj
+           (doto (js/mapboxgl.Popup. #js{:offset 30
+                                         :closeButton false
+                                         :anchor "left"})
+             (.setLngLat coordinates)
+             (.setHTML (reagent.dom.server/render-to-string
+                        (Popup-Content {:location    (:location properties)
+                                        :user-name   (:name properties)
+                                        :screen-name (:screen-name properties)
+                                        :lng-lat     coordinates})))
+             (.addTo @the-map)))))
 
 (defn add-friends-to-map [friends curr-user]
   (reset! *groups {})
@@ -292,27 +315,10 @@
                                             :center coordinates
                                             :speed 1.5}))))
 
-             (.on @the-map "click" "img-layer"
-                  (fn [e]
-                    ; these `obj/get` calls are hacks – should really be using externs to enable .-features
-                    (let [feature (first (obj/get e "features"))
-                          properties (-> feature
-                                         (obj/get "properties")
-                                         js->clj
-                                         walk/keywordize-keys)
-                          coordinates (-> feature
-                                          (obj/get "geometry")
-                                          (obj/get "coordinates"))]
-                      (doto (js/mapboxgl.Popup. #js{:offset 30
-                                                    :closeButton false
-                                                    :anchor "left"})
-                        (.setLngLat coordinates)
-                        (.setHTML (reagent.dom.server/render-to-string
-                                   (Popup-Content {:location    (:location properties)
-                                                   :user-name   (:name properties)
-                                                   :screen-name (:screen-name properties)
-                                                   :lng-lat     coordinates})))
-                        (.addTo @the-map)))))
+             (.on @the-map "click"     "img-layer" add-popup-to-map)
+             (.on @the-map "mouseover" "img-layer" add-popup-to-map)
+             (.on @the-map "mouseout"  "img-layer" #(doseq [popup @*popups]
+                                                      (.remove popup)))
 
              ; make sure the map is properly sized + the markers are placed
              (js/setTimeout #(.resize @the-map) 500)))))
