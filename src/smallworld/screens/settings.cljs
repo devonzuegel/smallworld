@@ -317,7 +317,7 @@
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
    [debug-info]
    [:br] [:br] [:br] [:br] [:br]
-   [util/info-footer]])
+   [util/info-footer (:screen-name @*settings) user-data/recompute-friends]])
 
 
 (defn welcome-flow-screen []
@@ -327,9 +327,7 @@
                           ;;  (user-data/refresh-friends)
                            (util/fetch "/api/v1/friends"
                                        (fn [result]
-                                         (when true #_debug? (println "/api/v1/friends: " (count result)))
-                                         (println "result: " result)
-                                         (js/console.log result)
+                                         (when debug? (println "/api/v1/friends: " (count result)))
                                          (reset! user-data/*friends result))
                                        :retry? true))
     :reagent-render (fn [] [-welcome-flow-screen])}))

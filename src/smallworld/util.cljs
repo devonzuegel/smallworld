@@ -65,9 +65,7 @@
    [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
    (when (= screen-name "devonzuegel")
      [:<> [:span.dot-separator " · "]
-      [:a {:href "#" :on-click recompute-friends} "recompute locations"]
-      [:span.dot-separator " · "]
-      [:a "v5"]])])
+      [:a {:href "#" :on-click recompute-friends} "recompute locations"]])])
 
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]
