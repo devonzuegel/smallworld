@@ -333,7 +333,7 @@ tr:nth-child(even) {
   width: 100%;
 }
 #track-new-location-field + .category {
-  margin-top: 16px !important;
+  margin-top: 14px !important;
 }
 .category .current-user-location {
   transform: translateY(calc(-50% - 6px));
@@ -1045,19 +1045,19 @@ input[type='radio']:focus {
   box-shadow: 0px 0px 18px #ffffff22;
   border-radius: 24px;
   position: relative; /* required so that position:absolute works for the .expand-me btn */
+  margin: 16px 0 11px 0;
 }
 @media (max-width: 768px) /* mobile */ {
   #mapbox-container {
     width: calc(100vw - 32px);
-    height: calc(60vh - 40px - 41px); /* 41px accounts for the margin */
-    margin: 16px 0;
+    height: calc(58vh - 40px - 41px); /* 41px accounts for the margin */
+    margin-top: 8px;
   }
 }
 @media (min-width: 768px) /* desktop */ {
   #mapbox-container {
     width: calc(100vw - 60px);
-    height: calc(60vh - 60px - 41px); /* 41px accounts for the margin */
-    margin: 16px 0 16px 0;
+    height: calc(58vh - 60px - 41px); /* 41px accounts for the margin */
   }
 }
 #mapbox-container.expanded {
