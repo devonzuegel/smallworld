@@ -152,15 +152,13 @@
 
   (= 0 (count (keys @*form-errors))))
 
-
 (defn submit-welcome-form []
   (let [new-settings {:email_address           (input-value-by-name "email-address-input")
                       :email_notifications     (.-id (input-by-name "email_notification" ":checked"))
                       :locations               @*locations-new
                       :welcome_flow_complete   true}]
     (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
-      ; TODO: send to backend to save it in db too – first, need a way to reflect this in backend, since right now we only have local storage as source of truth for the current user's session
-      (reset! *settings new-settings)
+      (swap! *settings merge new-settings)
       (util/fetch-post "/api/v1/settings/update"
                        new-settings
                        user-data/recompute-friends))))
@@ -201,6 +199,7 @@
     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
     [:div {:style {:text-align "left"}}
      [:br]
+     [:pre "@*settings       \n" (util/preify @*settings)]
      [:pre "@session/*store: \n" (util/preify @session/*store)]
      [:pre "@*locations-new: \n" (util/preify @*locations-new)]
      [:pre "@*form-errors:   \n" (util/preify @*form-errors)]]))
@@ -219,7 +218,7 @@
                          (js/setTimeout #(reset! *form-message nil) 5000) ; clear the message after a few seconds
                          (user-data/recompute-friends response))))))
 
-(defn welcome-flow-screen []
+(defn -welcome-flow-screen []
   (when (nil? @*email-address)
     (reset! *email-address (:email @*settings)))
   [:div.welcome-flow
@@ -250,8 +249,6 @@
 
      [:div.location-fields ; TODO: add a way to delete locations from the list
       [:br]
-      (when debug?
-        [:pre {:style {:text-align "left"}} (util/preify @*locations-new)])
       (map-indexed (fn [i location]
                      (location-field
                       {:index         i
@@ -321,6 +318,21 @@
    [debug-info]
    [:br] [:br] [:br] [:br] [:br]
    [util/info-footer]])
+
+
+(defn welcome-flow-screen []
+  (r/create-class
+   {:component-did-mount (fn []
+                           (println "the welcome flow screen is mounted")
+                          ;;  (user-data/refresh-friends)
+                           (util/fetch "/api/v1/friends"
+                                       (fn [result]
+                                         (when true #_debug? (println "/api/v1/friends: " (count result)))
+                                         (println "result: " result)
+                                         (js/console.log result)
+                                         (reset! user-data/*friends result))
+                                       :retry? true))
+    :reagent-render (fn [] [-welcome-flow-screen])}))
 
 (defn settings-screen []
   [:div.welcome-flow

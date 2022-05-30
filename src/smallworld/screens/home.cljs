@@ -13,11 +13,6 @@
 (def *settings-open? (r/atom false))
 (defonce   *minimaps (r/atom {}))
 
-; TODO: put in component did mount
-(settings/refresh-friends-atom)
-(doall (for [i (range 1 10)]
-         (js/setTimeout settings/refresh-friends-atom (* (util/exponent 2 i) 1000))))
-
 (defn nav []
   [:div.nav {:class (when (:impersonation? @session/*store) "admin-impersonation")}
    [:a#logo-animation.logo {:on-click #(reset! *settings-open? false)}
@@ -109,7 +104,7 @@
   (or (= (:special-status location-data) "twitter-location")
       (= (:special-status location-data) "from-display-name")))
 
-(defn screen []
+(defn -screen []
   [:<>
    (nav)
    (let [curr-user-locations (remove nil? (:locations @settings/*settings))
@@ -217,3 +212,12 @@
          (util/info-footer (:screen-name @session/*store)
                            user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
          (debugger-info)])])])
+
+(defn screen []
+  (r/create-class
+   {:component-did-mount
+    (fn []
+      (settings/refresh-friends-atom) ; refresh immediately
+      (doall (for [i (range 1 10)] ; then refresh it again, with exponential backoff
+               (js/setTimeout settings/refresh-friends-atom (* (util/exponent 2 i) 1000)))))
+    :reagent-render (fn [] [-screen])}))
