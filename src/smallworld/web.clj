@@ -390,7 +390,7 @@
                               :message (str "finished refreshing friends for " n-users " users")})
 
     ;; TODO: put this back when we actually catch failures (currently, we don't)
-    (when (= "prod-heroku" (util/get-env-var "ENVIRONMENT"))
+    (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
       (email/send-email {:to "avery.sara.james@gmail.com"
                          :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
                          :type "text/plain"
@@ -544,24 +544,26 @@
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-(defn -main []
+(defn start-scheduled-worker []
   (try (timely/start-scheduler)
        (catch Exception e
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
-
   (println "starting scheduler to run every day at"
            (str (first (:hour scheduled-time)) ":" (first (:minute scheduled-time))) "UTC")
   (let [id (timely/start-schedule
-            #_(timely/scheduled-item (timely/every 1 :minutes) worker) ; this is just for debugging
             (timely/scheduled-item (timely/daily scheduled-time) worker))]
     (reset! schedule-id id)
-    (println "started scheduler with id:" @schedule-id))
+    (println "started scheduler with id:" @schedule-id)))
 
+(defn -main []
+  (let [env (util/get-env-var "ENVIRONMENT")]
+    (if (not= env (:prod util/ENVIRONMENTS))
+      (println "not starting scheduler because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))
+      (start-scheduled-worker)))
 
-
-  (println "starting server...")
+  (println "\nstarting server...")
   (let [default-port 3001
         port (System/getenv "PORT")
         port (if (nil? port)
