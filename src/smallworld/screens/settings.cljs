@@ -322,14 +322,11 @@
 
 (defn welcome-flow-screen []
   (r/create-class
-   {:component-did-mount (fn []
-                           (println "the welcome flow screen is mounted")
-                          ;;  (user-data/refresh-friends)
-                           (util/fetch "/api/v1/friends"
-                                       (fn [result]
-                                         (when debug? (println "/api/v1/friends: " (count result)))
-                                         (reset! user-data/*friends result))
-                                       :retry? true))
+   {:component-did-mount #(util/fetch "/api/v1/friends"
+                                      (fn [result]
+                                        (when debug? (println "/api/v1/friends: " (count result)))
+                                        (reset! user-data/*friends result))
+                                      :retry? true)
     :reagent-render (fn [] [-welcome-flow-screen])}))
 
 (defn settings-screen []
