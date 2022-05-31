@@ -333,10 +333,7 @@
         (log-event "refresh-twitter-friends--failed" {:screen-name screen-name
                                                       :failure-message failure-message})
         (generate-string (ring-response/bad-request {:message failure-message})))
-      (let [email-address (-> db/settings-table
-                              (db/select-by-col :screen_name screen-name)
-                              first
-                              :email_address)]
+      (let [email-address (:email_address settings)]
         (log-event "refreshed-twitter-friends--success" {:screen-name screen-name
                                                          :diff-count  (count diff)
                                                          :diff-html   diff-html
@@ -521,7 +518,7 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def scheduled-time (timely/at (timely/hour 2) (timely/minute 30))) ; in UTC
+(def scheduled-time (timely/at (timely/hour 2) (timely/minute 42))) ; in UTC
 
 (def schedule-id (atom nil))
 
