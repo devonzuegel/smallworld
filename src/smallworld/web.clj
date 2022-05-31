@@ -213,10 +213,9 @@
             (println "updating @" screen-name "'s friends... (partially!)")
             (println "-----------------------------------------------------------------------------------------\n"))
 
-          ; TODO: undo me!
-          ;; (db/insert-or-update! db/friends-table :request_key
-          ;;                       {:request_key screen-name
-          ;;                        :data        {:friends (vec new-result)}})
+          (db/insert-or-update! db/friends-table :request_key
+                                {:request_key screen-name
+                                 :data        {:friends (vec new-result)}})
           (if (= next-cursor 0)
             (do (log-event "fetch-twitter-friends--end" {:screen-name screen-name
                                                          :cursor cursor
@@ -353,12 +352,12 @@
         (pp/pprint diff-html)
         (println "\n\n")
 
-        #_(when (and (= "daily" (:email_notifications settings))
-                     (not-empty diff))
-            (email/send-email {:to email-address
-                               :template (:friends-on-the-move email/TEMPLATES)
-                               :dynamic_template_data {:twitter_screen_name screen-name
-                                                       :friends             diff-html}}))
+        (when (and (= "daily" (:email_notifications settings))
+                   (not-empty diff))
+          (email/send-email {:to email-address
+                             :template (:friends-on-the-move email/TEMPLATES)
+                             :dynamic_template_data {:twitter_screen_name screen-name
+                                                     :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
@@ -522,7 +521,7 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def scheduled-time (timely/at (timely/hour 1) (timely/minute 54))) ; in UTC
+(def scheduled-time (timely/at (timely/hour 2) (timely/minute 30))) ; in UTC
 
 (def schedule-id (atom nil))
 
