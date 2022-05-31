@@ -280,8 +280,8 @@
       [:div.small-info-text {:style {:margin-top "6px"}}
        "you can always add more locations later"]])
    [:br]
-   [:div.field.email-options {:tab-index "3"}
-    [:p "should we email you when friends are nearby?"]
+   [:div.email-options {:tab-index "3"}
+    [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
     [:div.radio-btns
      #_[:div.radio-btn
         [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
@@ -296,7 +296,6 @@
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
       [:label {:for "muted"} "no, please don't"]]]
     [:br]]
-   [:br]
    [:div.field.email-address {:class (when (:email-address-input @*form-errors) "error")}
     [:label "what's your email address? *"] [:br]
     [:div.field
@@ -333,7 +332,7 @@
   [:div.welcome-flow
    [:p.serif {:style {:font-size "1.3em" :padding-bottom "24px"}} "settings"]
    [:div.email-options {:tab-index "3"}
-    [:p "should we email you when" [:br] "friends are nearby?"]
+    [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
     [:div.radio-btns
      #_[:div.radio-btn
         [:input {:name "email_notification" :type "radio" :value "instant" :id "instant" :default-checked (= "instant" (:email_notifications @*settings))}]
