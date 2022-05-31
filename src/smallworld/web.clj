@@ -564,7 +564,8 @@
   (let [env (util/get-env-var "ENVIRONMENT")]
     (if (not= env (:prod util/ENVIRONMENTS))
       (println "not starting scheduler because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))
-      (start-scheduled-worker)))
+      (println "========== start-scheduled-worker has been temporarily disabled ==========")
+      #_(start-scheduled-worker)))
 
   (println "\nstarting server...")
   (let [default-port 3001
