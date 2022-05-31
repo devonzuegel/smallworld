@@ -1,6 +1,6 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [cheshire.core :refer [generate-string generate-stream]]
+  (:require [cheshire.core :refer [generate-stream generate-string]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -10,10 +10,11 @@
             [compojure.handler]
             [compojure.route :as route]
             [oauth.twitter :as oauth]
-            [ring.util.io :as ring-io]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.session.cookie :as cookie]
-            [ring.util.response :as response]
+            [ring.util.io :as ring-io]
+            [ring.util.request :as ring-request]
+            [ring.util.response :as ring-response]
             [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
@@ -69,7 +70,7 @@
                                                  (util/get-env-var "TWITTER_CONSUMER_SECRET"))
         redirect-url  (oauth/oauth-authorization-url (:oauth-token request-token))]
     (log-event "start-oauth-flow" {:message "someone has started the oauth flow (we don't yet have the screen name)"})
-    (response/redirect redirect-url)))
+    (ring-response/redirect redirect-url)))
 
 (defn location-sort-order [location]
   (case (:special-status location)
@@ -111,12 +112,12 @@
              (db/insert! db/settings-table new-settings)))
          (log-event "new-authorization" {:screen-name screen-name
                                          :message (str "@" screen-name ") has successfully authorized small world to access their Twitter account")})
-         (set-session (response/redirect "/") {:access-token access-token
-                                               :screen-name  (:screen-name api-response)}))
+         (set-session (ring-response/redirect "/") {:access-token access-token
+                                                    :screen-name  (:screen-name api-response)}))
        (catch Throwable e
          (println "user failed to log in")
          (println e)
-         (response/redirect "/"))))
+         (ring-response/redirect "/"))))
 
 (defn logout [req]
   (let [screen-name (:screen-name (get-session req))
@@ -125,7 +126,7 @@
                      (str "@" screen-name " has logged out"))]
     (log-event "logout" {:screen-name screen-name
                          :message logout-msg})
-    (set-session (response/redirect "/") {})))
+    (set-session (ring-response/redirect "/") {})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; settings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -164,7 +165,7 @@
     ; TODO: add try-catch to handle failures
     ; TODO: simplify/consolidate where the settings stuff is stored
     (db/insert-or-update! db/settings-table :screen_name new-settings)
-    (response/response (generate-string new-settings))))
+    (ring-response/response (generate-string new-settings))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -212,9 +213,10 @@
             (println "updating @" screen-name "'s friends... (partially!)")
             (println "-----------------------------------------------------------------------------------------\n"))
 
-          (db/insert-or-update! db/friends-table :request_key
-                                {:request_key screen-name
-                                 :data        {:friends (vec new-result)}})
+          ; TODO: undo me!
+          ;; (db/insert-or-update! db/friends-table :request_key
+          ;;                       {:request_key screen-name
+          ;;                        :data        {:friends (vec new-result)}})
           (if (= next-cursor 0)
             (do (log-event "fetch-twitter-friends--end" {:screen-name screen-name
                                                          :cursor cursor
@@ -225,12 +227,12 @@
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
       (when (= 429 (get-in e [:data :status])) (println "you hit the Twitter rate limit!"))
       (println (pr-str e))
-      :failed)))
+      nil #_failure)))
 
 (def memoized-friends (m/my-memoize
                        (fn [screen-name]
                          (let [friends-result (--fetch-friends screen-name)]
-                           (if (= :failed friends-result)
+                           (if (nil? friends-result)
                              :failed
                              {:friends friends-result})))
                        db/friends-table))
@@ -272,6 +274,18 @@
 (defn select-location-fields [friend]
   (merge (select-keys friend [:location :name :screen-name])))
 
+(defn highlight [highlighted-str]
+  (str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; "
+       "padding: 0 8px;  display: inline-block; border-radius: 12px; "
+       "box-shadow: 0 4px 6px rgba(50, 50, 93, 0.05), 0 1px 6px rgba(0, 0, 0, 0.05);\">"
+       highlighted-str
+       "</span>"))
+
+(defn html-line-result [screen-name type before after]
+  (str "<li><b>@" screen-name "</b> updated their " type ": "
+       (highlight before) " → " (highlight after)
+       "<br/></li>"))
+
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
         old-friends (map ; fetch the old friends before friends gets updated from the twitter fetch
@@ -287,40 +301,39 @@
                               friends-result)
         new-friends (map select-location-fields
                          (vec friends-result))
-        diff (vec (vals (group-by :screen-name
-                                  (concat (set/difference (set old-friends) (set new-friends))
-                                          (set/difference (set new-friends) (set old-friends))))))
+        diff (->> old-friends
+                  set
+                  (set/difference (set new-friends))
+                  (concat (set/difference (set old-friends) (set new-friends)))
+                  (group-by :screen-name)
+                  vals
+                  vec
+                  (remove #(or (nil? (first %)) (nil? (second %)))))
         diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
-                         (str/join
-                          (remove nil?
-                                  (flatten
-                                   (map (fn [friend]
-                                          (let [before (first friend)
-                                                after  (second friend)
-                                                name-before     (if (str/blank? (:name before))     "·" (:name before))
-                                                name-after      (if (str/blank? (:name after))      "·" (:name after))
-                                                location-before (if (str/blank? (:location before)) "·" (:location before))
-                                                location-after  (if (str/blank? (:location after))  "·" (:location after))
-                                                highlight #(str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; padding: 0 8px;  display: inline-block; border-radius: 12px;  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.05), 0 1px 6px rgba(0, 0, 0, 0.05);\">" % "</span>")]
-
-                                            [(when (not= (:name before) (:name after))
-                                               (str "<li><b>@" (:screen-name after) "</b> updated their name: "
-                                                    (highlight name-before) " → " (highlight name-after)
-                                                    "<br/></li>"))
-
-                                             (when (not= (:location before) (:location after))
-                                               (str "<li><b>@" (:screen-name after) "</b> updated their location: "
-                                                    (highlight location-before) " → " (highlight location-after)
-                                                    "<br/></li>"))]))
-                                        diff))))
+                         (->> diff
+                              (map (fn [friend]
+                                     (let [before (first friend)
+                                           after  (second friend)
+                                           name-before     (if (str/blank? (:name before))     "[blank]" (:name before))
+                                           name-after      (if (str/blank? (:name after))      "[blank]" (:name after))
+                                           location-before (if (str/blank? (:location before)) "[blank]" (:location before))
+                                           location-after  (if (str/blank? (:location after))  "[blank]" (:location after))
+                                           screen-name (:screen-name after)]
+                                       [(when (not= (:name before) (:name after))
+                                          (html-line-result screen-name "name" name-before name-after))
+                                        (when (not= (:location before) (:location after))
+                                          (html-line-result screen-name "location" location-before location-after))])))
+                              flatten
+                              (remove nil?)
+                              str/join)
                          "</ul>"))]
-    (if (= :failed friends-result)
+    (if (nil? friends-result)
       (let [failure-message (str "could not refresh friends for @" screen-name)]
         (log-event "refresh-twitter-friends--failed" {:screen-name screen-name
                                                       :failure-message failure-message})
-        (generate-string (response/bad-request {:message failure-message})))
+        (generate-string (ring-response/bad-request {:message failure-message})))
       (let [email-address (-> db/settings-table
                               (db/select-by-col :screen_name screen-name)
                               first
@@ -340,12 +353,12 @@
         (pp/pprint diff-html)
         (println "\n\n")
 
-        (when (and (= "daily" (:email_notifications settings))
-                   (not-empty diff))
-          (email/send-email {:to email-address
-                             :template (:friends-on-the-move email/TEMPLATES)
-                             :dynamic_template_data {:twitter_screen_name screen-name
-                                                     :friends             diff-html}}))
+        #_(when (and (= "daily" (:email_notifications settings))
+                     (not-empty diff))
+            (email/send-email {:to email-address
+                               :template (:friends-on-the-move email/TEMPLATES)
+                               :dynamic_template_data {:twitter_screen_name screen-name
+                                                       :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (swap! abridged-friends-cache
                assoc screen-name friends-abridged)
@@ -376,11 +389,10 @@
         nil))))
 
 (defn worker []
-  (println)
-  (println "===============================================")
+  (println "\n===============================================")
   (util/log "starting worker.clj")
   (println)
-  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "antimatter15")
+  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "devonzuegel")
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
@@ -390,18 +402,16 @@
     (log-event "worker-done" {:count   n-users
                               :message (str "finished refreshing friends for " n-users " users")})
 
-    ;; TODO: put this back when we actually catch failures (currently, we don't)
     (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
       (email/send-email {:to "avery.sara.james@gmail.com"
                          :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
                          :type "text/plain"
-                         :body (str "finished refreshing friends for " n-users " users" ; ": " n-failures " failures"
+                         :body (str "finished refreshing friends for " n-users " users:\n\n"
+                                    (str/join "\n" (map :screen_name all-users))
+                                    ; ": " n-failures " failures"
                                     #_"\n\n"
                                     #_"users that failed:\n" #_(with-out-str (pp/pprint @failures)))})))
-
-  (println)
-  (println "===============================================")
-  (println))
+  (println "\n===============================================\n"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -428,10 +438,10 @@
                                         location-name (:location-name parsed-body)]
                                     (generate-string (coordinates/memoized location-name))))
   (GET "/api/v1/friends" req (get-users-friends req))
-  (GET "/api/v1/friends/refresh-atom" req (response/response (ring-io/piped-input-stream
-                                                              (fn [input-stream]
-                                                                (let [writer (io/make-writer input-stream {})]
-                                                                  (get-users-friends--not-memoized req writer))))))
+  (GET "/api/v1/friends/refresh-atom" req (ring-response/response (ring-io/piped-input-stream
+                                                                   (fn [input-stream]
+                                                                     (let [writer (io/make-writer input-stream {})]
+                                                                       (get-users-friends--not-memoized req writer))))))
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
                                                        friends-full (:friends (memoized-friends screen-name))
@@ -461,16 +471,16 @@
 
 ; given a HTTP request, return a redirect response to the equivalent HTTPS url
 (defn ssl-redirect-response [request]
-  (-> (response/redirect (https-url (ring.util.request/request-url request)))
+  (-> (ring-response/redirect (https-url (ring-request/request-url request)))
       ; responding 301 to a POST changes it to a GET, because 301 is older & 307 is newer, so we need to respond to POST requests with a 307
-      (response/status   (if (get-request? request) 301 307))))
+      (ring-response/status   (if (get-request? request) 301 307))))
 
 ; redirect any HTTP request to the equivalent HTTPS url
 (defn ssl-redirect [handler]
   ; note: we also have a setting in Cloudflare that forces SSL, so if you remove
   ; this, you'll probably still get an SSL redirect
   (fn [request]
-    (let [url     (ring.util.request/request-url request)
+    (let [url     (ring-request/request-url request)
           host    (.getHost (java.net.URL. url))
           headers (:headers request)]
 
@@ -493,11 +503,11 @@
 ; redirect any `www.smallworld.kiwi` request to the equivalent raw domain `smallworld.kiwi` url
 (defn www-redirect [handler & [port]]
   (fn [request]
-    (let [url  (java.net.URL. (ring.util.request/request-url request))
+    (let [url  (java.net.URL. (ring-request/request-url request))
           host (.getHost url)]
 
       (if (= host "www.smallworld.kiwi")
-        (response/redirect (str (java.net.URL. "https" "smallworld.kiwi" (or port -1) (.getFile url))))
+        (ring-response/redirect (str (java.net.URL. "https" "smallworld.kiwi" (or port -1) (.getFile url))))
         (handler request)))))
 
 (def one-year-in-seconds (* 60 #_seconds 60 #_minutes 24 #_hours 365 #_days))
@@ -512,7 +522,7 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def scheduled-time (timely/at (timely/hour 2) (timely/minute 47))) ; in UTC
+(def scheduled-time (timely/at (timely/hour 1) (timely/minute 37))) ; in UTC
 
 (def schedule-id (atom nil))
 
@@ -564,8 +574,7 @@
   (let [env (util/get-env-var "ENVIRONMENT")]
     (if (not= env (:prod util/ENVIRONMENTS))
       (println "not starting scheduler because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))
-      (println "========== start-scheduled-worker has been temporarily disabled ==========")
-      #_(start-scheduled-worker)))
+      (start-scheduled-worker)))
 
   (println "\nstarting server...")
   (let [default-port 3001
