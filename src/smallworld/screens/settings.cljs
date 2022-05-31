@@ -191,7 +191,7 @@
   (condp = (:special-status location)
     "twitter-location"  "what city do you live in?"
     "from-display-name" "any plans to travel?"
-    "share a location"))
+    "add a location"))
 
 (defn debug-info []
   (when debug?
