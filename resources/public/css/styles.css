@@ -977,15 +977,16 @@ input[type='radio']:focus {
 :not(.error) .error-msg {
   display: none;
 }
+.welcome-flow input::placeholder {
+  color: #d9d3cc55;
+}
 .error .error-msg {
   display: block;
-  background: #ffdfe1;
-  border-radius: 4px;
-  color: #c2000d;
+  color: #ffa88d;
+  font-weight: 900;
   font-size: 0.8em;
   font-weight: 500;
-  margin: 2px auto 0;
-  padding: 4px;
+  margin: 0 auto;
   text-align: center;
   text-align: center;
   width: 289px;
