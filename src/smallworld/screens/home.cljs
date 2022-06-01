@@ -193,9 +193,9 @@
                       (if (or (get-in @settings/*settings [:locations i :loading]) (= [] @user-data/*friends))
                         [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]]
                         (when-not (nil? (:coords location-data))
-                          [:<>
-                           (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))
-                           (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))]))]))
+                          [:<> ; TODO: refactor this so that data is passed in as a param, rather than depending on side effects
+                           (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
+                           (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))]))
                  curr-user-locations))
 
          (when (not= 0 (count curr-user-locations))
