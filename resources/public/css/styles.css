@@ -872,7 +872,8 @@ ul {
 .welcome-flow .field {
   font-size: 0.95em;
 }
-.welcome-flow input[type='text'] {
+.welcome-flow input[type='text'],
+.welcome-flow input[type='email'] {
   width: 254px;
   padding: 4px 32px 4px 5px;
   background: #ffffff11;

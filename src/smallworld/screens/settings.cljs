@@ -299,7 +299,7 @@
    [:div.field.email-address {:class (when (:email-address-input @*form-errors) "error")}
     [:label "what's your email address? *"] [:br]
     [:div.field
-     [:input {:type "text"
+     [:input {:type "email"
               :tab-index "4"
               :id "email-address-input"
               :name "email-address-input"
@@ -351,7 +351,7 @@
    [:div.email-address {:class (when (:email-address-input @*form-errors) "error")}
     [:label "what's your email address? *"] [:br]
     [:div.field
-     [:input {:type "text"
+     [:input {:type "email"
               :tab-index "4"
               :id "email-address-input"
               :name "email-address-input"
