@@ -1097,7 +1097,7 @@ input[type='radio']:focus {
   filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.5));
   z-index: 300;
   margin-top: 12px;
-  margin-left: 12px;
+  transform: scale(1.3);
 }
 #mapbox-container .zoom-in:hover,
 #mapbox-container .zoom-out:hover,
@@ -1105,11 +1105,14 @@ input[type='radio']:focus {
   fill: black;
   filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.8));
 }
+#mapbox-container .expand-me {
+  margin-left: 12px;
+}
 #mapbox-container svg.zoom-in {
-  margin-left: 48px;
+  margin-left: 52px;
 }
 #mapbox-container svg.zoom-out {
-  margin-left: 80px;
+  margin-left: 88px;
 }
 #mapbox-container .mapboxgl-map {
   background: #9dc7d9;
