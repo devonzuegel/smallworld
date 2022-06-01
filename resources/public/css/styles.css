@@ -401,14 +401,8 @@ ul {
   font-weight: 600;
 }
 .friends-list .mapbox-container {
-  min-width: 80px;
+  min-width: 60px;
   border-radius: 80px;
-}
-
-@media (max-width: 768px) /* mobile */ {
-  .friends-list .mapbox-container {
-    min-width: 60px;
-  }
 }
 .friends-list .mapbox-container .mapboxgl-map {
   height: 100% !important;
