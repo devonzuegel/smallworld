@@ -388,7 +388,6 @@ ul {
 .friends-list.header {
   font-size: 0.85em;
   display: flex;
-  min-height: 59px;
   flex-direction: row;
   background-color: #ffffff0d;
   border-radius: 8px 8px 0 0;
@@ -401,7 +400,8 @@ ul {
   font-weight: 600;
 }
 .friends-list .mapbox-container {
-  min-width: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 80px;
 }
 .friends-list .mapbox-container .mapboxgl-map {
