@@ -138,14 +138,7 @@
               :user-name (:name @session/*store)
               :screen-name (:screen-name @session/*store)}]])
 
-         (if (= 0 (count curr-user-locations))
-           [:div.no-locations-info
-            [:p "3 ways to start following your first location:"]
-            [:ul
-             [:li update " your Twitter profile location"]
-             [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"]
-             [:li "add a location manually:"]]
-            track-new-location-btn]
+         (when (not= 0 (count curr-user-locations))
            track-new-location-btn)
 
          (doall (map-indexed
@@ -198,10 +191,17 @@
                            (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))]))
                  curr-user-locations))
 
-         (when (not= 0 (count curr-user-locations))
-           track-new-location-btn)
+         [:div.no-locations-info
+          [:p "3 ways to start following "
+           (if (= 0 (count curr-user-locations)) "your first" "another")
+           " location:"]
+          [:ul
+           [:li "add a location manually with the button below"]
+           [:li update " your Twitter profile location"]
+           [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"]]
+          track-new-location-btn]
 
-         [:br]
+         [:br] [:br]
          (debugger-btn)
 
          (util/info-footer (:screen-name @session/*store)

@@ -88,7 +88,7 @@
                           (get-close-friends curr-user-location-name friend-location-key 100))
         list-count        (count friends-list)
         friend-pluralized (if (= list-count 1) "friend is" "friends are")
-        expanded?        (boolean (get @*expanded? key-pair))]
+        expanded?         (boolean (get @*expanded? key-pair))]
 
     [util/error-boundary
      [:div.friends-list
@@ -99,12 +99,12 @@
            [:p.location-info
             {:on-click ; toggle collapsed state
              #(swap! *expanded? assoc key-pair (not expanded?))}
-            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "right" "down")]))
+            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "down" "right")]))
             [:<>
              list-count " "
              friend-pluralized " "
              verb-gerund " " curr-user-location-name ":"]]
-           (when-not expanded?
+           (when expanded?
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found

@@ -333,7 +333,7 @@ tr:nth-child(even) {
   width: 100%;
 }
 #track-new-location-field + .category {
-  margin-top: 14px !important;
+  margin-top: 16px !important;
 }
 .category .current-user-location {
   transform: translateY(calc(-50% - 6px));
@@ -349,11 +349,11 @@ tr:nth-child(even) {
 }
 .no-locations-info {
   color: #d9d3cccc;
-  padding: 24px;
-  border: 2px solid #ffffff22;
+  padding: 20px;
+  border: 1px solid #ffffff22;
   border-radius: 8px;
   line-height: 1.7;
-  margin-top: 16px;
+  margin-bottom: 16px;
 }
 .no-locations-info p,
 ul {
@@ -1057,7 +1057,7 @@ input[type='radio']:focus {
   box-shadow: 0px 0px 18px #ffffff22;
   border-radius: 24px;
   position: relative; /* required so that position:absolute works for the .expand-me btn */
-  margin: 16px 0 11px 0;
+  margin: 16px 0 16px 0;
 }
 @media (max-width: 768px) /* mobile */ {
   #mapbox-container {
