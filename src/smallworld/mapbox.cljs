@@ -70,8 +70,7 @@
 (def min-zoom 0)
 
 (defn component-did-mount [current-user] ; this should be called just once when the component is mounted
-  ; create the map
-  (reset! the-map
+  (reset! the-map ; create the map
           (new js/mapboxgl.Map
                #js{:container "mapbox"
                    :key    (get-in config [style :access-token])

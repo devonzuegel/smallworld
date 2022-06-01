@@ -92,7 +92,7 @@
 
     [util/error-boundary
      [:div.friends-list
-      (if (= :loading @*friends)
+      (if (or (= :loading @*friends) (and @mapbox/*loading (= 0 (count @*friends))))
         [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]
         (if (> list-count 0)
           [:<>
