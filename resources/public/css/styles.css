@@ -202,6 +202,10 @@ select {
   font-size: 0.85em;
   opacity: 0.6;
   vertical-align: middle;
+  gap: 14px;
+}
+.friends-list .loading .loader {
+  margin: -16px;
 }
 
 /******************************************************************************/
