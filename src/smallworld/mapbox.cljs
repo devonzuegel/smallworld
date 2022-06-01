@@ -67,7 +67,7 @@
 
 (def Miami [-80.1947021484375 25.775083541870117])
 
-(def min-zoom 1)
+(def min-zoom 0)
 
 (defn component-did-mount [current-user] ; this should be called just once when the component is mounted
   ; create the map
