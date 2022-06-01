@@ -108,7 +108,7 @@
   [:<>
    (nav)
    (let [curr-user-locations (remove nil? (:locations @settings/*settings))
-         update [:a {:href "https://twitter.com/settings/location" :target "_blank"} "update"]
+         update [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "update"]
          track-new-location-btn [:div#track-new-location-field
                                  {:on-click (fn []
                                               (let [updated-locations (vec (concat curr-user-locations ; using concat instead of conj so it adds to the end
@@ -192,13 +192,11 @@
                  curr-user-locations))
 
          [:div.no-locations-info
-          [:p "3 ways to start following "
-           (if (= 0 (count curr-user-locations)) "your first" "another")
-           " location:"]
+          [:p "3 ways to start following a location:"]
           [:ul
-           [:li "add a location manually with the button below"]
            [:li update " your Twitter profile location"]
-           [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"]]
+           [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"] ; TODO: make this an `i` info hover
+           [:li "add a location manually:"]]
           track-new-location-btn]
 
          [:br] [:br]
