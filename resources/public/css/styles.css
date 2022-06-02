@@ -855,7 +855,8 @@ ul {
 }
 .welcome-flow .location-field:focus-within,
 .welcome-flow .email-options:focus-within,
-.welcome-flow .email-options:focus /* the radio btns field is different */ 
+.welcome-flow .email-options:focus /* the radio btns field is different */
+.welcome-flow .email-address:focus,
 .welcome-flow .email-address:focus-within {
   border: 1px solid #ffffff55;
 }
@@ -970,7 +971,7 @@ input[type='radio']:checked::before {
 }
 
 input[type='radio']:focus {
-  outline: 0.1em solidwhite;
+  outline: 0.1em solid white;
   outline-offset: max(2px, 0.15em);
 }
 :not(.error) .error-msg {
