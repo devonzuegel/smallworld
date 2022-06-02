@@ -173,7 +173,9 @@
 
 (def abridged-friends-cache (atom {}))
 
-(defn --fetch-friends [screen-name] ;; use the memoized version of this function!
+(def max-results (* 15 200))
+
+(defn fetch-friends-from-twitter [screen-name] ;; use the memoized version of this function!
   (when debug?
     (println "================================================================================================= start")
     (println "fetching friends for " screen-name))
@@ -216,10 +218,13 @@
           (db/insert-or-update! db/friends-table :request_key
                                 {:request_key screen-name
                                  :data        {:friends (vec new-result)}})
-          (if (= next-cursor 0)
+          (if (or (= next-cursor 0) (= max-results (count new-result)))
             (do (log-event "fetch-twitter-friends--end" {:screen-name screen-name
                                                          :cursor cursor
                                                          :result-count (count new-result)})
+                (when (= max-results (count new-result))
+                  (log-event "fetch-twitter-friends--max-results" {:screen-name screen-name
+                                                                   :details "stopped requesting friends before we were done because we'll get rate otherwise"}))
                 new-result) ; return final result if Twitter returns a cursor of 0
             (recur next-cursor new-result)))))
     (catch Throwable e
@@ -230,7 +235,7 @@
 
 (def memoized-friends (m/my-memoize
                        (fn [screen-name]
-                         (let [friends-result (--fetch-friends screen-name)]
+                         (let [friends-result (fetch-friends-from-twitter screen-name)]
                            (if (nil? friends-result)
                              :failed
                              {:friends friends-result})))
@@ -293,7 +298,7 @@
                          (db/select-by-col :request_key screen-name)
                          vec
                          (get-in [0 :data :friends])))
-        friends-result   (--fetch-friends screen-name)
+        friends-result   (fetch-friends-from-twitter screen-name)
         curr-user-info   {:screen-name screen-name
                           :locations (:locations settings)}
         friends-abridged (map #(user-data/abridged % curr-user-info)
