@@ -195,7 +195,7 @@
           [:p "3 ways to start following a location:"]
           [:ul
            [:li update " your Twitter profile location"]
-           [:li update " your Twitter display name (e.g. \"Devon in Miami Beach\")"] ; TODO: make this an `i` info hover
+           [:li update " your Twitter display name (e.g. \"Devon in NYC\")"] ; TODO: make this an `i` info hover
            [:li "add a location manually:"]]
           track-new-location-btn]
 
