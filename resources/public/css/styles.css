@@ -80,7 +80,7 @@ select {
   bottom: 0px;
   left: 0px;
   opacity: 0.26;
-  height: 46px;
+  height: 42px;
 }
 .nav .globe-loader {
   position: relative;
@@ -213,7 +213,7 @@ select {
 /******************************************************************************/
 .home-page {
   margin: auto;
-  padding: 12px 16px 12px 16px;
+  padding: 16px 16px 4px 16px;
   max-width: calc(758px + 20px); /* leave space for 2 columns + padding */
 
   /* the following is so the map is centered, even when it overflows*/
@@ -1062,13 +1062,12 @@ input[type='radio']:focus {
   box-shadow: 0px 0px 18px #ffffff22;
   border-radius: 24px;
   position: relative; /* required so that position:absolute works for the .expand-me btn */
-  margin: 16px 0 16px 0;
+  margin: 0 0 16px 0;
 }
 @media (max-width: 768px) /* mobile */ {
   #mapbox-container {
     width: calc(100vw - 32px);
     height: calc(58vh - 40px - 41px); /* 41px accounts for the margin */
-    margin-top: 8px;
   }
 }
 @media (min-width: 768px) /* desktop */ {
