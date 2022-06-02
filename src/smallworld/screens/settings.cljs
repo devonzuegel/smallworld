@@ -50,8 +50,6 @@
 (def email_notifications_options [#_"instant" "daily" #_"weekly" "muted"])
 
 (defn minimap [minimap-id location-name coords]
-  (println "coords: ")
-  (println coords)
   (r/create-class {:component-did-mount
                    (fn [] ; this should be called just once when the component is mounted
                      (swap! *minimaps assoc minimap-id
@@ -92,7 +90,7 @@
        [:<> [:div
              [:input.location-input
               {:type "text"
-               :tab-index (str index)
+               :tab-index "0"
                :auto-focus auto-focus
                :id   (str id "-input")
                :key  (str id "-input")
@@ -284,7 +282,7 @@
     [:label "what's your email address? *"] [:br]
     [:div.field
      [:input {:type "email"
-              :tab-index "4"
+              :tab-index "0"
               :id "email-address-input"
               :name "email-address-input"
               :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
@@ -297,7 +295,7 @@
      (decorations/edit-icon)]
     [:div.error-msg (:email-address-input @*form-errors)]]
 
-   [:div.email-options {:tab-index "3"}
+   [:div.email-options {:tab-index "0"}
     [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
     [:div.radio-btns
      #_[:div.radio-btn
@@ -337,7 +335,7 @@
     [:label "what's your email address? *"] [:br]
     [:div.field
      [:input {:type "email"
-              :tab-index "4"
+              :tab-index "0"
               :id "email-address-input"
               :name "email-address-input"
               :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
@@ -350,7 +348,7 @@
      (decorations/edit-icon)]
     [:div.error-msg (:email-address-input @*form-errors)]]
 
-   [:div.email-options {:tab-index "3"}
+   [:div.email-options {:tab-index "0"}
     [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
     [:div.radio-btns
      #_[:div.radio-btn

@@ -87,15 +87,17 @@
              api-response   (fetch-current-user--with-access-token access-token)
              current-user   (user-data/abridged api-response {:screen-name (:screen-name api-response)})
              screen-name    (:screen-name api-response)]
-         (when debug?
-           (pp/pprint "twitter verify_credentials.json:")
+         (when true; debug?
+           (pp/pprint "twitter verify_credentials.json =============================================")
            (pp/pprint api-response)
-           (println "screen-name:  " screen-name))
+           (println "current-user ==================================================================")
+           (pp/pprint current-user))
          (db/memoized-insert-or-update! db/access_tokens-table    screen-name {:access_token access-token}) ; TODO: consider memoizing with an atom for speed
          (db/memoized-insert-or-update! db/twitter-profiles-table screen-name {:request_key screen-name :data api-response}) ; TODO: consider memoizing with an atom for speed
          (let [sql-results (db/select-by-col db/settings-table :screen_name screen-name)
                exists?     (not= 0 (count sql-results))
                new-settings {:screen_name    screen-name
+                             :email_address  (:email api-response)
                              :name           (:name api-response)
                              :locations      (:locations current-user)
                              :twitter_avatar (user-data/normal-img-to-full-size api-response)}]
