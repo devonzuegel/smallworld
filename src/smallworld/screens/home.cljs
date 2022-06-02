@@ -183,7 +183,9 @@
                                                                  (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
                         (decorations/cancel-icon)]]
 
-                      (if (or (get-in @settings/*settings [:locations i :loading]) (= [] @user-data/*friends))
+                      (if (or (get-in @settings/*settings [:locations i :loading])
+                              (= [] @user-data/*friends)
+                              (= :loading @user-data/*friends))
                         [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]]
                         (when-not (nil? (:coords location-data))
                           [:<> ; TODO: refactor this so that data is passed in as a param, rather than depending on side effects
