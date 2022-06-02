@@ -194,7 +194,7 @@
     "add a location"))
 
 (defn debug-info []
-  (when debug?
+  (when (or debug? (= (.. js/window -location -hash) "#debug"))
     [:br] [:br]
     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
     [:div {:style {:text-align "left"}}
@@ -324,7 +324,8 @@
   (r/create-class
    {:component-did-mount #(util/fetch "/api/v1/friends"
                                       (fn [result]
-                                        (when debug? (println "/api/v1/friends: " (count result)))
+                                        (when (or debug? (= (.. js/window -location -hash) "#debug"))
+                                          (println "/api/v1/friends: " (count result)))
                                         (reset! user-data/*friends result))
                                       :retry? true)
     :reagent-render (fn [] [-welcome-flow-screen])}))
