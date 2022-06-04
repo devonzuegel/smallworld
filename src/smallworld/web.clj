@@ -7,7 +7,7 @@
             [clojure.set :as set]
             [clojure.string :as str]
             [compojure.core :refer [ANY defroutes GET POST]]
-            [compojure.handler]
+            [compojure.handler :as compojure-handler]
             [compojure.route :as route]
             [oauth.twitter :as oauth]
             [ring.adapter.jetty :as jetty]
@@ -513,13 +513,25 @@
         (ring-response/redirect (str (java.net.URL. "https" "smallworld.kiwi" (or port -1) (.getFile url))))
         (handler request)))))
 
+(defn trim-trailing-slash [handler]
+  (fn [request]
+    (let [uri       (request :uri)
+          clean-uri (if (and (not= "/" uri) (.endsWith uri "/"))
+                      (subs uri 0 (- (count uri) 1))
+                      uri)]
+      (if (= uri clean-uri)
+        (handler request)
+        (ring-response/redirect clean-uri)))))
+
+
 (def one-year-in-seconds (* 60 #_seconds 60 #_minutes 24 #_hours 365 #_days))
 
 (def app-handler
   (-> smallworld-routes       ; takes a request, returns response
       ssl-redirect            ; middleware: takes a handler, returns a handler
       www-redirect            ; middleware: takes a handler, returns a handler
-      (compojure.handler/site ; middleware: takes a handler, returns a handler
+      trim-trailing-slash     ; middleware: takes a handler, returns a handler
+      (compojure-handler/site ; middleware: takes a handler, returns a handler
        {:session {:cookie-name "small-world-session"
                   :cookie-attrs {:max-age one-year-in-seconds} ; Safari requires max-age, not expiry: https://www.reddit.com/r/webdev/comments/jfk6t8/setting_cookie_expiry_date_always_defaults_to/g9kqnh5
                   :store (cookie/cookie-store
