@@ -12,7 +12,6 @@
             [oauth.twitter :as oauth]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.session.cookie :as cookie]
-            [ring.util.io :as ring-io]
             [ring.util.request :as ring-request]
             [ring.util.response :as ring-response]
             [smallworld.admin :as admin]
@@ -275,11 +274,10 @@
         result      (if logged-out?
                       []
                       (--fetch-abridged-friends--not-memoized screen-name (get-settings req screen-name)))]
-    ; (System/gc)
     (generate-string result)))
 
 (defn select-location-fields [friend]
-  (merge (select-keys friend [:location :name :screen-name])))
+  (merge (select-keys friend [:location :name :screen-name]))) ; TODO: rm this merge
 
 (defn highlight [highlighted-str]
   (str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; "
@@ -392,19 +390,21 @@
         (println e)
         nil))))
 
-(defn worker []
+(defn nightly-worker []
   (println "\n===============================================")
-  (util/log "starting worker.clj")
+  (util/log "starting nightly worker")
   (println)
-  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "devonzuegel")
+  (let [all-users (db/select-by-col db/settings-table :screen_name "devonzuegel") ;(db/select-all db/settings-table) ; 
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
-    (log-event "worker-start" {:count   n-users
-                               :message (str "preparing to refresh friends for " n-users " users\n")})
+    (log-event "nightly-worker-start" {:count   n-users
+                                       :message (str "preparing to refresh friends for " n-users " users\n")})
     (doall (map-indexed curried-refresh-friends all-users))
-    (log-event "worker-done" {:count   n-users
-                              :message (str "finished refreshing friends for " n-users " users")})
+    (System/gc)
+    (log-event "garbage-collection" {:details "cleaning up after the nightly worker"})
+    (log-event "nightly-worker-done" {:count   n-users
+                                      :message (str "finished refreshing friends for " n-users " users")})
 
     (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
       (email/send-email {:to "avery.sara.james@gmail.com"
@@ -416,6 +416,11 @@
                                     #_"\n\n"
                                     #_"users that failed:\n" #_(with-out-str (pp/pprint @failures)))})))
   (println "\n===============================================\n"))
+
+(defn worker-endpoint [req]
+  (if-not (= admin/screen-name (:screen-name (get-session req)))
+    (generate-string (ring-response/bad-request {:message "you don't have access to this page"}))
+    (nightly-worker)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -433,7 +438,7 @@
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
   ;; (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-session get-users-friends req))
-  (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event worker))
+  (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event nightly-worker))
 
   ;; app data endpoints
   (GET "/api/v1/settings" req (generate-string (get-settings req (:screen-name (get-session req)))))
@@ -458,6 +463,8 @@
   (GET "/api/v1/friends/refetch-twitter" req (let [screen-name (:screen-name (get-session req))
                                                    settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
                                                (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
+  (GET "/api/v1/worker" req (worker-endpoint req))
+
   ;; general resources
   (route/resources "/")
   (ANY "*" [] (io/resource "public/index.html")))
@@ -535,20 +542,18 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def scheduled-time (timely/at (timely/hour 2) (timely/minute 42))) ; in UTC
-
-(def schedule-id (atom nil))
+(def nightly-worker-id     (atom nil))
+(def garbage-collection-id (atom nil))
 
 (defn end-schedule []
-  (println "ending schedule:" @schedule-id)
-  (timely/end-schedule @schedule-id)
-  (reset! schedule-id nil))
+  (println "ending nightly worker schedule:" @nightly-worker-id)
+  (timely/end-schedule @nightly-worker-id)
+  (reset! nightly-worker-id nil))
 
 (defonce server* (atom nil))
 
 (defn start! [port]
   (some-> @server* (.stop))
-
   ; create the tables if they don't already exists
   (db/create-table db/settings-table         db/settings-schema)
   (db/create-table db/twitter-profiles-table db/twitter-profiles-schema)
@@ -563,31 +568,52 @@
     (reset! server* server)))
 
 (defn stop! []
-  (if @schedule-id
+  (if @nightly-worker-id
     (end-schedule)
-    (println "@schedule-id is nil – no schedule to end"))
+    (println "@nightly-worker-id is nil – no schedule to end"))
+  (if @garbage-collection-id
+    (end-schedule)
+    (println "@garbage-collection-id is nil – no schedule to end"))
   (if @server*
     (.stop @server*)
     (println "@server* is nil – no server to stop")))
 
-(defn start-scheduled-worker []
+; this is a hack – there was a memory leak somewhere, so we run a GC to clean up.
+; I *think* the source of the memory leak was an atom that I removed a while back,
+; but I'm just putting this in here to be sure.  if this project ever becomes
+; "serious", I'll come back to it to find the memory leak and remove this worker.
+(defn garbage-collection-worker []
+  (System/gc)
+  (log-event "garbage-collection" {}))
+
+(def NIGHTLY-WORKER-TIME (timely/at (timely/hour 2) (timely/minute 42))) ; in UTC
+
+(defn start-scheduled-workers []
   (try (timely/start-scheduler)
        (catch Exception e
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
   (println "starting scheduler to run every day at"
-           (str (first (:hour scheduled-time)) ":" (first (:minute scheduled-time))) "UTC")
+           (str (first (:hour NIGHTLY-WORKER-TIME)) ":" (first (:minute NIGHTLY-WORKER-TIME))) "UTC")
+
+  ; start the nightly worker that refreshes users' twitter info/friends
+  (let [env (util/get-env-var "ENVIRONMENT")]
+    (if (= env (:prod util/ENVIRONMENTS))
+      (let [id (timely/start-schedule
+                (timely/scheduled-item (timely/daily NIGHTLY-WORKER-TIME) nightly-worker))]
+        (reset! nightly-worker-id id)
+        (println "\nstarted nightly worker with id:" @nightly-worker-id))
+      (println "\nnot starting nightly worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
+
+  ; start garbage collection worker
   (let [id (timely/start-schedule
-            (timely/scheduled-item (timely/daily scheduled-time) worker))]
-    (reset! schedule-id id)
-    (println "started scheduler with id:" @schedule-id)))
+            (timely/scheduled-item (timely/each-minute) garbage-collection-worker))]
+    (reset! nightly-worker-id id)
+    (println "\nstarted garbage collection worker with id:" @garbage-collection-id)))
 
 (defn -main []
-  (let [env (util/get-env-var "ENVIRONMENT")]
-    (if (not= env (:prod util/ENVIRONMENTS))
-      (println "not starting scheduler because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))
-      (start-scheduled-worker)))
+  (start-scheduled-workers)
 
   (println "\nstarting server...")
   (let [default-port 3001
