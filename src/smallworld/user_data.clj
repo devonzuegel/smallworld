@@ -42,14 +42,20 @@
                (remove-substr #"(?i)Earth")
                (str))]
     (cond
-      (includes? _s "subscribe")     ""
-      (includes? _s ".com")          ""
-      (includes? _s ".eth")          ""
-      (includes? _s "zoom")          ""
-      (includes? _s "san francisco") "San Francisco, CA"
-      (includes? _s "sf, ")          "San Francisco, CA"
-      (includes? _s "nyc")           "New York City"
-      (includes? _s "new york")      "New York City"
+      (= _s "home")                      ""
+      (includes? _s "at home")           ""
+      (includes? _s "subscribe")         ""
+      (includes? _s ".com")              ""
+      (includes? _s ".net")              ""
+      (includes? _s ".org")              ""
+      (includes? _s ".eth")              ""
+      (includes? _s "blue/green sphere") ""
+      (includes? _s "pale blue dot")     ""
+      (includes? _s "zoom")              ""
+      (includes? _s "san francisco")     "San Francisco, CA"
+      (includes? _s "sf, ")              "San Francisco, CA"
+      (includes? _s "nyc")               "New York City"
+      (includes? _s "new york")          "New York City"
       :else (let [_s (StringBuilder. _s)
                   _s (remove-substr _s #" \([^)]*\)") ; remove anything in parentheses (e.g. "sf (still!)" → "sf")
                   _s (-> (str _s)
@@ -68,10 +74,11 @@
                   _s (str _s)]
               (cond
                 (> (count (str/split _s #" ")) 3) "" ; if there are more than 3 words, it's probably a sentence and not a place name
-                (= _s "new york") "new york city"
-                (= _s "california") "san francisco"
-                (= _s "canada") "whiteshell provincial park, canada" ; approx. center of population in Canada
-                (= _s "québec") "Québec, Québec, Canada" ; they probably meant Quebec city, not Québec province
+                (= _s "new york")         "new york city"
+                (= _s "california")       "san francisco"
+                (= _s "british columbia") "vancouver, canada"          ; approx. center of population in British Columbia
+                (= _s "canada")           "whiteshell provincial park" ; approx. center of population in Canada
+                (= _s "québec")           "Québec, Québec, Canada"     ; they probably meant Quebec city, not Québec province
                 :else (str/trim _s))))))
 
 (deftest test-normalize-location
