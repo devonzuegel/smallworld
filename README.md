@@ -12,6 +12,7 @@ https://smallworld.kiwi
 - [initial designs](#initial-designs)
 - [emails](#emails)
 - [sql cheatsheet](#sql-cheatsheet)
+- [misc commands cheatsheet](#misc-commands-cheatsheet)
 
 ## run, build, & deploy
 ### local setup
@@ -140,3 +141,7 @@ https://mc.sendgrid.com/dynamic-templates
    ALTER TABLE "settings" ADD COLUMN locations jsonb;
    ```
 
+## misc commands cheatsheet
+
+- run command line inside of Heroku: <br/>`heroku ps:exec --app=small-world-friends`
+- view environment variables for process with pid 4: <br/>`cat /proc/4/environ | tr '\0' '\n'`
