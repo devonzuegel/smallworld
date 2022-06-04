@@ -277,7 +277,7 @@
     (generate-string result)))
 
 (defn select-location-fields [friend]
-  (merge (select-keys friend [:location :name :screen-name]))) ; TODO: rm this merge
+  (select-keys friend [:location #_:name :screen-name])) ; TODO: rm this merge
 
 (defn highlight [highlighted-str]
   (str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; "
@@ -286,10 +286,13 @@
        highlighted-str
        "</span>"))
 
-(defn html-line-result [screen-name type before after]
-  (str "<li><b>@" screen-name "</b> updated their " type ": "
+(defn html-line-result [screen-name _type before after]
+  (str "<li><b><a href='https://twitter.com/" screen-name "'>@" screen-name "</a>:</b> "
        (highlight before) " → " (highlight after)
-       "<br/></li>"))
+       "<br/></li>")
+  #_(str "<li><b>@" screen-name "</b> updated their " type ": "
+         (highlight before) " → " (highlight after)
+         "<br/></li>"))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
@@ -321,13 +324,14 @@
                               (map (fn [friend]
                                      (let [before (first friend)
                                            after  (second friend)
-                                           name-before     (if (str/blank? (:name before))     "[blank]" (:name before))
-                                           name-after      (if (str/blank? (:name after))      "[blank]" (:name after))
+                                          ;;  name-before     (if (str/blank? (:name before))     "[blank]" (:name before))
+                                          ;;  name-after      (if (str/blank? (:name after))      "[blank]" (:name after))
                                            location-before (if (str/blank? (:location before)) "[blank]" (:location before))
                                            location-after  (if (str/blank? (:location after))  "[blank]" (:location after))
                                            screen-name (:screen-name after)]
-                                       [(when (not= (:name before) (:name after))
-                                          (html-line-result screen-name "name" name-before name-after))
+                                       [; put the following back if we decide to notify on name updates again
+                                        #_(when (not= (:name before) (:name after))
+                                            (html-line-result screen-name "name" name-before name-after))
                                         (when (not= (:location before) (:location after))
                                           (html-line-result screen-name "location" location-before location-after))])))
                               flatten
@@ -390,21 +394,21 @@
         (println e)
         nil))))
 
-(defn nightly-worker []
+(defn email-update-worker []
   (println "\n===============================================")
-  (util/log "starting nightly worker")
+  (util/log "starting email-update worker")
   (println)
-  (let [all-users (db/select-by-col db/settings-table :screen_name "devonzuegel") ;(db/select-all db/settings-table) ; 
+  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "devon_dos")
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
-    (log-event "nightly-worker-start" {:count   n-users
-                                       :message (str "preparing to refresh friends for " n-users " users\n")})
+    (log-event "email-update-worker-start" {:count   n-users
+                                            :message (str "preparing to refresh friends for " n-users " users\n")})
     (doall (map-indexed curried-refresh-friends all-users))
     (System/gc)
-    (log-event "garbage-collection" {:details "cleaning up after the nightly worker"})
-    (log-event "nightly-worker-done" {:count   n-users
-                                      :message (str "finished refreshing friends for " n-users " users")})
+    (log-event "garbage-collection" {:details "cleaning up after the email-update worker"})
+    (log-event "email-update-worker-done" {:count   n-users
+                                           :message (str "finished refreshing friends for " n-users " users")})
 
     (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
       (email/send-email {:to "avery.sara.james@gmail.com"
@@ -420,7 +424,7 @@
 (defn worker-endpoint [req]
   (if-not (= admin/screen-name (:screen-name (get-session req)))
     (generate-string (ring-response/bad-request {:message "you don't have access to this page"}))
-    (nightly-worker)))
+    (email-update-worker)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -438,7 +442,7 @@
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
   ;; (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-session get-users-friends req))
-  (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event nightly-worker))
+  (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event email-update-worker))
 
   ;; app data endpoints
   (GET "/api/v1/settings" req (generate-string (get-settings req (:screen-name (get-session req)))))
@@ -542,13 +546,13 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def nightly-worker-id     (atom nil))
-(def garbage-collection-id (atom nil))
+(def email-update-worker-id (atom nil))
+(def garbage-collection-id  (atom nil))
 
 (defn end-schedule []
-  (println "ending nightly worker schedule:" @nightly-worker-id)
-  (timely/end-schedule @nightly-worker-id)
-  (reset! nightly-worker-id nil))
+  (println "ending email update worker schedule:" @email-update-worker-id)
+  (timely/end-schedule @email-update-worker-id)
+  (reset! email-update-worker-id nil))
 
 (defonce server* (atom nil))
 
@@ -568,9 +572,9 @@
     (reset! server* server)))
 
 (defn stop! []
-  (if @nightly-worker-id
+  (if @email-update-worker-id
     (end-schedule)
-    (println "@nightly-worker-id is nil – no schedule to end"))
+    (println "@email-update-worker-id is nil – no schedule to end"))
   (if @garbage-collection-id
     (end-schedule)
     (println "@garbage-collection-id is nil – no schedule to end"))
@@ -586,7 +590,7 @@
   (System/gc)
   (log-event "garbage-collection" {}))
 
-(def NIGHTLY-WORKER-TIME (timely/at (timely/hour 2) (timely/minute 42))) ; in UTC
+(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 15) (timely/minute 52))) ; in UTC
 
 (defn start-scheduled-workers []
   (try (timely/start-scheduler)
@@ -595,21 +599,21 @@
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
   (println "starting scheduler to run every day at"
-           (str (first (:hour NIGHTLY-WORKER-TIME)) ":" (first (:minute NIGHTLY-WORKER-TIME))) "UTC")
+           (str (first (:hour EMAIL-UPDATE-WORKER-TIME)) ":" (first (:minute EMAIL-UPDATE-WORKER-TIME))) "UTC")
 
-  ; start the nightly worker that refreshes users' twitter info/friends
+  ; start the email-update worker that refreshes users' twitter info/friends
   (let [env (util/get-env-var "ENVIRONMENT")]
     (if (= env (:prod util/ENVIRONMENTS))
       (let [id (timely/start-schedule
-                (timely/scheduled-item (timely/daily NIGHTLY-WORKER-TIME) nightly-worker))]
-        (reset! nightly-worker-id id)
-        (println "\nstarted nightly worker with id:" @nightly-worker-id))
-      (println "\nnot starting nightly worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
+                (timely/scheduled-item (timely/daily EMAIL-UPDATE-WORKER-TIME) email-update-worker))]
+        (reset! email-update-worker-id id)
+        (println "\nstarted email update worker with id:" @email-update-worker-id))
+      (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
 
   ; start garbage collection worker
   (let [id (timely/start-schedule
             (timely/scheduled-item (timely/each-minute) garbage-collection-worker))]
-    (reset! nightly-worker-id id)
+    (reset! garbage-collection-id id)
     (println "\nstarted garbage collection worker with id:" @garbage-collection-id)))
 
 (defn -main []
