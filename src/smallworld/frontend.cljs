@@ -24,6 +24,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; (util/fetch "/api/v1/session" (fn [result]
+;;                                 (when @*debug?
+;;                                   (println "/api/v1/session:")
+;;                                   (pp/pprint result))
+;;                                 (session/update! result)))
+
 (util/fetch "/api/v1/settings" (fn [result]
                                  (when @*debug?
                                    (println "/api/v1/settings:")
@@ -89,37 +95,24 @@
       (let [view (:view (:data @match))]
         [view @match]))))
 
+(defn if-session-loading [next-steps-fn]
+  #(if (= :loading @session/*store)
+     (util/fetch "/api/v1/session" next-steps-fn)
+     (next-steps-fn @session/*store)))
+
 (def require-blank-session
-  [{:start #(if (= :loading @session/*store)
-              (util/fetch "/api/v1/session" (fn [result]
-                                              (println "session: " result)
-                                              (if (empty? result)
-                                                (session/update! result)
-                                                (redirect! "/"))))
-              (if (empty? @session/*store)
-                (session/update! @session/*store)
-                (redirect! "/")))}])
+  [{:start (if-session-loading #(if (empty? %)
+                                  (session/update! %)
+                                  (redirect! "/")))}])
 
 (def require-session
-  [{:start #(if (= :loading @session/*store)
-              (util/fetch "/api/v1/session" (fn [result]
-                                              (println "session: " result)
-                                              (if (empty? result)
-                                                (redirect! "/signin")
-                                                (session/update! result))))
-              (if (empty? @session/*store)
-                (redirect! "/signin")
-                (session/update! @session/*store)))}])
+  [{:start (if-session-loading #(if (empty? %)
+                                  (redirect! "/signin")
+                                  (session/update! %)))}])
 
 (def require-admin
-  [{:start #(if (= :loading @session/*store)
-              (util/fetch "/api/v1/session" (fn [result]
-                                              (println "session: " result)
-                                              (session/update! result)
-                                              (when (not= admin/screen-name (:screen-name @session/*store))
-                                                (redirect! "/not-found"))))
-              (when (not= admin/screen-name (:screen-name @session/*store))
-                (redirect! "/not-found")))}])
+  [{:start (if-session-loading #(when (not= admin/screen-name (:screen-name %))
+                                  (redirect! "/not-found")))}])
 
 (def routes
   (rf/router
@@ -142,9 +135,7 @@
      (swap! match (fn [old-match]
                     (when new-match
                       (assoc new-match :controllers (rfc/apply-controllers (:controllers old-match) new-match)))))
-     (util/fetch "/api/v1/session" (fn [result]
-                                     (println "fetching session from inside NEW MATCH:")
-                                     (session/update! result))))
+     (util/fetch "/api/v1/session" session/update!))
    {:use-fragment false})
   (r/render [current-page] (.getElementById js/document "app")))
 
