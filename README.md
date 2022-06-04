@@ -113,8 +113,7 @@ https://mc.sendgrid.com/dynamic-templates
 - make a user go through welcome flow again:
 
    ```sql
-   update settings
-   set    welcome_flow_complete = false
+   update settings set    welcome_flow_complete = false
    where  screen_name           = 'devon_dos';
    ```
 
@@ -143,5 +142,16 @@ https://mc.sendgrid.com/dynamic-templates
 
 ## misc commands cheatsheet
 
-- run command line inside of Heroku: <br/>`heroku ps:exec --app=small-world-friends`
-- view environment variables for process with pid 4: <br/>`cat /proc/4/environ | tr '\0' '\n'`
+- run command line inside of Heroku:
+   ```
+   heroku ps:exec --app=small-world-friends
+   ```
+- view environment variables for process with pid 4:
+   ```
+   cat /proc/4/environ | tr '\0' '\n'
+   ```
+- run prod jar locally:
+  ```sh
+  lein uberjar # builds the jar
+  java -Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8 -jar target/smallworld.jar -m smallworld.web
+  ```
