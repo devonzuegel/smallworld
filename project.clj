@@ -14,6 +14,7 @@
                  [twttr "3.2.3"]
                  [cheshire "5.10.1"]
                  [oauth-clj "0.1.16"]
+                 [metosin/reitit "0.5.18"]
                  [cljsjs/mapbox "0.46.0-0"]
                  [ring/ring-jetty-adapter "1.9.5"]
                  [ring/ring-ssl "0.3.0"]
