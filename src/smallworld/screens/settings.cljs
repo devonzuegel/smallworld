@@ -320,10 +320,10 @@
 
 (defn welcome-flow-screen []
   (r/create-class
-   {:component-did-mount #(util/fetch "/api/v1/friends"
+   {:component-did-mount #(util/fetch "/api/v1/friends/refresh-atom"
                                       (fn [result]
                                         (when (or debug? (= (.. js/window -location -hash) "#debug"))
-                                          (println "/api/v1/friends: " (count result)))
+                                          (println "/api/v1/friends/refresh-atom: " (count result)))
                                         (reset! user-data/*friends result))
                                       :retry? true)
     :reagent-render (fn [] [-welcome-flow-screen])}))
