@@ -1,27 +1,16 @@
 (ns smallworld.screens.home
   (:require [clojure.string :as str]
-            [goog.dom :as dom]
             [reagent.core           :as r]
+            [reitit.frontend.easy   :as rfe]
             [smallworld.decorations :as decorations]
             [smallworld.mapbox      :as mapbox]
             [smallworld.session     :as session]
-            [smallworld.screens.settings :as settings]
             [smallworld.user-data   :as user-data]
-            [smallworld.util        :as util]))
+            [smallworld.util        :as util]
+            [smallworld.screens.settings :as settings]))
 
-(def         *debug? (r/atom false))
-(def *settings-open? (r/atom false))
-(defonce   *minimaps (r/atom {}))
-
-(defn nav []
-  [:div.nav {:class (when (:impersonation? @session/*store) "admin-impersonation")}
-   [:a#logo-animation.logo {:on-click #(reset! *settings-open? false)}
-    (decorations/animated-globe)
-
-    [:div.logo-text "small world"]]
-   [:span.fill-nav-space]
-   [:a {:on-click #(reset! *settings-open? true) :style {:cursor "pointer"}}
-    [:b.screen-name " @" (:screen-name @session/*store)]]])
+(def       *debug? (r/atom false))
+(defonce *minimaps (r/atom {}))
 
 (defn minimap [minimap-id location-name coords]
   (r/create-class {:component-did-mount
@@ -106,7 +95,7 @@
 
 (defn -screen []
   [:<>
-   (nav)
+   (util/nav)
    (let [curr-user-locations (remove nil? (:locations @settings/*settings))
          update [:a {:href "https://twitter.com/settings/profile" :target "_blank"} "update"]
          track-new-location-btn [:div#track-new-location-field
@@ -124,89 +113,85 @@
                                                                       (.scrollIntoView #js{:behavior "smooth" :block "center" :inline "center"})))
                                                                50)))}
                                  (decorations/plus-icon "scale(0.15)") "follow a new location"]]
-     [:<>
-      (if @*settings-open?
-        (settings/settings-screen)
+     [:div.home-page
+      (let [top-location (first (remove nil? (:locations @settings/*settings)))]
+        [util/error-boundary
+         [mapbox/mapbox
+          {:lng-lat  (:coords top-location)
+           :location (:name top-location)
+           :user-img (:profile_image_url_large @session/*store)
+           :user-name (:name @session/*store)
+           :screen-name (:screen-name @session/*store)}]])
 
-        [:div.home-page
-         (let [top-location (first (remove nil? (:locations @settings/*settings)))]
-           [util/error-boundary
-            [mapbox/mapbox
-             {:lng-lat  (:coords top-location)
-              :location (:name top-location)
-              :user-img (:profile_image_url_large @session/*store)
-              :user-name (:name @session/*store)
-              :screen-name (:screen-name @session/*store)}]])
+      (when (not= 0 (count curr-user-locations))
+        track-new-location-btn)
 
-         (when (not= 0 (count curr-user-locations))
-           track-new-location-btn)
+      (doall (map-indexed
+              (fn [i location-data]
+                (let [minimap-id (str "minimap-location-" i)]
+                  [:div.category {:key i}
+                   [:div.friends-list.header
 
-         (doall (map-indexed
-                 (fn [i location-data]
-                   (let [minimap-id (str "minimap-location-" i)]
-                     [:div.category {:key i}
-                      [:div.friends-list.header
+                    [:div.left-side.mapbox-container
+                     [minimap minimap-id (:name location-data) (:coords location-data)]
+                     (when-not (str/blank? (:name location-data)) [:div.center-point])]
 
-                       [:div.left-side.mapbox-container
-                        [minimap minimap-id (:name location-data) (:coords location-data)]
-                        (when-not (str/blank? (:name location-data)) [:div.center-point])]
+                    [:div.right-side
+                     [:div.based-on (condp = (:special-status location-data)
+                                      "twitter-location"  "based on your Twitter location, you live in:"
+                                      "from-display-name" "based on your Twitter name, you're visiting:"
+                                      nil)]
+                     [:input {:type "text"
+                              :value (:name location-data)
+                              :autoComplete "off"
+                              :auto-complete "off"
+                              :style {:cursor (when-not (from-twitter? location-data) "pointer")}
+                              :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter locations
+                              :placeholder "type a location to follow"
+                              :on-change #(let [input-elem (.-target %)
+                                                new-value  (.-value input-elem)]
+                                            (swap! settings/*settings assoc-in [:locations i :loading] true)
+                                            (fetch-coordinates-debounced! minimap-id new-value i)
+                                            (swap! settings/*settings assoc-in [:locations i :name] new-value)
+                                            (util/fetch-post "/api/v1/settings/update" {:locations (:locations @settings/*settings)}))}]
+                     #_(when (from-twitter? location-data) ; no longer needed because they aren't editable
+                         [:div.small-info-text "this won't update your Twitter profile :)"])]
 
-                       [:div.right-side
-                        [:div.based-on (condp = (:special-status location-data)
-                                         "twitter-location"  "based on your Twitter location, you live in:"
-                                         "from-display-name" "based on your Twitter name, you're visiting:"
-                                         nil)]
-                        [:input {:type "text"
-                                 :value (:name location-data)
-                                 :autoComplete "off"
-                                 :auto-complete "off"
-                                 :style {:cursor (when-not (from-twitter? location-data) "pointer")}
-                                 :readOnly (from-twitter? location-data) ; don't allow them to edit the Twitter locations
-                                 :placeholder "type a location to follow"
-                                 :on-change #(let [input-elem (.-target %)
-                                                   new-value  (.-value input-elem)]
-                                               (swap! settings/*settings assoc-in [:locations i :loading] true)
-                                               (fetch-coordinates-debounced! minimap-id new-value i)
-                                               (swap! settings/*settings assoc-in [:locations i :name] new-value)
-                                               (util/fetch-post "/api/v1/settings/update" {:locations (:locations @settings/*settings)}))}]
-                        #_(when (from-twitter? location-data) ; no longer needed because they aren't editable
-                            [:div.small-info-text "this won't update your Twitter profile :)"])]
+                    [:div.delete-location-btn {:title "delete this location"
+                                               :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
+                                                            (let [updated-locations (util/rm-from-list curr-user-locations i)]
+                                                              (println "settings/*settings :locations (BEFORE)")
+                                                              (println (:locations @settings/*settings))
+                                                              (swap! settings/*settings assoc :locations updated-locations)
+                                                              (println "settings/*settings :locations (AFTER)")
+                                                              (println (:locations @settings/*settings))
+                                                              (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
+                     (decorations/cancel-icon)]]
 
-                       [:div.delete-location-btn {:title "delete this location"
-                                                  :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back later any time")
-                                                               (let [updated-locations (util/rm-from-list curr-user-locations i)]
-                                                                 (println "settings/*settings :locations (BEFORE)")
-                                                                 (println (:locations @settings/*settings))
-                                                                 (swap! settings/*settings assoc :locations updated-locations)
-                                                                 (println "settings/*settings :locations (AFTER)")
-                                                                 (println (:locations @settings/*settings))
-                                                                 (util/fetch-post "/api/v1/settings/update" {:locations updated-locations})))}
-                        (decorations/cancel-icon)]]
+                   (if (or (get-in @settings/*settings [:locations i :loading])
+                           (= [] @user-data/*friends)
+                           (= :loading @user-data/*friends))
+                     [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]]
+                     (when-not (nil? (:coords location-data))
+                       [:<> ; TODO: refactor this so that data is passed in as a param, rather than depending on side effects
+                        (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
+                        (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))]))
+              curr-user-locations))
 
-                      (if (or (get-in @settings/*settings [:locations i :loading])
-                              (= [] @user-data/*friends)
-                              (= :loading @user-data/*friends))
-                        [:div.friends-list [:div.loading (decorations/simple-loading-animation) "fetching your Twitter friends..."]]
-                        (when-not (nil? (:coords location-data))
-                          [:<> ; TODO: refactor this so that data is passed in as a param, rather than depending on side effects
-                           (user-data/render-friends-list i "twitter-location"  "based near" (:name location-data))
-                           (user-data/render-friends-list i "from-display-name" "visiting"   (:name location-data))]))]))
-                 curr-user-locations))
+      [:div.no-locations-info
+       [:p "3 ways to start following a location:"]
+       [:ul
+        [:li update " your Twitter profile location"]
+        [:li update " your Twitter display name (e.g. \"Devon in NYC\")"] ; TODO: make this an `i` info hover
+        [:li "add a location manually:"]]
+       track-new-location-btn]
 
-         [:div.no-locations-info
-          [:p "3 ways to start following a location:"]
-          [:ul
-           [:li update " your Twitter profile location"]
-           [:li update " your Twitter display name (e.g. \"Devon in NYC\")"] ; TODO: make this an `i` info hover
-           [:li "add a location manually:"]]
-          track-new-location-btn]
+      [:br] [:br]
+      (debugger-btn)
 
-         [:br] [:br]
-         (debugger-btn)
-
-         (util/info-footer (:screen-name @session/*store)
-                           user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
-         (debugger-info)])])])
+      (util/info-footer (:screen-name @session/*store)
+                        user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
+      (debugger-info)])])
 
 (defn screen []
   (r/create-class

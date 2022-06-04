@@ -1,11 +1,20 @@
+
 (ns smallworld.frontend
-  (:require [reagent.core            :as r]
-            [smallworld.session      :as session]
-            [smallworld.decorations  :as decorations]
-            [smallworld.screens.settings     :as settings]
-            [smallworld.util         :as util]
-            [smallworld.screens.home :as home]
-            [clojure.pprint          :as pp]
+  (:require [reagent.core                :as r]
+            [reitit.frontend             :as rf]
+            [reitit.frontend.easy        :as rfe]
+            [reitit.frontend.controllers :as rfc]
+            [reitit.ring                 :as ring]
+            [reitit.coercion.schema      :as rsc]
+            [schema.core                 :as s]
+            [clojure.test                :refer [deftest is]]
+            [fipp.edn                    :as fedn]
+            [smallworld.session          :as session]
+            [smallworld.decorations      :as decorations]
+            [smallworld.screens.settings :as settings]
+            [smallworld.util             :as util]
+            [smallworld.screens.home     :as home]
+            [clojure.pprint              :as pp]
             [cljsjs.mapbox]
             [goog.dom]
             [smallworld.admin :as admin]))
@@ -15,12 +24,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(util/fetch "/api/v1/session" (fn [result]
-                                (when @*debug?
-                                  (println "/api/v1/session:")
-                                  (pp/pprint result))
-                                (session/update! result)))
-
 (util/fetch "/api/v1/settings" (fn [result]
                                  (when @*debug?
                                    (println "/api/v1/settings:")
@@ -28,10 +31,10 @@
                                  (reset! settings/*settings      result)
                                  (reset! settings/*email-address (:email_address result))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn logged-out-screen []
+(defn signin-page []
   [:div.welcome
    [:div.hero
     [:p.serif {:style {:font-size "1.5em" :margin-top "8px" :margin-bottom "4px"}}
@@ -64,24 +67,85 @@
        [:p "they may not have their location set on Twitter (either in their name or in the location field), or small world may not be able to parse the location yet."]
        [:p "if they have their location set but it's just not showing up in the app, please " [:a {:href "https://github.com/devonzuegel/smallworld"} "open a GitHub issue"] " and share more so I can improve the city parser."]]]])
 
-(defn not-found-404-screen []
+(defn home-page []
+  (if (:welcome_flow_complete @settings/*settings)
+    [home/screen]
+    [settings/welcome-flow-screen]))
+
+(defn not-found-404-page []
   [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
    "404 not found"])
 
-(defn app-container []
-  (condp = (.-pathname (.-location js/window))
-    "/" (condp = @session/*store
-          :loading (decorations/loading-screen)
-          session/blank (logged-out-screen)
-          (if (= :loading @settings/*settings)
-            (decorations/loading-screen)
-            (if (:welcome_flow_complete @settings/*settings)
-              [home/screen]
-              [settings/welcome-flow-screen])))
-    "/admin" (admin/summary-screen)
-    (not-found-404-screen)))
+(defonce match (r/atom nil))
 
-(r/render-component
- (fn [] [util/error-boundary [app-container]])
- (goog.dom/getElement "app"))
+(defn redirect! [path]
+  (.replace (.-location js/window) path))
 
+(defn current-page [] ; TODO: handle logged out state
+  (if (= :loading @session/*store)
+    (decorations/loading-screen)
+    (if (nil? @match)
+      not-found-404-page
+      (let [view (:view (:data @match))]
+        [view @match]))))
+
+(def require-blank-session
+  [{:start #(if (= :loading @session/*store)
+              (util/fetch "/api/v1/session" (fn [result]
+                                              (println "session: " result)
+                                              (if (empty? result)
+                                                (session/update! result)
+                                                (redirect! "/"))))
+              (if (empty? @session/*store)
+                (session/update! @session/*store)
+                (redirect! "/")))}])
+
+(def require-session
+  [{:start #(if (= :loading @session/*store)
+              (util/fetch "/api/v1/session" (fn [result]
+                                              (println "session: " result)
+                                              (if (empty? result)
+                                                (redirect! "/signin")
+                                                (session/update! result))))
+              (if (empty? @session/*store)
+                (redirect! "/signin")
+                (session/update! @session/*store)))}])
+
+(def require-admin
+  [{:start #(if (= :loading @session/*store)
+              (util/fetch "/api/v1/session" (fn [result]
+                                              (println "session: " result)
+                                              (session/update! result)
+                                              (when (not= admin/screen-name (:screen-name @session/*store))
+                                                (redirect! "/not-found"))))
+              (when (not= admin/screen-name (:screen-name @session/*store))
+                (redirect! "/not-found")))}])
+
+(def routes
+  (rf/router
+   ["/"
+    ["signin"   {:name ::signin    :view signin-page     :controllers require-blank-session}]
+    [""         {:name ::home      :view home-page       :controllers require-session}]
+    ["settings" {:name ::settings  :view settings/screen :controllers require-session}]
+    ["admin"    {:name ::admin     :view admin/screen    :controllers require-admin}]]
+   {:data {:coercion rsc/coercion}}))
+
+(deftest test-routes ; note – this will not get run at the same time as the clj tests
+  (is (=    (rf/match-by-path routes "/no-match")  nil))
+  (is (not= (rf/match-by-path routes "/settings")  nil))
+  (is (not= (rf/match-by-path routes "/settings/") nil)))
+
+(defn init! []
+  (rfe/start!
+   routes
+   (fn [new-match]
+     (swap! match (fn [old-match]
+                    (when new-match
+                      (assoc new-match :controllers (rfc/apply-controllers (:controllers old-match) new-match)))))
+     (util/fetch "/api/v1/session" (fn [result]
+                                     (println "fetching session from inside NEW MATCH:")
+                                     (session/update! result))))
+   {:use-fragment false})
+  (r/render [current-page] (.getElementById js/document "app")))
+
+(init!)

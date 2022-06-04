@@ -1,6 +1,8 @@
 (ns smallworld.util
   (:require [clojure.pprint :as pp]
-            [reagent.core :as r])
+            [reagent.core :as r]
+            [smallworld.decorations :as decorations]
+            [smallworld.session :as session])
   (:import [goog.async Debouncer]))
 
 (def debug? false)
@@ -95,3 +97,13 @@
 
 (defn query-dom [selector]
   (array-seq (.querySelectorAll js/document selector)))
+
+(defn nav []
+  [:div.nav {:class (when (:impersonation? @session/*store) "admin-impersonation")}
+   [:a#logo-animation.logo {:href "/"}
+    (decorations/animated-globe)
+
+    [:div.logo-text "small world"]]
+   [:span.fill-nav-space]
+   [:a {:href "/settings" #_(rfe/href ::settingks)}
+    [:b.screen-name " @" (:screen-name @session/*store)]]])

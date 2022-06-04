@@ -23,14 +23,14 @@
    (do
      (defonce admin-summary* (r/atom :loading))
 
-     (defn summary-screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
+     (defn screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
        [:div.admin-screen
         (if-not (= screen-name (:screen-name @session/*store))
 
           (if (= :loading @session/*store)
             (decorations/loading-screen)
             [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
-             "whoops, you don't have access to this page"])
+             "not found"])
 
           [:<>
            [:a.btn {:on-click #(util/fetch "/api/v1/admin/refresh_all_users_friends" (fn [result]

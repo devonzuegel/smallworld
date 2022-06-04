@@ -328,46 +328,52 @@
                                       :retry? true)
     :reagent-render (fn [] [-welcome-flow-screen])}))
 
-(defn settings-screen []
-  [:div.welcome-flow
-   [:p.serif {:style {:font-size "1.3em" :padding-bottom "24px"}} "settings"]
-   [:div.email-address {:class (when (:email-address-input @*form-errors) "error")}
-    [:label "what's your email address? *"] [:br]
-    [:div.field
-     [:input {:type "email"
-              :tab-index "0"
-              :id "email-address-input"
-              :name "email-address-input"
-              :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
-              :autoComplete "off"
-              :auto-complete "off"
-              :on-change #(let [input-elem (.-target %)
-                                new-value  (.-value input-elem)]
-                            (reset! *email-address new-value))
-              :placeholder "email address"}]
-     (decorations/edit-icon)]
-    [:div.error-msg (:email-address-input @*form-errors)]]
+(defn -screen []
+  [:div
+   [util/nav]
+   [:div.welcome-flow
+    [:p.serif {:style {:font-size "1.3em" :padding-bottom "24px"}} "settings"]
+    [:div.email-address {:class (when (:email-address-input @*form-errors) "error")}
+     [:label "what's your email address? *"] [:br]
+     [:div.field
+      [:input {:type "email"
+               :tab-index "0"
+               :id "email-address-input"
+               :name "email-address-input"
+               :value @*email-address ; TODO: this is a hack - do it the same way as (location-input) instead, i.e. remove the atom
+               :autoComplete "off"
+               :auto-complete "off"
+               :on-change #(let [input-elem (.-target %)
+                                 new-value  (.-value input-elem)]
+                             (reset! *email-address new-value))
+               :placeholder "email address"}]
+      (decorations/edit-icon)]
+     [:div.error-msg (:email-address-input @*form-errors)]]
 
-   [:div.email-options {:tab-index "0"}
-    [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
-    [:div.radio-btns
-     #_[:div.radio-btn
-        [:input {:name "email_notification" :type "radio" :value "instant" :id "instant" :default-checked (= "instant" (:email_notifications @*settings))}]
-        [:label {:for "instant"} "yes, notify me immediately"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "daily" :id "daily" :default-checked (= "daily" (:email_notifications @*settings))}]
-      [:label {:for "daily"} "yes, let me know!"]]
-     #_[:div.radio-btn
-        [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked (= "weekly" (:email_notifications @*settings))}]
-        [:label {:for "weekly"} "yes, send me weekly digests"]]
-     [:div.radio-btn
-      [:input {:name "email_notification" :type "radio" :value "muted" :id "muted" :default-checked (= "muted" (:email_notifications @*settings))}]
-      [:label {:for "muted"} "no, please don't"]]]
-    [:br]]
+    [:div.email-options {:tab-index "0"}
+     [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
+     [:div.radio-btns
+      #_[:div.radio-btn
+         [:input {:name "email_notification" :type "radio" :value "instant" :id "instant" :default-checked (= "instant" (:email_notifications @*settings))}]
+         [:label {:for "instant"} "yes, notify me immediately"]]
+      [:div.radio-btn
+       [:input {:name "email_notification" :type "radio" :value "daily" :id "daily" :default-checked (= "daily" (:email_notifications @*settings))}]
+       [:label {:for "daily"} "yes, let me know!"]]
+      #_[:div.radio-btn
+         [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked (= "weekly" (:email_notifications @*settings))}]
+         [:label {:for "weekly"} "yes, send me weekly digests"]]
+      [:div.radio-btn
+       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted" :default-checked (= "muted" (:email_notifications @*settings))}]
+       [:label {:for "muted"} "no, please don't"]]]
+     [:br]]
 
-   [:br]
-   [:button.btn {:on-click submit-settings-form} "save settings"]
-   [:p.small-info-text (or @*form-message " ")]
-   [:br]
-   [:a {:href "/logout"} "log out"]
-   [debug-info]])
+    [:br]
+    [:button.btn {:on-click submit-settings-form} "save settings"]
+    [:p.small-info-text (or @*form-message " ")]
+    [:br]
+    [:a {:href "/logout"} "log out"]
+    [debug-info]]])
+
+
+(defn screen []
+  (r/create-class {:reagent-render (fn [] [-screen])}))
