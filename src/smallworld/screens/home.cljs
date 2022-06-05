@@ -42,7 +42,7 @@
     [:<> [:br] [:br] [:hr]
      [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
       [:a.btn {:href "#"
-               :on-click #(util/fetch "/api/v1/friends/refresh-atom"
+               :on-click #(util/fetch "/api/v1/friends"
                                       (fn [result]
                                         (reset! user-data/*friends result)
                                         (println settings/*settings)
@@ -54,7 +54,7 @@
      [:div.refresh-friends {:style {:margin-top "64px" :text-align "center"}}
       [:div {:style {:margin-bottom "12px" :font-size "0.9em"}}
        "does the data for your friends look out of date?"]
-      [:a.btn {:href "#" :on-click user-data/refresh-friends}
+      [:a.btn {:href "#" :on-click user-data/refetch-friends}
        "refresh friends"]
       [:div {:style {:margin-top "12px" :font-size "0.8em" :opacity "0.6" :font-family "Inria Serif, serif" :font-style "italic"}}
        "note: this takes several seconds to run"]]
@@ -197,7 +197,7 @@
   (r/create-class
    {:component-did-mount
     (fn []
-      (settings/refresh-friends-atom) ; refresh immediately
+      (settings/refresh-friends) ; refresh immediately
       (doall (for [i (range 1 10)] ; then refresh it again, with exponential backoff
-               (js/setTimeout settings/refresh-friends-atom (* (util/exponent 2 i) 1000)))))
+               (js/setTimeout settings/refresh-friends (* (util/exponent 2 i) 1000)))))
     :reagent-render (fn [] [-screen])}))

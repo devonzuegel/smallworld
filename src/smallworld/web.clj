@@ -425,7 +425,7 @@
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         location-name (:location-name parsed-body)]
                                     (generate-string (coordinates/memoized location-name))))
-  (GET "/api/v1/friends/refresh-atom" req (get-users-friends--not-memoized req))
+  (GET "/api/v1/friends" req (get-users-friends--not-memoized req))
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
                                                        friends-full (:friends (memoized-friends screen-name))

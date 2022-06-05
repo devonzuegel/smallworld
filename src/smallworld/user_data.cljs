@@ -111,7 +111,7 @@
            (decorations/x-icon)
            "0 friends are " verb-gerund " " curr-user-location-name]))]]))
 
-(defn refresh-friends []
+(defn refetch-friends []
   (util/fetch "/api/v1/friends/refetch-twitter"
               (fn [result]
                 (reset! *friends result)
