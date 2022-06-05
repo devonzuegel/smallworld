@@ -100,16 +100,18 @@
         _s (str/replace _s #"(?i) soon!?$" "")
         _s (str/replace _s #" visiting "  "|")
         _s (str/split _s #"\|")]
-    (if (<= 1 (count _s)) ; if there's only 1 element, assume they didn't put a location in their name
+    (if (< 1 (count _s)) ; if there's only 1 element, assume they didn't put a location in their name
       (title-case (normalize-location (last _s)))
       "")))
 
-(deftest test-normalize-location
-  (is (= (location-from-name "Devon número dos ☀️ in Buenos Aires") "Buenos Aires"))
-  (is (= (location-from-name "Devon visiting SF") "San Francisco, California"))
+(deftest test-location-from-name
+  (is (= (location-from-name "Devon ☀️ in Buenos Aires")    "Buenos Aires"))
+  (is (= (location-from-name "Devon visiting SF")           "San Francisco, California"))
   (is (= (location-from-name "Devon visiting London soon")  "London"))
   (is (= (location-from-name "Devon visiting London soon!") "London"))
-  (is (= (location-from-name "Devon") "")))
+  (is (= (location-from-name "Miami Beach Police")          ""))
+  (is (= (location-from-name "Fairchild Garden")            ""))
+  (is (= (location-from-name "Devon")                       "")))
 
 (defn distances-map [is-current-user? current-user friend-coords]
   (when (not is-current-user?) ; distances aren't relevant if the friend whose data we're abridging is the current user
