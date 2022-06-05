@@ -337,12 +337,12 @@
         (pp/pprint diff-html)
         (println "\n\n")
 
-        (when (and (= "daily" (:email_notifications settings))
-                   (not-empty diff))
-          (email/send-email {:to email-address
-                             :template (:friends-on-the-move email/TEMPLATES)
-                             :dynamic_template_data {:twitter_screen_name screen-name
-                                                     :friends             diff-html}}))
+        #_(when (and (= "daily" (:email_notifications settings))
+                     (not-empty diff))
+            (email/send-email {:to email-address
+                               :template (:friends-on-the-move email/TEMPLATES)
+                               :dynamic_template_data {:twitter_screen_name screen-name
+                                                       :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (when debug? (println (str "done refreshing friends for @" screen-name
                                    " (friends count: " (count friends-abridged) ")")))
