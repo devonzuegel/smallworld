@@ -86,7 +86,7 @@
              api-response   (fetch-current-user--with-access-token access-token)
              current-user   (user-data/abridged api-response {:screen-name (:screen-name api-response)})
              screen-name    (:screen-name api-response)]
-         (when true; debug?
+         (when debug?
            (pp/pprint "twitter verify_credentials.json =============================================")
            (pp/pprint api-response)
            (println "current-user ==================================================================")
