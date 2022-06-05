@@ -242,30 +242,11 @@
                              {:friends friends-result})))
                        db/friends-table))
 
-;; (defn --fetch-abridged-friends [screen-name current-user]
-;;   (map #(user-data/abridged % current-user)
-;;        (:friends (memoized-friends screen-name)))) ; can add (take X) for debugging
-
 (defn --fetch-abridged-friends--not-memoized [screen-name current-user]
   (let [friends (get-in (first (db/select-by-col db/friends-table :request_key screen-name))
                         [:data :friends])
         result (mapv #(user-data/abridged % current-user) friends)]
-    ;; #_(swap! abridged-friends-cache #(assoc % screen-name result))
     result))
-
-;; (def memoized-abridged-friends
-;;   (m/my-memoize --fetch-abridged-friends abridged-friends-cache))
-
-;; (defn get-users-friends [req & [screen-name]]
-;;   (let [session-screen-name (:screen-name (get-session req))
-;;         logged-out?   (nil? session-screen-name)
-;;         screen-name   (or screen-name session-screen-name)
-;;         result        (if logged-out?
-;;                         []
-;;                         (memoized-abridged-friends screen-name (get-settings req session-screen-name)))]
-;;     (log-event "get-users-friends" {:count (count result)
-;;                                     :screen-name screen-name})
-;;     (generate-string result)))
 
 ; TODO: consolidate this with memoized-abridged-friends
 (defn get-users-friends--not-memoized [req]
@@ -349,10 +330,7 @@
                                                          :diff-html   diff-html
                                                          :email_notifications (:email_notifications settings)
                                                          :send-email? (and (= "daily" (:email_notifications settings))
-                                                                           (not-empty diff))
-                                                              ;
-                                                         })
-
+                                                                           (not-empty diff))})
         (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
         (pp/pprint diff)
         (println (str "\n\nhere is the generated HTML:"))
@@ -366,8 +344,6 @@
                              :dynamic_template_data {:twitter_screen_name screen-name
                                                      :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
-        #_(swap! abridged-friends-cache
-                 assoc screen-name friends-abridged)
         (when debug? (println (str "done refreshing friends for @" screen-name
                                    " (friends count: " (count friends-abridged) ")")))
         (generate-string friends-abridged)))))
@@ -441,7 +417,6 @@
 
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
-  ;; (GET "/api/v1/admin/friends/:screen_name" req (admin/friends-of-specific-user get-session get-users-friends req))
   (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event email-update-worker))
 
   ;; app data endpoints
@@ -450,7 +425,6 @@
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         location-name (:location-name parsed-body)]
                                     (generate-string (coordinates/memoized location-name))))
-  ;; (GET "/api/v1/friends" req (get-users-friends req))
   (GET "/api/v1/friends/refresh-atom" req (get-users-friends--not-memoized req))
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
