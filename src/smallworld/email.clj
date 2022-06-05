@@ -1,6 +1,5 @@
 (ns smallworld.email (:require [clj-http.client :as http]
-                               [smallworld.util :as util]
-                               [smallworld.db   :as db]))
+                               [smallworld.util :as util]))
 
 (def debug? true)
 (def FROM_EMAIL "hello@smallworld.kiwi")
