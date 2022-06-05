@@ -42,6 +42,7 @@
                (remove-substr #"(?i)Earth")
                (str))]
     (cond
+      (= _s "sf")                        "san francisco, california"
       (= _s "home")                      ""
       (includes? _s "at home")           ""
       (includes? _s "subscribe")         ""
@@ -52,10 +53,10 @@
       (includes? _s "blue/green sphere") ""
       (includes? _s "pale blue dot")     ""
       (includes? _s "zoom")              ""
-      (includes? _s "san francisco")     "San Francisco, CA"
-      (includes? _s "sf, ")              "San Francisco, CA"
-      (includes? _s "nyc")               "New York City"
-      (includes? _s "new york")          "New York City"
+      (includes? _s "san francisco")     "san francisco, california"
+      (includes? _s "sf, ")              "san francisco, california"
+      (includes? _s "nyc")               "new york city"
+      (includes? _s "new york")          "new york city"
       :else (let [_s (StringBuilder. _s)
                   _s (remove-substr _s #" \([^)]*\)") ; remove anything in parentheses (e.g. "sf (still!)" → "sf")
                   _s (-> (str _s)
@@ -78,29 +79,42 @@
                 (= _s "california")       "san francisco"
                 (= _s "british columbia") "vancouver, canada"          ; approx. center of population in British Columbia
                 (= _s "canada")           "whiteshell provincial park" ; approx. center of population in Canada
-                (= _s "québec")           "Québec, Québec, Canada"     ; they probably meant Quebec city, not Québec province
+                (= _s "québec")           "québec, québec, canada"     ; they probably meant Quebec city, not Québec province
                 :else (str/trim _s))))))
 
 (deftest test-normalize-location
-  (is (= (normalize-location "sf, foobar")   "San Francisco, CA"))
-  (is (= (normalize-location "New York")     "New York City"))
+  (is (= (normalize-location "sf, foobar")   "san francisco, california"))
+  (is (= (normalize-location "New York")     "new york city"))
   (is (= (normalize-location "Zoom")         ""))
   (is (= (normalize-location "CHQ → London") "london"))
   (is (= (normalize-location "Planet Earth") "")))
 
+(defn title-case [s]
+  (->> (str/split (str s) #"\b")
+       (map str/capitalize)
+       str/join))
+
 (defn location-from-name [name]
   (let [_s (str/replace name #" in " "|")
-        _s (str/replace name #" | "  "|")
-        _s (str/replace name #" visiting "  "|")
+        _s (str/replace _s #" \| "  "|")
+        _s (str/replace _s #"(?i) soon!?$" "")
+        _s (str/replace _s #" visiting "  "|")
         _s (str/split _s #"\|")]
-    (if (> 1 (count _s)) ; if there's only 1 element, assume they didn't put a location in their name
-      (normalize-location (last _s))
+    (if (<= 1 (count _s)) ; if there's only 1 element, assume they didn't put a location in their name
+      (title-case (normalize-location (last _s)))
       "")))
+
+(deftest test-normalize-location
+  (is (= (location-from-name "Devon número dos ☀️ in Buenos Aires") "Buenos Aires"))
+  (is (= (location-from-name "Devon visiting SF") "San Francisco, California"))
+  (is (= (location-from-name "Devon visiting London soon")  "London"))
+  (is (= (location-from-name "Devon visiting London soon!") "London"))
+  (is (= (location-from-name "Devon") "")))
 
 (defn distances-map [is-current-user? current-user friend-coords]
   (when (not is-current-user?) ; distances aren't relevant if the friend whose data we're abridging is the current user
     (zipmap
-     (map #(:name %) (:locations current-user))
+     (map :name (:locations current-user))
      (map #(coordinates/distance-btwn (:coords %) friend-coords)
           (:locations current-user)))))
 
@@ -147,6 +161,6 @@
 
                  (when (not (str/blank? friend-name-location))
                    {:special-status "from-display-name" ; formerly called "name location"
-                    :name           (:name friend)
+                    :name           friend-name-location
                     :coords         friend-name-coords
                     :distances      (distances-map is-current-user? current-user friend-name-coords)})]}))

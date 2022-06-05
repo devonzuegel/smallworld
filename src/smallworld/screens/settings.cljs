@@ -19,7 +19,6 @@
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
 (defn refresh-friends []
-  (println "running refresh-friends")
   (when (and
          (not= :loading @session/*store)
          (not-empty @session/*store))
@@ -197,17 +196,15 @@
     [:button.btn {:on-click #(reset! *form-errors {})} "clear errors"]
     [:div {:style {:text-align "left"}}
      [:br]
-     [:pre "@*settings       \n" (util/preify @*settings)]
-     [:pre "@session/*store: \n" (util/preify @session/*store)]
-     [:pre "@*locations-new: \n" (util/preify @*locations-new)]
-     [:pre "@*form-errors:   \n" (util/preify @*form-errors)]]))
+     [:pre "\n\n@*settings       \n" (util/preify @*settings)]
+     [:pre "\n\n@session/*store: \n" (util/preify @session/*store)]
+     [:pre "\n\n@*locations-new: \n" (util/preify @*locations-new)]
+     [:pre "\n\n@*form-errors:   \n" (util/preify @*form-errors)]]))
 
 (defn submit-settings-form []
-
   (let [new-settings {:email_address       (input-value-by-name "email-address-input")
                       :email_notifications (.-id (input-by-name "email_notification" ":checked"))}]
     (when (valid-inputs!? new-settings) ; TODO: check that all of the locations are valid too (e.g. can't be blank)
-
       (reset! *settings (merge @*settings new-settings))
       (reset! *form-message "saving...")
       (util/fetch-post "/api/v1/settings/update" (js->clj new-settings)
