@@ -18,14 +18,14 @@
 
 ; TODO: only do this on first load of logged-in-screen, not on every re-render
 ; and not for all the other pages – use component-did-mount
-(defn refresh-friends-atom []
-  (println "running refresh-friends-atom")
+(defn refresh-friends []
+  (println "running refresh-friends")
   (when (and
          (not= :loading @session/*store)
          (not-empty @session/*store))
-    (util/fetch "/api/v1/friends/refresh-atom"
+    (util/fetch "/api/v1/friends"
                 (fn [result]
-                  (when true #_debug? (println "/api/v1/friends/refresh-atom: " (count result)))
+                  (when debug? (println "/api/v1/friends: " (count result)))
                   (reset! user-data/*friends result)
                   ; TODO: only run this on the main page, otherwise you'll get errors
                   ; wait for the map to load – this is a hack & may be a source of errors ;)
@@ -320,10 +320,10 @@
 
 (defn welcome-flow-screen []
   (r/create-class
-   {:component-did-mount #(util/fetch "/api/v1/friends/refresh-atom"
+   {:component-did-mount #(util/fetch "/api/v1/friends"
                                       (fn [result]
                                         (when (or debug? (= (.. js/window -location -hash) "#debug"))
-                                          (println "/api/v1/friends/refresh-atom: " (count result)))
+                                          (println "/api/v1/friends: " (count result)))
                                         (reset! user-data/*friends result))
                                       :retry? true)
     :reagent-render (fn [] [-welcome-flow-screen])}))
