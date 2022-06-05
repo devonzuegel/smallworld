@@ -76,14 +76,4 @@
                                                    (dissoc :data))
                                               (db/select-all db/friends-table))
                        :coordinates      (db/select-all db/coordinates-table)})]
-         (cheshire/generate-string result)))
-
-     #_(defn friends-of-specific-user [get-current-session get-users-friends req]
-         (fn [{params :params}]
-           (println "params:")
-           (println params)
-           (let [curr-user-screen-name (:screen-name (get-current-session req))
-                 target-screen-name    (:screen_name params)]
-             (if-not (= screen-name curr-user-screen-name)
-               (response/bad-request {:message "you don't have access to this page"})
-               (get-users-friends req target-screen-name)))))))
+         (cheshire/generate-string result)))))
