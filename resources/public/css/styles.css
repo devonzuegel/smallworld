@@ -511,12 +511,17 @@ ul {
   display: flex;
   flex-wrap: wrap;
   gap: 1px;
-  margin: 4px 0 4px 18px;
+  margin: 8px auto 6px auto;
 }
 .friend-bubbles .friend {
   width: auto;
   display: inline;
   margin: 1px;
+  opacity: 0.8;
+}
+.friend-bubbles .friend:hover {
+  opacity: 1;
+  transition: opacity 100ms ease-out;
 }
 .friend-bubbles .friend .twitter-pic {
   border-width: 1px;
@@ -1098,13 +1103,13 @@ input[type='radio']:focus {
 @media (max-width: 768px) /* mobile */ {
   #mapbox-container {
     width: calc(100vw - 32px);
-    height: calc(58vh - 40px - 41px); /* 41px accounts for the margin */
+    height: calc(70vh - 40px - 41px); /* 41px accounts for the margin */
   }
 }
 @media (min-width: 768px) /* desktop */ {
   #mapbox-container {
     width: calc(100vw - 60px);
-    height: calc(58vh - 60px - 41px); /* 41px accounts for the margin */
+    height: calc(70vh - 60px - 41px); /* 41px accounts for the margin */
   }
 }
 #mapbox-container.expanded {
