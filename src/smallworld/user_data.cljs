@@ -79,10 +79,7 @@
                                 "when a friend includes a nearby location in their display name, they'll show up on this list"
                                 "when a friend's Twitter location is nearby, they'll show up on this list")
         key-pair        [curr-user-location-i friend-location-key]
-        verb-gerund     [:span.verb-gerund
-                         {:title verb-gerund-info-text
-                          :on-click #(js/alert verb-gerund-info-text)}
-                         verb-gerund]
+        verb-gerund     [:span.verb-gerund verb-gerund]
         friends-list    (if (= :loading @*friends)
                           []
                           (get-close-friends curr-user-location-name friend-location-key 100))
@@ -104,7 +101,7 @@
               list-count " "
               friend-pluralized " "
               verb-gerund " " curr-user-location-name]]
-            (decorations/info-icon)]
+            [:a.tooltip-right {:data-tooltip verb-gerund-info-text} (decorations/info-icon)]]
 
            (when expanded?
              [:div.friends (map-indexed render-user friends-list)])]
@@ -112,9 +109,7 @@
           [:div.no-friends-found
            (decorations/x-icon)
            "0 friends are " verb-gerund " " curr-user-location-name
-           [:span {:title verb-gerund-info-text
-                   :on-click #(js/alert verb-gerund-info-text)}
-            (decorations/info-icon)]]))]]))
+           [:a.tooltip-right {:data-tooltip verb-gerund-info-text} (decorations/info-icon)]]))]]))
 
 (defn refetch-friends []
   (util/fetch "/api/v1/friends/refetch-twitter"
