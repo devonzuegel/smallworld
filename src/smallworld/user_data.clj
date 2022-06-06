@@ -99,6 +99,7 @@
         _s (str/replace _s #" \| "  "|")
         _s (str/replace _s #"(?i) soon!?$" "")
         _s (str/replace _s #" visiting "  "|")
+        _s (str/replace _s #" at "  "|")
         _s (str/split _s #"\|")]
     (if (< 1 (count _s)) ; if there's only 1 element, assume they didn't put a location in their name
       (title-case (normalize-location (last _s)))
