@@ -32,6 +32,13 @@
             :target "_blank"}
         [:span.location (:name first-location)]]]]]))
 
+(defn render-user-bubble [k user]
+  (let [twitter-pic    (:profile_image_url_large user)
+        twitter-handle (:screen-name user)]
+    [:div.friend {:key twitter-handle}
+     [:a ; TODO: on click center map on their face
+      [:div.twitter-pic [:img {:src twitter-pic :key k}]]]]))
+
 ; TODO: the logic in this needs some serious cleanup; probably requires refactoring the data model too
 (defn get-close-friends [curr-user-location-name friend-location-key max-distance]
   (->> @*friends
@@ -107,8 +114,9 @@
                           "tooltip-right")}
              (decorations/info-icon)]]
 
-           (when expanded?
-             [:div.friends (map-indexed render-user friends-list)])]
+           (if expanded?
+             [:div.friends (map-indexed render-user friends-list)]
+             [:div.friend-bubbles (map-indexed render-user-bubble friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)
