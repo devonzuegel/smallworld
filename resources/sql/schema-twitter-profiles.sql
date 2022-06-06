@@ -31,3 +31,12 @@ CREATE TRIGGER set_updated_at
 BEFORE UPDATE ON twitter_profiles
 FOR EACH ROW
 EXECUTE FUNCTION set_current_timestamp_updated_at();
+
+--------------------------------------------------------------------------------
+---- add an index on request_key -----------------------------------------------
+--------------------------------------------------------------------------------
+
+--- split here ---
+
+CREATE INDEX index__request_key__twitter_profiles
+ON twitter_profiles (request_key);
