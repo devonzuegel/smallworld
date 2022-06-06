@@ -97,19 +97,24 @@
         (if (> list-count 0)
           [:<>
            [:p.location-info
-            {:on-click ; toggle collapsed state
-             #(swap! *expanded? assoc key-pair (not expanded?))}
-            (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "down" "right")]))
-            [:<>
-             list-count " "
-             friend-pluralized " "
-             verb-gerund " " curr-user-location-name ":"]]
+            [:span {:on-click ; toggle collapsed state
+                    #(swap! *expanded? assoc key-pair (not expanded?))}
+             (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "down" "right")]))
+             [:<>
+              list-count " "
+              friend-pluralized " "
+              verb-gerund " " curr-user-location-name]]
+            (decorations/info-icon)]
+
            (when expanded?
              [:div.friends (map-indexed render-user friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)
-           "0 friends are " verb-gerund " " curr-user-location-name]))]]))
+           "0 friends are " verb-gerund " " curr-user-location-name
+           [:span {:title verb-gerund-info-text
+                   :on-click #(js/alert verb-gerund-info-text)}
+            (decorations/info-icon)]]))]]))
 
 (defn refetch-friends []
   (util/fetch "/api/v1/friends/refetch-twitter"
