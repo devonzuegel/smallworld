@@ -37,3 +37,12 @@ CREATE TRIGGER set_updated_at
 BEFORE UPDATE ON settings
 FOR EACH ROW
 EXECUTE FUNCTION set_current_timestamp_updated_at();
+
+--------------------------------------------------------------------------------
+---- add an index on screen_name -----------------------------------------------
+--------------------------------------------------------------------------------
+
+--- split here ---
+
+CREATE INDEX index__screen_name__settings
+ON settings (screen_name);

@@ -31,3 +31,12 @@ CREATE TRIGGER set_updated_at
 BEFORE UPDATE ON access_tokens
 FOR EACH ROW
 EXECUTE FUNCTION set_current_timestamp_updated_at();
+
+--------------------------------------------------------------------------------
+---- add an index on request_key -----------------------------------------------
+--------------------------------------------------------------------------------
+
+--- split here ---
+
+CREATE INDEX index__request_key__access_tokens
+ON access_tokens (request_key);
