@@ -178,8 +178,6 @@
 ;; twitter data fetching ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (def abridged-friends-cache (atom {}))
-
 (def max-results (* 15 200))
 
 (defn fetch-friends-from-twitter [screen-name] ;; use the memoized version of this function!
