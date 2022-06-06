@@ -101,8 +101,8 @@
         (if (> list-count 0)
           [:<>
            [:p.location-info
-            [:span {:on-click ; toggle collapsed state
-                    #(swap! *expanded? assoc key-pair (not expanded?))}
+            [:span {:title "expand for details"
+                    :on-click #(swap! *expanded? assoc key-pair (not expanded?))}
              (decorations/triangle-icon (clojure.string/join " "  ["caret" (if expanded? "down" "right")]))
              [:<>
               list-count " "
@@ -116,7 +116,9 @@
 
            (if expanded?
              [:div.friends (map-indexed render-user friends-list)]
-             [:div.friend-bubbles (map-indexed render-user-bubble friends-list)])]
+             [:div.friend-bubbles {:title "expand for details"
+                                   :on-click #(swap! *expanded? assoc key-pair (not expanded?))}
+              (map-indexed render-user-bubble friends-list)])]
 
           [:div.no-friends-found
            (decorations/x-icon)

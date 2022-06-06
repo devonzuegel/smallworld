@@ -511,7 +511,8 @@ ul {
   display: flex;
   flex-wrap: wrap;
   gap: 1px;
-  margin: 8px auto 6px auto;
+  margin: 8px auto 6px 2px;
+  cursor: pointer;
 }
 .friend-bubbles .friend {
   width: auto;
