@@ -1103,7 +1103,7 @@ input[type='radio']:focus {
 @media (max-width: 768px) /* mobile */ {
   #mapbox-container {
     width: calc(100vw - 32px);
-    height: calc(70vh - 40px - 41px); /* 41px accounts for the margin */
+    height: calc(60vh - 40px - 41px); /* 41px accounts for the margin */
   }
 }
 @media (min-width: 768px) /* desktop */ {
