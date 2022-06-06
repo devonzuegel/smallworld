@@ -102,7 +102,7 @@
               friend-pluralized " "
               verb-gerund " " curr-user-location-name]]
             [:a {:data-tooltip verb-gerund-info-text
-                 :class (if (= "mobile" (util/device-type))
+                 :class (if (< (.-innerWidth js/window) 500)
                           "tooltip-left"
                           "tooltip-right")}
              (decorations/info-icon)]]
@@ -114,7 +114,7 @@
            (decorations/x-icon)
            "0 friends are " verb-gerund " " curr-user-location-name
            [:a {:data-tooltip verb-gerund-info-text
-                :class (if (= "mobile" (util/device-type))
+                :class (if (< (.-innerWidth js/window) 500)
                          "tooltip-left"
                          "tooltip-right")}
             (decorations/info-icon)]]))]]))
