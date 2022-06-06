@@ -1126,10 +1126,24 @@ input[type='radio']:focus {
   z-index: 1;
   border-radius: 0;
 }
+#mapbox-container .controls {
+  right: 0;
+  margin-top: 6px;
+  margin-right: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  width: fit-content;
+  height: fit-content;
+  z-index: 1;
+  border-radius: 24px;
+  position: absolute;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 11px 4px 13px;
+}
 #mapbox-container .zoom-in,
 #mapbox-container .zoom-out,
 #mapbox-container .expand-me {
-  position: absolute; /* #mapbox-container needs position:relative */
   pointer-events: auto;
   fill: #013917;
   cursor: pointer;
@@ -1145,13 +1159,7 @@ input[type='radio']:focus {
   filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.8));
 }
 #mapbox-container .expand-me {
-  margin-left: 12px;
-}
-#mapbox-container svg.zoom-in {
-  margin-left: 52px;
-}
-#mapbox-container svg.zoom-out {
-  margin-left: 88px;
+  margin-right: 4px;
 }
 #mapbox-container .mapboxgl-map {
   background: #9dc7d9;
