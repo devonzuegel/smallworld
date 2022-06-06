@@ -1,6 +1,6 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [cheshire.core :refer [generate-stream generate-string]]
+  (:require [cheshire.core :refer [generate-string]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -100,17 +100,23 @@
                              :name           (:name api-response)
                              :locations      (:locations current-user)
                              :twitter_avatar (user-data/normal-img-to-full-size api-response)}]
-           (if exists?
-             ; if the user already exists, update their locations to include the new locations
-             (let [old-locations (:locations (first sql-results))
-                   merged-locations (->> new-settings
-                                         :locations
-                                         set
-                                         (set/union (set old-locations))
+           (if-not exists?
+             ; if user doesn't exist, create a new row with the new settings
+             (db/insert! db/settings-table new-settings)
+             ; else, update their locations to include the new locations
+             (let [old-locations (set (:locations (first sql-results)))
+                   new-locations (set (:locations new-settings))
+                   merged-locations (->> (set/union new-locations old-locations)
                                          (sort-by location-sort-order))]
-               (db/update! db/settings-table :screen_name screen-name (assoc new-settings :locations merged-locations)))
-             ; otherwise, create a new row with the new settings
-             (db/insert! db/settings-table new-settings)))
+               (db/update! db/settings-table :screen_name screen-name (assoc new-settings :locations merged-locations))
+               (when debug?
+                 (println "---- old-locations: ----------------------")
+                 (pp/pprint old-locations)
+                 (println "---- new-locations: ----------------------")
+                 (pp/pprint new-locations)
+                 (println "---- merged-locations: -------------------")
+                 (pp/pprint merged-locations)
+                 (println "------------------------------------------")))))
          (log-event "new-authorization" {:screen-name screen-name
                                          :message (str "@" screen-name ") has successfully authorized small world to access their Twitter account")})
          (set-session (ring-response/redirect "/") {:access-token access-token
