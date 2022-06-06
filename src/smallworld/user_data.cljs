@@ -118,7 +118,7 @@
              [:div.friends (map-indexed render-user friends-list)]
              [:div.friend-bubbles {:title "expand for details"
                                    :on-click #(swap! *expanded? assoc key-pair (not expanded?))}
-              (map-indexed render-user-bubble friends-list)])]
+              (map-indexed render-user-bubble (take 200 friends-list))])]
 
           [:div.no-friends-found
            (decorations/x-icon)
