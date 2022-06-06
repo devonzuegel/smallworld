@@ -370,9 +370,10 @@ ul {
   fill: white;
   opacity: 0.45;
   margin-bottom: -3px;
-  margin-left: 6px;
+  margin-left: 8px;
   cursor: pointer;
   transition: all 50ms ease-out;
+  transform: scale(1.1);
 }
 .friends-list svg.info:hover {
   opacity: 1;
