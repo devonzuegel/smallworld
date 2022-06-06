@@ -94,21 +94,22 @@
 
 (def *groups (r/atom {}))
 
+(defn toggle-expand-map []
+  (swap! expanded not)
+  (doall (for [i (range 105)]
+           (js/setTimeout #(.resize @the-map) (* i 10)))))
+
 (defn mapbox [current-user]
   [:div#mapbox-container {:data-tap-disabled "true"
                           :class (if @expanded "expanded" "not-expanded")}
    [:div.loading {:class (when-not @*loading "hidden")}
     (decorations/simple-loading-animation) "fetching your Twitter friends..."]
 
-   [:a.expand-me
-    {:on-click (fn []
-                 (swap! expanded not)
-                 (doall
-                  (for [i (range 105)]
-                    (js/setTimeout #(.resize @the-map) (* i 10)))))}
-    (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
-   [:a {:on-click #(.zoomTo @the-map (+ (.getZoom @the-map) 2))} (decorations/zoom-in-icon)]
-   [:a {:on-click #(.zoomTo @the-map (- (.getZoom @the-map) 2))} (decorations/zoom-out-icon)]
+   [:div.controls
+    [:a.expand-me {:on-click toggle-expand-map}
+     (if @expanded (decorations/minimize-icon) (decorations/fullscreen-icon))]
+    [:a {:on-click #(.zoomTo @the-map (+ (.getZoom @the-map) 2))} (decorations/zoom-in-icon)]
+    [:a {:on-click #(.zoomTo @the-map (- (.getZoom @the-map) 2))} (decorations/zoom-out-icon)]]
 
    [mapbox-dom current-user]])
 
