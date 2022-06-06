@@ -101,7 +101,11 @@
               list-count " "
               friend-pluralized " "
               verb-gerund " " curr-user-location-name]]
-            [:a.tooltip-right {:data-tooltip verb-gerund-info-text} (decorations/info-icon)]]
+            [:a {:data-tooltip verb-gerund-info-text
+                 :class (if (= "mobile" (util/device-type))
+                          "tooltip-left"
+                          "tooltip-right")}
+             (decorations/info-icon)]]
 
            (when expanded?
              [:div.friends (map-indexed render-user friends-list)])]
@@ -109,7 +113,11 @@
           [:div.no-friends-found
            (decorations/x-icon)
            "0 friends are " verb-gerund " " curr-user-location-name
-           [:a.tooltip-right {:data-tooltip verb-gerund-info-text} (decorations/info-icon)]]))]]))
+           [:a {:data-tooltip verb-gerund-info-text
+                :class (if (= "mobile" (util/device-type))
+                         "tooltip-left"
+                         "tooltip-right")}
+            (decorations/info-icon)]]))]]))
 
 (defn refetch-friends []
   (util/fetch "/api/v1/friends/refetch-twitter"

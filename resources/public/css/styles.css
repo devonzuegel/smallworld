@@ -1551,7 +1551,7 @@ ul li {
   margin-right: -12px;
   margin-bottom: 0;
   border-top-color: transparent;
-  border-left-color: #000;
+  border-left-color: #022610;
 }
 .tooltip-left:hover:before,
 .tooltip-left:hover:after,
@@ -1572,7 +1572,7 @@ ul li {
   margin-top: -12px;
   margin-bottom: 0;
   border-top-color: transparent;
-  border-bottom-color: #000;
+  border-bottom-color: #022610;
 }
 .tooltip-bottom:hover:before,
 .tooltip-bottom:hover:after,
@@ -1592,7 +1592,7 @@ ul li {
   margin-bottom: 0;
   margin-left: -12px;
   border-top-color: transparent;
-  border-right-color: #000;
+  border-right-color: #022610;
 }
 .tooltip-right:hover:before,
 .tooltip-right:hover:after,

@@ -107,3 +107,13 @@
    [:span.fill-nav-space]
    [:a {:href "/settings" #_(rfe/href ::settingks)}
     [:b.screen-name " @" (:screen-name @session/*store)]]])
+
+(defn device-type []
+  (let [ua (.-userAgent js/navigator)]
+    (cond
+      (.test #"(?i)(tablet|ipad|playbook|silk)|(android(?!.*mobi))" ua)
+      "tablet"
+      (.test #"Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)"  ua)
+      "mobile"
+      :else nil)
+    "desktop"))
