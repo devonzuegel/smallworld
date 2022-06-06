@@ -14,6 +14,10 @@ create table if not exists settings (
 
 --- split here ---
 
+--------------------------------------------------------------------------------
+---- auto-update updated_at ----------------------------------------------------
+--------------------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.set_current_timestamp_updated_at()
  RETURNS trigger
  LANGUAGE plpgsql
