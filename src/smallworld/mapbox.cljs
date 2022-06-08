@@ -101,7 +101,8 @@
 
 (defn mapbox [current-user]
   [:div#mapbox-container {:data-tap-disabled "true"
-                          :class (if @expanded "expanded" "not-expanded")}
+                          :class (str/join " " [(if @expanded "expanded" "not-expanded")
+                                                (if @*loading "loading"  "done-loading")])}
    [:div.loading {:class (when-not @*loading "hidden")}
     (decorations/simple-loading-animation) "fetching your Twitter friends..."]
 
@@ -224,15 +225,15 @@
                                    (when (and (.getSource @the-map source-name)
                                               @*loading ; only run this the first time that sourcedata is loaded
                                               (.isSourceLoaded @the-map source-name))
+                                     (reset! *loading false)
                                      (js/setTimeout (fn []
-                                                      (reset! *loading false)
                                                       (.flyTo @the-map #js{:center (clj->js (or (get-coords-from-curr-user curr-user)
                                                                                                 Miami))
                                                                            :zoom (+ (.getZoom @the-map) 1.5)
                                                                            :speed .6
                                                                            :essential true})
                                                       (js/setTimeout #(.setMinZoom @the-map min-zoom) 1000))
-                                                    300))))
+                                                    400))))
 
       (.then (.all js/Promise
                    (clj->js
