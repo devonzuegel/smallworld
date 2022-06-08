@@ -1111,7 +1111,7 @@ input[type='radio']:focus {
 }
 @media (min-width: 768px) /* desktop */ {
   #mapbox-container {
-    width: calc(100vw - 60px);
+    width: calc(100vw - 40px);
     height: calc(70vh - 60px - 41px); /* 41px accounts for the margin */
   }
 }
