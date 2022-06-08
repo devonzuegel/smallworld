@@ -436,7 +436,8 @@ ul {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 8px;
+  transition: margin-top 100ms ease-out;
 }
 @media screen and (min-width: 720px) {
   .friends-list .friends {
@@ -513,6 +514,7 @@ ul {
   gap: 1px;
   margin: 8px auto 6px 2px;
   cursor: pointer;
+  transition: margin-top 200ms ease-out;
 }
 .friend-bubbles .friend {
   width: auto;
