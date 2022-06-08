@@ -323,7 +323,9 @@
                                           (println "/api/v1/friends: " (count result)))
                                         (reset! user-data/*friends result))
                                       :retry? true)
-    :reagent-render (fn [] [-welcome-flow-screen])}))
+    :reagent-render (fn [] (if (str/blank? (:twitter_avatar @*settings))
+                             (decorations/loading-screen)
+                             [-welcome-flow-screen]))}))
 
 (defn -screen []
   [:div
