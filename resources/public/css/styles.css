@@ -1129,6 +1129,10 @@ input[type='radio']:focus {
   z-index: 1;
   border-radius: 0;
 }
+// #mapbox-container.loading {
+//   height: 20vh;
+//   transition: height 900ms ease-in-out;
+// }
 #mapbox-container .controls {
   right: 0;
   margin-top: 6px;
