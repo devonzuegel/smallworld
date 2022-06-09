@@ -317,15 +317,10 @@
 
 (defn welcome-flow-screen []
   (r/create-class
-   {:component-did-mount #(util/fetch "/api/v1/friends"
-                                      (fn [result]
-                                        (when (or debug? (= (.. js/window -location -hash) "#debug"))
-                                          (println "/api/v1/friends: " (count result)))
-                                        (reset! user-data/*friends result))
-                                      :retry? true)
-    :reagent-render (fn [] (if (str/blank? (:twitter_avatar @*settings))
-                             (decorations/loading-screen)
-                             [-welcome-flow-screen]))}))
+   {:component-did-mount user-data/recompute-friends
+    :reagent-render      (fn [] (if (str/blank? (:twitter_avatar @*settings))
+                                  (decorations/loading-screen)
+                                  [-welcome-flow-screen]))}))
 
 (defn -screen []
   [:div
