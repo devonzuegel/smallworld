@@ -46,7 +46,6 @@
                                           session-data
                                           {:screen-name new-screen-name :impersonation? true}))
                                       session-data)]
-    (log-event "get-session" result)
     result))
 
 ;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
@@ -438,8 +437,6 @@
                                                                                   {:locations (:locations settings)})
                                                        friends-abridged (map #(user-data/abridged % corrected-curr-user) friends-full)]
                                                    (println (str "recomputed friends distances for @" screen-name " (count: " (count friends-abridged) ")"))
-                                                   #_(swap! abridged-friends-cache
-                                                            assoc screen-name friends-abridged)
                                                    (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
   (GET "/api/v1/friends/refetch-twitter" req (let [screen-name (:screen-name (get-session req))
