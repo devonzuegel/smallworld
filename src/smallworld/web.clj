@@ -1,6 +1,6 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [cheshire.core :refer [generate-string]]
+  (:require [cheshire.core :refer [generate-string generate-stream]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -10,6 +10,7 @@
             [compojure.handler :as compojure-handler]
             [compojure.route :as route]
             [oauth.twitter :as oauth]
+            [ring.util.io :as ring-io]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.session.cookie :as cookie]
             [ring.util.request :as ring-request]
@@ -252,13 +253,13 @@
     result))
 
 ; TODO: consolidate this with memoized-abridged-friends
-(defn get-users-friends--not-memoized [req]
+(defn get-users-friends--not-memoized [req writer]
   (let [screen-name (:screen-name (get-session req))
         logged-out? (nil? screen-name)
         result      (if logged-out?
                       []
                       (--fetch-abridged-friends--not-memoized screen-name (get-settings req screen-name)))]
-    (generate-string result)))
+    (generate-stream result writer)))
 
 (defn select-location-fields [friend]
   (select-keys friend [:location #_:name :screen-name])) ; TODO: rm this merge
@@ -428,7 +429,10 @@
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         location-name (:location-name parsed-body)]
                                     (generate-string (coordinates/memoized location-name))))
-  (GET "/api/v1/friends" req (get-users-friends--not-memoized req))
+  (GET "/api/v1/friends" req (ring-response/response (ring-io/piped-input-stream
+                                                      (fn [input-stream]
+                                                        (let [writer (io/make-writer input-stream {})]
+                                                          (get-users-friends--not-memoized req writer))))))
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
                                                        friends-full (:friends (memoized-friends screen-name))
