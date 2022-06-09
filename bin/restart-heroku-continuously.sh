@@ -1,7 +1,13 @@
 while true
 do
   now=$(date +"%T")
-  echo "$now - sleeping for 1 minutes before next restart"
-  sleep 60  # seconds
+  n_seconds=100
+  n_iterations=10
+  echo "$now - sleeping for $n_seconds seconds before next restart"
+  for i in {1..10}; do
+    sleep 10 # seconds
+    now=$(date +"%T")
+    echo "$now - still sleeping ($i/$n_iterations)"
+  done
   heroku restart
 done
