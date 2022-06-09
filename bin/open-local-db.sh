@@ -1,0 +1,1 @@
+/Applications/Postgres.app/Contents/Versions/14/bin/psql -p5432 "devonzuegel"

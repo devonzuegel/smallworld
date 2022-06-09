@@ -1,0 +1,1 @@
+heroku pg:psql postgresql-fluffy-56995 --app small-world-friends
