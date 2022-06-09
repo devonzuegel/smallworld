@@ -246,20 +246,17 @@
                              {:friends friends-result})))
                        db/friends-table))
 
-(defn --fetch-abridged-friends--not-memoized [screen-name current-user]
-  (let [friends (get-in (first (db/select-by-col db/friends-table :request_key screen-name))
-                        [:data :friends])
-        result (mapv #(user-data/abridged % current-user) friends)]
-    result))
-
-; TODO: consolidate this with memoized-abridged-friends
+; TODO: consolidate this with memoized-friends
 (defn get-users-friends--not-memoized [req writer]
   (let [screen-name (:screen-name (get-session req))
-        logged-out? (nil? screen-name)
-        result      (if logged-out?
-                      []
-                      (--fetch-abridged-friends--not-memoized screen-name (get-settings req screen-name)))]
-    (generate-stream result writer)))
+        logged-out? (nil? screen-name)]
+    (if logged-out?
+      (generate-stream [] writer)
+      (let [current-user (get-settings req screen-name)
+            friends (get-in (first (db/select-by-col db/friends-table :request_key screen-name))
+                            [:data :friends])
+            result (map #(user-data/abridged % current-user) friends)]
+        (generate-stream result writer)))))
 
 (defn select-location-fields [friend]
   (select-keys friend [:location #_:name :screen-name])) ; TODO: rm this merge
