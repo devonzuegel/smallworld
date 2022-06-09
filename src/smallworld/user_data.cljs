@@ -138,6 +138,8 @@
 (defn recompute-friends [& [callback]]
   (util/fetch "/api/v1/friends/recompute-locations"
               (fn [result]
+                (when (or debug? (= (.. js/window -location -hash) "#debug"))
+                  (println "/api/v1/friends/recompute-locations: " (count result)))
                 (when callback (callback))
                 (reset! *friends result)
                 (mapbox/add-friends-to-map @*friends @session/*store))))
