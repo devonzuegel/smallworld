@@ -20,27 +20,10 @@
 (defn coords-to-mapbox-array [coords]
   #js[(:lng coords) (:lat coords)])
 
-(defn assert-long-lat [-coordinates]
-  (let [[long lat] -coordinates]
-    (assert (not (nil? -coordinates))
-            (str "expected coordinates to be a list of [long lat], but received nil"))
-    (assert (and (number? lat)
-                 (number? long))
-            (str "[lat long] must be numbers, but received [" lat " " long "]"))
-    (assert (and (>= lat -90)
-                 (<= lat 90))
-            (str "lat must be between -90 & 90, but received [" lat "]"))
-    (assert (and (>= long -180)
-                 (<= long 180))
-            (str "long must be between -180 & 180, but received [" lat "]"))))
-
-(defn random-offset [] (- (rand 0.6) 0.3))
-
 (defn round [num] (js/parseFloat (pp/cl-format nil "~,0f" num)))
 
 (defn Popup-Content [{location    :location
                       info        :info
-                      lng-lat     :lng-lat
                       user-name   :user-name
                       screen-name :screen-name}]
   [:<>
@@ -156,8 +139,7 @@
                     (.setHTML (reagent.dom.server/render-to-string
                                (Popup-Content {:location    (:location properties)
                                                :user-name   (:name properties)
-                                               :screen-name (:screen-name properties)
-                                               :lng-lat     coordinates})))
+                                               :screen-name (:screen-name properties)})))
                     (.addTo @the-map))]
         (when remove-on-mouseout? (swap! *popups conj popup))))))
 

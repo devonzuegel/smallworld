@@ -25,7 +25,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (util/fetch "/api/v1/settings" (fn [result]
-                                 (when true; @*debug?
+                                 (when @*debug?
                                    (println "/api/v1/settings:")
                                    (pp/pprint result))
                                  (reset! settings/*settings      result)
