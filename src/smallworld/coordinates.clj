@@ -35,8 +35,7 @@
             slurp
             extract-coordinates))
       (catch Throwable e
-        (println "\nBing Maps API - returning nil, because API call failed: ")
-        (println e)
+        (println "\nBing Maps API - returning nil, because API call failed to retrieve a valid result")
         nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
