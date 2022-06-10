@@ -59,6 +59,7 @@
       (includes? _s "new york")          "new york city"
       :else (let [_s (StringBuilder. _s)
                   _s (remove-substr _s #" \([^)]*\)") ; remove anything in parentheses (e.g. "sf (still!)" → "sf")
+                  _s (str/replace _s #"(?i) area$" "")
                   _s (-> (str _s)
                          (split-last #"\/")
                          (split-last #" and ")
@@ -86,6 +87,7 @@
   (is (= (normalize-location "sf, foobar")   "san francisco, california"))
   (is (= (normalize-location "New York")     "new york city"))
   (is (= (normalize-location "Zoom")         ""))
+  (is (= (normalize-location "Seattle area") "seattle"))
   (is (= (normalize-location "CHQ → London") "london"))
   (is (= (normalize-location "Planet Earth") "")))
 
