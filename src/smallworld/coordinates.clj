@@ -79,5 +79,5 @@
 
 
 (def table-memoized (m/my-memoize get-from-city  db/coordinates-table))
-(def atom-memoized  (m/my-memoize table-memoized (atom {})))
-(def memoized atom-memoized) ; re-naming just for export
+;; (def atom-memoized  (m/my-memoize table-memoized (atom {})))
+(def memoized table-memoized) ; re-naming just for export
