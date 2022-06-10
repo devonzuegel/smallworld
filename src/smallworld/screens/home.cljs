@@ -198,6 +198,6 @@
    {:component-did-mount
     (fn []
       (settings/refresh-friends) ; refresh immediately
-      (doall (for [i (range 1 10)] ; then refresh it again, with exponential backoff
+      (doall (for [i (range 2 5)] ; then refresh it again, with exponential backoff
                (js/setTimeout settings/refresh-friends (* (util/exponent 2 i) 1000)))))
     :reagent-render (fn [] [-screen])}))
