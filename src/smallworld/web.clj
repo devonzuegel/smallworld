@@ -426,8 +426,9 @@
   (GET "/api/v1/settings" req (generate-string (get-settings req (:screen-name (get-session req)))))
   (POST "/api/v1/settings/update" req (update-settings req))
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
-                                        location-name (:location-name parsed-body)]
-                                    (generate-string (coordinates/memoized location-name))))
+                                        raw-location-name (:location-name parsed-body)
+                                        normalized-location-name (user-data/normalize-location raw-location-name)]
+                                    (generate-string (coordinates/memoized normalized-location-name))))
   (GET "/api/v1/friends" req (get-users-friends--not-memoized req))
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
