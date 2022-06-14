@@ -50,6 +50,7 @@
       (includes? _s ".net")              ""
       (includes? _s ".org")              ""
       (includes? _s ".eth")              ""
+      (includes? _s "solana")            ""
       (includes? _s "blue/green sphere") ""
       (includes? _s "pale blue dot")     ""
       (includes? _s "zoom")              ""
