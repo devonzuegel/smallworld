@@ -129,6 +129,8 @@
 (s/defn abridged :- db/AbridgedFriend
   [friend :- db/Friend
    current-user]
+  (assert (:name friend))
+  (assert (:location friend))
   (let [is-current-user? (= (:screen-name current-user) (:screen-name friend))
         ; locations as strings
         friend-main-location (normalize-location (:location friend))

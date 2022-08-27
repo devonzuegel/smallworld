@@ -7,7 +7,8 @@
             [jdbc.pool.c3p0 :as pool]
             [schema.core :as s]
             [smallworld.clj-postgresql.types] ; this enables the :json type
-            [smallworld.util :as util]))
+            [smallworld.util :as util]
+            [yesql.core :refer [defqueries]]))
 
 ;; Note: don't fully trust these, they are useful guidance, not type checked
 
@@ -41,10 +42,8 @@
    :location (s/maybe s/Str)
    :screen-name s/Str
    :id s/Int
-   :profile-image-url (s/maybe s/Str)
    :profile-image-url-https (s/maybe s/Str)
-   :email (s/maybe s/Str)
-   s/Any s/Any})
+   :email (s/maybe s/Str)})
 
 (def AbridgedFriend
   (-> Friend
@@ -55,7 +54,7 @@
 (def FriendsRow
   {:id s/Int
    :request_key s/Str
-   :data {:friends [Friend]}
+   :data {:friends [(assoc Friend s/Any s/Any)]}
    :created_at java.util.Date
    :updated_at java.util.Date})
 
@@ -232,11 +231,13 @@
 
 ;; Friends
 
+(defqueries "sql/friends.sql")
+
 (s/defn get-friends :- (s/maybe [Friend])
   [screen-name :- s/Str]
-  (some-> (select-by-col friends-table :request_key screen-name)
-          first
-          (get-in [:data :friends])))
+  (some-> (ys-friends-by-screen-name {:screen_name screen-name}
+                                     {:connection @pool})
+          walk/keywordize-keys))
 
 (s/defn upsert-friends!
   [screen-name :- s/Str friends :- [Friend]]
