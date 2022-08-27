@@ -1,6 +1,8 @@
 (ns smallworld.user-data
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is]]
+            [schema.core :as s]
+            [smallworld.db :as db]
             [smallworld.coordinates :as coordinates])
   (:import (java.util.regex Pattern)))
 
@@ -14,11 +16,9 @@
         (recur (+ (.start matcher) (.length replacement))))))
   sb)
 
-(defn normal-img-to-full-size [friend]
-  (let [original-url (:profile-image-url-https friend)]
-    (if (nil? original-url)
-      nil
-      (str (fast-replace (StringBuilder. original-url) #"_normal" "")))))
+(s/defn normal-img-to-full-size :- s/Str
+  [original-url :- s/Str]
+  (str (fast-replace (StringBuilder. original-url) #"_normal" "")))
 
 (defn includes? [string substr]
   (str/includes? (str/lower-case string) substr))
@@ -124,9 +124,11 @@
      (map #(coordinates/distance-btwn (:coords %) friend-coords)
           (:locations current-user)))))
 
-;; "main" refers to the location set in the Twitter :location field
-;; "name-location" refers to the location described in their Twitter :name (which may be nil)
-(defn abridged [friend current-user]
+;; "twitter-location" refers to the location set in the Twitter :location field
+;; "from-display-name" refers to the location described in their Twitter :name (which may be nil)
+(s/defn abridged :- db/AbridgedFriend
+  [friend :- db/Friend
+   current-user]
   (let [is-current-user? (= (:screen-name current-user) (:screen-name friend))
         ; locations as strings
         friend-main-location (normalize-location (:location friend))
@@ -154,18 +156,19 @@
 
     {:name                    (:name friend)
      :screen-name             (:screen-name friend)
-     :profile_image_url_large (normal-img-to-full-size friend)
+     :profile_image_url_large (some-> friend
+                                      :profile-image-url-https
+                                      normal-img-to-full-size)
      ; note – email will only be available if the user has given us permission
      ; (i.e. if they are also the current-user) AND if they have set their email
      ; on Twitter, which is not required, so sometimes it'll be the empty string
      :email (:email friend)
-     :locations [(when (not (str/blank? friend-main-location))
+     :locations [(when-not (str/blank? friend-main-location)
                    {:special-status "twitter-location" ; formerly called "main location"
                     :name           (:location friend)
                     :coords         friend-main-coords
                     :distances      (distances-map is-current-user? current-user friend-main-coords)})
-
-                 (when (not (str/blank? friend-name-location))
+                 (when-not (str/blank? friend-name-location)
                    {:special-status "from-display-name" ; formerly called "name location"
                     :name           friend-name-location
                     :coords         friend-name-coords
