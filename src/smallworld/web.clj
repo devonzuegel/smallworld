@@ -339,10 +339,10 @@
         (println "\n\n")
 
         (when (and (= "daily" (:email_notifications settings))
-                   (not-empty diff)
+                  ;;  (not-empty diff) ; TODO: put me back!
                    (or (= screen-name "devon_dos")
                        (= screen-name "devonzuegel")
-                       (= screen-name "backus")))
+                       #_(= screen-name "backus")))
           (println "sending email to" screen-name "now: =============")
           (email/send-email {:to email-address
                              :template (:friends-on-the-move email/TEMPLATES)
@@ -571,7 +571,7 @@
   (System/gc)
   (log-event "garbage-collection" {}))
 
-(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 2) (timely/minute 55))) ; in UTC
+(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 13) (timely/minute 45))) ; in UTC
 
 (defn start-scheduled-workers []
   (try (timely/start-scheduler)
