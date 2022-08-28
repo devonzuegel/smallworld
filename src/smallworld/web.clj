@@ -343,6 +343,7 @@
                    (or (= screen-name "devon_dos")
                        (= screen-name "devonzuegel")
                        (= screen-name "backus")))
+          (println "sending email to" screen-name "now: =============")
           (email/send-email {:to email-address
                              :template (:friends-on-the-move email/TEMPLATES)
                              :dynamic_template_data {:twitter_screen_name screen-name
