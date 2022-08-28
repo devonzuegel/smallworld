@@ -338,12 +338,15 @@
         (pp/pprint diff-html)
         (println "\n\n")
 
-        #_(when (and (= "daily" (:email_notifications settings))
-                     (not-empty diff))
-            (email/send-email {:to email-address
-                               :template (:friends-on-the-move email/TEMPLATES)
-                               :dynamic_template_data {:twitter_screen_name screen-name
-                                                       :friends             diff-html}}))
+        (when (and (= "daily" (:email_notifications settings))
+                   (not-empty diff)
+                   (or (= screen-name "devon_dos")
+                       (= screen-name "devonzuegel")
+                       (= screen-name "backus")))
+          (email/send-email {:to email-address
+                             :template (:friends-on-the-move email/TEMPLATES)
+                             :dynamic_template_data {:twitter_screen_name screen-name
+                                                     :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (when debug? (println (str "done refreshing friends for @" screen-name
                                    " (friends count: " (count friends-abridged) ")")))
@@ -567,7 +570,7 @@
   (System/gc)
   (log-event "garbage-collection" {}))
 
-(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 15) (timely/minute 52))) ; in UTC
+(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 2) (timely/minute 25))) ; in UTC
 
 (defn start-scheduled-workers []
   (try (timely/start-scheduler)
