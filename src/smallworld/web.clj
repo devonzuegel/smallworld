@@ -571,7 +571,7 @@
   (System/gc)
   (log-event "garbage-collection" {}))
 
-(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 2) (timely/minute 25))) ; in UTC
+(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 2) (timely/minute 55))) ; in UTC
 
 (defn start-scheduled-workers []
   (try (timely/start-scheduler)
