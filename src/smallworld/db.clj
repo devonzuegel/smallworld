@@ -1,14 +1,13 @@
-(ns smallworld.db
-  (:require [clojure.java.io :as io]
-            [clojure.java.jdbc :as sql] ; https://clojure.github.io/java.jdbc
-            [clojure.pprint :as pp]
-            [clojure.string :as str]
-            [clojure.walk :as walk]
-            [jdbc.pool.c3p0 :as pool]
-            [schema.core :as s]
-            [smallworld.clj-postgresql.types] ; this enables the :json type
-            [smallworld.util :as util]
-            [yesql.core :refer [defqueries]]))
+(ns smallworld.db (:require [clojure.java.io :as io]
+                            [clojure.java.jdbc :as sql] ; https://clojure.github.io/java.jdbc
+                            [clojure.pprint :as pp]
+                            [clojure.string :as str]
+                            [clojure.walk :as walk]
+                            [jdbc.pool.c3p0 :as pool]
+                            [schema.core :as s]
+                            [smallworld.clj-postgresql.types] ; this enables the :json type
+                            [smallworld.util :as util]
+                            [yesql.core :refer [defqueries]]))
 
 ;; Note: don't fully trust these, they are useful guidance, not type checked
 
@@ -235,8 +234,8 @@
 
 (s/defn get-friends :- (s/maybe [Friend])
   [screen-name :- s/Str]
-  (some-> (ys-friends-by-screen-name {:screen_name screen-name}
-                                     {:connection @pool})
+  (some-> (ysql-friends-by-screen-name {:screen_name screen-name}
+                                       {:connection @pool})
           walk/keywordize-keys))
 
 (s/defn upsert-friends!

@@ -1,4 +1,4 @@
--- name: ys-friends-by-screen-name
+-- name: ysql-friends-by-screen-name
 with friends_rows as (
   select json_array_elements(data->'friends') as f
   from friends
@@ -14,7 +14,7 @@ select
   f->'name' as name
 from friends_rows;
 
--- name: ys-friends-by-screen-name-debug
+-- name: ysql-friends-by-screen-name-debug
 select json_array_elements(data->'friends') as f
 from friends
 where request_key = :screen_name
