@@ -326,6 +326,7 @@
                                                       :failure-message failure-message})
         (generate-string (ring-response/bad-request {:message failure-message})))
       (let [email-address (:email_address settings)]
+        (db/update-twitter-last-fetched! screen-name)
         (log-event "refreshed-twitter-friends--success" {:screen-name screen-name
                                                          :diff-count  (count diff)
                                                          :diff-html   diff-html
@@ -339,10 +340,10 @@
         (println "\n\n")
 
         (when (and (= "daily" (:email_notifications settings))
-                  ;;  (not-empty diff) ; TODO: put me back!
+                   (not-empty diff) ; TODO: put me back!
                    (or (= screen-name "devon_dos")
                        (= screen-name "devonzuegel")
-                       #_(= screen-name "backus")))
+                       (= screen-name "backus")))
           (println "sending email to" screen-name "now: =============")
           (email/send-email {:to email-address
                              :template (:friends-on-the-move email/TEMPLATES)
@@ -361,19 +362,30 @@
 
 (def failures (atom []))
 
+(defn refreshed-in-last-day? [user]
+  (let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
+        now (inst-ms (java.time.Instant/now))
+        difference (- now last-fetched)]
+    (< difference 86400000))) ; 86400000 ms = 1 day
+
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
-    (try
-      (util/log (str "[user " i "/" total-count "] refresh friends for " (:screen_name user)))
-      (let [result (refresh-friends-from-twitter user)]
-        ; this is a hack :) it will be fragile if the error message ever changes
-        (when (str/starts-with? result "caught exception")
-          (throw (Throwable. result))))
-      (catch Throwable e
-        (println "\ncouldn't refresh friends for user" (:screen_name user))
-        (swap! failures (conj user))
-        (println e)
-        nil))))
+    (let [screen-name (:screen_name user)]
+      (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
+        (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
+        (try
+          (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
+          (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
+          (let [result (refresh-friends-from-twitter user)]
+            ; this is a hack :) it will be fragile if the error message ever changes
+            (if (str/starts-with? result "caught exception")
+              (throw (Throwable. result))
+              (db/update-twitter-last-fetched! screen-name)))
+          (catch Throwable e
+            (println "\ncouldn't refresh friends for user" screen-name)
+            (swap! failures (conj user))
+            (println e)
+            nil))))))
 
 (defn email-update-worker []
   (println "\n===============================================")
@@ -571,22 +583,19 @@
   (System/gc)
   (log-event "garbage-collection" {}))
 
-(def EMAIL-UPDATE-WORKER-TIME (timely/at (timely/hour 13) (timely/minute 45))) ; in UTC
-
 (defn start-scheduled-workers []
   (try (timely/start-scheduler)
        (catch Exception e
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
-  (println "starting scheduler to run every day at"
-           (str (first (:hour EMAIL-UPDATE-WORKER-TIME)) ":" (first (:minute EMAIL-UPDATE-WORKER-TIME))) "UTC")
+  (println "starting scheduler to run every 30 minutes"))
 
   ; start the email-update worker that refreshes users' twitter info/friends
   (let [env (util/get-env-var "ENVIRONMENT")]
     (if (= env (:prod util/ENVIRONMENTS))
       (let [id (timely/start-schedule
-                (timely/scheduled-item (timely/daily EMAIL-UPDATE-WORKER-TIME) email-update-worker))]
+                (timely/scheduled-item (timely/every 30 :minutes) email-update-worker))]
         (reset! email-update-worker-id id)
         (println "\nstarted email update worker with id:" @email-update-worker-id))
       (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))

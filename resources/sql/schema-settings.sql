@@ -1,15 +1,16 @@
 create table if not exists settings (
   id integer primary key generated always as identity,
-  screen_name varchar(255) not null unique,
-  name varchar(255),
+  screen_name    varchar(255) not null unique,
+  name           varchar(255),
   twitter_avatar varchar(255),
   welcome_flow_complete boolean not null default false,
-  locations json,
+  locations       json,
   friends_refresh json,
-  email_address varchar(255),
+  email_address       varchar(255),
   email_notifications varchar(255),
-  created_at timestamp not null default current_timestamp,
-  updated_at timestamp not null default current_timestamp
+  twitter_last_fetched timestamp not null default current_timestamp,
+  created_at           timestamp not null default current_timestamp,
+  updated_at           timestamp not null default current_timestamp
 );
 
 --- split here ---
