@@ -15,6 +15,7 @@
             [ring.middleware.session.cookie :as cookie]
             [ring.util.request :as ring-request]
             [ring.util.response :as ring-response]
+            [schema.core :as s]
             [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
@@ -34,20 +35,25 @@
 ;; server ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def Session
+  {(s/optional-key :screen-name) s/Str
+   (s/optional-key :impersonation) s/Bool
+   ;; we don't know what else is there
+   s/Any s/Any})
+
 (defn set-session [response-so-far new-session]
   (assoc response-so-far
          :session new-session))
 
-(defn get-session [req]
+(s/defn get-session :- Session
+  [req]
   (let [session-data (get-in req [:session] session/blank)
-        screen-name  (:screen-name session-data)
-        result       (if (= screen-name admin/screen-name)
-                       (let [new-screen-name (:screen_name (db/select-first db/impersonation-table))]
-                         (if (nil? new-screen-name)
-                           session-data
-                           {:screen-name new-screen-name :impersonation? true}))
-                       session-data)]
-    result))
+        screen-name  (:screen-name session-data)]
+    (if (= screen-name admin/screen-name)
+      (if-let [new-screen-name (db/get-current-impersonation)]
+        {:screen-name new-screen-name :impersonation? true}
+        session-data)
+      session-data)))
 
 ;; TODO: make it so this --with-access-token works with atom memoization too, to speed it up
 (defn fetch-current-user--with-access-token [access-token]
@@ -99,7 +105,9 @@
                              :email_address  (:email api-response)
                              :name           (:name api-response)
                              :locations      (:locations current-user)
-                             :twitter_avatar (user-data/normal-img-to-full-size api-response)}]
+                             :twitter_avatar (some-> api-response
+                                                     :profile-background-image-url-https
+                                                     user-data/normal-img-to-full-size)}]
            (if-not exists?
              ; if user doesn't exist, create a new row with the new settings
              (db/insert! db/settings-table new-settings)
@@ -140,7 +148,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-settings [req screen-name]
-  (let [settings (first (db/select-by-col db/settings-table :screen_name screen-name)) ; TODO: set in the session for faster access
+  (let [settings (db/get-settings screen-name) ;; TODO: set in the session for faster access
         ip-address (or (get-in req [:headers "x-forwarded-for"]) (:remote-addr req))]
     (log-event "get-settings" (if (nil? screen-name) {} {:screen-name screen-name
                                                          :settings    settings
@@ -170,8 +178,8 @@
                                                  :twitter_url (str "https://twitter.com/" screen-name)}}))
 
     ; TODO: add try-catch to handle failures
-    ; TODO: simplify/consolidate where the settings stuff is stored
-    (db/insert-or-update! db/settings-table :screen_name new-settings)
+    ; TODO: simplify/consolidate where the settings stuff is stored 
+    (db/upsert-settings! new-settings)
     (ring-response/response (generate-string new-settings))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -220,9 +228,7 @@
             (println "updating @" screen-name "'s friends... (partially!)")
             (println "-----------------------------------------------------------------------------------------\n"))
 
-          (db/insert-or-update! db/friends-table :request_key
-                                {:request_key screen-name
-                                 :data        {:friends (vec new-result)}})
+          (db/upsert-friends! screen-name (vec new-result))
           (if (or (= next-cursor 0) (= max-results (count new-result)))
             (do (log-event "fetch-twitter-friends--end" {:screen-name screen-name
                                                          :cursor cursor
@@ -247,14 +253,15 @@
                        db/friends-table))
 
 ; TODO: consolidate this with memoized-friends
-(defn get-users-friends--not-memoized [req writer]
+(s/defn get-users-friends--not-memoized :- [db/Friend]
+  [req
+   writer :- java.io.Writer]
   (let [screen-name (:screen-name (get-session req))
         logged-out? (nil? screen-name)]
     (if logged-out?
       (generate-stream [] writer)
       (let [current-user (get-settings req screen-name)
-            friends (get-in (first (db/select-by-col db/friends-table :request_key screen-name))
-                            [:data :friends])
+            friends (db/get-friends screen-name)
             result (map #(user-data/abridged % current-user) friends)]
         (generate-stream result writer)))))
 
@@ -418,23 +425,28 @@
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
   (GET "/logout"     req (logout req))
-  (GET "/api/v1/session" req (generate-string (select-keys (get-session req) [:screen-name :impersonation?])))
+  (GET "/api/v1/session" req
+    (generate-string (-> (get-session req)
+                         (select-keys [:screen-name :impersonation?]))))
 
   ;; admin endpoints
   (GET "/api/v1/admin/summary" req (admin/summary-data get-session req))
   (GET "/api/v1/admin/refresh_all_users_friends" req (admin/refresh-all-users-friends (get-session req) log-event email-update-worker))
 
   ;; app data endpoints
-  (GET "/api/v1/settings" req (generate-string (get-settings req (:screen-name (get-session req)))))
+  (GET "/api/v1/settings" req
+    (generate-string (get-settings req (:screen-name (get-session req)))))
   (POST "/api/v1/settings/update" req (update-settings req))
   (POST "/api/v1/coordinates" req (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
                                         raw-location-name (:location-name parsed-body)
                                         normalized-location-name (user-data/normalize-location raw-location-name)]
                                     (generate-string (coordinates/memoized normalized-location-name))))
-  (GET "/api/v1/friends" req (ring-response/response (ring-io/piped-input-stream
-                                                      (fn [input-stream]
-                                                        (let [writer (io/make-writer input-stream {})]
-                                                          (get-users-friends--not-memoized req writer))))))
+  (GET "/api/v1/friends" req
+    (ring-response/response
+     (ring-io/piped-input-stream
+      (fn [input-stream]
+        (let [writer (io/make-writer input-stream {})]
+          (get-users-friends--not-memoized req writer))))))
   ; recompute distances from new locations, without fetching data from Twitter
   (GET "/api/v1/friends/recompute-locations" req (let [screen-name  (:screen-name (get-session req))
                                                        friends-full (:friends (memoized-friends screen-name))
@@ -446,7 +458,7 @@
                                                    (generate-string friends-abridged)))
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
   (GET "/api/v1/friends/refetch-twitter" req (let [screen-name (:screen-name (get-session req))
-                                                   settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
+                                                   settings    (db/get-settings screen-name)]
                                                (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
   (GET "/api/v1/worker" req (worker-endpoint req))
 

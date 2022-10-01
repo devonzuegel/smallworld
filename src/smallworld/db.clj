@@ -4,8 +4,76 @@
                             [clojure.string :as str]
                             [clojure.walk :as walk]
                             [jdbc.pool.c3p0 :as pool]
+                            [schema.core :as s]
                             [smallworld.clj-postgresql.types] ; this enables the :json type
-                            [smallworld.util :as util]))
+                            [smallworld.util :as util]
+                            [yesql.core :refer [defqueries]]))
+
+;; Note: don't fully trust these, they are useful guidance, not type checked
+
+(def CoordinatesRow
+  {:id s/Int
+   :request_key s/Str
+   :data s/Any
+   :created_at java.util.Date
+   :updated_at java.util.Date})
+
+(def Coordinate
+  {:lat s/Num ,
+   :lng s/Num})
+
+(def Location
+  {:name s/Str ,
+   :coords Coordinate,
+   :distances (s/maybe s/Any)
+   :special-status (s/enum "twitter-location" "from-display-name")
+   :name-initial-value s/Str})
+
+(def ProfileRow
+  {:id s/Int
+   :request_key s/Str
+   :data s/Any
+   :created_at java.util.Date
+   :updated_at java.util.Date})
+
+(def Friend
+  {:name (s/maybe s/Str)
+   :location (s/maybe s/Str)
+   :screen-name s/Str
+   :id s/Int
+   :profile-image-url-https (s/maybe s/Str)
+   :email (s/maybe s/Str)})
+
+(def AbridgedFriend
+  (-> Friend
+      (select-keys [:name :screen-name :email])
+      (assoc :profile_image_url_large (s/maybe s/Str)
+             :locations [(s/maybe Location)])))
+
+(def FriendsRow
+  {:id s/Int
+   :request_key s/Str
+   :data {:friends [(assoc Friend s/Any s/Any)]}
+   :created_at java.util.Date
+   :updated_at java.util.Date})
+
+(def Settings
+  {:id s/Int
+   :screen_name s/Str
+   :name s/Str
+   :twitter_avatar s/Str
+   :welcome_flow_complete s/Bool
+   :locations [Location]
+   :friends_refresh (s/maybe s/Any) ;; TODO, known to be nilable
+   :email_address s/Str
+   :email_notifications s/Str
+   :created_at java.util.Date
+   :updated_at java.util.Date})
+
+(def Impersonation
+  {:screen_name (s/maybe s/Str)
+   :created_at java.util.Date
+   :updated_at java.util.Date})
 
 (def debug? false)
 (def db-uri (java.net.URI. (util/get-env-var "DATABASE_URL")))
@@ -143,6 +211,38 @@
     (if-not exists?
       (insert! table-name data)
       (update! table-name col-name col-value new-data))))
+
+;; Settings
+
+(s/defn get-settings :- (s/maybe Settings)
+  [screen-name :- s/Str]
+  (first (select-by-col settings-table :screen_name screen-name)))
+
+(s/defn upsert-settings!
+  [settings :- Settings]
+  (insert-or-update! settings-table :screen_name settings))
+
+;; Impersonation
+
+(s/defn get-current-impersonation :- (:screen_name Impersonation)
+  []
+  (:screen_name (select-first impersonation-table)))
+
+;; Friends
+
+(defqueries "sql/friends.sql")
+
+(s/defn get-friends :- (s/maybe [Friend])
+  [screen-name :- s/Str]
+  (some-> (ysql-friends-by-screen-name {:screen_name screen-name}
+                                       {:connection @pool})
+          walk/keywordize-keys))
+
+(s/defn upsert-friends!
+  [screen-name :- s/Str friends :- [Friend]]
+  (insert-or-update! friends-table :request_key
+                     {:request_key screen-name
+                      :data        {:friends friends}}))
 
 (comment
   (do
