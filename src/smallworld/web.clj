@@ -387,6 +387,22 @@
             (println e)
             nil))))))
 
+;;
+;;
+;;
+;;
+;;
+;;
+;; I think this won't actually get run, because I restart the app every few
+;; minutes or so so it never gets to 30 minutes. Check in the morning to see
+;; whether or not this got run. If not, haven't run when the app starts.
+;;
+;;
+;;
+;;
+;;
+;;
+
 (defn email-update-worker []
   (println "\n===============================================")
   (util/log "starting email-update worker")
@@ -584,6 +600,10 @@
   (log-event "garbage-collection" {}))
 
 (defn start-scheduled-workers []
+
+  (println "running email-update-worker once before starting repeated schedule:")
+  (email-update-worker)
+
   (try (timely/start-scheduler)
        (catch Exception e
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
