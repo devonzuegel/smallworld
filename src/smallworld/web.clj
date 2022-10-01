@@ -375,12 +375,12 @@
           user-abridged (select-keys user [:screen_name :email_address :name])]
       (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
         (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
-        (if (>= (count @refetched) 1)
-          (println "🟡 skipping because we've already refetched 1 users in this cycle: " screen-name)
+        (if (>= (count @refetched) 5)
+          (println "🟡 skipping because we've already refetched 5 users in this cycle: " screen-name)
           (try
             (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
             (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
-            (let [result "(refresh-friends-from-twitter user)"]
+            (let [result (refresh-friends-from-twitter user)]
             ; this is a hack :) it will be fragile if the error message ever changes
               (if (str/starts-with? result "caught exception")
                 (throw (Throwable. result))
