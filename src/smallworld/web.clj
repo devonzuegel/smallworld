@@ -602,24 +602,22 @@
 
 (defn start-scheduled-workers []
 
-  ;; (println "running email-update-worker once before starting repeated schedule:")
-  ;; (email-update-worker)
-
   (try (timely/start-scheduler)
        (catch Exception e
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
-  (println "starting scheduler to run every 120 minutes"))
+  #_(println "starting scheduler to run every 120 minutes")
+  (println "TEMPORARY: not starting scheduler for email-update-worker!"))
 
   ; start the email-update worker that refreshes users' twitter info/friends
 (let [env (util/get-env-var "ENVIRONMENT")]
-  (if (= env (:prod util/ENVIRONMENTS))
-    (let [id (timely/start-schedule
-              (timely/scheduled-item (timely/every 120 :minutes) email-update-worker))]
-      (reset! email-update-worker-id id)
-      (println "\nstarted email update worker with id:" @email-update-worker-id))
-    (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
+  #_(if (= env (:prod util/ENVIRONMENTS))
+      (let [id (timely/start-schedule
+                (timely/scheduled-item (timely/every 120 :minutes) email-update-worker))]
+        (reset! email-update-worker-id id)
+        (println "\nstarted email update worker with id:" @email-update-worker-id))
+      (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
 
   ; start garbage collection worker
 (let [id (timely/start-schedule
