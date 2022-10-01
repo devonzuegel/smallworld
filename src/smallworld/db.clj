@@ -144,6 +144,11 @@
       (insert! table-name data)
       (update! table-name col-name col-value new-data))))
 
+(defn update-twitter-last-fetched! [screen-name]
+  (sql/db-do-commands @pool (str "update settings "
+                                 "set twitter_last_fetched = now() "
+                                 "where screen_name = '" screen-name "';")))
+
 (comment
   (do
     (println "--------------------------------")
