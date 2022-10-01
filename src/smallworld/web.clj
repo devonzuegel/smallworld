@@ -360,7 +360,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(def failures (atom []))
+(def failures  (atom []))
+(def refetched (atom []))
 
 (defn refreshed-in-last-day? [user]
   (let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
@@ -370,46 +371,35 @@
 
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
-    (let [screen-name (:screen_name user)]
+    (let [screen-name (:screen_name user)
+          user-abridged (select-keys user [:screen_name :email_address :name])]
       (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
         (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
-        (try
-          (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
-          (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
-          (let [result (refresh-friends-from-twitter user)]
+        (if (>= (count @refetched) 1)
+          (println "🟡 skipping because we've already refetched 1 users in this cycle: " screen-name)
+          (try
+            (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
+            (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
+            (let [result "(refresh-friends-from-twitter user)"]
             ; this is a hack :) it will be fragile if the error message ever changes
-            (if (str/starts-with? result "caught exception")
-              (throw (Throwable. result))
-              (db/update-twitter-last-fetched! screen-name)))
-          (catch Throwable e
-            (println "\ncouldn't refresh friends for user" screen-name)
-            (swap! failures (conj user))
-            (println e)
-            nil))))))
-
-;;
-;;
-;;
-;;
-;;
-;;
-;; I think this won't actually get run, because I restart the app every few
-;; minutes or so so it never gets to 30 minutes. Check in the morning to see
-;; whether or not this got run. If not, haven't run when the app starts.
-;;
-;;
-;;
-;;
-;;
-;;
+              (if (str/starts-with? result "caught exception")
+                (throw (Throwable. result))
+                (do (db/update-twitter-last-fetched! screen-name)
+                    (swap! refetched conj user-abridged))))
+            (catch Throwable e
+              (println "\ncouldn't refresh friends for user" screen-name)
+              (swap! failures conj user-abridged)
+              (println e)
+              nil)))))))
 
 (defn email-update-worker []
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users (db/select-all db/settings-table) ; (db/select-by-col db/settings-table :screen_name "devon_dos")
-        n-users (count all-users)
-        ;; n-failures (count @failures)
+  (let [all-users   (db/select-all db/settings-table)
+        n-users     (count all-users)
+        n-failures  (count @failures)
+        n-refetched (count @refetched)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found " n-users " users... refreshing their friends now...")
     (log-event "email-update-worker-start" {:count   n-users
@@ -419,16 +409,20 @@
     (log-event "garbage-collection" {:details "cleaning up after the email-update worker"})
     (log-event "email-update-worker-done" {:count   n-users
                                            :message (str "finished refreshing friends for " n-users " users")})
+    (let [to-print (str "finished iterating through " n-users " users.\n\n"
+                        n-failures  " failures\n\n"
+                        n-refetched " refetched\n\n----------\n\n"
+                        "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
+                        "users refetched:\n" (with-out-str (pp/pprint @refetched)))]
+      (println to-print)
+      (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
+        (email/send-email {:to "avery.sara.james@gmail.com"
+                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
+                           :type "text/plain"
+                           :body to-print}))
+      (reset! failures [])
+      (reset! refetched [])))
 
-    (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
-      (email/send-email {:to "avery.sara.james@gmail.com"
-                         :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
-                         :type "text/plain"
-                         :body (str "finished refreshing friends for " n-users " users:\n\n"
-                                    (str/join "\n" (map :screen_name all-users))
-                                    ; ": " n-failures " failures"
-                                    #_"\n\n"
-                                    #_"users that failed:\n" #_(with-out-str (pp/pprint @failures)))})))
   (println "\n===============================================\n"))
 
 (defn worker-endpoint [req]
