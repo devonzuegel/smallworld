@@ -602,8 +602,8 @@
 
 (defn start-scheduled-workers []
 
-  (println "running email-update-worker once before starting repeated schedule:")
-  (email-update-worker)
+  ;; (println "running email-update-worker once before starting repeated schedule:")
+  ;; (email-update-worker)
 
   (try (timely/start-scheduler)
        (catch Exception e
