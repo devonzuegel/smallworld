@@ -602,16 +602,17 @@
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
   (println "starting scheduler to run every 5 minutes")
-  ;; (println "TEMPORARY: not starting scheduler for email-update-worker!"))
+  ;; (println "TEMPORARY: not starting scheduler for email-update-worker!")
+  )
 
 ; start the email-update worker that refreshes users' twitter info/friends
 (let [env (util/get-env-var "ENVIRONMENT")]
   (if (= env (:prod util/ENVIRONMENTS))
-      (let [id (timely/start-schedule
-                (timely/scheduled-item (timely/every 5 :minutes) email-update-worker))]
-        (reset! email-update-worker-id id)
-        (println "\nstarted email update worker with id:" @email-update-worker-id))
-      (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
+    (let [id (timely/start-schedule
+              (timely/scheduled-item (timely/every 5 :minutes) email-update-worker))]
+      (reset! email-update-worker-id id)
+      (println "\nstarted email update worker with id:" @email-update-worker-id))
+    (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
 
   ; start garbage collection worker
 (let [id (timely/start-schedule
