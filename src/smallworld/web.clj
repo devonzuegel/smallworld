@@ -411,6 +411,7 @@
         n-users (count all-users)
         ;; n-failures (count @failures)
         curried-refresh-friends (try-to-refresh-friends n-users)]
+    (println "found " n-users " users... refreshing their friends now...")
     (log-event "email-update-worker-start" {:count   n-users
                                             :message (str "preparing to refresh friends for " n-users " users\n")})
     (doall (map-indexed curried-refresh-friends all-users))
