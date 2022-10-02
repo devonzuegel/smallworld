@@ -340,7 +340,7 @@
         (println "\n\n")
 
         (when (and (= "daily" (:email_notifications settings))
-                   (not-empty diff) ; TODO: put me back!
+                  ;;  (not-empty diff) ; TODO: put me back!
                    (or (= screen-name "devon_dos")
                        (= screen-name "devonzuegel")
                        (= screen-name "backus")))
@@ -417,7 +417,7 @@
       (println to-print)
       (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
         (email/send-email {:to "avery.sara.james@gmail.com"
-                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj finished for " n-users " users") #_n-failures #_" failures out of "
+                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " n-refetched " users")
                            :type "text/plain"
                            :body to-print}))
       (reset! failures [])
@@ -601,7 +601,7 @@
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
-  (println "starting scheduler to run every 3 minutes")
+  (println "starting scheduler to run every 10 minutes")
   ;; (println "TEMPORARY: not starting scheduler for email-update-worker!")
   )
 
@@ -609,7 +609,7 @@
 (let [env (util/get-env-var "ENVIRONMENT")]
   (if (= env (:prod util/ENVIRONMENTS))
     (let [id (timely/start-schedule
-              (timely/scheduled-item (timely/every 3 :minutes) email-update-worker))]
+              (timely/scheduled-item (timely/every 10 :minutes) email-update-worker))]
       (reset! email-update-worker-id id)
       (println "\nstarted email update worker with id:" @email-update-worker-id))
     (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
