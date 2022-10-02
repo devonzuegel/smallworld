@@ -375,8 +375,8 @@
           user-abridged (select-keys user [:screen_name :email_address :name])]
       (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
         (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
-        (if (>= (count @refetched) 5)
-          (println "🟡 skipping because we've already refetched 5 users in this cycle: " screen-name)
+        (if (>= (count @refetched) 1)
+          (println "🟡 skipping because we've already refetched 1 users in this cycle: " screen-name)
           (try
             (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
             (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
@@ -601,7 +601,7 @@
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
-  (println "starting scheduler to run every 5 minutes")
+  (println "starting scheduler to run every 3 minutes")
   ;; (println "TEMPORARY: not starting scheduler for email-update-worker!")
   )
 
@@ -609,7 +609,7 @@
 (let [env (util/get-env-var "ENVIRONMENT")]
   (if (= env (:prod util/ENVIRONMENTS))
     (let [id (timely/start-schedule
-              (timely/scheduled-item (timely/every 5 :minutes) email-update-worker))]
+              (timely/scheduled-item (timely/every 3 :minutes) email-update-worker))]
       (reset! email-update-worker-id id)
       (println "\nstarted email update worker with id:" @email-update-worker-id))
     (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
