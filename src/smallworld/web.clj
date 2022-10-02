@@ -343,6 +343,8 @@
                   ;;  (not-empty diff) ; TODO: put me back!
                    (or (= screen-name "devon_dos")
                        (= screen-name "devonzuegel")
+                       (= screen-name "sebasbensu")
+                       (= screen-name "nayafia")
                        (= screen-name "backus")))
           (println "sending email to" screen-name "now: =============")
           (email/send-email {:to email-address
@@ -419,9 +421,9 @@
         (email/send-email {:to "avery.sara.james@gmail.com"
                            :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " n-refetched " users")
                            :type "text/plain"
-                           :body to-print}))
-      (reset! failures [])
-      (reset! refetched [])))
+                           :body to-print})
+        (reset! failures [])
+        (reset! refetched []))))
 
   (println "\n===============================================\n"))
 
