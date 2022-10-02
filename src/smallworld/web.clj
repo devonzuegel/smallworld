@@ -409,13 +409,13 @@
                                            :message (str "finished refreshing friends for " n-users " users")})
     (let [to-print (str "finished iterating through " n-users " users.\n\n"
                         n-failures  " failures\n\n"
-                        n-refetched " refetched\n\n----------\n\n"
+                        (count @refetched) " refetched\n\n----------\n\n"
                         "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
                         "users refetched:\n" (with-out-str (pp/pprint @refetched)))]
       (println to-print)
       (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
         (email/send-email {:to "avery.sara.james@gmail.com"
-                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " n-refetched " users")
+                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " (count @refetched) " users")
                            :type "text/plain"
                            :body to-print})
         (reset! failures [])
