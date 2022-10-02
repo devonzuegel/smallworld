@@ -340,12 +340,7 @@
         (println "\n\n")
 
         (when (and (= "daily" (:email_notifications settings))
-                   (not-empty diff) ; TODO: put me back!
-                   (or (= screen-name "devon_dos")
-                       (= screen-name "devonzuegel")
-                       (= screen-name "sebasbensu")
-                       (= screen-name "nayafia")
-                       (= screen-name "backus")))
+                   (not-empty diff))
           (println "sending email to" screen-name "now: =============")
           (email/send-email {:to email-address
                              :template (:friends-on-the-move email/TEMPLATES)
