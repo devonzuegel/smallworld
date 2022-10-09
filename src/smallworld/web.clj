@@ -342,6 +342,10 @@
         (when (and (= "daily" (:email_notifications settings))
                    (not-empty diff))
           (println "sending email to" screen-name "now: =============")
+          (email/send-email {:to "avery.sara.james@gmail.com"
+                             :template (:friends-on-the-move email/TEMPLATES)
+                             :dynamic_template_data {:twitter_screen_name screen-name
+                                                     :friends             diff-html}})
           (email/send-email {:to email-address
                              :template (:friends-on-the-move email/TEMPLATES)
                              :dynamic_template_data {:twitter_screen_name screen-name
@@ -379,7 +383,7 @@
             (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
             (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
             (let [result (refresh-friends-from-twitter user)]
-            ; this is a hack :) it will be fragile if the error message ever changes
+              ; this is a hack :) it will be fragile if the error message ever changes
               (if (str/starts-with? result "caught exception")
                 (throw (Throwable. result))
                 (do (db/update-twitter-last-fetched! screen-name)
@@ -396,8 +400,6 @@
   (println)
   (let [all-users   (db/select-all db/settings-table)
         n-users     (count all-users)
-        n-failures  (count @failures)
-        n-refetched (count @refetched)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found " n-users " users... refreshing their friends now...")
     (log-event "email-update-worker-start" {:count   n-users
@@ -408,7 +410,7 @@
     (log-event "email-update-worker-done" {:count   n-users
                                            :message (str "finished refreshing friends for " n-users " users")})
     (let [to-print (str "finished iterating through " n-users " users.\n\n"
-                        n-failures  " failures\n\n"
+                        (count @failures)  " failures\n\n"
                         (count @refetched) " refetched\n\n----------\n\n"
                         "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
                         "users refetched:\n" (with-out-str (pp/pprint @refetched)))]
