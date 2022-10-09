@@ -606,7 +606,7 @@
 (let [env (util/get-env-var "ENVIRONMENT")]
   (if (= env (:prod util/ENVIRONMENTS))
     (let [id (timely/start-schedule
-              (timely/scheduled-item (timely/every 10 :minutes) email-update-worker))]
+              (timely/scheduled-item (timely/every 3 :minutes) email-update-worker))]
       (reset! email-update-worker-id id)
       (println "\nstarted email update worker with id:" @email-update-worker-id))
     (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
