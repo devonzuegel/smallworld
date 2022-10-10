@@ -362,6 +362,7 @@
 
 
 (def failures  (atom []))
+(def skipped   (atom []))
 (def refetched (atom []))
 
 (defn refreshed-in-last-day? [user]
@@ -376,7 +377,9 @@
           user-abridged (select-keys user [:screen_name :email_address :name])
           n-per-cycle 5]
       (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
-        (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
+        (do
+          (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
+          (swap! skipped conj user-abridged))
         (if (>= (count @refetched) n-per-cycle)
           (println "🟡 skipping because we've already refetched " n-per-cycle " users in this cycle: " screen-name)
           (try
@@ -413,7 +416,8 @@
                         (count @failures)  " failures\n\n"
                         (count @refetched) " refetched\n\n----------\n\n"
                         "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
-                        "users refetched:\n" (with-out-str (pp/pprint @refetched)))]
+                        "users skipped:\n"     (with-out-str (pp/pprint @skipped)) "\n\n"
+                        "users refetched:\n"   (with-out-str (pp/pprint @refetched)))]
       (println to-print)
       (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
         (email/send-email {:to "avery.sara.james@gmail.com"

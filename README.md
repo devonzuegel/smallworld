@@ -155,3 +155,4 @@ https://mc.sendgrid.com/dynamic-templates
   lein uberjar # builds the jar
   java -Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8 -jar target/smallworld.jar -m smallworld.web
   ```
+
