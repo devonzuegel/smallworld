@@ -375,7 +375,7 @@
   (fn [i user]
     (let [screen-name (:screen_name user)
           user-abridged (select-keys user [:screen_name :email_address :name])
-          n-per-cycle 5]
+          n-per-cycle 20]
       (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
         (do
           (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
@@ -613,7 +613,7 @@
 (let [env (util/get-env-var "ENVIRONMENT")]
   (if (= env (:prod util/ENVIRONMENTS))
     (let [id (timely/start-schedule
-              (timely/scheduled-item (timely/every 3 :minutes) email-update-worker))]
+              (timely/scheduled-item (timely/every 8 :minutes) email-update-worker))]
       (reset! email-update-worker-id id)
       (println "\nstarted email update worker with id:" @email-update-worker-id))
     (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
