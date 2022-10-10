@@ -415,8 +415,8 @@
     (let [to-print (str "finished iterating through " n-users " users.\n\n"
                         (count @failures)  " failures\n\n"
                         (count @refetched) " refetched\n\n----------\n\n"
+                        (count @skipped)   " skipped\n\n----------\n\n"
                         "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
-                        "users skipped:\n"     (with-out-str (pp/pprint @skipped)) "\n\n"
                         "users refetched:\n"   (with-out-str (pp/pprint @refetched)))]
       (println to-print)
       (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
