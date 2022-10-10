@@ -414,7 +414,7 @@
                                            :message (str "finished refreshing friends for " n-users " users")})
     (let [to-print (str "finished iterating through " n-users " users.\n\n"
                         (count @failures)  " failures\n\n"
-                        (count @refetched) " refetched\n\n----------\n\n"
+                        (count @refetched) " refetched\n\n"
                         (count @skipped)   " skipped\n\n----------\n\n"
                         "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
                         "users refetched:\n"   (with-out-str (pp/pprint @refetched)))]
