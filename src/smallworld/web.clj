@@ -425,6 +425,7 @@
                            :type "text/plain"
                            :body to-print})
         (reset! failures [])
+        (reset! skipped [])
         (reset! refetched []))))
 
   (println "\n===============================================\n"))
