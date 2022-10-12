@@ -419,14 +419,16 @@
                         "users that failed:\n" (with-out-str (pp/pprint @failures)) "\n\n"
                         "users refetched:\n"   (with-out-str (pp/pprint @refetched)))]
       (println to-print)
-      (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
-        (email/send-email {:to "avery.sara.james@gmail.com"
-                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " (count @refetched) " users")
-                           :type "text/plain"
-                           :body to-print})
-        (reset! failures [])
-        (reset! skipped [])
-        (reset! refetched []))))
+
+      ;; Removing this because it's too noisy
+      #_(when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
+          (email/send-email {:to "avery.sara.james@gmail.com"
+                             :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " (count @refetched) " users")
+                             :type "text/plain"
+                             :body to-print})
+          (reset! failures [])
+          (reset! skipped [])
+          (reset! refetched []))))
 
   (println "\n===============================================\n"))
 
