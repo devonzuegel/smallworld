@@ -79,6 +79,7 @@
                 (> (count (str/split _s #" ")) 3) "" ; if there are more than 3 words, it's probably a sentence and not a place name
                 (= _s "new york")         "new york city"
                 (= _s "california")       "san francisco"
+                (= _s "bay area")         "san francisco bay"
                 (= _s "british columbia") "vancouver, canada"          ; approx. center of population in British Columbia
                 (= _s "canada")           "whiteshell provincial park" ; approx. center of population in Canada
                 (= _s "québec")           "québec, québec, canada"     ; they probably meant Quebec city, not Québec province
