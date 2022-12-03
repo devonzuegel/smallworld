@@ -60,7 +60,9 @@
       (includes? _s "new york")          "new york city"
       :else (let [_s (StringBuilder. _s)
                   _s (remove-substr _s #" \([^)]*\)") ; remove anything in parentheses (e.g. "sf (still!)" → "sf")
-                  _s (str/replace _s #"(?i) area$" "")
+                  _s (if (= "bay area")
+                       _s
+                       (str/replace _s #"(?i) area$" ""))
                   _s (-> (str _s)
                          (split-last #"\/")
                          (split-last #" and ")
