@@ -4,7 +4,7 @@ you can find the live version of Small World at:
 https://smallworld.kiwi
 
 ##### table of contents:
-- [run, build, & deploy](#run-build--deploy)
+- [run, build, \& deploy](#run-build--deploy)
   - [local setup](#local-setup)
   - [local development](#local-development)
   - [update code running in the repl](#update-code-running-in-the-repl)
