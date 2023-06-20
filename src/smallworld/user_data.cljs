@@ -114,7 +114,7 @@
                           "tooltip-right")}
              (decorations/info-icon)]]
 
-           [:div.friends {:style (when-not expanded? {:visibility "collapse" :height 0 :margin 0})}  (map-indexed render-user friends-list)]
+           [:div.friends {:style (when-not expanded? {:visibility "collapse" :overflow "hidden" :height 0 :margin 0})}  (map-indexed render-user friends-list)]
            [:div.friend-bubbles {:style (when expanded? {:visibility "collapse" :height 0 :margin 0})
                                  :title "expand for details"
                                  :on-click #(swap! *expanded? assoc key-pair (not expanded?))}
