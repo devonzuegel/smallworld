@@ -277,24 +277,36 @@
          (highlight before) " → " (highlight after)
          "<br/></li>"))
 
+(defn get-coordinates [location]
+  (let [result (db/select-by-col db/coordinates-table :request_key location)
+        lat-lng (:data (first result))]
+    (if (or (empty? result) (nil? (:lat lat-lng)) (nil? (:lng lat-lng)))
+      nil
+      lat-lng)))
+
+(defn map-assoc-coordinates [list-of-friends]
+  (map #(assoc % :coordinates (get-coordinates (:location %))) list-of-friends))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
-        old-friends [{:screen-name "A" :location "London"}
-                     {:screen-name "B" :location "NYC"}] #_(map ; fetch the old friends before friends gets updated from the twitter fetch
+        old-friends (map-assoc-coordinates
+                     [{:screen-name "A" :location "SF"}
+                      {:screen-name "B" :location "NYC"}
+                      {:screen-name "C" :location "-"}]) #_(map ; fetch the old friends before friends gets updated from the twitter fetch
                                                             select-location-fields
                                                             (-> db/friends-table
                                                                 (db/select-by-col :request_key screen-name)
                                                                 vec
                                                                 (get-in [0 :data :friends])))
         friends-result   [(merge mocks/raw-twitter-friend {:screen-name "A" :location "San Francisco"})
-                          (merge mocks/raw-twitter-friend {:screen-name "B" :location "New York"})] #_(fetch-friends-from-twitter screen-name)
+                          (merge mocks/raw-twitter-friend {:screen-name "B" :location "-"})
+                          (merge mocks/raw-twitter-friend {:screen-name "C" :location "--"})] #_(fetch-friends-from-twitter screen-name)
         curr-user-info   {:screen-name screen-name
                           :locations (:locations settings)}
         friends-abridged (map #(user-data/abridged % curr-user-info)
                               friends-result)
-        new-friends (map select-location-fields
-                         (vec friends-result))
+        new-friends (map-assoc-coordinates (map select-location-fields
+                                                (vec friends-result)))
         diff (->> old-friends
                   set
                   (set/difference (set new-friends))
@@ -303,8 +315,13 @@
                   vals
                   vec
                   (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
+                  (remove #(and (= (get-in % [0 :coordinates]) nil)
+                                (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
                   (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
-                  )
+                  (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
+                  (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
+                  (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
+                  (remove #(str/includes? (get-in % [1 :location]) ".com")))
         diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
@@ -339,10 +356,10 @@
                                                          :email_notifications (:email_notifications settings)
                                                          :send-email? (and (= "daily" (:email_notifications settings))
                                                                            (not-empty diff))})
-        (pp/pprint "old-friends: ==============================================")
-        (pp/pprint old-friends)
-        (pp/pprint "new-friends: ==============================================")
-        (pp/pprint new-friends)
+        ;; (pp/pprint "old-friends: ==============================================")
+        ;; (pp/pprint old-friends)
+        ;; (pp/pprint "new-friends: ==============================================")
+        ;; (pp/pprint new-friends)
         (pp/pprint "diff: =====================================================")
         (pp/pprint diff)
         ;; (pp/pprint "friends-abridged: =========================================")
