@@ -23,6 +23,7 @@
             [smallworld.session :as session]
             [smallworld.user-data :as user-data]
             [smallworld.util :as util]
+            [smallworld.mocks :as mocks]
             [timely.core :as timely]))
 
 (def debug? false)
@@ -276,15 +277,18 @@
          (highlight before) " → " (highlight after)
          "<br/></li>"))
 
+
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
-        old-friends (map ; fetch the old friends before friends gets updated from the twitter fetch
-                     select-location-fields
-                     (-> db/friends-table
-                         (db/select-by-col :request_key screen-name)
-                         vec
-                         (get-in [0 :data :friends])))
-        friends-result   (fetch-friends-from-twitter screen-name)
+        old-friends [{:screen-name "A" :location "London"}
+                     {:screen-name "B" :location "NYC"}] #_(map ; fetch the old friends before friends gets updated from the twitter fetch
+                                                            select-location-fields
+                                                            (-> db/friends-table
+                                                                (db/select-by-col :request_key screen-name)
+                                                                vec
+                                                                (get-in [0 :data :friends])))
+        friends-result   [(merge mocks/raw-twitter-friend {:screen-name "A" :location "San Francisco"})
+                          (merge mocks/raw-twitter-friend {:screen-name "B" :location "New York"})] #_(fetch-friends-from-twitter screen-name)
         curr-user-info   {:screen-name screen-name
                           :locations (:locations settings)}
         friends-abridged (map #(user-data/abridged % curr-user-info)
@@ -335,21 +339,32 @@
                                                          :email_notifications (:email_notifications settings)
                                                          :send-email? (and (= "daily" (:email_notifications settings))
                                                                            (not-empty diff))})
+        (pp/pprint "old-friends: ==============================================")
+        (pp/pprint old-friends)
+        (pp/pprint "new-friends: ==============================================")
+        (pp/pprint new-friends)
+        (pp/pprint "diff: =====================================================")
+        (pp/pprint diff)
+        ;; (pp/pprint "friends-abridged: =========================================")
+        ;; (pp/pprint friends-abridged)
+        ;; (pp/pprint "friends-result: ==========================================")
+        ;; (pp/pprint friends-result)
         ;; (println (str "\n\nhere is the result from twitter"))
         ;; (pp/pprint friends-result)
-        (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
-        (pp/pprint diff)
-        (println (str "\n\nhere is the generated HTML:"))
-        (pp/pprint diff-html)
+        ;; (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
+        ;; (pp/pprint diff)
+        ;; (println (str "\n\nhere is the generated HTML:"))
+        ;; (pp/pprint diff-html)
         (println "\n\n")
 
         (when (and (= "daily" (:email_notifications settings))
                    (not-empty diff))
           (println "sending email to" screen-name "now: =============")
-          (email/send-email {:to email-address
-                             :template (:friends-on-the-move email/TEMPLATES)
-                             :dynamic_template_data {:twitter_screen_name screen-name
-                                                     :friends             diff-html}}))
+          (println "SKIPPED EMAIL SEND DURING TESTING")
+          #_(email/send-email {:to email-address
+                               :template (:friends-on-the-move email/TEMPLATES)
+                               :dynamic_template_data {:twitter_screen_name screen-name
+                                                       :friends             diff-html}}))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (when debug? (println (str "done refreshing friends for @" screen-name
                                    " (friends count: " (count friends-abridged) ")")))
