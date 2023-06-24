@@ -39,6 +39,10 @@
 
 (defn timestamp [] (str (new java.util.Date)))
 
+(defn round [num places]
+  (let [num (* num (Math/pow 10 places))]
+    (/ (Math/round num) (Math/pow 10 places))))
+
 (defn log [string]
   (println (timestamp) "--" string))
 

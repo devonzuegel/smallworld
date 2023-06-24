@@ -173,3 +173,37 @@
                     :name           friend-name-location
                     :coords         friend-name-coords
                     :distances      (distances-map is-current-user? current-user friend-name-coords)})]}))
+
+(defn deg-to-rad [deg]
+  (* (/ deg 180) Math/PI))
+
+(defn coord-distance-miles [[lat1 lng1] [lat2 lng2]]
+  (let [earth-radius-miles 3959
+        lat1 (deg-to-rad lat1)
+        lng1 (deg-to-rad lng1)
+        lat2 (deg-to-rad lat2)
+        lng2 (deg-to-rad lng2)
+        lat-diff (- lat2 lat1)
+        lng-diff (- lng2 lng1)]
+    ; haversine formula
+    (let [a (+ (* (Math/sin (/ lat-diff 2))
+                  (Math/sin (/ lat-diff 2)))
+               (* (Math/cos lat1)
+                  (Math/cos lat2)
+                  (* (Math/sin (/ lng-diff 2))
+                     (Math/sin (/ lng-diff 2)))))
+          c (* 2 (Math/atan2 (Math/sqrt a) (Math/sqrt (- 1 a))))]
+      (* earth-radius-miles c))))
+
+(deftest test-coord-distance-miles
+  (let [miami     [25.792236328125 -80.13484954833984]
+        sf        [37.773972       -122.431297]
+        nyc       [40.730610       -73.935242]
+        sydney    [-33.865143      151.209900]
+        bangalore [12.971599       77.594563]]
+    (is (= (coord-distance-miles miami  miami)     0.0))
+    (is (= (coord-distance-miles sydney sydney)    0.0))
+    (is (= (coord-distance-miles miami  sydney)    9341.340521295822))
+    (is (= (coord-distance-miles miami  bangalore) 9368.559527598409))
+    (is (= (coord-distance-miles miami  nyc)       1091.808718763545))
+    (is (= (coord-distance-miles miami  sf)        2593.8337289018637))))
