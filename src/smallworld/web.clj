@@ -287,20 +287,28 @@
 (defn map-assoc-coordinates [list-of-friends]
   (map #(assoc % :coordinates (get-coordinates (:location %))) list-of-friends))
 
+(def debug-refresh-friends-from-twitter? false)
+
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
         old-friends (map-assoc-coordinates
-                     [{:screen-name "A" :location "SF"}
-                      {:screen-name "B" :location "NYC"}
-                      {:screen-name "C" :location "-"}]) #_(map ; fetch the old friends before friends gets updated from the twitter fetch
-                                                            select-location-fields
-                                                            (-> db/friends-table
-                                                                (db/select-by-col :request_key screen-name)
-                                                                vec
-                                                                (get-in [0 :data :friends])))
-        friends-result   [(merge mocks/raw-twitter-friend {:screen-name "A" :location "San Francisco"})
-                          (merge mocks/raw-twitter-friend {:screen-name "B" :location "-"})
-                          (merge mocks/raw-twitter-friend {:screen-name "C" :location "--"})] #_(fetch-friends-from-twitter screen-name)
+                     (if debug-refresh-friends-from-twitter?
+                       [{:screen-name "A" :location "SF"}
+                        {:screen-name "B" :location "NYC"}
+                        {:screen-name "C" :location "-"}]
+                       (map ; fetch the old friends before friends gets updated from the twitter fetch
+                        select-location-fields
+                        (-> db/friends-table
+                            (db/select-by-col :request_key screen-name)
+                            vec
+                            (get-in [0 :data :friends])))))
+
+        friends-result  (if debug-refresh-friends-from-twitter?
+                          [(merge mocks/raw-twitter-friend {:screen-name "A" :location "San Francisco"})
+                           (merge mocks/raw-twitter-friend {:screen-name "B" :location "-"})
+                           (merge mocks/raw-twitter-friend {:screen-name "C" :location "--"})]
+                          (fetch-friends-from-twitter screen-name))
+
         curr-user-info   {:screen-name screen-name
                           :locations (:locations settings)}
         friends-abridged (map #(user-data/abridged % curr-user-info)
@@ -377,11 +385,12 @@
         (when (and (= "daily" (:email_notifications settings))
                    (not-empty diff))
           (println "sending email to" screen-name "now: =============")
-          (println "SKIPPED EMAIL SEND DURING TESTING")
-          #_(email/send-email {:to email-address
+          (if debug-refresh-friends-from-twitter?
+            (println "SKIPPED EMAIL SEND – TESTING")
+            (email/send-email {:to email-address
                                :template (:friends-on-the-move email/TEMPLATES)
                                :dynamic_template_data {:twitter_screen_name screen-name
-                                                       :friends             diff-html}}))
+                                                       :friends             diff-html}})))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (when debug? (println (str "done refreshing friends for @" screen-name
                                    " (friends count: " (count friends-abridged) ")")))
