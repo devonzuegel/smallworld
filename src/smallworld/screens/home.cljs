@@ -9,7 +9,7 @@
             [smallworld.util        :as util]
             [smallworld.screens.settings :as settings]))
 
-(def       *debug? (r/atom false))
+(def       *debug? (r/atom true))
 (defonce *minimaps (r/atom {}))
 
 (defn minimap [minimap-id location-name coords]
@@ -64,10 +64,10 @@
      [:pre (util/preify @session/*store)]  [:br]
      [:b "settings:"]
      [:pre (util/preify @settings/*settings)] [:br]
-     [:b "@user-data/*friends:"]
+     [:b "@user-data/*friends: (showing max of 5 only)"]
      (if (= @user-data/*friends :loading)
        [:pre "@user-data/*friends is still :loading"]
-       [:pre "count:" (count @user-data/*friends) "\n\n" (util/preify @user-data/*friends)])]))
+       [:pre "count:" (count @user-data/*friends) "\n\n" (util/preify (take 5 @user-data/*friends))])]))
 
 ; TODO: lots of low-hanging fruit to improve performance
 (defn fetch-coordinates! [minimap-id location-name-input i]
