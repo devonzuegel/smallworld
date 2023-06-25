@@ -39,6 +39,9 @@
 
 (defn timestamp [] (str (new java.util.Date)))
 
+(defn none-nil? [& values]
+  (every? identity values))
+
 (defn round [num places]
   (let [num (* num (Math/pow 10 places))]
     (/ (Math/round num) (Math/pow 10 places))))

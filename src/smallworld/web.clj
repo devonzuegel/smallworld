@@ -277,17 +277,38 @@
          (highlight before) " → " (highlight after)
          "<br/></li>"))
 
-(defn get-coordinates [location]
-  (let [result (db/select-by-col db/coordinates-table :request_key location)
+(defn get-coordinate [location]
+  (let [result (db/get-coordinate location)
         lat-lng (:data (first result))]
     (if (or (empty? result) (nil? (:lat lat-lng)) (nil? (:lng lat-lng)))
       nil
       lat-lng)))
 
 (defn map-assoc-coordinates [list-of-friends]
-  (map #(assoc % :coordinates (get-coordinates (:location %))) list-of-friends))
+  (map #(assoc % :coordinates (get-coordinate (:location %))) list-of-friends))
 
 (def debug-refresh-friends-from-twitter? false)
+
+(defn is-close [pair]
+  (let [min-distance 100
+        lat1 (get-in pair [0 :coordinates :lat])
+        lng1 (get-in pair [0 :coordinates :lng])
+        lat2 (get-in pair [1 :coordinates :lat])
+        lng2 (get-in pair [1 :coordinates :lng])]
+
+    (println "lat1:" lat1 "lng1:" lng1 "location1:" (get-in pair [0 :location]))
+    (println "lat2:" lat2 "lng2:" lng2 "location2:" (get-in pair [1 :location]))
+    (if (util/none-nil? lat1 lng1 lat2 lng2)
+      (let [distance-in-miles  (user-data/coord-distance-miles [lat1 lng1] [lat2 lng2])]
+        (println "distance:" distance-in-miles)
+        (if (< distance-in-miles min-distance)
+          (do (println "🚨 removing because distance is less than"
+                       min-distance "miles (" (get-in pair [0 :location]) "->" (get-in pair [1 :location]) ")")
+              true)
+          false)) ; don't remove if the distance can't be calculated (note: this may not be the desired behavior long-term)
+      false)
+    (println "\n")
+    false))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [screen-name      (:screen_name settings)
@@ -295,7 +316,11 @@
                      (if debug-refresh-friends-from-twitter?
                        [{:screen-name "A" :location "SF"}
                         {:screen-name "B" :location "NYC"}
-                        {:screen-name "C" :location "-"}]
+                        {:screen-name "C" :location "-"}
+                        {:screen-name "D" :location "SF"}
+                        {:screen-name "E" :location "London"}
+                        {:screen-name "F" :location "New York"}
+                        {:screen-name "G" :location "SF"}]
                        (map ; fetch the old friends before friends gets updated from the twitter fetch
                         select-location-fields
                         (-> db/friends-table
@@ -306,7 +331,11 @@
         friends-result  (if debug-refresh-friends-from-twitter?
                           [(merge mocks/raw-twitter-friend {:screen-name "A" :location "San Francisco"})
                            (merge mocks/raw-twitter-friend {:screen-name "B" :location "-"})
-                           (merge mocks/raw-twitter-friend {:screen-name "C" :location "--"})]
+                           (merge mocks/raw-twitter-friend {:screen-name "C" :location "--"})
+                           (merge mocks/raw-twitter-friend {:screen-name "D" :location "Miami"})
+                           (merge mocks/raw-twitter-friend {:screen-name "E" :location "Paris"})
+                           (merge mocks/raw-twitter-friend {:screen-name "F" :location "New York"})
+                           (merge mocks/raw-twitter-friend {:screen-name "G" :location "Oakland"})]
                           (fetch-friends-from-twitter screen-name))
 
         curr-user-info   {:screen-name screen-name
@@ -329,7 +358,8 @@
                   (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
                   (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
                   (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
-                  (remove #(str/includes? (get-in % [1 :location]) ".com")))
+                  (remove #(str/includes? (get-in % [1 :location]) ".com"))
+                  (remove is-close))
         diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
@@ -640,7 +670,7 @@
 ; "serious", I'll come back to it to find the memory leak and remove this worker.
 (defn garbage-collection-worker []
   (System/gc)
-  (log-event "garbage-collection" {}))
+  #_(log-event "garbage-collection" {}))
 
 (defn start-scheduled-workers []
 

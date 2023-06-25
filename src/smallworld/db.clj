@@ -5,7 +5,8 @@
                             [clojure.walk :as walk]
                             [jdbc.pool.c3p0 :as pool]
                             [smallworld.clj-postgresql.types] ; this enables the :json type
-                            [smallworld.util :as util]))
+                            [smallworld.util :as util]
+                            [smallworld.db :as db]))
 
 (def debug? false)
 (def db-uri (java.net.URI. (util/get-env-var "DATABASE_URL")))
@@ -14,14 +15,14 @@
     nil (clojure.string/split (.getUserInfo db-uri) #":")))
 (def pool
   (delay
-   (pool/make-datasource-spec
-    {:classname "org.postgresql.Driver"
-     :subprotocol "postgresql"
-     :user (get user-and-password 0)
-     :password (get user-and-password 1)
-     :subname (if (= -1 (.getPort db-uri))
-                (format "//%s%s" (.getHost db-uri) (.getPath db-uri))
-                (format "//%s:%s%s" (.getHost db-uri) (.getPort db-uri) (.getPath db-uri)))})))
+    (pool/make-datasource-spec
+     {:classname "org.postgresql.Driver"
+      :subprotocol "postgresql"
+      :user (get user-and-password 0)
+      :password (get user-and-password 1)
+      :subname (if (= -1 (.getPort db-uri))
+                 (format "//%s%s" (.getHost db-uri) (.getPath db-uri))
+                 (format "//%s:%s%s" (.getHost db-uri) (.getPort db-uri) (.getPath db-uri)))})))
 
 ; table names
 (def twitter-profiles-table :twitter_profiles) ; store all data from Twitter sign up
@@ -84,6 +85,13 @@
       (println "not printing {:data {:friends}} because it's too long"))
     (println "\ncount: " (count results)))
   (println))
+
+(defn get-coordinate [location-name] ; case-insensitive
+  (if (nil? location-name)
+    []
+    (walk/keywordize-keys
+     (sql/query @pool (str "select * from " (name db/coordinates-table)
+                           (str " where lower(request_key) = lower('" (escape-str location-name) "')"))))))
 
 (defn select-by-col [table-name col-name col-value]
   (when debug?
