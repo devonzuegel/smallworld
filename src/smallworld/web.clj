@@ -287,31 +287,42 @@
 (defn map-assoc-coordinates [list-of-friends]
   (map #(assoc % :coordinates (get-coordinate (:location %))) list-of-friends))
 
-(def debug-refresh-friends-from-twitter? false)
+(def debug-refresh-friends-from-twitter? true)
 
-(defn is-close [pair]
-  (let [min-distance 100
-        lat1 (get-in pair [0 :coordinates :lat])
-        lng1 (get-in pair [0 :coordinates :lng])
-        lat2 (get-in pair [1 :coordinates :lat])
-        lng2 (get-in pair [1 :coordinates :lng])]
+(defn is-close [min-distance]
+  (fn [location-pair]
+    (let [lat1 (get-in location-pair [0 :coordinates :lat])
+          lng1 (get-in location-pair [0 :coordinates :lng])
+          lat2 (get-in location-pair [1 :coordinates :lat])
+          lng2 (get-in location-pair [1 :coordinates :lng])]
 
-    (println "lat1:" lat1 "lng1:" lng1 "location1:" (get-in pair [0 :location]))
-    (println "lat2:" lat2 "lng2:" lng2 "location2:" (get-in pair [1 :location]))
-    (if (util/none-nil? lat1 lng1 lat2 lng2)
-      (let [distance-in-miles  (user-data/coord-distance-miles [lat1 lng1] [lat2 lng2])]
-        (println "distance:" distance-in-miles)
-        (if (< distance-in-miles min-distance)
-          (do (println "🚨 removing because distance is less than"
-                       min-distance "miles (" (get-in pair [0 :location]) "->" (get-in pair [1 :location]) ")")
-              true)
-          false)) ; don't remove if the distance can't be calculated (note: this may not be the desired behavior long-term)
-      false)
-    (println "\n")
-    false))
+      ;; (println (get-in location-pair [0 :location]) "     " lat1 " " lng1)
+      ;; (println (get-in location-pair [1 :location]) "     " lat2 " " lng2)
+      (if (util/none-nil? lat1 lng1 lat2 lng2)
+        (let [distance-in-miles  (user-data/coord-distance-miles [lat1 lng1] [lat2 lng2])]
+          ;; (println distance-in-miles "miles apart")
+          (< distance-in-miles min-distance))
+        false))))
+
+(def show-all-locations false) ; TODO: pull this preference from user's settings
+
+(defn not-near-any-of-my-locations [my-locations]
+  (fn [[their-location1 their-location2]]
+    (if show-all-locations
+      false ; if we're showing all locations, then we don't need to filter out any of them
+
+      ; for each of my locations, check if either of the locations in the location-pair is close to it
+      (let [my-their-location-pairs (mapcat (fn [my-location]
+                                              (let [my-location {:location    (:name my-location) ; TODO: reconcile this schema with the one used for friends so that we don't need this translation
+                                                                 :coordinates (:coords my-location)}]
+                                                [[my-location their-location1]
+                                                 [my-location their-location2]]))
+                                            my-locations)]
+        (not-any? #((is-close 60) %) my-their-location-pairs)))))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
-  (let [screen-name      (:screen_name settings)
+  (let [settings (if debug-refresh-friends-from-twitter? mocks/settings settings)
+        screen-name (:screen_name settings)
         old-friends (map-assoc-coordinates
                      (if debug-refresh-friends-from-twitter?
                        [{:screen-name "A" :location "SF"}
@@ -327,7 +338,6 @@
                             (db/select-by-col :request_key screen-name)
                             vec
                             (get-in [0 :data :friends])))))
-
         friends-result  (if debug-refresh-friends-from-twitter?
                           [(merge mocks/raw-twitter-friend {:screen-name "A" :location "San Francisco"})
                            (merge mocks/raw-twitter-friend {:screen-name "B" :location "-"})
@@ -337,13 +347,11 @@
                            (merge mocks/raw-twitter-friend {:screen-name "F" :location "New York"})
                            (merge mocks/raw-twitter-friend {:screen-name "G" :location "Oakland"})]
                           (fetch-friends-from-twitter screen-name))
-
-        curr-user-info   {:screen-name screen-name
-                          :locations (:locations settings)}
-        friends-abridged (map #(user-data/abridged % curr-user-info)
-                              friends-result)
-        new-friends (map-assoc-coordinates (map select-location-fields
-                                                (vec friends-result)))
+        curr-user-locations (:locations settings)
+        curr-user-info {:screen-name screen-name
+                        :locations curr-user-locations}
+        friends-abridged (map #(user-data/abridged % curr-user-info) friends-result)
+        new-friends (map-assoc-coordinates (map select-location-fields (vec friends-result)))
         diff (->> old-friends
                   set
                   (set/difference (set new-friends))
@@ -359,7 +367,12 @@
                   (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
                   (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
                   (remove #(str/includes? (get-in % [1 :location]) ".com"))
-                  (remove is-close))
+                  (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
+                  (remove #(str/includes? (get-in % [1 :location]) "http"))
+                  (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
+                  (remove #(str/includes? (get-in % [1 :location]) "www"))
+                  (remove (not-near-any-of-my-locations curr-user-locations))
+                  (remove (is-close 5)))
         diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
@@ -398,16 +411,18 @@
         ;; (pp/pprint old-friends)
         ;; (pp/pprint "new-friends: ==============================================")
         ;; (pp/pprint new-friends)
-        (pp/pprint "diff: =====================================================")
-        (pp/pprint diff)
+        ;; (pp/pprint "diff: =====================================================")
+        ;; (pp/pprint diff)
+        ;; (pp/pprint "settings: =====================================================")
+        ;; (pp/pprint settings)
         ;; (pp/pprint "friends-abridged: =========================================")
         ;; (pp/pprint friends-abridged)
         ;; (pp/pprint "friends-result: ==========================================")
         ;; (pp/pprint friends-result)
         ;; (println (str "\n\nhere is the result from twitter"))
         ;; (pp/pprint friends-result)
-        ;; (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
-        ;; (pp/pprint diff)
+        (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
+        (pp/pprint diff)
         ;; (println (str "\n\nhere is the generated HTML:"))
         ;; (pp/pprint diff-html)
         (println "\n\n")

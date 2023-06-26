@@ -43,6 +43,38 @@
               friend
               friend])
 
+(def settings {:friends_refresh nil,
+               :twitter_last_fetched #inst "2023-06-24T21:11:52.374651000-00:00",
+               :name "myscreenname",
+               :screen_name "myscreenname",
+               :main_location_corrected nil,
+               :updated_at #inst "2023-06-24T21:11:52.374651000-00:00",
+               :locations [{:name "South Florida ☀️",
+                            :coords {:lat 25.719772338867188, :lng -80.4179916381836},
+                            :distances nil,
+                            :special-status "twitter-location",
+                            :name-initial-value "South Florida ☀️"}
+                           {:name "Sonoma County",
+                            :coords {:lat 38.43969727, :lng -122.71564484},
+                            :loading false,
+                            :special-status "added-manually"}
+                           {:name "Santa Rosa",
+                            :coords {:lat 38.43969727, :lng -122.71564484},
+                            :loading false,
+                            :special-status "added-manually"}
+                           {:name "Windsor, CA",
+                            :coords {:lat 38.54728317, :lng -122.81663513},
+                            :loading false,
+                            :special-status "added-manually"}]
+               :id 217,
+               :welcome_flow_complete true,
+               :name_location_corrected nil,
+               :email_address "example@gmail.com",
+               :email_notifications "daily",
+               :twitter_avatar
+               "https://pbs.twimg.com/profile_images/1117495906335485952/waXUR3aO.jpg",
+               :created_at #inst "2023-06-24T02:39:56.647212000-00:00"})
+
 (def raw-twitter-friend
   {:screen-name "_kasita"
    :location "Austin, TX"
