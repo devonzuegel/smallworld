@@ -346,124 +346,127 @@
                            (merge mocks/raw-twitter-friend {:screen-name "E" :location "Paris"})
                            (merge mocks/raw-twitter-friend {:screen-name "F" :location "New York"})
                            (merge mocks/raw-twitter-friend {:screen-name "G" :location "Oakland"})]
-                          (fetch-friends-from-twitter screen-name))
-        curr-user-locations (:locations settings)
-        curr-user-info {:screen-name screen-name
-                        :locations curr-user-locations}
-        friends-abridged (map #(user-data/abridged % curr-user-info) friends-result)
-        new-friends (map-assoc-coordinates (map select-location-fields (vec friends-result)))
-        diff-all (->> old-friends
-                      set
-                      (set/difference (set new-friends))
-                      (concat (set/difference (set old-friends) (set new-friends)))
-                      (group-by :screen-name)
-                      vals
-                      vec
-                      (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
-                      (remove #(and (= (get-in % [0 :coordinates]) nil)
-                                    (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
-                      (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
-                      (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
-                      (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
-                      (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
-                      (remove #(str/includes? (get-in % [1 :location]) ".com"))
-                      (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
-                      (remove #(str/includes? (get-in % [1 :location]) "http"))
-                      (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
-                      (remove #(str/includes? (get-in % [1 :location]) "www")))
-        diff-filtered (->> old-friends
-                           set
-                           (set/difference (set new-friends))
-                           (concat (set/difference (set old-friends) (set new-friends)))
-                           (group-by :screen-name)
-                           vals
-                           vec
-                           (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
-                           (remove #(and (= (get-in % [0 :coordinates]) nil)
-                                         (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
-                           (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
-                           (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
-                           (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
-                           (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
-                           (remove #(str/includes? (get-in % [1 :location]) ".com"))
-                           (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
-                           (remove #(str/includes? (get-in % [1 :location]) "http"))
-                           (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
-                           (remove #(str/includes? (get-in % [1 :location]) "www"))
-                           (remove (not-near-any-of-my-locations curr-user-locations))
-                           (remove (is-close 5)))
-        diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
-                    "none of your friends have updated their Twitter location or display name!"
-                    (str "<ul>"
-                         (->> diff-filtered
-                              (map (fn [friend]
-                                     (let [before (first friend)
-                                           after  (second friend)
+                          (fetch-friends-from-twitter screen-name))]
+    (if (nil? friends-result)
+      (println "🔴 Error fetching friends from Twitter for screen-name:" screen-name)
+      (let [curr-user-locations (:locations settings)
+            curr-user-info {:screen-name screen-name
+                            :locations curr-user-locations}
+            friends-abridged (map #(user-data/abridged % curr-user-info) friends-result)
+            new-friends (map-assoc-coordinates (map select-location-fields (vec friends-result)))
+            diff-all (->> old-friends
+                          set
+                          (set/difference (set new-friends))
+                          (concat (set/difference (set old-friends) (set new-friends)))
+                          (group-by :screen-name)
+                          vals
+                          vec
+                          (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
+                          (remove #(and (= (get-in % [0 :coordinates]) nil)
+                                        (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
+                          (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
+                          (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
+                          (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
+                          (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
+                          (remove #(str/includes? (get-in % [1 :location]) ".com"))
+                          (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
+                          (remove #(str/includes? (get-in % [1 :location]) "http"))
+                          (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
+                          (remove #(str/includes? (get-in % [1 :location]) "www")))
+            diff-filtered (->> old-friends
+                               set
+                               (set/difference (set new-friends))
+                               (concat (set/difference (set old-friends) (set new-friends)))
+                               (group-by :screen-name)
+                               vals
+                               vec
+                               (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
+                               (remove #(and (= (get-in % [0 :coordinates]) nil)
+                                             (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
+                               (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
+                               (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
+                               (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
+                               (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
+                               (remove #(str/includes? (get-in % [1 :location]) ".com"))
+                               (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
+                               (remove #(str/includes? (get-in % [1 :location]) "http"))
+                               (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
+                               (remove #(str/includes? (get-in % [1 :location]) "www"))
+                               (remove (not-near-any-of-my-locations curr-user-locations))
+                               (remove (is-close 5)))
+            diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
+                        "none of your friends have updated their Twitter location or display name!"
+                        (str "<ul>"
+                             (->> diff-filtered
+                                  (map (fn [friend]
+                                         (let [before (first friend)
+                                               after  (second friend)
                                           ;;  name-before     (if (str/blank? (:name before))     "[blank]" (:name before))
                                           ;;  name-after      (if (str/blank? (:name after))      "[blank]" (:name after))
-                                           location-before (if (str/blank? (:location before)) "[blank]" (:location before))
-                                           location-after  (if (str/blank? (:location after))  "[blank]" (:location after))
-                                           screen-name (:screen-name after)]
-                                       [; put the following back if we decide to notify on name updates again
-                                        #_(when (not= (:name before) (:name after))
-                                            (html-line-result screen-name "name" name-before name-after))
-                                        (when (not= (:location before) (:location after))
-                                          (html-line-result screen-name "location" location-before location-after))])))
-                              flatten
-                              (remove nil?)
-                              str/join)
-                         "</ul>"))]
-    (if (nil? friends-result)
-      (let [failure-message (str "could not refresh friends for @" screen-name)]
-        (log-event "refresh-twitter-friends--failed" {:screen-name screen-name
-                                                      :failure-message failure-message})
-        (generate-string (ring-response/bad-request {:message failure-message})))
-      (let [email-address (:email_address settings)]
-        (db/update-twitter-last-fetched! screen-name)
-        (log-event "refreshed-twitter-friends--success" {:screen-name screen-name
-                                                         :diff-count  (count diff-filtered)
-                                                         :diff-html   diff-html
-                                                         :email_notifications (:email_notifications settings)
-                                                         :send-email? (and (= "daily" (:email_notifications settings))
-                                                                           (not-empty diff-filtered))})
-        ;; (pp/pprint "old-friends: ==============================================")
-        ;; (pp/pprint old-friends)
-        ;; (pp/pprint "new-friends: ==============================================")
-        ;; (pp/pprint new-friends)
-        (println "\n\n")
-        (pp/pprint "curr-user-info: ===========================================")
-        (pp/pprint curr-user-info)
-        (pp/pprint "diff-filtered: ============================================")
-        (pp/pprint diff-filtered)
-        (pp/pprint "diff-all: =================================================")
-        (pp/pprint diff-all)
-        ;; (pp/pprint "settings: =====================================================")
-        ;; (pp/pprint settings)
-        ;; (pp/pprint "friends-abridged: =========================================")
-        ;; (pp/pprint friends-abridged)
-        ;; (pp/pprint "friends-result: ==========================================")
-        ;; (pp/pprint friends-result)
-        ;; (println (str "\n\nhere is the result from twitter"))
-        ;; (pp/pprint friends-result)
-        ;; (println (str "\n\nhere are @" screen-name "'s friends that changed: (diff-filtered)"))
-        ;; (pp/pprint diff-filtered)
-        ;; (println (str "\n\nhere is the generated HTML:"))
-        ;; (pp/pprint diff-html)
-        (println "\n\n")
+                                               location-before (if (str/blank? (:location before)) "[blank]" (:location before))
+                                               location-after  (if (str/blank? (:location after))  "[blank]" (:location after))
+                                               screen-name (:screen-name after)]
+                                           [; put the following back if we decide to notify on name updates again
+                                            #_(when (not= (:name before) (:name after))
+                                                (html-line-result screen-name "name" name-before name-after))
+                                            (when (not= (:location before) (:location after))
+                                              (html-line-result screen-name "location" location-before location-after))])))
+                                  flatten
+                                  (remove nil?)
+                                  str/join)
+                             "</ul>"))]
 
-        #_(when (and (= "daily" (:email_notifications settings))
-                     (not-empty diff))
-            (println "sending email to" screen-name "now: =============")
-            (if debug-refresh-friends-from-twitter?
-              (println "SKIPPED EMAIL SEND – TESTING")
-              (email/send-email {:to email-address
-                                 :template (:friends-on-the-move email/TEMPLATES)
-                                 :dynamic_template_data {:twitter_screen_name screen-name
-                                                         :friends             diff-html}})))
-        (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
-        (when debug? (println (str "done refreshing friends for @" screen-name
-                                   " (friends count: " (count friends-abridged) ")")))
-        (generate-string friends-abridged)))))
+        (if (nil? friends-result)
+          (let [failure-message (str "could not refresh friends for @" screen-name)]
+            (log-event "refresh-twitter-friends--failed" {:screen-name screen-name
+                                                          :failure-message failure-message})
+            (generate-string (ring-response/bad-request {:message failure-message})))
+          (let [email-address (:email_address settings)]
+            (db/update-twitter-last-fetched! screen-name)
+            (log-event "refreshed-twitter-friends--success" {:screen-name screen-name
+                                                             :diff-count  (count diff-filtered)
+                                                             :diff-html   diff-html
+                                                             :email_notifications (:email_notifications settings)
+                                                             :send-email? (and (= "daily" (:email_notifications settings))
+                                                                               (not-empty diff-filtered))})
+            ;; (pp/pprint "old-friends: ==============================================")
+            ;; (pp/pprint old-friends)
+            ;; (pp/pprint "new-friends: ==============================================")
+            ;; (pp/pprint new-friends)
+            (println "\n\n")
+            (pp/pprint "curr-user-info: ===========================================")
+            (pp/pprint curr-user-info)
+            (pp/pprint "diff-filtered: ============================================")
+            (pp/pprint diff-filtered)
+            (pp/pprint "diff-all: =================================================")
+            (pp/pprint diff-all)
+            ;; (pp/pprint "settings: =====================================================")
+            ;; (pp/pprint settings)
+            ;; (pp/pprint "friends-abridged: =========================================")
+            ;; (pp/pprint friends-abridged)
+            ;; (pp/pprint "friends-result: ==========================================")
+            ;; (pp/pprint friends-result)
+            ;; (println (str "\n\nhere is the result from twitter"))
+            ;; (pp/pprint friends-result)
+            ;; (println (str "\n\nhere are @" screen-name "'s friends that changed: (diff-filtered)"))
+            ;; (pp/pprint diff-filtered)
+            ;; (println (str "\n\nhere is the generated HTML:"))
+            ;; (pp/pprint diff-html)
+            (println "\n\n")
+
+            #_(when (and (= "daily" (:email_notifications settings))
+                         (not-empty diff))
+                (println "sending email to" screen-name "now: =============")
+                (if debug-refresh-friends-from-twitter?
+                  (println "SKIPPED EMAIL SEND – TESTING")
+                  (email/send-email {:to email-address
+                                     :template (:friends-on-the-move email/TEMPLATES)
+                                     :dynamic_template_data {:twitter_screen_name screen-name
+                                                             :friends             diff-html}})))
+            (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
+            (when debug? (println (str "done refreshing friends for @" screen-name
+                                       " (friends count: " (count friends-abridged) ")")))
+            (generate-string friends-abridged)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
