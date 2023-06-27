@@ -165,7 +165,7 @@
 
     ; if user just completed the welcome flow, send welcome email
     (when (:welcome_flow_complete new-settings)
-      (email/send-email {:to "avery.sara.james@gmail.com" #_(:email_address new-settings)
+      (email/send-email {:to (:email_address new-settings)
                          :template (:welcome email/TEMPLATES)
                          :dynamic_template_data {:twitter_screen_name screen-name
                                                  :twitter_url (str "https://twitter.com/" screen-name)}}))
@@ -411,8 +411,11 @@
         ;; (pp/pprint old-friends)
         ;; (pp/pprint "new-friends: ==============================================")
         ;; (pp/pprint new-friends)
-        ;; (pp/pprint "diff: =====================================================")
-        ;; (pp/pprint diff)
+        (println "\n\n")
+        (pp/pprint "curr-user-info: ===========================================")
+        (pp/pprint curr-user-info)
+        (pp/pprint "diff: =====================================================")
+        (pp/pprint diff)
         ;; (pp/pprint "settings: =====================================================")
         ;; (pp/pprint settings)
         ;; (pp/pprint "friends-abridged: =========================================")
@@ -427,15 +430,15 @@
         ;; (pp/pprint diff-html)
         (println "\n\n")
 
-        (when (and (= "daily" (:email_notifications settings))
-                   (not-empty diff))
-          (println "sending email to" screen-name "now: =============")
-          (if debug-refresh-friends-from-twitter?
-            (println "SKIPPED EMAIL SEND – TESTING")
-            (email/send-email {:to email-address
-                               :template (:friends-on-the-move email/TEMPLATES)
-                               :dynamic_template_data {:twitter_screen_name screen-name
-                                                       :friends             diff-html}})))
+        #_(when (and (= "daily" (:email_notifications settings))
+                     (not-empty diff))
+            (println "sending email to" screen-name "now: =============")
+            (if debug-refresh-friends-from-twitter?
+              (println "SKIPPED EMAIL SEND – TESTING")
+              (email/send-email {:to email-address
+                                 :template (:friends-on-the-move email/TEMPLATES)
+                                 :dynamic_template_data {:twitter_screen_name screen-name
+                                                         :friends             diff-html}})))
         (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
         (when debug? (println (str "done refreshing friends for @" screen-name
                                    " (friends count: " (count friends-abridged) ")")))
@@ -490,7 +493,7 @@
   (let [all-users   (take 8 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
-    (println "found " n-users " users... refreshing their friends now...")
+    (println "found" n-users "users... refreshing their friends now...")
     (log-event "email-update-worker-start" {:count   n-users
                                             :message (str "preparing to refresh friends for " n-users " users\n")})
     (doall (map-indexed curried-refresh-friends all-users))
