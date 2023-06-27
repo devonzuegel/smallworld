@@ -352,28 +352,47 @@
                         :locations curr-user-locations}
         friends-abridged (map #(user-data/abridged % curr-user-info) friends-result)
         new-friends (map-assoc-coordinates (map select-location-fields (vec friends-result)))
-        diff (->> old-friends
-                  set
-                  (set/difference (set new-friends))
-                  (concat (set/difference (set old-friends) (set new-friends)))
-                  (group-by :screen-name)
-                  vals
-                  vec
-                  (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
-                  (remove #(and (= (get-in % [0 :coordinates]) nil)
-                                (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
-                  (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
-                  (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
-                  (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
-                  (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
-                  (remove #(str/includes? (get-in % [1 :location]) ".com"))
-                  (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
-                  (remove #(str/includes? (get-in % [1 :location]) "http"))
-                  (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
-                  (remove #(str/includes? (get-in % [1 :location]) "www"))
-                  (remove (not-near-any-of-my-locations curr-user-locations))
-                  (remove (is-close 5)))
-        diff-html (if (= 0 (count diff)) ; this branch shouldn't be called, but defining the behavior just in case
+        diff-all (->> old-friends
+                      set
+                      (set/difference (set new-friends))
+                      (concat (set/difference (set old-friends) (set new-friends)))
+                      (group-by :screen-name)
+                      vals
+                      vec
+                      (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
+                      (remove #(and (= (get-in % [0 :coordinates]) nil)
+                                    (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
+                      (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
+                      (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
+                      (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
+                      (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
+                      (remove #(str/includes? (get-in % [1 :location]) ".com"))
+                      (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
+                      (remove #(str/includes? (get-in % [1 :location]) "http"))
+                      (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
+                      (remove #(str/includes? (get-in % [1 :location]) "www")))
+        diff-filtered (->> old-friends
+                           set
+                           (set/difference (set new-friends))
+                           (concat (set/difference (set old-friends) (set new-friends)))
+                           (group-by :screen-name)
+                           vals
+                           vec
+                           (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
+                           (remove #(and (= (get-in % [0 :coordinates]) nil)
+                                         (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
+                           (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
+                           (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
+                           (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
+                           (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
+                           (remove #(str/includes? (get-in % [1 :location]) ".com"))
+                           (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
+                           (remove #(str/includes? (get-in % [1 :location]) "http"))
+                           (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
+                           (remove #(str/includes? (get-in % [1 :location]) "www"))
+                           (remove (not-near-any-of-my-locations curr-user-locations))
+                           (remove (is-close 5)))
+        diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
                          (->> diff
@@ -414,8 +433,10 @@
         (println "\n\n")
         (pp/pprint "curr-user-info: ===========================================")
         (pp/pprint curr-user-info)
-        (pp/pprint "diff: =====================================================")
-        (pp/pprint diff)
+        (pp/pprint "diff-filtered: ============================================")
+        (pp/pprint diff-filtered)
+        (pp/pprint "diff-all: =================================================")
+        (pp/pprint diff-all)
         ;; (pp/pprint "settings: =====================================================")
         ;; (pp/pprint settings)
         ;; (pp/pprint "friends-abridged: =========================================")
@@ -424,8 +445,8 @@
         ;; (pp/pprint friends-result)
         ;; (println (str "\n\nhere is the result from twitter"))
         ;; (pp/pprint friends-result)
-        (println (str "\n\nhere are @" screen-name "'s friends that changed:"))
-        (pp/pprint diff)
+        ;; (println (str "\n\nhere are @" screen-name "'s friends that changed: (diff-filtered)"))
+        ;; (pp/pprint diff-filtered)
         ;; (println (str "\n\nhere is the generated HTML:"))
         ;; (pp/pprint diff-html)
         (println "\n\n")
@@ -467,7 +488,7 @@
           n-per-cycle 20]
       (if (refreshed-in-last-day? user) ;; user hasn't been refreshed in the last 24 hours
         (do
-          (println "🔴 skipping because they've been refreshed in the last 24 hours: " screen-name)
+          (println "🟠 skipping because they've been refreshed in the last 24 hours: " screen-name)
           (swap! skipped conj user-abridged))
         (if (>= (count @refetched) n-per-cycle)
           (println "🟡 skipping because we've already refetched " n-per-cycle " users in this cycle: " screen-name)
