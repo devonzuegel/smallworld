@@ -395,7 +395,7 @@
         diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
                     "none of your friends have updated their Twitter location or display name!"
                     (str "<ul>"
-                         (->> diff
+                         (->> diff-filtered
                               (map (fn [friend]
                                      (let [before (first friend)
                                            after  (second friend)
@@ -421,11 +421,11 @@
       (let [email-address (:email_address settings)]
         (db/update-twitter-last-fetched! screen-name)
         (log-event "refreshed-twitter-friends--success" {:screen-name screen-name
-                                                         :diff-count  (count diff)
+                                                         :diff-count  (count diff-filtered)
                                                          :diff-html   diff-html
                                                          :email_notifications (:email_notifications settings)
                                                          :send-email? (and (= "daily" (:email_notifications settings))
-                                                                           (not-empty diff))})
+                                                                           (not-empty diff-filtered))})
         ;; (pp/pprint "old-friends: ==============================================")
         ;; (pp/pprint old-friends)
         ;; (pp/pprint "new-friends: ==============================================")
