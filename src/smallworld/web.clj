@@ -455,10 +455,11 @@
 (def refetched (atom []))
 
 (defn refreshed-in-last-day? [user]
-  (let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
-        now (inst-ms (java.time.Instant/now))
-        difference (- now last-fetched)]
-    (< difference 86400000))) ; 86400000 ms = 1 day
+  false ; TODO: remove me
+  #_(let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
+          now (inst-ms (java.time.Instant/now))
+          difference (- now last-fetched)]
+      (< difference 86400000))) ; 86400000 ms = 1 day
 
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
