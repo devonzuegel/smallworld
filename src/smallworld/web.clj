@@ -165,7 +165,7 @@
 
     ; if user just completed the welcome flow, send welcome email
     (when (:welcome_flow_complete new-settings)
-      (email/send-email {:to (:email_address new-settings)
+      (email/send-email {:to "avery.sara.james@gmail.com" #_(:email_address new-settings)
                          :template (:welcome email/TEMPLATES)
                          :dynamic_template_data {:twitter_screen_name screen-name
                                                  :twitter_url (str "https://twitter.com/" screen-name)}}))
@@ -287,7 +287,7 @@
 (defn map-assoc-coordinates [list-of-friends]
   (map #(assoc % :coordinates (get-coordinate (:location %))) list-of-friends))
 
-(def debug-refresh-friends-from-twitter? true)
+(def debug-refresh-friends-from-twitter? false)
 
 (defn is-close [min-distance]
   (fn [location-pair]
@@ -487,7 +487,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (db/select-all db/settings-table)
+  (let [all-users   (take 8 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found " n-users " users... refreshing their friends now...")
