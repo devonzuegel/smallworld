@@ -5,8 +5,7 @@
                             [clojure.walk :as walk]
                             [jdbc.pool.c3p0 :as pool]
                             [smallworld.clj-postgresql.types] ; this enables the :json type
-                            [smallworld.util :as util]
-                            [smallworld.db :as db]))
+                            [smallworld.util :as util]))
 
 (def debug? false)
 (def db-uri (java.net.URI. (util/get-env-var "DATABASE_URL")))
@@ -90,7 +89,7 @@
   (if (nil? location-name)
     []
     (walk/keywordize-keys
-     (sql/query @pool (str "select * from " (name db/coordinates-table)
+     (sql/query @pool (str "select * from " (name coordinates-table)
                            (str " where lower(request_key) = lower('" (escape-str location-name) "')"))))))
 
 (defn select-by-col [table-name col-name col-value]
