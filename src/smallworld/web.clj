@@ -235,7 +235,7 @@
             (recur next-cursor new-result)))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
-      (when (= 429 (get-in e [:data :status])) (println "you hit the Twitter rate limit!"))
+      (when (= 429 (get-in e [:data :status])) (println "🔴 you hit the Twitter rate limit!"))
       (println (pr-str e))
       nil #_failure)))
 
@@ -491,7 +491,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take 16 (db/select-all db/settings-table))
+  (let [all-users   (take-last 10 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
