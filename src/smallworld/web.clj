@@ -333,7 +333,7 @@
         ;; (println "\nmy-their-location-pairs: ==================================")
         ;; (pp/pprint my-their-location-pairs)
         ;; (println "")
-        (not-any? #((is-close 6000) %) my-their-location-pairs)))))
+        (not-any? #((is-close 2000) %) my-their-location-pairs)))))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [settings (if debug-refresh-friends-from-twitter? mocks/settings settings)
@@ -475,7 +475,7 @@
                                :body (str "curr-user-info: =====================\n\n"
                                           (with-out-str (pp/pprint curr-user-info)) "\n\n\n"
                                           "diff-filtered: (" (count diff-filtered) ") ======================\n\n"
-                                          (with-out-str (pp/pprint diff-filtered))
+                                          (with-out-str (pp/pprint diff-filtered)) "\n\n\n"
                                           "diff-all: ("      (count diff-all) ") ===========================\n\n"
                                           (with-out-str (pp/pprint diff-all)) "\n\n\n")})
 
@@ -539,7 +539,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 150 (db/select-all db/settings-table))
+  (let [all-users   (take-last 160 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
