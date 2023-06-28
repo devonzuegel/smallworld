@@ -473,18 +473,23 @@
 
             (email/send-email {:to "avery.sara.james@gmail.com"
                                :subject (str "@" screen-name "'s friends on the move")
-                               :type "text/plain"
-                               :body (str "curr-user-info: =====================\n\n"
-                                          (with-out-str (pp/pprint curr-user-info)) "\n\n\n"
-                                          "radius-in-miles for filtered: " radius-in-miles "\n\n\n"
-                                          "diff-filtered: (" (count diff-filtered) ") ======================\n\n"
+                              ;;  :type "text/plain"
+                               :body (str "<pre>"
+                                          "my-locations: =======================\n\n"
+                                          (with-out-str (pp/pprint (map (fn [l] (str (:name l) "  (lat: " (:lat l) ",  lng: " (:lng l) ")"))
+                                                                        (:locations curr-user-info)))) "\n\n\n"
+                                          "radius-in-miles: " radius-in-miles "\n\n\n"
+                                          "diff-filtered = " (count diff-filtered) "\n\n\n"
+                                          "diff-all = " (count diff-all) "\n\n\n"
+                                          "diff-filtered: ======================\n\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
                                                                                     (:location (second pair))])
                                                                         diff-filtered))) "\n\n\n"
-                                          "diff-all: ("      (count diff-all) ") ===========================\n\n"
+                                          "diff-all: ===========================\n\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
                                                                                     (:location (second pair))])
-                                                                        diff-all))) "\n\n\n")})
+                                                                        diff-all))) "\n\n\n"
+                                          "</pre>")})
 
             #_(when (and (= "daily" (:email_notifications settings))
                          (not-empty diff))
@@ -546,7 +551,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 180 (db/select-all db/settings-table))
+  (let [all-users   (take-last 190 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
