@@ -39,6 +39,15 @@
 
 (defn timestamp [] (str (new java.util.Date)))
 
+(defn str-keys-to-keywords [m]
+  (into {} (map (fn [[k v]]
+                  (if (string? k)
+                    [(keyword k) (if (map? v)
+                                   (str-keys-to-keywords v)
+                                   v)]
+                    [k v]))
+                m)))
+
 (defn none-nil? [& values]
   (every? identity values))
 
