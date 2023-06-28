@@ -475,20 +475,25 @@
                                :subject (str "@" screen-name "'s friends on the move")
                               ;;  :type "text/plain"
                                :body (str "<pre>"
-                                          "my-locations: =======================\n\n"
-                                          (with-out-str (pp/pprint (map (fn [l] (str (:name l) "  (lat: " (:lat (:coords l)) ",  lng: " (:lng (:coords l)) ")"))
-                                                                        (:locations curr-user-info)))) "\n\n\n"
-                                          "radius-in-miles: " radius-in-miles "\n\n"
+                                          "my-locations: ============================\n\n"
+                                          (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
+                                                               (:locations curr-user-info)))
+                                          "==========================================\n"
+                                          "\n"
+                                          "radius-in-miles = " radius-in-miles "\n"
+                                          "\n"
                                           "diff-filtered = " (count diff-filtered) "\n"
-                                          "diff-all      = " (count diff-all) "\n\n\n"
-                                          "diff-filtered: ======================\n\n"
+                                          "diff-all      = " (count diff-all) "\n"
+                                          "\n"
+                                          "diff-filtered: ===========================\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
                                                                                     (:location (second pair))])
-                                                                        diff-filtered))) "\n\n\n"
-                                          "diff-all: ===========================\n\n"
+                                                                        diff-filtered))) "\n"
+                                          "\n"
+                                          "diff-all: ================================\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
                                                                                     (:location (second pair))])
-                                                                        diff-all))) "\n\n\n"
+                                                                        diff-all))) "\n\n"
                                           "</pre>")})
 
             #_(when (and (= "daily" (:email_notifications settings))
@@ -551,7 +556,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 195 (db/select-all db/settings-table))
+  (let [all-users   (take-last 200 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
