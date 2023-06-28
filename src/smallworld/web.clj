@@ -514,7 +514,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (db/select-all db/settings-table)
+  (let [all-users   (take-last 100 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
