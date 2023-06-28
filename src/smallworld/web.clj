@@ -312,6 +312,8 @@
 
 (def show-all-locations false) ; TODO: pull this preference from user's settings
 
+(def radius-in-miles 2000)
+
 (defn not-near-any-of-my-locations [my-locations]
   (fn [[their-location1 their-location2]]
     (if show-all-locations
@@ -333,7 +335,7 @@
         ;; (println "\nmy-their-location-pairs: ==================================")
         ;; (pp/pprint my-their-location-pairs)
         ;; (println "")
-        (not-any? #((is-close 2000) %) my-their-location-pairs)))))
+        (not-any? #((is-close radius-in-miles) %) my-their-location-pairs)))))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [settings (if debug-refresh-friends-from-twitter? mocks/settings settings)
@@ -474,10 +476,15 @@
                                :type "text/plain"
                                :body (str "curr-user-info: =====================\n\n"
                                           (with-out-str (pp/pprint curr-user-info)) "\n\n\n"
+                                          "radius-in-miles for filtered: " radius-in-miles "\n\n\n"
                                           "diff-filtered: (" (count diff-filtered) ") ======================\n\n"
-                                          (with-out-str (pp/pprint diff-filtered)) "\n\n\n"
+                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
+                                                                                    (:location (second pair))])
+                                                                        diff-filtered))) "\n\n\n"
                                           "diff-all: ("      (count diff-all) ") ===========================\n\n"
-                                          (with-out-str (pp/pprint diff-all)) "\n\n\n")})
+                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
+                                                                                    (:location (second pair))])
+                                                                        diff-all))) "\n\n\n")})
 
             #_(when (and (= "daily" (:email_notifications settings))
                          (not-empty diff))
@@ -539,7 +546,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 170 (db/select-all db/settings-table))
+  (let [all-users   (take-last 180 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
