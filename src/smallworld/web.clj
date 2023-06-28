@@ -318,7 +318,7 @@
                                                 [[my-location their-location1]
                                                  [my-location their-location2]]))
                                             my-locations)]
-        (not-any? #((is-close 60) %) my-their-location-pairs)))))
+        (not-any? #((is-close 6000) %) my-their-location-pairs)))))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [settings (if debug-refresh-friends-from-twitter? mocks/settings settings)
