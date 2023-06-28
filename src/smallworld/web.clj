@@ -472,14 +472,12 @@
             (email/send-email {:to "avery.sara.james@gmail.com"
                                :subject (str "@" screen-name "'s friends on the move")
                                :type "text/plain"
-                               :body (str "<pre>"
-                                          "curr-user-info: =====================\n\n"
+                               :body (str "curr-user-info: =====================\n\n"
                                           (with-out-str (pp/pprint curr-user-info)) "\n\n\n"
                                           "diff-filtered: (" (count diff-filtered) ") ======================\n\n"
                                           (with-out-str (pp/pprint diff-filtered))
                                           "diff-all: ("      (count diff-all) ") ===========================\n\n"
-                                          (with-out-str (pp/pprint diff-all)) "\n\n\n"
-                                          "</pre>")})
+                                          (with-out-str (pp/pprint diff-all)) "\n\n\n")})
 
             #_(when (and (= "daily" (:email_notifications settings))
                          (not-empty diff))
@@ -541,7 +539,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 140 (db/select-all db/settings-table))
+  (let [all-users   (take-last 150 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
