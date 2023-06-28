@@ -476,11 +476,11 @@
                               ;;  :type "text/plain"
                                :body (str "<pre>"
                                           "my-locations: =======================\n\n"
-                                          (with-out-str (pp/pprint (map (fn [l] (str (:name l) "  (lat: " (:lat l) ",  lng: " (:lng l) ")"))
+                                          (with-out-str (pp/pprint (map (fn [l] (str (:name l) "  (lat: " (:lat (:coords l)) ",  lng: " (:lng (:coords l)) ")"))
                                                                         (:locations curr-user-info)))) "\n\n\n"
-                                          "radius-in-miles: " radius-in-miles "\n\n\n"
-                                          "diff-filtered = " (count diff-filtered) "\n\n\n"
-                                          "diff-all = " (count diff-all) "\n\n\n"
+                                          "radius-in-miles: " radius-in-miles "\n\n"
+                                          "diff-filtered = " (count diff-filtered) "\n"
+                                          "diff-all      = " (count diff-all) "\n\n\n"
                                           "diff-filtered: ======================\n\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
                                                                                     (:location (second pair))])
@@ -551,7 +551,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 190 (db/select-all db/settings-table))
+  (let [all-users   (take-last 195 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
