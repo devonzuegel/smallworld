@@ -472,12 +472,14 @@
             (email/send-email {:to "avery.sara.james@gmail.com"
                                :subject (str "@" screen-name "'s friends on the move")
                                :type "text/plain"
-                               :body (str "curr-user-info:\n\n"
+                               :body (str "<pre>"
+                                          "curr-user-info: =====================\n\n"
                                           (with-out-str (pp/pprint curr-user-info)) "\n\n\n"
-                                          "diff-all:\n\n"
+                                          "diff-filtered: ======================\n\n"
+                                          (with-out-str (pp/pprint diff-filtered))
+                                          "diff-all: ===========================\n\n"
                                           (with-out-str (pp/pprint diff-all)) "\n\n\n"
-                                          "diff-filtered:\n\n"
-                                          (with-out-str (pp/pprint diff-filtered)))})
+                                          "</pre>")})
 
             #_(when (and (= "daily" (:email_notifications settings))
                          (not-empty diff))
