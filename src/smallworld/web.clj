@@ -310,7 +310,7 @@
           (< distance-in-miles min-distance))
         false))))
 
-(def show-all-locations false) ; TODO: pull this preference from user's settings
+(def show-all-locations true) ; TODO: pull this preference from user's settings
 
 (def radius-in-miles 2000)
 
@@ -477,7 +477,7 @@
                                :body (str "<pre>"
                                           "my-locations: ============================\n\n"
                                           (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
-                                                               (:locations curr-user-info)))
+                                                               (:locations curr-user-info))) "\n"
                                           "==========================================\n"
                                           "\n"
                                           "radius-in-miles = " radius-in-miles "\n"
@@ -556,7 +556,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 200 (db/select-all db/settings-table))
+  (let [all-users   (take-last 205 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
