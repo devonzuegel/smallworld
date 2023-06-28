@@ -291,13 +291,19 @@
 
 (defn is-close [min-distance]
   (fn [location-pair]
-    (let [lat1 (get-in location-pair [0 :coordinates :lat])
+    (let [loc1 (get-in location-pair [0 :location])
+          loc2 (get-in location-pair [1 :location])
+          lat1 (get-in location-pair [0 :coordinates :lat])
           lng1 (get-in location-pair [0 :coordinates :lng])
           lat2 (get-in location-pair [1 :coordinates :lat])
           lng2 (get-in location-pair [1 :coordinates :lng])]
 
-      (println "    " (get-in location-pair [0 :location]) "     " lat1 " " lng1)
-      (println "    " (get-in location-pair [1 :location]) "     " lat2 " " lng2)
+      ;; (pp/pprint location-pair)
+      ;; (println loc1 "→" loc2)
+      ;; (pp/pprint [lat1 lng1 lat2 lng2])
+      ;; (println "")
+      ;; (println "    " (get-in location-pair [0 :location])) ;"     " lat1 " " lng1)
+      ;; (println "    " (get-in location-pair [1 :location])) ;"     " lat2 " " lng2)
       (if (util/none-nil? lat1 lng1 lat2 lng2)
         (let [distance-in-miles  (user-data/coord-distance-miles [lat1 lng1] [lat2 lng2])]
           (println "    " distance-in-miles "miles apart")
@@ -318,6 +324,15 @@
                                                 [[my-location their-location1]
                                                  [my-location their-location2]]))
                                             my-locations)]
+        ;; (println "\nmy-locations: =============================================")
+        ;; (pp/pprint my-locations)
+        ;; (println "\ntheir-location1: ==========================================")
+        ;; (pp/pprint their-location1)
+        ;; (println "\ntheir-location2: ==========================================")
+        ;; (pp/pprint their-location2)
+        ;; (println "\nmy-their-location-pairs: ==================================")
+        ;; (pp/pprint my-their-location-pairs)
+        ;; (println "")
         (not-any? #((is-close 6000) %) my-their-location-pairs)))))
 
 (defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
@@ -453,6 +468,16 @@
             ;; (println (str "\n\nhere is the generated HTML:"))
             ;; (pp/pprint diff-html)
             (println "\n\n")
+
+            (email/send-email {:to "avery.sara.james@gmail.com"
+                               :subject (str "@" screen-name "'s friends on the move")
+                               :type "text/plain"
+                               :body (str "curr-user-info:\n\n"
+                                          (with-out-str (pp/pprint curr-user-info)) "\n\n\n"
+                                          "diff-all:\n\n"
+                                          (with-out-str (pp/pprint diff-all)) "\n\n\n"
+                                          "diff-filtered:\n\n"
+                                          (with-out-str (pp/pprint diff-filtered)))})
 
             #_(when (and (= "daily" (:email_notifications settings))
                          (not-empty diff))
