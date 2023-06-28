@@ -296,11 +296,11 @@
           lat2 (get-in location-pair [1 :coordinates :lat])
           lng2 (get-in location-pair [1 :coordinates :lng])]
 
-      ;; (println (get-in location-pair [0 :location]) "     " lat1 " " lng1)
-      ;; (println (get-in location-pair [1 :location]) "     " lat2 " " lng2)
+      (println "    " (get-in location-pair [0 :location]) "     " lat1 " " lng1)
+      (println "    " (get-in location-pair [1 :location]) "     " lat2 " " lng2)
       (if (util/none-nil? lat1 lng1 lat2 lng2)
         (let [distance-in-miles  (user-data/coord-distance-miles [lat1 lng1] [lat2 lng2])]
-          ;; (println distance-in-miles "miles apart")
+          (println "    " distance-in-miles "miles apart")
           (< distance-in-miles min-distance))
         false))))
 
@@ -393,7 +393,7 @@
                                (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
                                (remove #(str/includes? (get-in % [1 :location]) "www"))
                                (remove (not-near-any-of-my-locations curr-user-locations))
-                               (remove (is-close 5)))
+                               #_(remove (is-close 5)))
             diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
                         "none of your friends have updated their Twitter location or display name!"
                         (str "<ul>"
@@ -514,7 +514,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 100 (db/select-all db/settings-table))
+  (let [all-users   (take-last 110 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
