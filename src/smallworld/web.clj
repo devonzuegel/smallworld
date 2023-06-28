@@ -576,14 +576,14 @@
       (println to-print)
 
       ;; Removing this because it's too noisy
-      #_(when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
-          (email/send-email {:to "avery.sara.james@gmail.com"
-                             :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " (count @refetched) " users")
-                             :type "text/plain"
-                             :body to-print})
-          (reset! failures [])
-          (reset! skipped [])
-          (reset! refetched []))))
+      (when (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
+        (email/send-email {:to "avery.sara.james@gmail.com"
+                           :subject (str "[" (util/get-env-var "ENVIRONMENT") "] worker.clj refetched " (count @refetched) " users")
+                           :type "text/plain"
+                           :body to-print})
+        (reset! failures [])
+        (reset! skipped [])
+        (reset! refetched []))))
 
   (println "\n===============================================\n"))
 
