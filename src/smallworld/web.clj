@@ -407,8 +407,8 @@
                                (remove #(str/includes? (get-in % [1 :location]) "http"))
                                (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
                                (remove #(str/includes? (get-in % [1 :location]) "www"))
-                               (remove (not-near-any-of-my-locations curr-user-locations))
-                               #_(remove (is-close 5)))
+                               (remove (is-close 2)) ; remove locations that are very close to each other, implying that it's not a major update
+                               (remove (not-near-any-of-my-locations curr-user-locations)))
             diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
                         "none of your friends have updated their Twitter location or display name!"
                         (str "<ul>"
@@ -539,7 +539,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 160 (db/select-all db/settings-table))
+  (let [all-users   (take-last 170 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
