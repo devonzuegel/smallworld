@@ -364,7 +364,7 @@
                           (fetch-friends-from-twitter screen-name))]
     (if (nil? friends-result)
       (println "🔴 Error fetching friends from Twitter for screen-name:" screen-name)
-      (let [curr-user-locations (:locations settings)
+      (let [curr-user-locations (map util/str-keys-to-keywords (:locations settings))
             curr-user-info {:screen-name screen-name
                             :locations curr-user-locations}
             friends-abridged (map #(user-data/abridged % curr-user-info) friends-result)
