@@ -337,7 +337,7 @@
         ;; (println "")
         (not-any? #((is-close radius-in-miles) %) my-their-location-pairs)))))
 
-(defn refresh-friends-from-twitter [settings] ; optionally pass in settings in case it's already computed so that we don't have to recompute
+(defn refresh-friends-from-twitter [settings i total-count] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [settings (if debug-refresh-friends-from-twitter? mocks/settings settings)
         screen-name (:screen_name settings)
         old-friends (map-assoc-coordinates
@@ -472,18 +472,18 @@
             (println "\n\n")
 
             (email/send-email {:to "avery.sara.james@gmail.com"
-                               :subject (str "@" screen-name "'s friends on the move")
+                               :subject (str "@" screen-name "'s friends on the move [" i "/" total-count "]")
                               ;;  :type "text/plain"
                                :body (str "<pre>"
-                                          "my-locations: ============================\n\n"
-                                          (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
-                                                               (:locations curr-user-info))) "\n"
-                                          "==========================================\n"
-                                          "\n"
                                           "radius-in-miles = " radius-in-miles "\n"
+                                          "# my-locations  = " (count (:locations curr-user-info)) "\n"
                                           "\n"
                                           "diff-filtered = " (count diff-filtered) "\n"
                                           "diff-all      = " (count diff-all) "\n"
+                                          "\n"
+                                          "my-locations: ============================\n\n"
+                                          (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
+                                                               (:locations curr-user-info))) "\n"
                                           "\n"
                                           "diff-filtered: ===========================\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
@@ -540,7 +540,7 @@
           (try
             (println "🟢 refreshing because they haven't been refreshed in the last 24 hours: " screen-name)
             (util/log (str "[user " i "/" total-count "] refresh friends for " screen-name))
-            (let [result (refresh-friends-from-twitter user)]
+            (let [result (refresh-friends-from-twitter user i total-count)]
               ; this is a hack :) it will be fragile if the error message ever changes
               (if (str/starts-with? result "caught exception")
                 (throw (Throwable. result))
