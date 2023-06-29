@@ -496,15 +496,15 @@
                                                                         diff-all))) "\n\n"
                                           "</pre>")})
 
-            #_(when (and (= "daily" (:email_notifications settings))
-                         (not-empty diff))
-                (println "sending email to" screen-name "now: =============")
-                (if debug-refresh-friends-from-twitter?
-                  (println "SKIPPED EMAIL SEND – TESTING")
-                  (email/send-email {:to email-address
-                                     :template (:friends-on-the-move email/TEMPLATES)
-                                     :dynamic_template_data {:twitter_screen_name screen-name
-                                                             :friends             diff-html}})))
+            (when (and (= "daily" (:email_notifications settings))
+                       (not-empty diff-filtered))
+              (println "sending email to" screen-name "now: =============")
+              (if debug-refresh-friends-from-twitter?
+                (println "SKIPPED EMAIL SEND – TESTING")
+                (email/send-email {:to email-address
+                                   :template (:friends-on-the-move email/TEMPLATES)
+                                   :dynamic_template_data {:twitter_screen_name screen-name
+                                                           :friends             diff-html}})))
             (db/update! db/friends-table :request_key screen-name {:data {:friends friends-result}})
             (when debug? (println (str "done refreshing friends for @" screen-name
                                        " (friends count: " (count friends-abridged) ")")))
@@ -556,7 +556,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (take-last 205 (db/select-all db/settings-table))
+  (let [all-users   (db/select-all db/settings-table) ; (take-last 205 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
