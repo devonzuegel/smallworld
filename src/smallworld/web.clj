@@ -310,7 +310,7 @@
           (< distance-in-miles min-distance))
         false))))
 
-(def show-all-locations true) ; TODO: pull this preference from user's settings
+(def show-all-locations false) ; TODO: pull this preference from user's settings
 
 (def radius-in-miles 2000)
 
