@@ -287,7 +287,7 @@
 (defn map-assoc-coordinates [list-of-friends]
   (map #(assoc % :coordinates (get-coordinate (:location %))) list-of-friends))
 
-(def debug-refresh-friends-from-twitter? true)
+(def debug-refresh-friends-from-twitter? false)
 
 (defn is-close [min-distance]
   (fn [location-pair]
