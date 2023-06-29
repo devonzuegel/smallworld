@@ -87,7 +87,7 @@
                        (re-find #"&" (first pairs))
                        (re-find #"&" (second pairs)))
                  false
-                 (>= (apply jaccard pairs) 0.5))]
+                 (> (apply jaccard pairs) 0.5))]
     (println "                      pairs:" pairs)
     (println "very-similar-location-names?" result)
     (println "                    jaccard:" (apply jaccard pairs))
