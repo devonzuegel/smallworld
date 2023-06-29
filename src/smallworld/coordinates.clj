@@ -73,6 +73,22 @@
     nil
     (haversine coords1 coords2)))
 
+(defn tokenize [s] (set (re-seq #"\w+" (clojure.string/lower-case s))))
+
+(defn jaccard [s1 s2]
+  (/ (count (clojure.set/intersection (tokenize s1) (tokenize s2)))
+     (count (clojure.set/union (tokenize s1) (tokenize s2)))))
+
+(defn very-similar-location-names [pairs]
+  ; Don't consider them very similar if there is a slash or ampersand in either
+  ; of the names, because that means there might be two locations in the string.
+  (if (or (re-find #"/" (first pairs))
+          (re-find #"/" (second pairs))
+          (re-find #"&" (first pairs))
+          (re-find #"&" (second pairs)))
+    false
+    (>= (apply jaccard pairs) 0.5)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

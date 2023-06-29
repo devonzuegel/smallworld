@@ -287,7 +287,7 @@
 (defn map-assoc-coordinates [list-of-friends]
   (map #(assoc % :coordinates (get-coordinate (:location %))) list-of-friends))
 
-(def debug-refresh-friends-from-twitter? false)
+(def debug-refresh-friends-from-twitter? true)
 
 (defn is-close [min-distance]
   (fn [location-pair]
@@ -348,7 +348,9 @@
                         {:screen-name "D" :location "SF"}
                         {:screen-name "E" :location "London"}
                         {:screen-name "F" :location "New York"}
-                        {:screen-name "G" :location "SF"}]
+                        {:screen-name "G" :location "SF"}
+                        {:screen-name "H" :location "San Antonio ish"}
+                        {:screen-name "I" :location "Brooklyn, NY"}]
                        (map ; fetch the old friends before friends gets updated from the twitter fetch
                         select-location-fields
                         (-> db/friends-table
@@ -362,7 +364,9 @@
                            (merge mocks/raw-twitter-friend {:screen-name "D" :location "Miami"})
                            (merge mocks/raw-twitter-friend {:screen-name "E" :location "Paris"})
                            (merge mocks/raw-twitter-friend {:screen-name "F" :location "New York"})
-                           (merge mocks/raw-twitter-friend {:screen-name "G" :location "Oakland"})]
+                           (merge mocks/raw-twitter-friend {:screen-name "G" :location "Oakland"})
+                           (merge mocks/raw-twitter-friend {:screen-name "H" :location "San Antonio"})
+                           (merge mocks/raw-twitter-friend {:screen-name "I" :location "Brooklyn"})]
                           (fetch-friends-from-twitter screen-name))]
     (if (nil? friends-result)
       (println "🔴 Error fetching friends from Twitter for screen-name:" screen-name)
@@ -390,25 +394,8 @@
                           (remove #(str/includes? (get-in % [1 :location]) "http"))
                           (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
                           (remove #(str/includes? (get-in % [1 :location]) "www")))
-            diff-filtered (->> old-friends
-                               set
-                               (set/difference (set new-friends))
-                               (concat (set/difference (set old-friends) (set new-friends)))
-                               (group-by :screen-name)
-                               vals
-                               vec
-                               (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
-                               (remove #(and (= (get-in % [0 :coordinates]) nil)
-                                             (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
-                               (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
-                               (remove #(str/includes? (get-in % [0 :location]) "subscribe")) ; remove users who have "subscribe" in their location
-                               (remove #(str/includes? (get-in % [1 :location]) "subscribe"))
-                               (remove #(str/includes? (get-in % [0 :location]) ".com")) ; remove users who have ".com" in their location
-                               (remove #(str/includes? (get-in % [1 :location]) ".com"))
-                               (remove #(str/includes? (get-in % [0 :location]) "http")) ; remove users who have "http" in their location
-                               (remove #(str/includes? (get-in % [1 :location]) "http"))
-                               (remove #(str/includes? (get-in % [0 :location]) "www")) ; remove users who have "www" in their location
-                               (remove #(str/includes? (get-in % [1 :location]) "www"))
+            diff-filtered (->> diff-all
+                               (remove #(coordinates/very-similar-location-names [(:location (first %)) (:location (second %))]))
                                (remove (is-close 2)) ; remove locations that are very close to each other, implying that it's not a major update
                                (remove (not-near-any-of-my-locations curr-user-locations)))
             diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
@@ -633,7 +620,7 @@
   ; re-fetch data from Twitter – TODO: this should be a POST not a GET
   (GET "/api/v1/friends/refetch-twitter" req (let [screen-name (:screen-name (get-session req))
                                                    settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
-                                               (refresh-friends-from-twitter settings))) ; TODO: keep refactoring
+                                               (refresh-friends-from-twitter settings nil nil))) ; TODO: keep refactoring
   (GET "/api/v1/worker" req (worker-endpoint req))
 
   ;; general resources
