@@ -440,6 +440,8 @@
             (println "\n\n")
             (pp/pprint "\ncurr-user-info: ===========================================")
             (pp/pprint curr-user-info)
+            (pp/pprint "\ndiff-all – diff-filtered: ============================================")
+            (pp/pprint (set/difference (set diff-all) (set diff-filtered)))
             (pp/pprint "\ndiff-filtered: ============================================")
             (pp/pprint diff-filtered)
             (pp/pprint "\ndiff-all: =================================================")
@@ -472,6 +474,9 @@
                                           "my-locations: ============================\n\n"
                                           (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
                                                                (:locations curr-user-info))) "\n"
+                                          "\n"
+                                          "diff-all – diff-filtered: ===========================\n"
+                                          (with-out-str (pp/pprint (set/difference (set diff-all) (set diff-filtered))))
                                           "\n"
                                           "diff-filtered: ===========================\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
