@@ -478,8 +478,9 @@
                                           "radius-in-miles = " radius-in-miles "\n"
                                           "# my-locations  = " (count (:locations curr-user-info)) "\n"
                                           "\n"
-                                          "diff-filtered = " (count diff-filtered) "\n"
-                                          "diff-all      = " (count diff-all) "\n"
+                                          "show-all-locations = " show-all-locations "\n"
+                                          "diff-filtered      = " (count diff-filtered) "\n"
+                                          "diff-all           = " (count diff-all) "\n"
                                           "\n"
                                           "my-locations: ============================\n\n"
                                           (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
