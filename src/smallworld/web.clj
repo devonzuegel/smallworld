@@ -476,7 +476,8 @@
                                                                (:locations curr-user-info))) "\n"
                                           "\n"
                                           "diff-all – diff-filtered: ===========================\n"
-                                          (with-out-str (pp/pprint (set/difference (set diff-all) (set diff-filtered))))
+                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair)) (:location (first pair))])
+                                                                        (set/difference (set diff-all) (set diff-filtered)))))
                                           "\n"
                                           "diff-filtered: ===========================\n"
                                           (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
