@@ -382,7 +382,7 @@
                           (group-by :screen-name)
                           vals
                           vec
-                          (remove #(or (nil? (first %)) (nil? (second %)))) ; remove empty entries
+                          (remove #(and (nil? (first %)) (nil? (second %)))) ; remove if both are nil
                           (remove #(and (= (get-in % [0 :coordinates]) nil)
                                         (= (get-in % [1 :coordinates]) nil))) ; remove entries where neither location has coordinates
                           (remove #(= (get-in % [0 :screen-name]) "levelsio")) ; this user has some sort of programmatic saying that updates that location every day, take them out so that people don't get spammed
