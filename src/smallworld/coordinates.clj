@@ -82,12 +82,17 @@
 (defn very-similar-location-names [pairs]
   ; Don't consider them very similar if there is a slash or ampersand in either
   ; of the names, because that means there might be two locations in the string.
-  (if (or (re-find #"/" (first pairs))
-          (re-find #"/" (second pairs))
-          (re-find #"&" (first pairs))
-          (re-find #"&" (second pairs)))
-    false
-    (>= (apply jaccard pairs) 0.5)))
+  (let [result (if (or (re-find #"/" (first pairs))
+                       (re-find #"/" (second pairs))
+                       (re-find #"&" (first pairs))
+                       (re-find #"&" (second pairs)))
+                 false
+                 (>= (apply jaccard pairs) 0.5))]
+    (println "                      pairs:" pairs)
+    (println "very-similar-location-names?" result)
+    (println "                    jaccard:" (apply jaccard pairs))
+    (println "")
+    result))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
