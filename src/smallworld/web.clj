@@ -310,7 +310,7 @@
           (< distance-in-miles min-distance))
         false))))
 
-(def show-all-locations false) ; TODO: pull this preference from user's settings
+(def show-all-locations true) ; TODO: pull this preference from user's settings
 
 (def radius-in-miles 2000)
 
@@ -460,35 +460,35 @@
             ;; (pp/pprint diff-html)
             (println "\n\n")
 
-            (email/send-email {:to "avery.sara.james@gmail.com"
-                               :subject (str "@" screen-name "'s friends on the move [" i "/" total-count "]")
+            #_(email/send-email {:to "avery.sara.james@gmail.com"
+                                 :subject (str "@" screen-name "'s friends on the move [" i "/" total-count "]")
                               ;;  :type "text/plain"
-                               :body (str "<pre>"
-                                          "radius-in-miles = " radius-in-miles "\n"
-                                          "# my-locations  = " (count (:locations curr-user-info)) "\n"
-                                          "\n"
-                                          "show-all-locations = " show-all-locations "\n"
-                                          "diff-filtered      = " (count diff-filtered) "\n"
-                                          "diff-all           = " (count diff-all) "\n"
-                                          "\n"
-                                          "my-locations: ============================\n\n"
-                                          (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
-                                                               (:locations curr-user-info))) "\n"
-                                          "\n"
-                                          "diff-all – diff-filtered: ===========================\n"
-                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair)) (:location (second pair))])
-                                                                        (set/difference (set diff-all) (set diff-filtered)))))
-                                          "\n"
-                                          "diff-filtered: ===========================\n"
-                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
-                                                                                    (:location (second pair))])
-                                                                        diff-filtered))) "\n"
-                                          "\n"
-                                          "diff-all: ================================\n"
-                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
-                                                                                    (:location (second pair))])
-                                                                        diff-all))) "\n\n"
-                                          "</pre>")})
+                                 :body (str "<pre>"
+                                            "radius-in-miles = " radius-in-miles "\n"
+                                            "# my-locations  = " (count (:locations curr-user-info)) "\n"
+                                            "\n"
+                                            "show-all-locations = " show-all-locations "\n"
+                                            "diff-filtered      = " (count diff-filtered) "\n"
+                                            "diff-all           = " (count diff-all) "\n"
+                                            "\n"
+                                            "my-locations: ============================\n\n"
+                                            (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
+                                                                 (:locations curr-user-info))) "\n"
+                                            "\n"
+                                            "diff-all – diff-filtered: ===========================\n"
+                                            (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair)) (:location (second pair))])
+                                                                          (set/difference (set diff-all) (set diff-filtered)))))
+                                            "\n"
+                                            "diff-filtered: ===========================\n"
+                                            (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
+                                                                                      (:location (second pair))])
+                                                                          diff-filtered))) "\n"
+                                            "\n"
+                                            "diff-all: ================================\n"
+                                            (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
+                                                                                      (:location (second pair))])
+                                                                          diff-all))) "\n\n"
+                                            "</pre>")})
 
             (when (and (= "daily" (:email_notifications settings))
                        (not-empty diff-filtered))
