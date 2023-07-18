@@ -9,7 +9,7 @@
             [smallworld.util        :as util]
             [smallworld.screens.settings :as settings]))
 
-(def       *debug? (r/atom true))
+(def       *debug? (r/atom false))
 (defonce *minimaps (r/atom {}))
 
 (defn minimap [minimap-id location-name coords]
