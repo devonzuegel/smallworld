@@ -46,7 +46,7 @@
 
 (def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
-(def email_notifications_options [#_"instant" "daily" #_"weekly" "muted"])
+(def email_notifications_options ["daily" "city-specific" "muted"])
 
 (defn minimap [minimap-id location-name coords]
   (r/create-class {:component-did-mount
@@ -293,20 +293,17 @@
     [:div.error-msg (:email-address-input @*form-errors)]]
 
    [:div.email-options {:tab-index "0"}
-    [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
+    [:p {:style {:font-size ".95em"}} "when should we send you email updates?"]
     [:div.radio-btns
-     #_[:div.radio-btn
-        [:input {:name "email_notification" :type "radio" :value "instant" :id "instant"}]
-        [:label {:for "instant"} "yes, notify me immediately"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "daily" :id "daily" :default-checked true}]
-      [:label {:for "daily"} "yes, let me know!"]]
-     #_[:div.radio-btn
-        [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly"}]
-        [:label {:for "weekly"} "yes, send me weekly digests"]]
+      [:label {:for "daily"} "when any friends update their location"]]
+     [:div.radio-btn
+      [:input {:name "email_notification" :type "radio" :value "city-specific" :id "city-specific"}]
+      [:label {:for "city-specific"} "only when friends are near a location I follow"]]
      [:div.radio-btn
       [:input {:name "email_notification" :type "radio" :value "muted" :id "muted"}]
-      [:label {:for "muted"} "no, please don't"]]]
+      [:label {:for "muted"} "please don't email me"]]]
     [:br]]
    [:br]
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
@@ -345,20 +342,17 @@
      [:div.error-msg (:email-address-input @*form-errors)]]
 
     [:div.email-options {:tab-index "0"}
-     [:p {:style {:font-size ".95em"}} "should we email you when friends are nearby?"]
+     [:p {:style {:font-size ".95em"}} "when should we send you email updates?"]
      [:div.radio-btns
-      #_[:div.radio-btn
-         [:input {:name "email_notification" :type "radio" :value "instant" :id "instant" :default-checked (= "instant" (:email_notifications @*settings))}]
-         [:label {:for "instant"} "yes, notify me immediately"]]
       [:div.radio-btn
        [:input {:name "email_notification" :type "radio" :value "daily" :id "daily" :default-checked (= "daily" (:email_notifications @*settings))}]
-       [:label {:for "daily"} "yes, let me know!"]]
-      #_[:div.radio-btn
-         [:input {:name "email_notification" :type "radio" :value "weekly" :id "weekly" :default-checked (= "weekly" (:email_notifications @*settings))}]
-         [:label {:for "weekly"} "yes, send me weekly digests"]]
+       [:label {:for "daily"} "when any friends update their location"]]
+      [:div.radio-btn
+       [:input {:name "email_notification" :type "radio" :value "city-specific" :id "city-specific" :default-checked (= "city-specific" (:email_notifications @*settings))}]
+       [:label {:for "city-specific"} "only when friends are near a location I follow"]]
       [:div.radio-btn
        [:input {:name "email_notification" :type "radio" :value "muted" :id "muted" :default-checked (= "muted" (:email_notifications @*settings))}]
-       [:label {:for "muted"} "no, please don't"]]]
+       [:label {:for "muted"} "please don't email me"]]]
      [:br]]
 
     [:br]
