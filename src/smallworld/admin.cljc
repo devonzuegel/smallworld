@@ -8,13 +8,16 @@
                     [smallworld.db          :as db]
                     [cheshire.core          :as cheshire])))
 
-(def screen-name "devonzuegel")
+(def screen-names ["devonzuegel"
+                   "devon_dos"
+                   "meadowmaus"])
 
 (defn is-admin [user]
-  (and
-   (not-empty (:screen-name user))
-   (not (nil? (:screen-name user)))
-   (= screen-name (:screen-name user))))
+  (let [screen-name (:screen-name user)]
+    (and
+     (not-empty screen-name)
+     (not (nil? screen-name))
+     (util/in? screen-name screen-names))))
 
 (is-admin {:screen-name ""})
 

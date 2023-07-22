@@ -310,32 +310,29 @@
           (< distance-in-miles min-distance))
         false))))
 
-(def show-all-locations true) ; TODO: pull this preference from user's settings
-
 (def radius-in-miles 2000)
 
-(defn not-near-any-of-my-locations [my-locations]
+(defn not-near-any-of-my-locations [my-locations settings]
   (fn [[their-location1 their-location2]]
-    (if show-all-locations
-      false ; if we're showing all locations, then we don't need to filter out any of them
-
-      ; for each of my locations, check if either of the locations in the location-pair is close to it
-      (let [my-their-location-pairs (mapcat (fn [my-location]
-                                              (let [my-location {:location    (:name my-location) ; TODO: reconcile this schema with the one used for friends so that we don't need this translation
-                                                                 :coordinates (:coords my-location)}]
-                                                [[my-location their-location1]
-                                                 [my-location their-location2]]))
-                                            my-locations)]
-        ;; (println "\nmy-locations: =============================================")
-        ;; (pp/pprint my-locations)
-        ;; (println "\ntheir-location1: ==========================================")
-        ;; (pp/pprint their-location1)
-        ;; (println "\ntheir-location2: ==========================================")
-        ;; (pp/pprint their-location2)
-        ;; (println "\nmy-their-location-pairs: ==================================")
-        ;; (pp/pprint my-their-location-pairs)
-        ;; (println "")
-        (not-any? #((is-close radius-in-miles) %) my-their-location-pairs)))))
+    (case (:email_notifications settings)
+      "city-specific" (let [my-their-location-pairs (mapcat (fn [my-location]
+                                                              (let [my-location {:location    (:name my-location) ; TODO: reconcile this schema with the one used for friends so that we don't need this translation
+                                                                                 :coordinates (:coords my-location)}]
+                                                                [[my-location their-location1]
+                                                                 [my-location their-location2]]))
+                                                            my-locations)]
+                              ;; (println "\nmy-locations: =============================================")
+                              ;; (pp/pprint my-locations)
+                              ;; (println "\ntheir-location1: ==========================================")
+                              ;; (pp/pprint their-location1)
+                              ;; (println "\ntheir-location2: ==========================================")
+                              ;; (pp/pprint their-location2)
+                              ;; (println "\nmy-their-location-pairs: ==================================")
+                              ;; (pp/pprint my-their-location-pairs)
+                              ;; (println "")
+                        (not-any? #((is-close radius-in-miles) %) my-their-location-pairs))
+      false ; by default, show all locations; i.e. don't to filter out any of them
+      )))
 
 (defn refresh-friends-from-twitter [settings i total-count] ; optionally pass in settings in case it's already computed so that we don't have to recompute
   (let [settings (if debug-refresh-friends-from-twitter? mocks/settings settings)
@@ -397,7 +394,7 @@
             diff-filtered (->> diff-all
                                (remove #(coordinates/very-similar-location-names [(:location (first %)) (:location (second %))]))
                                (remove (is-close 2)) ; remove locations that are very close to each other, implying that it's not a major update
-                               (remove (not-near-any-of-my-locations curr-user-locations)))
+                               (remove (not-near-any-of-my-locations curr-user-locations settings)))
             diff-html (if (= 0 (count diff-filtered)) ; this branch shouldn't be called, but defining the behavior just in case
                         "none of your friends have updated their Twitter location or display name!"
                         (str "<ul>"
@@ -467,7 +464,7 @@
                                             "radius-in-miles = " radius-in-miles "\n"
                                             "# my-locations  = " (count (:locations curr-user-info)) "\n"
                                             "\n"
-                                            "show-all-locations = " show-all-locations "\n"
+                                            "(:email_notifications settings) = " (:email_notifications settings) "\n"
                                             "diff-filtered      = " (count diff-filtered) "\n"
                                             "diff-all           = " (count diff-all) "\n"
                                             "\n"
@@ -490,7 +487,8 @@
                                                                           diff-all))) "\n\n"
                                             "</pre>")})
 
-            (when (and (= "daily" (:email_notifications settings))
+            (when (and (or (= "daily"         (:email_notifications settings))
+                           (= "city-specific" (:email_notifications settings)))
                        (not-empty diff-filtered))
               (println "sending email to" screen-name "now: =============")
               (if debug-refresh-friends-from-twitter?
@@ -515,10 +513,11 @@
 (def refetched (atom []))
 
 (defn refreshed-in-last-day? [user]
-  (let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
-        now (inst-ms (java.time.Instant/now))
-        difference (- now last-fetched)]
-    (< difference 86400000))) ; 86400000 ms = 1 day
+  false
+  #_(let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
+          now (inst-ms (java.time.Instant/now))
+          difference (- now last-fetched)]
+      (< difference 86400000))) ; 86400000 ms = 1 day
 
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
@@ -582,7 +581,7 @@
   (println "\n===============================================\n"))
 
 (defn worker-endpoint [req]
-  (if-not (= admin/screen-name (:screen-name (get-session req)))
+  (if-not (util/in? (:screen-name (get-session req)) admin/screen-names)
     (generate-string (ring-response/bad-request {:message "you don't have access to this page"}))
     (email-update-worker)))
 
