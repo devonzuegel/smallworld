@@ -32,6 +32,9 @@
       (println "=======================================================\n")
       response)))
 
+(defn in? [string array]
+  (some #(= string %) array))
+
 (defn rand-str [len]
   (apply str
          (for [i (range len)]
