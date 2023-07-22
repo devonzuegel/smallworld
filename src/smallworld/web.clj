@@ -42,7 +42,7 @@
 (defn get-session [req]
   (let [session-data (get-in req [:session] session/blank)
         screen-name  (:screen-name session-data)
-        result       (if (= screen-name admin/screen-name)
+        result       (if (admin/is-admin {:screen-name screen-name})
                        (let [new-screen-name (:screen_name (db/select-first db/impersonation-table))]
                          (if (nil? new-screen-name)
                            session-data
@@ -582,7 +582,7 @@
   (println "\n===============================================\n"))
 
 (defn worker-endpoint [req]
-  (if-not (util/in? (:screen-name (get-session req)) admin/screen-names)
+  (if-not (admin/is-admin (get-session req))
     (generate-string (ring-response/bad-request {:message "you don't have access to this page"}))
     (email-update-worker)))
 
