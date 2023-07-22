@@ -22,8 +22,6 @@
      (not (nil? screen-name))
      (in? screen-name screen-names))))
 
-(is-admin {:screen-name ""})
-
 
 #?(:cljs
    (do
@@ -31,7 +29,7 @@
 
      (defn screen [] ; TODO: fetch admin data on screen load – probably needs react effects to do it properly
        [:div.admin-screen
-        (if-not (= screen-name (:screen-name @session/*store))
+        (if-not (is-admin @session/*store)
 
           (if (= :loading @session/*store)
             (decorations/loading-screen)
