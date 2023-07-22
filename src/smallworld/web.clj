@@ -551,7 +551,7 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (select-by-col :users :request_key "devonzuegel") #_(shuffle (db/select-all db/settings-table)) ; (take-last 205 (db/select-all db/settings-table))
+  (let [all-users   (db/select-by-col :users :request_key "devon_dos") #_(shuffle (db/select-all db/settings-table)) ; (take-last 205 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
