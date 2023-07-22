@@ -105,7 +105,7 @@
                                   (session/update! %)))}])
 
 (def require-admin
-  [{:start (if-session-loading #(when (not= admin/screen-name (:screen-name %))
+  [{:start (if-session-loading #(when (not (admin/is-admin %))
                                   (redirect! "/not-found")))}])
 
 (def routes
