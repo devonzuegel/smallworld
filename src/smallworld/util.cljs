@@ -2,6 +2,7 @@
   (:require [clojure.pprint :as pp]
             [reagent.core :as r]
             [smallworld.decorations :as decorations]
+            [smallworld.admin :as admin]
             [smallworld.session :as session])
   (:import [goog.async Debouncer]))
 
@@ -65,9 +66,9 @@
    [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
    [:span.dot-separator " · "]
    [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
-   (when (= screen-name "devonzuegel")
+   (when (admin/is-admin {:screen-name screen-name})
      [:<> [:span.dot-separator " · "]
-      [:a {:href "#" :on-click recompute-friends} "recompute locations"]])])
+      [:a {:href "#" :on-click recompute-friends} "recompute locations (admin only)"]])])
 
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]
