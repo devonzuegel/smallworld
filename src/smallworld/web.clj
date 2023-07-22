@@ -365,6 +365,8 @@
                            (merge mocks/raw-twitter-friend {:screen-name "H" :location "San Antonio"})
                            (merge mocks/raw-twitter-friend {:screen-name "I" :location "Brooklyn"})]
                           (fetch-friends-from-twitter screen-name))]
+    ;; (println "count old-friends for " screen-name ":" (count old-friends))
+    ;; (pp/pprint old-friends)
     (if (nil? friends-result)
       (println "🔴 Error fetching friends from Twitter for screen-name:" screen-name)
       (let [curr-user-locations (map util/str-keys-to-keywords (:locations settings))
@@ -513,11 +515,10 @@
 (def refetched (atom []))
 
 (defn refreshed-in-last-day? [user]
-  false
-  #_(let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
-          now (inst-ms (java.time.Instant/now))
-          difference (- now last-fetched)]
-      (< difference 86400000))) ; 86400000 ms = 1 day
+  (let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
+        now (inst-ms (java.time.Instant/now))
+        difference (- now last-fetched)]
+    (< difference 86400000))) ; 86400000 ms = 1 day
 
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
