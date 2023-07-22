@@ -515,11 +515,11 @@
 (def refetched (atom []))
 
 (defn refreshed-in-last-day? [user]
-  false
-  #_(let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
-          now (inst-ms (java.time.Instant/now))
-          difference (- now last-fetched)]
-      (< difference 86400000))) ; 86400000 ms = 1 day
+  #_false ; for debugging
+  (let [last-fetched (inst-ms (:twitter_last_fetched user)) #_(first (db/select-by-col db/settings-table :screen_name screen-name))
+        now (inst-ms (java.time.Instant/now))
+        difference (- now last-fetched)]
+    (< difference 86400000))) ; 86400000 ms = 1 day
 
 (defn try-to-refresh-friends [total-count]
   (fn [i user]
@@ -551,7 +551,9 @@
   (println "\n===============================================")
   (util/log "starting email-update worker")
   (println)
-  (let [all-users   (db/select-by-col :settings :screen_name "devonzuegel") #_(shuffle (db/select-all db/settings-table)) ; (take-last 205 (db/select-all db/settings-table))
+  (let [all-users   (shuffle (db/select-all db/settings-table))
+                    ; (db/select-by-col :settings :screen_name "devonzuegel")
+                    ; (take-last 205 (db/select-all db/settings-table))
         n-users     (count all-users)
         curried-refresh-friends (try-to-refresh-friends n-users)]
     (println "found" n-users "users... refreshing their friends now...")
