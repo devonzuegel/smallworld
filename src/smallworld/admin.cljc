@@ -12,12 +12,15 @@
                    "devon_dos"
                    "meadowmaus"])
 
+(defn in? [string array]
+  (some #(= string %) array))
+
 (defn is-admin [user]
   (let [screen-name (:screen-name user)]
     (and
      (not-empty screen-name)
      (not (nil? screen-name))
-     (util/in? screen-name screen-names))))
+     (in? screen-name screen-names))))
 
 (is-admin {:screen-name ""})
 
