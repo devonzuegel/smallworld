@@ -6,6 +6,7 @@
             [smallworld.mapbox      :as mapbox]
             [smallworld.session     :as session]
             [smallworld.user-data   :as user-data]
+            [smallworld.admin       :as admin]
             [smallworld.util        :as util]))
 
 (def debug? false)
