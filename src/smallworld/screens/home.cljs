@@ -189,8 +189,8 @@
       [:br] [:br]
       (debugger-btn)
 
-      (util/info-footer (:screen-name @session/*store)
-                        user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
+      (decorations/info-footer (:screen-name @session/*store)
+                               user-data/recompute-friends) ; TODO: replace with doseq, which is for side effects
       (debugger-info)])])
 
 (defn screen []

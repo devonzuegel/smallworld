@@ -1,6 +1,7 @@
 (ns smallworld.decorations
   (:require [goog.dom]
             [reagent.core :as r]
+            [smallworld.admin :as admin]
             [goog.dom.classlist :as gc]))
 
 (def debug? false)
@@ -107,3 +108,18 @@
   [:div {:class "globe-loader fas fa-globe-americas"}
    [:i.fas.fa-plane {:class "hidden" ; this will get removed after the timeout is completed
                      :id "little-plane"}]])
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; footer ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn info-footer [screen-name recompute-friends]
+  [:div.info-footer
+   [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
+   [:span.dot-separator " · "]
+   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
+   (when (admin/is-admin {:screen-name screen-name})
+     [:<> [:span.dot-separator " · "]
+      [:a {:href "#" :on-click recompute-friends} "recompute locations (admin only)"]])])
+

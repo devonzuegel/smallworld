@@ -2,7 +2,6 @@
   (:require [clojure.pprint :as pp]
             [reagent.core :as r]
             [smallworld.decorations :as decorations]
-            [smallworld.admin :as admin]
             [smallworld.session :as session])
   (:import [goog.async Debouncer]))
 
@@ -60,15 +59,6 @@
 
 (defn rm-from-list [col idx]
   (filter identity (map-indexed #(when-not (= %1 idx) %2) col)))
-
-(defn info-footer [screen-name recompute-friends]
-  [:div.info-footer
-   [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
-   [:span.dot-separator " · "]
-   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
-   (when (admin/is-admin {:screen-name screen-name})
-     [:<> [:span.dot-separator " · "]
-      [:a {:href "#" :on-click recompute-friends} "recompute locations (admin only)"]])])
 
 (defn error-boundary [& children]
   (let [err-state (r/atom nil)]

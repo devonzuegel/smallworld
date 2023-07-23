@@ -309,7 +309,7 @@
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
    [debug-info]
    [:br] [:br] [:br] [:br] [:br]
-   [util/info-footer (:screen-name @*settings) user-data/recompute-friends]])
+   [decorations/info-footer (:screen-name @*settings) user-data/recompute-friends]])
 
 
 (defn welcome-flow-screen []
