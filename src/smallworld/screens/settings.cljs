@@ -213,6 +213,15 @@
                          (js/setTimeout #(reset! *form-message nil) 5000) ; clear the message after a few seconds
                          (user-data/recompute-friends response))))))
 
+(defn info-footer [screen-name recompute-friends]
+  [:div.info-footer
+   [:a {:href "https://devonzuegel.com" :target "_blank"} "made in Miami Beach"]
+   [:span.dot-separator " · "]
+   [:a {:href "https://github.com/devonzuegel/smallworld/issues" :target "_blank"} "report a bug"]
+   (when (admin/is-admin {:screen-name screen-name})
+     [:<> [:span.dot-separator " · "]
+      [:a {:href "#" :on-click recompute-friends} "recompute locations (admin only)"]])])
+
 (defn -welcome-flow-screen []
   (when (nil? @*email-address)
     (reset! *email-address (:email @*settings)))
@@ -309,7 +318,7 @@
    [:button.btn {:on-click submit-welcome-form} "let's go!"]
    [debug-info]
    [:br] [:br] [:br] [:br] [:br]
-   [decorations/info-footer (:screen-name @*settings) user-data/recompute-friends]])
+   [info-footer (:screen-name @*settings) user-data/recompute-friends]])
 
 
 (defn welcome-flow-screen []
