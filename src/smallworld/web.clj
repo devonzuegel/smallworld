@@ -235,7 +235,7 @@
             (recur next-cursor new-result)))))
     (catch Throwable e
       (println "🔴 caught exception when getting friends for screen-name:" screen-name)
-      (when (= 429 (get-in e [:data :status])) (println "🔴 you hit the Twitter rate limit!"))
+      (when (= 429 (get-in e [:data :status])) (println "🔴🔴🔴 you hit the Twitter rate limit!"))
       (println (pr-str e))
       nil #_failure)))
 
@@ -310,7 +310,7 @@
           (< distance-in-miles min-distance))
         false))))
 
-(def radius-in-miles 2000)
+(def radius-in-miles 2000) ; TODO: probably want to make this radius smaller at some point
 
 (defn not-near-any-of-my-locations [my-locations settings]
   (fn [[their-location1 their-location2]]
@@ -459,35 +459,35 @@
             ;; (pp/pprint diff-html)
             (println "\n\n")
 
-            #_(email/send-email {:to "avery.sara.james@gmail.com"
-                                 :subject (str "@" screen-name "'s friends on the move [" i "/" total-count "]")
+            (email/send-email {:to "avery.sara.james@gmail.com"
+                               :subject (str "@" screen-name "'s friends on the move [" i "/" total-count "]")
                               ;;  :type "text/plain"
-                                 :body (str "<pre>"
-                                            "radius-in-miles = " radius-in-miles "\n"
-                                            "# my-locations  = " (count (:locations curr-user-info)) "\n"
-                                            "\n"
-                                            "(:email_notifications settings) = " (:email_notifications settings) "\n"
-                                            "diff-filtered      = " (count diff-filtered) "\n"
-                                            "diff-all           = " (count diff-all) "\n"
-                                            "\n"
-                                            "my-locations: ============================\n\n"
-                                            (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
-                                                                 (:locations curr-user-info))) "\n"
-                                            "\n"
-                                            "diff-all – diff-filtered: ===========================\n"
-                                            (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair)) (:location (second pair))])
-                                                                          (set/difference (set diff-all) (set diff-filtered)))))
-                                            "\n"
-                                            "diff-filtered: ===========================\n"
-                                            (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
-                                                                                      (:location (second pair))])
-                                                                          diff-filtered))) "\n"
-                                            "\n"
-                                            "diff-all: ================================\n"
-                                            (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
-                                                                                      (:location (second pair))])
-                                                                          diff-all))) "\n\n"
-                                            "</pre>")})
+                               :body (str "<pre>"
+                                          "radius-in-miles = " radius-in-miles "\n"
+                                          "# my-locations  = " (count (:locations curr-user-info)) "\n"
+                                          "\n"
+                                          "(:email_notifications settings) = " (:email_notifications settings) "\n"
+                                          "diff-filtered      = " (count diff-filtered) "\n"
+                                          "diff-all           = " (count diff-all) "\n"
+                                          "\n"
+                                          "my-locations: ============================\n\n"
+                                          (str/join "\n " (map (fn [l] (str (:name l) " (" (:lat (:coords l)) ", " (:lng (:coords l)) ")"))
+                                                               (:locations curr-user-info))) "\n"
+                                          "\n"
+                                          "diff-all – diff-filtered: ===========================\n"
+                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair)) (:location (second pair))])
+                                                                        (set/difference (set diff-all) (set diff-filtered)))))
+                                          "\n"
+                                          "diff-filtered: ===========================\n"
+                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
+                                                                                    (:location (second pair))])
+                                                                        diff-filtered))) "\n"
+                                          "\n"
+                                          "diff-all: ================================\n"
+                                          (with-out-str (pp/pprint (map (fn [pair] [(:location (first pair))
+                                                                                    (:location (second pair))])
+                                                                        diff-all))) "\n\n"
+                                          "</pre>")})
 
             (when (and (or (= "daily"         (:email_notifications settings))
                            (= "city-specific" (:email_notifications settings)))
