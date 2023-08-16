@@ -1658,7 +1658,7 @@ ul li {
 /** Announcement banner *************************************/
 /************************************************************/
 .announcement-banner {
-  padding: 18px;
+  padding: 10px 18px;
   margin: 6px 0 18px 0;
   max-width: 450px;
   border: 1px solid rgba(255, 255, 255, 0.1);
