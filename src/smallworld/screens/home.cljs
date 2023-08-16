@@ -116,9 +116,9 @@
      [:div.home-page
       [:div.announcement-banner
        [:p.header "JULY 25, 2023:"]
-       [:p "Sadly, Small World's Twitter API access has been " [:a {:href "https://twitter.com/devonzuegel/status/1683899211006242816" :target "_blank"} "shut off"] ", so your data won't refresh anymore. "]
-       [:p "On the bright side, the stale data might still be useful, since people don't move that often. And if I find a way to get API access in the future, I'll let you know."]
-       [:p "In the meantime, here's an alternative: it's called Fedica, and it has " [:a {:href "https://fedica.com/twitter/map-people-you-follow?_by=smallworld&fp_sid=kiwi"} "a similar map feature as Small World"] ". Enjoy!"]
+       [:p "Sadly, Small World's Twitter API access has been " [:a {:href "https://twitter.com/devonzuegel/status/1681137630019481601" :target "_blank"} "shut off"] ", so your data won't refresh anymore. "]
+       [:p "The good news is that I've found an alternative: Fedica, which has " [:a {:href "https://fedica.com/twitter/map-people-you-follow?_by=smallworld&fp_sid=kiwi" :target "_blank"} "a similar map feature as Small World"] ". Enjoy!"]
+       [:p "Small World's stale data might still be useful, since people don't move that often. And if I find a way to get API access in the future, I'll let you know."]
        [:p "— Devon"]]
       (let [top-location (first (remove nil? (:locations @settings/*settings)))]
         [util/error-boundary
