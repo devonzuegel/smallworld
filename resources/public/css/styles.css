@@ -1653,3 +1653,31 @@ ul li {
   margin-left: 0;
   margin-bottom: -16px;
 }
+
+/************************************************************/
+/** Announcement banner *************************************/
+/************************************************************/
+.announcement-banner {
+  padding: 18px;
+  margin: 6px 0 18px 0;
+  max-width: 450px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+}
+.announcement-banner p.header {
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9em;
+}
+.announcement-banner p {
+  padding: 8px 0;
+}
+.announcement-banner a {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+}
+.announcement-banner a:hover {
+  color: white;
+}
