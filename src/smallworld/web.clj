@@ -766,10 +766,11 @@
 ; start the email-update worker that refreshes users' twitter info/friends
 (let [env (util/get-env-var "ENVIRONMENT")]
   (if (= env (:prod util/ENVIRONMENTS))
-    (let [id (timely/start-schedule
-              (timely/scheduled-item (timely/every 8 :minutes) email-update-worker))]
-      (reset! email-update-worker-id id)
-      (println "\nstarted email update worker with id:" @email-update-worker-id))
+    (println "\nnot starting email update worker because Twitter API access is revoked so it wouldn't work anyways")
+    #_(let [id (timely/start-schedule
+                (timely/scheduled-item (timely/every 8 :minutes) email-update-worker))]
+        (reset! email-update-worker-id id)
+        (println "\nstarted email update worker with id:" @email-update-worker-id))
     (println "\nnot starting email update worker because ENVIRONMENT is" env "not" (:prod util/ENVIRONMENTS))))
 
   ; start garbage collection worker
