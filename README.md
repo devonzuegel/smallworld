@@ -82,8 +82,8 @@ bin/make-and-deploy.sh
 [🎨 Figma workspace](https://www.figma.com/file/7fJoEke9aKGNg5uGE8BMCm/Small-World-mocks?node-id=0%3A1)
 
 | ![](dev/design%20mocks/about.png) | ![](dev/design%20mocks/main%20screen%20map.jpg) | ![](dev/design%20mocks/main%20screen.jpg) |
-| -                                 | -                                                | -                                         |
-|                                   |                                                  |                                           |
+| --------------------------------- | ----------------------------------------------- | ----------------------------------------- |
+|                                   |                                                 |                                           |
 
 ## emails
 - the server sends emails via SendGrid.  view/edit the templates here:
