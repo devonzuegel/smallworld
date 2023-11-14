@@ -23,6 +23,7 @@
                  [factual/timely "0.0.3"]
                  [org.clojure/data.json "2.4.0"]
                  [clj-fuzzy "0.4.1"]
+                 [buddy/buddy-sign "3.5.351"]
                  [prismatic/schema "1.2.0"]
                  [clojure.jdbc/clojure.jdbc-c3p0 "0.3.1"]
                  [org.clojure/java.jdbc "0.7.12"]
