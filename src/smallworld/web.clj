@@ -18,6 +18,7 @@
             [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
+            [buddy.sign.jwt :as jwt]
             [smallworld.email :as email]
             [smallworld.memoize :as m]
             [smallworld.session :as session]
@@ -27,6 +28,15 @@
             [timely.core :as timely]))
 
 (def debug? false)
+
+(defn create-auth-token [user-id]
+  (jwt/sign {:user-id user-id} "your-secret-key"))
+
+(defn verify-auth-token [auth-token]
+  (try
+    (jwt/unsign auth-token "your-secret-key")
+    (catch Exception _e
+      :could-not-verify)))
 
 (defn log-event [name data]
   (util/log (str name ": " data)))
@@ -593,9 +603,53 @@
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; pull username and password from the user's request, and check if they're valid
+; if valid, set the session & return a successful result. Otherwise return a 401
+(defn valid-user? [_phone _password]
+  true ; TODO: implement this
+  #_(and (= username (util/get-env-var "USERNAME"))
+         (= password (util/get-env-var "PASSWORD"))))
+
+(defn login-v2 [req]
+  (let [phone (get-in req [:query-params "phone"])
+        password (get-in req [:query-params "password"])]
+    (pp/pprint (:query-params req))
+    (if (valid-user? phone password)
+      (ring-response/response (generate-string {:success true})))))
+
+(defn login-v3 [req]
+  (let [credentials {} #_(parse-credentials req) ; Define parse-credentials to extract and validate credentials from the request
+        user-id "123" #_(authenticate credentials)] ; Define authenticate to validate credentials and return user id
+    (if user-id
+      (generate-string {:success true  :message "Login success!" :authToken (create-auth-token user-id)})
+      (generate-string {:success false}))))
+
+(defn get-authorization-token [req]
+  (-> (get-in req [:headers "authorization"])
+      (str/split #"\s+")
+      (second)))
+
+(defn protected-endpoint [req]
+  (let [auth-token (get-authorization-token req)
+        payload (verify-auth-token auth-token)]
+    (println "==================================")
+    (println "auth-token: " auth-token)
+    (println "   payload: " payload)
+    (if (= payload :could-not-verify)
+      (do
+        (println "invalid auth token")
+        (generate-string {:success false :message "Auth token invalid or expired"}))
+      (do
+        (println "valid auth token")
+        (generate-string {:success true :message "Success!"})))))
+
+
 ; TODO: prepend data endpoints with /api/v1/
 ;; app is function that takes a request, and returns a response
 (defroutes smallworld-routes ; order matters in this function!
+  (POST "/api/v2/login" req (login-v3 req))
+  (GET "/api/v2/protected" req (protected-endpoint req))
+
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
