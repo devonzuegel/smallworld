@@ -775,13 +775,16 @@
 
 (defn start! [port]
   (some-> @server* (.stop))
-  ; create the tables if they don't already exists
+  ; create the tables if they don't already exist
+  ; SMALL WORLD tables:
   (db/create-table db/settings-table         db/settings-schema)
   (db/create-table db/twitter-profiles-table db/twitter-profiles-schema)
   (db/create-table db/friends-table          db/friends-schema)
   (db/create-table db/coordinates-table      db/coordinates-schema)
   (db/create-table db/access_tokens-table    db/access-tokens-schema)
   (db/create-table db/impersonation-table    db/impersonation-schema)
+  ; KETCHUP CLUB tables:
+  (db/create-table db/users-table            db/users-schema)
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]

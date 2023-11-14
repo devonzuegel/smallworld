@@ -1,3 +1,5 @@
+-- TODO: in the future, may want to add an index on `phone` and `screen_name`
+
 create table if not exists users (
   id integer primary key generated always as identity,
   phone               varchar(255),
@@ -34,21 +36,3 @@ CREATE TRIGGER set_updated_at
 BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE FUNCTION set_current_timestamp_updated_at();
-
---------------------------------------------------------------------------------
----- add an index on screen_name -----------------------------------------------
---------------------------------------------------------------------------------
-
---- split here ---
-
-CREATE INDEX index__screen_name__users
-ON users (screen_name);
-
---------------------------------------------------------------------------------
----- add an index on phone -----------------------------------------------
---------------------------------------------------------------------------------
-
---- split here ---
-
-CREATE INDEX index__phone__users
-ON users (phone);
