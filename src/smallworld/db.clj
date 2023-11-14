@@ -23,7 +23,7 @@
                  (format "//%s%s" (.getHost db-uri) (.getPath db-uri))
                  (format "//%s:%s%s" (.getHost db-uri) (.getPort db-uri) (.getPath db-uri)))})))
 
-; table names
+; Small World table names
 (def twitter-profiles-table :twitter_profiles) ; store all data from Twitter sign up
 (def settings-table         :settings)         ; store Small World-specific settings
 (def friends-table          :friends)          ; memoized storage: friends of the user (request_key)
@@ -31,12 +31,16 @@
 (def access_tokens-table    :access_tokens)    ; memoized storage: Twitter access tokens
 (def impersonation-table    :impersonation)    ; stores screen_name of the user who the admin is impersonating (for debug only)
 
+; Ketchup Club table names
+(def users-table :users)            ; stores screen_name of the user who the admin is impersonating (for debug only)
+
 (def twitter-profiles-schema (slurp (io/resource "sql/schema-twitter-profiles.sql")))
 (def settings-schema         (slurp (io/resource "sql/schema-settings.sql")))
 (def friends-schema          (slurp (io/resource "sql/schema-friends.sql")))
 (def coordinates-schema      (slurp (io/resource "sql/schema-coordinates.sql")))
 (def access-tokens-schema    (slurp (io/resource "sql/schema-access-tokens.sql")))
 (def impersonation-schema    (slurp (io/resource "sql/schema-impersonation.sql")))
+(def users-schema            (slurp (io/resource "sql/schema-users.sql")))
 
 (defn escape-str [str] ; TODO: replace this this the ? syntax, which escapes for you
   (str/replace str "'" "''"))
