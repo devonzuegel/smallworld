@@ -1,3 +1,5 @@
+-- This is for Small World, not for Ketchup Club
+
 create table if not exists settings (
   id integer primary key generated always as identity,
   screen_name    varchar(255) not null unique,

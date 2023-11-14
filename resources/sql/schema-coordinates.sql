@@ -1,3 +1,5 @@
+-- This is for Small World, not for Ketchup Club
+
 create table if not exists coordinates (
   id integer primary key generated always as identity,
   request_key varchar(255) not null unique,

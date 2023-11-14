@@ -1,3 +1,5 @@
+-- This is for Small World, not for Ketchup Club
+
 create table if not exists impersonation (
   screen_name varchar(255), -- if null, then admin isn't impersonating
   created_at timestamp not null default current_timestamp,
