@@ -160,6 +160,11 @@
                                  "set twitter_last_fetched = now() "
                                  "where screen_name = '" screen-name "';")))
 
+(defn update-user-last-ping! [phone-num]
+  (sql/db-do-commands @pool (str "update users "
+                                 "set last_ping = now() "
+                                 "where phone = '" phone-num "';")))
+
 (comment
   (do
     (println "--------------------------------")

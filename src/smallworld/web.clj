@@ -34,7 +34,7 @@
 
 (defn verify-auth-token [auth-token]
   (try
-    (jwt/unsign auth-token "your-secret-key")
+    (jwt/unsign auth-token "your-secret-key") ; TODO: make an environment variable
     (catch Exception _e
       :could-not-verify)))
 
@@ -640,6 +640,12 @@
       (str/split #"\s+")
       (second)))
 
+(defn ping [req]
+  (let [phone (get-in req [:params :phone])]
+    (println "just pinged by" phone " · " (str (java.time.Instant/now)))
+    (db/update-user-last-ping! phone)
+    (ring-response/response (generate-string {:success true :message (str "Ping received from " phone)}))))
+
 (defn protected-endpoint [req]
   (let [auth-token (get-authorization-token req)
         payload (verify-auth-token auth-token)]
@@ -661,6 +667,7 @@
   (POST "/api/v2/login" req (login-v3 req))
   (GET "/api/v2/protected" req (protected-endpoint req))
   (GET "/api/v2/users" _ (generate-string (map select-user-fields (db/select-all db/users-table))))
+  (POST "/api/v2/ping" req (ping req))
 
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
