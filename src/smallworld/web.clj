@@ -270,7 +270,18 @@
         (generate-stream result writer)))))
 
 (defn select-location-fields [friend]
-  (select-keys friend [:location #_:name :screen-name])) ; TODO: rm this merge
+  (select-keys friend [:location #_:name :screen-name]))
+
+(defn select-user-fields [user]
+  (select-keys user [:created_at
+                     :name
+                     :screen_name
+                     :email_address
+                     :phone
+                     :email_notifications
+                     :last_ping
+                     :email_address
+                     :updated_at]))
 
 (defn highlight [highlighted-str]
   (str "<span style=\"background: white; margin: 2px 4px; white-space: nowrap; "
@@ -649,6 +660,7 @@
 (defroutes smallworld-routes ; order matters in this function!
   (POST "/api/v2/login" req (login-v3 req))
   (GET "/api/v2/protected" req (protected-endpoint req))
+  (GET "/api/v2/users" _ (generate-string (map select-user-fields (db/select-all db/users-table))))
 
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
