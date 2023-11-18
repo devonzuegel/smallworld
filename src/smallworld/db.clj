@@ -162,9 +162,8 @@
 
 (defn update-user-last-ping! [phone-num status]
   (println "updating user last ping for phone number" phone-num "to" status)
-  (sql/db-do-commands @pool (str "update users set last_ping = now(), status = '" status "' where phone = '" phone-num "';"))
-  ;; (sql/db-do-commands @pool (str "update users set last_ping = now(), status = 'offline', where phone = '" phone-num " ';"))
-  )
+  (sql/db-do-commands @pool (str "update users set last_ping = now(), status = '" status "' "
+                                 "where phone = '" phone-num "';")))
 
 (comment
   (do
