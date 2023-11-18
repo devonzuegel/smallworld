@@ -1,8 +1,9 @@
 -- TODO: in the future, may want to add an index on `phone` and `screen_name`
 
 create table if not exists users (
-  id integer primary key generated always as identity,
-  phone               varchar(255),
+  id                  integer primary key generated always as identity,
+  phone               varchar(255) not null unique,
+  last_ping           timestamp not null default current_timestamp,
   screen_name         varchar(255) not null unique,
   name                varchar(255),
   email_address       varchar(255),
