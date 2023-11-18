@@ -649,13 +649,13 @@
           (not (or (= status "online")
                    (= status "offline"))) (ring-response/response (generate-string {:success false :message "status must be either 'online' or 'offline'"}))
           ; TODO: handle case where the phone number is not a user in the database
-          :else (do
-                  (println "just pinged by" phone " · " (str (java.time.Instant/now)))
-                  (let [result (db/update-user-last-ping! phone "online")]
-                    (println "result:")
-                    (pp/pprint result)
-                    (println ""))
-                  (ring-response/response (generate-string {:success true :message (str "Ping received from " phone)}))))))
+          :else (try
+                  (let [result (db/update-user-last-ping! phone status)]
+                    (println "just pinged by" phone " · " (str (java.time.Instant/now)))
+                    (println "updated" (count result) "users \n")
+                    (ring-response/response (generate-string {:success true :message (str "Ping received from " phone)})))
+                  (catch Exception e
+                    (println "caught exception when pinging:" e))))))
 
 (defn protected-endpoint [req]
   (let [auth-token (get-authorization-token req)
