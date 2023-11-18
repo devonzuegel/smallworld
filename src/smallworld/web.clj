@@ -280,6 +280,7 @@
                      :phone
                      :email_notifications
                      :last_ping
+                     :status
                      :email_address
                      :updated_at]))
 
@@ -641,10 +642,20 @@
       (second)))
 
 (defn ping [req]
-  (let [phone (get-in req [:params :phone])]
-    (println "just pinged by" phone " · " (str (java.time.Instant/now)))
-    (db/update-user-last-ping! phone)
-    (ring-response/response (generate-string {:success true :message (str "Ping received from " phone)}))))
+  (let [phone (get-in req [:params :phone])
+        status (get-in req [:params :status])]
+    (cond (nil? phone)                    (ring-response/response (generate-string {:success false :message "phone number not provided"}))
+          (nil? status)                   (ring-response/response (generate-string {:success false :message "status not provided"}))
+          (not (or (= status "online")
+                   (= status "offline"))) (ring-response/response (generate-string {:success false :message "status must be either 'online' or 'offline'"}))
+          ; TODO: handle case where the phone number is not a user in the database
+          :else (do
+                  (println "just pinged by" phone " · " (str (java.time.Instant/now)))
+                  (let [result (db/update-user-last-ping! phone "online")]
+                    (println "result:")
+                    (pp/pprint result)
+                    (println ""))
+                  (ring-response/response (generate-string {:success true :message (str "Ping received from " phone)}))))))
 
 (defn protected-endpoint [req]
   (let [auth-token (get-authorization-token req)
