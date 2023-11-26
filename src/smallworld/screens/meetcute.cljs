@@ -1,7 +1,8 @@
 (ns smallworld.screens.meetcute (:require [reagent.core    :as r]
                                           [smallworld.util :as util]))
 
-(def bios (r/atom nil))
+(def debug? (r/atom false))
+(def bios   (r/atom nil))
 
 (defn fetch-bios []
   (println "fetching bios")
@@ -18,52 +19,41 @@
                     [(str k) (stringify-all-symbol-keys v)]) obj))
     obj))
 
-(defn get-field [field bio]
-  (get-in bio [field])
-  ;; (get-in bio [:fields field])
-  )
+(defn get-field [bio field]
+  (get-in bio [(keyword field)]))
 
-(defn get-key-names [bio]
-  (map first (get bio :fields)))
+(defn get-key-names [bio] (map first bio))
 
 (defn -screen []
-  [:div {:style {:margin-left "auto"
-                 :margin-right "auto"
-                 :width "80%"}}
-   [:h1 {:style {:font-size 80 :line-height "2em"}} "All bios"]
+  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
+   [:h1 {:style {:font-size 80 :line-height "2em"}} (str "All bios " (when-not (nil? @bios) (str "(" (count @bios) ")")))]
+   [:button {:on-click #(reset! debug? (not @debug?)) :style {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer"}}
+    (str "Debug: " @debug?)]
+   [:br]
+   [:br]
    (if (nil? @bios)
      [:p "Loading..."]
      [:div
       (map-indexed
        (fn [i bio]
-         [:div {:key i :style {:background "#ffffff11" :margin "16px" :border-radius "8px" :padding "16px"}}
-          [:pre "First name: " (get-field (keyword "First name") bio)]
-          [:pre " Last name: " (get-field (keyword "Last name") bio)]
-          [:pre "Created By: " (get-field (keyword "Created By") bio)]
-          [:pre "     Email: " (get-field (keyword "Email") bio)]
-          [:pre "     Phone: " (get-field (keyword "Phone") bio)]
-          [:pre "Who invited you to this matchmaking experiment?" (get-field (symbol "Who invited you to this matchmaking experiment?") bio)]
-          [:hr]
-          [:pre (str "bio:")]
-          [:pre (pr-str bio)]
-          [:pre "-------------------------------------------"]
-          (map (fn [j] [:p {:style {:margin "16px"} :key (str i "-" j)}
-                        (str j) [:br] [:br]
-                        (name j) [:br] [:br]
-                        (get-field (name j) bio)
-                        (str (type j)) [:br] [:br] [:hr] [:br]])
-               (get-key-names bio))
-          (let [fields (get bio :fields)]
-            [:div
-             [:hr]
-             (map-indexed (fn [j [k v]]
-                            [:div {:key (str i "-" j)}
-                             [:b (str k)]
-                             (if (= k :Pictures)
-                               [:p (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px"}}]) v)]
-                               [:p (str v)])
-                             [:br]])
-                          fields)])])
+         [:div {:key i :style {:background "#ffffff11"
+                               :border (when (get-field bio "Exclude from gallery?") "3px solid red")
+                               :margin "16px 0"
+                               :border-radius "8px"
+                               :padding "16px"
+                               :line-height "1.8em"}}
+          (when @debug? [:pre (str (get-key-names bio))])
+          [:h1 {:style {:font-size "32px" :margin-bottom "24px"}} (str (get-field bio "First name") " " (get-field bio "Last name"))]
+          [:p {:style {:margin-bottom "12px"}}                    (str (get-field bio "Phone") " · " (get-field bio "Email"))]
+          [:p {:style {:margin-bottom "12px"}}                    [:b "I'm interested in...: "] (get-field bio "I'm interested in...")]
+          [:p {:style {:margin-bottom "12px"}}                    [:b "Gender: "] (get-field bio "Gender")]
+          [:p {:style {:margin-bottom "12px"}}                    [:b "Home base city: "] (get-field bio "Home base city")]
+          [:p {:style {:margin-bottom "12px"}}                    [:b "Other cities where you spend time: "] (get-field bio "Other cities where you spend time")]
+          [:p {:style {:margin-bottom "12px"}}                    [:b "Social media links: "] (get-field bio "Social media links")]
+          [:p {:style {:margin-bottom "12px"}}                    [:b "Anything else you'd like your potential matches to know?: "] (get-field bio "Anything else you'd like your potential matches to know?")]
+          [:p                                                     (map-indexed (fn [k2 v2]
+                                                                                 [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
+                                                                               (get-field bio "Pictures"))]])
        @bios)])])
 
 (defn screen []
