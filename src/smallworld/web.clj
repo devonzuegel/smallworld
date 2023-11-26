@@ -681,7 +681,7 @@
   (GET "/api/v2/users" _ (generate-string (map select-user-fields (db/select-all db/users-table))))
   (POST "/api/v2/ping" req (ping req))
 
-  (GET "/api/matchmaking/bios" _ (generate-string (matchmaking/fetch-all-bios-memoized)))
+  (GET "/api/matchmaking/bios" _ (generate-string (matchmaking/get-all-bios)))
 
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
