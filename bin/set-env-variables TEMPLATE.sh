@@ -8,3 +8,6 @@ export DATABASE_URL=set up in Heroku
 export LEIN_JVM_OPTS="-XX:TieredStopAtLevel=1" # suppresses OpenJDK 64-Bit Server VM warning: https://stackoverflow.com/a/67695691/2639250
 export JAVA_OPTS="-Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8" # match the max heap/stack size set by Heroku
 export SENDGRID_API_KEY=get from https://sendgrid.com
+export ENVIRONMENT=e.g. dev-m1-macbook
+export JWT_SECRET_KEY=generate a 5-word random string
+export AIRTABLE_BASE_API_KEY=get from https://airtable.com

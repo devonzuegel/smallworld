@@ -14,6 +14,7 @@
             [smallworld.screens.settings :as settings]
             [smallworld.util             :as util]
             [smallworld.screens.home     :as home]
+            [smallworld.screens.meetcute :as meetcute]
             [clojure.pprint              :as pp]
             [cljsjs.mapbox]
             [goog.dom]
@@ -111,6 +112,7 @@
 (def routes
   (rf/router
    ["/"
+    ["meetcute" {:name ::meetcute  :view meetcute/screen}]
     ["signin"   {:name ::signin    :view signin-page     :controllers require-blank-session}]
     [""         {:name ::home      :view home-page       :controllers require-session}]
     ["settings" {:name ::settings  :view settings/screen :controllers require-session}]
