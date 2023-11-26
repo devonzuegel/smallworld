@@ -1,6 +1,7 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [cheshire.core :refer [generate-string generate-stream]]
+  (:require [buddy.sign.jwt :as jwt]
+            [cheshire.core :refer [generate-stream generate-string]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -10,31 +11,31 @@
             [compojure.handler :as compojure-handler]
             [compojure.route :as route]
             [oauth.twitter :as oauth]
-            [ring.util.io :as ring-io]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.session.cookie :as cookie]
+            [ring.util.io :as ring-io]
             [ring.util.request :as ring-request]
             [ring.util.response :as ring-response]
             [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
-            [buddy.sign.jwt :as jwt]
             [smallworld.email :as email]
+            [smallworld.matchmaking :as matchmaking]
             [smallworld.memoize :as m]
+            [smallworld.mocks :as mocks]
             [smallworld.session :as session]
             [smallworld.user-data :as user-data]
             [smallworld.util :as util]
-            [smallworld.mocks :as mocks]
             [timely.core :as timely]))
 
 (def debug? false)
 
 (defn create-auth-token [user-id]
-  (jwt/sign {:user-id user-id} "your-secret-key"))
+  (jwt/sign {:user-id user-id} (util/get-env-var "JWT_SECRET_KEY")))
 
 (defn verify-auth-token [auth-token]
   (try
-    (jwt/unsign auth-token "your-secret-key") ; TODO: make an environment variable
+    (jwt/unsign auth-token (util/get-env-var "JWT_SECRET_KEY"))
     (catch Exception _e
       :could-not-verify)))
 
@@ -679,6 +680,8 @@
   (GET "/api/v2/protected" req (protected-endpoint req))
   (GET "/api/v2/users" _ (generate-string (map select-user-fields (db/select-all db/users-table))))
   (POST "/api/v2/ping" req (ping req))
+
+  (GET "/api/matchmaking/bios" _ (generate-string (matchmaking/fetch-all-bios-memoized)))
 
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
