@@ -11,3 +11,4 @@ export SENDGRID_API_KEY=get from https://sendgrid.com
 export ENVIRONMENT=e.g. dev-m1-macbook
 export JWT_SECRET_KEY=generate a 5-word random string
 export AIRTABLE_BASE_API_KEY=get from https://airtable.com
+export SMS_CODE=generate a random code here

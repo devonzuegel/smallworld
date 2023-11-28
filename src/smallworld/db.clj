@@ -111,6 +111,17 @@
     (pp/pprint data))
   (sql/insert! @pool table-name data))
 
+(defn find-or-insert! [table-name col-name data]
+  (let [found-in-db (select-by-col table-name col-name (get-in data [col-name]))]
+    (if (empty? found-in-db)
+      (insert! table-name data)
+      (first found-in-db))))
+
+(defn find-or-insert-user! [data]
+  (let [user-data (merge {:screen_name (:phone data)} ; if they didn't provide a screen_name, use their phone number
+                         data)]
+    (find-or-insert! users-table :phone user-data)))
+
 ; TODO: this was meant to simplify the code, but it's best to just replace it
 ; everywhere with sql/update! probably
 (defn update! [table-name col-name col-value new-json]

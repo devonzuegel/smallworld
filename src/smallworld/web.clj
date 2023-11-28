@@ -30,15 +30,6 @@
 
 (def debug? false)
 
-(defn create-auth-token [user-id]
-  (jwt/sign {:user-id user-id} (util/get-env-var "JWT_SECRET_KEY")))
-
-(defn verify-auth-token [auth-token]
-  (try
-    (jwt/unsign auth-token (util/get-env-var "JWT_SECRET_KEY"))
-    (catch Exception _e
-      :could-not-verify)))
-
 (defn log-event [name data]
   (util/log (str name ": " data)))
 
@@ -613,29 +604,52 @@
     (email-update-worker)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Ketchup Club authentication ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn create-auth-token [user-id]
+  (jwt/sign {:user-id user-id} (util/get-env-var "JWT_SECRET_KEY")))
+
+(defn verify-auth-token [auth-token]
+  (try
+    (jwt/unsign auth-token (util/get-env-var "JWT_SECRET_KEY"))
+    (catch Exception _e
+      :could-not-verify)))
 
 ; pull username and password from the user's request, and check if they're valid
 ; if valid, set the session & return a successful result. Otherwise return a 401
-(defn valid-user? [_phone _password]
-  true ; TODO: implement this
-  #_(and (= username (util/get-env-var "USERNAME"))
-         (= password (util/get-env-var "PASSWORD"))))
+#_(defn valid-user? [_phone _password]
+    true ; TODO: implement this
+    #_(and (= username (util/get-env-var "USERNAME"))
+           (= password (util/get-env-var "PASSWORD"))))
 
-(defn login-v2 [req]
-  (let [phone (get-in req [:query-params "phone"])
-        password (get-in req [:query-params "password"])]
-    (pp/pprint (:query-params req))
-    (if (valid-user? phone password)
-      (ring-response/response (generate-string {:success true})))))
+#_(defn login-v2 [req]
+    (let [phone (get-in req [:query-params "phone"])
+          password (get-in req [:query-params "password"])]
+      (pp/pprint (:query-params req))
+      (if (valid-user? phone password)
+        (ring-response/response (generate-string {:success true}))
+        (ring-response/response (generate-string {:success false})))))
+
+(defn parse-credentials [req]
+  (let [query-params (get-in req [:query-params])
+        phone (get-in query-params ["phone"])
+        smsCode (get-in query-params ["smsCode"])]
+    {:phone phone :smsCode smsCode}))
 
 (defn login-v3 [req]
-  (let [credentials {} #_(parse-credentials req) ; Define parse-credentials to extract and validate credentials from the request
-        user-id "123" #_(authenticate credentials)] ; Define authenticate to validate credentials and return user id
-    (if user-id
-      (generate-string {:success true  :message "Login success!" :authToken (create-auth-token user-id)})
-      (generate-string {:success false}))))
+  (let [query-params (get-in req [:query-params])
+        phone (get-in query-params ["phone"])
+        smsCode (get-in query-params ["smsCode"])
+        user (db/find-or-insert-user! {:phone phone})]
+
+    (if (= smsCode (util/get-env-var "SMS_CODE"))
+      (generate-string {:success true
+                        :message "Login success!"
+                        :authToken (create-auth-token (:screen_name user))})
+      (generate-string {:success false
+                        :message "Oops, looks like you don't have the right code!"}))))
 
 (defn get-authorization-token [req]
   (-> (get-in req [:headers "authorization"])
@@ -672,6 +686,9 @@
         (println "valid auth token")
         (generate-string {:success true :message "Success!"})))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; TODO: prepend data endpoints with /api/v1/
 ;; app is function that takes a request, and returns a response
