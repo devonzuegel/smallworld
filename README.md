@@ -94,13 +94,13 @@ https://mc.sendgrid.com/dynamic-templates
 - open Heroku Postgres instance in terminal:
 
    ```bash
-   heroku pg:psql postgresql-rigid-43177 --app small-world-friends
+   bin/postgres-heroku.sh
    ```
 
 - open local Postgres instance in terminal:
 
    ```bash
-   /Applications/Postgres.app/Contents/Versions/14/bin/psql -p5432 "devonzuegel"
+   bin/postgres-local.sh
    ```
 
 - view all tables:
