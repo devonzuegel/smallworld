@@ -1,0 +1,1 @@
+heroku pg:psql postgresql-rigid-43177 --app small-world-friends
