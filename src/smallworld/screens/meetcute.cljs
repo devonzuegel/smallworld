@@ -1,12 +1,12 @@
-(ns smallworld.screens.meetcute (:require [reagent.core    :as r]
-                                          [clojure.string :as str]
+(ns smallworld.screens.meetcute (:require [clojure.string :as str]
+                                          [reagent.core    :as r]
                                           [smallworld.util :as util]))
 
 (def debug? (r/atom false))
 (def bios   (r/atom nil))
 (def phone (r/atom nil))
 (def profile (r/atom nil))
-(def current-tab (r/atom :profile))
+(def current-tab (r/atom :home))
 
 (defn fetch-bios []
   (println "fetching bios")
@@ -27,18 +27,19 @@
                         :border-radius "8px"
                         :padding "16px"
                         :line-height "1.8em"}}
-   (when @debug? [:pre (str (get-key-names bio))])
    [:h1 {:style {:font-size "32px" :margin-bottom "24px"}} (str (get-field bio "First name") " " (get-field bio "Last name"))]
-   [:p {:style {:margin-bottom "12px"}}                    (str (get-field bio "Phone") " · " (get-field bio "Email"))]
-   [:p {:style {:margin-bottom "12px"}}                    [:b "I'm interested in...: "] (get-field bio "I'm interested in...")]
-   [:p {:style {:margin-bottom "12px"}}                    [:b "Gender: "] (get-field bio "Gender")]
-   [:p {:style {:margin-bottom "12px"}}                    [:b "Home base city: "] (get-field bio "Home base city")]
-   [:p {:style {:margin-bottom "12px"}}                    [:b "Other cities where you spend time: "] (get-field bio "Other cities where you spend time")]
-   [:p {:style {:margin-bottom "12px"}}                    [:b "Social media links: "] (get-field bio "Social media links")]
-   [:p {:style {:margin-bottom "12px"}}                    [:b "Anything else you'd like your potential matches to know?: "] (get-field bio "Anything else you'd like your potential matches to know?")]
-   [:p                                                     (map-indexed (fn [k2 v2]
-                                                                          [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
-                                                                        (get-field bio "Pictures"))]])
+   [:pre "id: " (get-field bio "id")]
+   [:p {:style {:margin-bottom "12px"}} (str (get-field bio "Phone") " · " (get-field bio "Email"))]
+   [:p {:style {:margin-bottom "12px"}} [:b "I'm interested in...: "] (str/join ", " (get-field bio "I'm interested in..."))]
+   [:p {:style {:margin-bottom "12px"}} [:b "Gender: "] (get-field bio "Gender")]
+   [:p {:style {:margin-bottom "12px"}} [:b "Home base city: "] (get-field bio "Home base city")]
+   [:p {:style {:margin-bottom "12px"}} [:b "Other cities where you spend time: "] (get-field bio "Other cities where you spend time")]
+   [:p {:style {:margin-bottom "12px"}} [:b "Social media links: "] (get-field bio "Social media links")]
+   [:p {:style {:margin-bottom "12px"}} [:b "Anything else you'd like your potential matches to know?: "] (get-field bio "Anything else you'd like your potential matches to know?")]
+   [:p                                  (map-indexed (fn [k2 v2]
+                                                       [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
+                                                     (get-field bio "Pictures"))]
+   (when @debug? [:pre (. js/JSON (stringify (clj->js bio) nil 2))])])
 
 (defn home-tab []
   (let [included-bios (filter (fn [bio] (not (get-field bio "Exclude from gallery?"))) @bios)]
@@ -88,7 +89,7 @@
               :on-click sign-in} "Sign in / sign up"]]
 
    (if (nil? @profile)
-     [:p "Loading your profile..."]
+     [:p "Sign in by telling us your phone number"]
      (render-bio 0 @profile))])
 
 (defn nav-btns []
