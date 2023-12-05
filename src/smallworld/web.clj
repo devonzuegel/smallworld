@@ -699,6 +699,7 @@
   (POST "/api/v2/ping" req (ping req))
 
   (GET "/api/matchmaking/bios" _ (generate-string (matchmaking/get-all-bios)))
+  (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
 
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))

@@ -20,35 +20,36 @@
 
 (def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
-(defn -screen []
-  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-   [:h1 {:style {:font-size 80 :line-height "2em"}} (str "All bios " (when-not (nil? @bios) (str "(" (count @bios) ")")))]
-   [:br]
-   [:br]
-   (if (nil? @bios)
-     [:p "Loading..."]
-     [:div
-      (map-indexed
-       (fn [i bio]
-         [:div {:key i :style {:background "#ffffff11"
-                               :border (when (get-field bio "Exclude from gallery?") "3px solid red")
-                               :margin "16px 0"
-                               :border-radius "8px"
-                               :padding "16px"
-                               :line-height "1.8em"}}
-          (when @debug? [:pre (str (get-key-names bio))])
-          [:h1 {:style {:font-size "32px" :margin-bottom "24px"}} (str (get-field bio "First name") " " (get-field bio "Last name"))]
-          [:p {:style {:margin-bottom "12px"}}                    (str (get-field bio "Phone") " · " (get-field bio "Email"))]
-          [:p {:style {:margin-bottom "12px"}}                    [:b "I'm interested in...: "] (get-field bio "I'm interested in...")]
-          [:p {:style {:margin-bottom "12px"}}                    [:b "Gender: "] (get-field bio "Gender")]
-          [:p {:style {:margin-bottom "12px"}}                    [:b "Home base city: "] (get-field bio "Home base city")]
-          [:p {:style {:margin-bottom "12px"}}                    [:b "Other cities where you spend time: "] (get-field bio "Other cities where you spend time")]
-          [:p {:style {:margin-bottom "12px"}}                    [:b "Social media links: "] (get-field bio "Social media links")]
-          [:p {:style {:margin-bottom "12px"}}                    [:b "Anything else you'd like your potential matches to know?: "] (get-field bio "Anything else you'd like your potential matches to know?")]
-          [:p                                                     (map-indexed (fn [k2 v2]
-                                                                                 [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
-                                                                               (get-field bio "Pictures"))]])
-       @bios)])])
+(defn render-bio [i bio]
+  [:div {:key i :style {:background "#ffffff11"
+                        :border (when (get-field bio "Exclude from gallery?") "3px solid orange")
+                        :margin "16px 0"
+                        :border-radius "8px"
+                        :padding "16px"
+                        :line-height "1.8em"}}
+   (when @debug? [:pre (str (get-key-names bio))])
+   [:h1 {:style {:font-size "32px" :margin-bottom "24px"}} (str (get-field bio "First name") " " (get-field bio "Last name"))]
+   [:p {:style {:margin-bottom "12px"}}                    (str (get-field bio "Phone") " · " (get-field bio "Email"))]
+   [:p {:style {:margin-bottom "12px"}}                    [:b "I'm interested in...: "] (get-field bio "I'm interested in...")]
+   [:p {:style {:margin-bottom "12px"}}                    [:b "Gender: "] (get-field bio "Gender")]
+   [:p {:style {:margin-bottom "12px"}}                    [:b "Home base city: "] (get-field bio "Home base city")]
+   [:p {:style {:margin-bottom "12px"}}                    [:b "Other cities where you spend time: "] (get-field bio "Other cities where you spend time")]
+   [:p {:style {:margin-bottom "12px"}}                    [:b "Social media links: "] (get-field bio "Social media links")]
+   [:p {:style {:margin-bottom "12px"}}                    [:b "Anything else you'd like your potential matches to know?: "] (get-field bio "Anything else you'd like your potential matches to know?")]
+   [:p                                                     (map-indexed (fn [k2 v2]
+                                                                          [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
+                                                                        (get-field bio "Pictures"))]])
+
+(defn home-tab []
+  (let [included-bios (filter (fn [bio] (not (get-field bio "Exclude from gallery?"))) @bios)]
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
+     [:h1 {:style {:font-size 80 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
+     [:br]
+     [:br]
+     (if (nil? included-bios)
+       [:p "Loading..."]
+       [:div
+        (map-indexed render-bio included-bios)])]))
 
 (def phone-input-error (r/atom nil))
 
@@ -56,8 +57,22 @@
   ; strip the phone number of all non-numeric characters, then check if it's a valid phone number. if yes, return true; if not, return false:
   (let [phone (or phone "")
         phone (str/replace phone #"[^0-9]" "")]
-    (and (not (empty? phone)) (re-find #"^\d{10}$" phone))))
+    (and (not-empty phone) (re-find #"^\d{10}$" phone))))
 
+(defn fetch-profile [phone]
+  (println "\nfetching profile...")
+  (let [clean-phone (str/replace phone #"[^0-9]" "")]
+    (println "clean-phone: " clean-phone)
+    (util/fetch-post "/api/matchmaking/profile" {:phone clean-phone} (fn [result]
+                                                                       (println "result: " result)
+                                                                       (reset! profile result)))))
+
+(defn sign-in []
+  (if (valid-phone @phone)
+    (do
+      (reset! phone-input-error nil)
+      (fetch-profile @phone))
+    (reset! phone-input-error "Please enter a valid phone number")))
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
@@ -67,18 +82,19 @@
    [:p "Your phone number: " [:input {:type "text"
                                       :value @phone
                                       :on-change #(reset! phone (-> % .-target .-value))
+                                      :on-key-press #(when (= (.-key %) "Enter") (sign-in))
                                       :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
     [:button {:style btn-styles
-              :on-click (fn [] (if (valid-phone @phone)
-                                 (println "TODO: find bio with associated phone number")
-                                 (reset! phone-input-error "Please enter a valid phone number")))} "Sign in / sign up"]]
-   ;
-   ])
+              :on-click sign-in} "Sign in / sign up"]]
+
+   (if (nil? @profile)
+     [:p "Loading your profile..."]
+     (render-bio 0 @profile))])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
-   [:button {:on-click #(reset! current-tab :home) :style btn-styles} "All bios"]
-   [:button {:on-click #(reset! current-tab :profile) :style btn-styles} "Your profile"]
+   [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "All bios"]
+   [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Your profile"]
    [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
    [:br]])
 
@@ -93,5 +109,5 @@
 
                        (case @current-tab
                          :profile (profile-tab)
-                         :home (-screen)
-                         (-screen))])}))
+                         :home (home-tab)
+                         (home-tab))])}))
