@@ -51,7 +51,7 @@
                      ["Last name"                        (get-field bio "Last name")]
                      ["Phone"                            (format-phone (get-field bio "Phone"))]
                      ["Home base city"                   (get-field bio "Home base city")]
-                     ["I'm interested in..."             (get-field bio "I'm interested in...")]
+                     ["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
                      ["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
                      ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
@@ -147,14 +147,13 @@
                          (update-selected-values (if (in? selected-values value-name)
                                                    (remove (fn [v] (= value-name v)) selected-values)
                                                    (conj selected-values value-name))))}]
-   [:label {:for (str value-name "-checkbox")} value-name] ; TODO: make this a component that takes a value and returns the checkbox and label
-   ])
+   [:label {:for (str value-name "-checkbox")} value-name]])
 
 (defn checkboxes-component [all-values selected-values update-selected-values]
   [:div
    (for [value all-values] ^{:key value} [checkbox-component value selected-values update-selected-values])
-   [:pre "     All Values: " (str all-values)]
-   [:pre "Selected Values: " (str selected-values)]])
+   (when debug? [:pre "     All Values: " (str all-values)])
+   (when debug? [:pre "Selected Values: " (str selected-values)])])
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
