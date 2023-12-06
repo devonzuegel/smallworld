@@ -48,6 +48,9 @@
                  (when debug? (.log js/console res))
                  (when callback (callback res)))))))
 
+(defn exclude-keys [m keys-to-exclude]
+  (reduce dissoc m keys-to-exclude))
+
 (defn debounce [f interval]
   (let [dbnc (Debouncer. f interval)]
     ;; use apply here to support functions of various arities
