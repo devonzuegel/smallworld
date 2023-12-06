@@ -155,10 +155,9 @@
 
 (defn checkboxes-component []
   (let [values ["A" "B" "C"]]
-    (fn []
-      [:div
-       (for [value values] ^{:key value} [checkbox value])
-       [:div "Selected Values: " (str @checkbox-values)]])))
+    [:div
+     (for [value values] ^{:key value} [checkbox value])
+     [:div "Selected Values: " (str @checkbox-values)]]))
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
@@ -198,17 +197,18 @@
                           (let [interested-in-list (get-field @profile "I'm interested in...")]
                             (println "fields: " interested-in-list)
                             (println "women?: " (in? interested-in-list "Women"))
-                            ; checkboxes to select Men or Women, and when they change, update the @profile:
-                            [:div
-                             [:pre "current value:" (pr-str (get-field @profile "I'm interested in..."))]
-                             [:div {:style {:margin-right "12px"}}
-                              [:input {:type "checkbox" :id "men-checkbox"   :checked (in? interested-in-list "Men")   :on-change change-interested-in-checkbox}]
-                              [:label {:for "men-checkbox"} "Men"]]
-                             [:div {:style {:margin-right "12px"}}
-                              [:input {:type "checkbox" :id "women-checkbox" :checked (in? interested-in-list "Women") :on-change change-interested-in-checkbox}]
-                              [:label {:for "women-checkbox"} "Women"]]
-                            ;
-                             ])]
+                            (checkboxes-component)
+
+                            #_[:div
+                               [:pre "current value:" (pr-str (get-field @profile "I'm interested in..."))]
+                               [:div {:style {:margin-right "12px"}}
+                                [:input {:type "checkbox" :id "men-checkbox"   :checked (in? interested-in-list "Men")   :on-change change-interested-in-checkbox}]
+                                [:label {:for "men-checkbox"} "Men"]]
+                               [:div {:style {:margin-right "12px"}}
+                                [:input {:type "checkbox" :id "women-checkbox" :checked (in? interested-in-list "Women") :on-change change-interested-in-checkbox}]
+                                [:label {:for "women-checkbox"} "Women"]]
+                                ;
+                               ])]
                          ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
                          ["Gender"                           (editable-input "Gender")]
                          ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
@@ -225,14 +225,13 @@
    [:br]])
 
 (defn screen []
-  (checkboxes-component)
-  #_(r/create-class
-     {:component-did-mount (fn [] (fetch-bios))
-      :reagent-render (fn []
-                        [:div
-                         [nav-btns]
+  (r/create-class
+   {:component-did-mount (fn [] (fetch-bios))
+    :reagent-render (fn []
+                      [:div
+                       [nav-btns]
 
-                         (case @current-tab
-                           :profile (profile-tab)
-                           :home (home-tab)
-                           (home-tab))])}))
+                       (case @current-tab
+                         :profile (profile-tab)
+                         :home (home-tab)
+                         (home-tab))])}))
