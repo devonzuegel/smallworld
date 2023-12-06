@@ -4,9 +4,9 @@
 
 (def debug? (r/atom false))
 (def bios   (r/atom nil))
-(def phone (r/atom "650-906-7099")) ; TODO: remove me
+(def phone (r/atom "123-123-1234")) ; TODO: remove me
 (def profile (r/atom nil))
-(def current-tab (r/atom :home))
+(def current-tab (r/atom :profile))
 
 (defn fetch-bios []
   (println "fetching bios")
@@ -20,9 +20,9 @@
 
 (def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
-(def fields-changeable-by-user ["Anything else you'd like your potential matches to know?"
+(def fields-changeable-by-user [; Phone is intentionally not included because it's used as the key to find the record to update, so we don't want to overwrite it
+                                "Anything else you'd like your potential matches to know?"
                                 "Social media links"
-                                "Created By"
                                 "Email"
                                 "First name"
                                 "Last name"
@@ -33,19 +33,13 @@
                                 "Gender"])
 
 (defn bio-row [i [key-name value]]
-  [:tr {:key i :style {:padding "24px" :background (if (even? i) "#ffffff11" "#ffffff22")}}
+  [:tr {:key i :style {:padding "24px" :background "#ffffff11"}}
    [:td {:style {:padding "8px" :text-align "right" :font-size ".85em" :opacity ".75"}} key-name]
    [:td {:style {:padding "8px" :text-align "left"}} value]])
 
 (defn render-bio [i bio]
-  [:div {:key i :style {:background "#ffffff11"
-                        :border (when (get-field bio "Exclude from gallery?") "3px solid orange")
-                        :margin "16px 0"
-                        :border-radius "8px"
-                        :padding "16px"
-                        :line-height "1.8em"}}
-   (let [key-values [; TODO: make these editable by the user
-                     ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
+  [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
+   (let [key-values [["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
                      ["Social media links"               [:pre (get-field bio "Social media links")]]
                      ["Email"                            (get-field bio "Email")]
                      ["First name"                       (get-field bio "First name")]
@@ -55,44 +49,16 @@
                      ["I'm interested in..."             (get-field bio "I'm interested in...")]
                      ["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
-                     ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                              (get-field bio "Pictures"))]]]
-     [:div
-      [:pre (println "bio: " (str bio))]
-      [:table {:style {:margin-top "12px" :border "1px solid #ffffff22" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em"}}
-       [:tbody
-        (map-indexed bio-row key-values)
-        ;
-        ]]])]
-
-  #_[:div {:key i :style {:background "#ffffff11"
-                          :border (when (get-field bio "Exclude from gallery?") "3px solid orange")
-                          :margin "16px 0"
-                          :border-radius "8px"
-                          :padding "16px"
-                          :line-height "1.8em"}}
-     [:h1 {:style {:font-size "32px" :margin-bottom "24px"}} (str (get-field bio "First name") " " (get-field bio "Last name"))]
-     [:p {:style {:margin-bottom "12px"}} [:b "id: "] [:code (get-field bio "id")]]
-     [:p {:style {:margin-bottom "12px"}} [:b "Phone: "] [:code (get-field bio "Phone")]]
-     [:p {:style {:margin-bottom "12px"}} [:b "Email: "] [:code (get-field bio "Email")]]
-     [:br]
-     [:p {:style {:margin-bottom "12px"}} [:b "I'm interested in...: "] (str/join ", " (get-field bio "I'm interested in..."))]
-     [:p {:style {:margin-bottom "12px"}} [:b "Gender: "] (get-field bio "Gender")]
-     [:p {:style {:margin-bottom "12px"}} [:b "Home base city: "] (get-field bio "Home base city")]
-     [:p {:style {:margin-bottom "12px"}} [:b "Other cities where you spend time: "] (get-field bio "Other cities where you spend time")]
-     [:p {:style {:margin-bottom "12px"}} [:b "Social media links: "] (get-field bio "Social media links")]
-     [:p {:style {:margin-bottom "12px"}} [:b "Anything else you'd like your potential matches to know?: "] (get-field bio "Anything else you'd like your potential matches to know?")]
-     [:p                                  (map-indexed (fn [k2 v2]
-                                                         [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
-                                                       (get-field bio "Pictures"))]
-     (when @debug? [:pre (. js/JSON (stringify (clj->js bio) nil 2))])])
+                     ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                      (get-field bio "Pictures"))]]]
+     [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em"}}
+      [:tbody
+       (map-indexed bio-row key-values)]])])
 
 (defn home-tab []
   (let [included-bios (filter (fn [bio] (not (get-field bio "Exclude from gallery?"))) @bios)]
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-     [:h1 {:style {:font-size 60 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
-     [:br]
-     [:br]
+     [:h1 {:style {:font-size 48 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
      (if (nil? included-bios)
        [:p "Loading..."]
        [:div
@@ -123,27 +89,33 @@
       (fetch-profile @phone))
     (reset! phone-input-error "Please enter a valid phone number")))
 
-(defn update-anything-else []
-  (let [new-anything-else (js/prompt "Anything else you'd like your potential matches to know?"
-                                     (get-field @profile "Anything else you'd like your potential matches to know?"))]
-    (println "new-anything-else: " new-anything-else)
-    (util/fetch-post "/api/matchmaking/profile" {"Phone" @phone
-                                                 "id" (get-field @profile "id")
-                                                 "Email" "1@gmail.com"
-                                                 "Anything else you'd like your potential matches to know?" new-anything-else}
+(defn update-profile! []
+  (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
+                                                                (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                        ["Phone"])))]
+    (js/console.log "profile-editable-fields-only: " profile-editable-fields-only)
+    (util/fetch-post "/api/matchmaking/profile"
+                     profile-editable-fields-only
                      update-profile-with-result)))
 
-(defn render-my-bio []
-  [:div
-   [:button {:style btn-styles :on-click update-anything-else} "update 'Anything else you'd like your potential matches to know?'"]
-   (render-bio 0 @profile)])
+(defn change-profile-field [field-name]
+  #(reset! profile
+           (assoc @profile (keyword field-name) (-> % .-target .-value))))
+
+(defn editable-input [field-name]
+  [:input {:type "text"
+           :value (get-field @profile field-name)
+           :on-change (change-profile-field field-name)
+           :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}])
+
+(defn editable-text-input [field-name]
+  [:textarea {:value (get-field @profile field-name)
+              :on-change (change-profile-field field-name)
+              :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}])
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-   [:h1 {:style {:font-size 80 :line-height "2em"}} "Your profile"]
-
-   (when debug?
-     [:pre "@profile: " (. js/JSON (stringify (clj->js @profile) nil 2))])
+   [:h1 {:style {:font-size 48 :line-height "2em"}} "Your profile"]
 
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
@@ -155,7 +127,24 @@
       [:button {:style btn-styles :on-click sign-in} "Sign in / sign up"])]
 
    (when (exists? @profile)
-     (render-my-bio))])
+     [:div
+      [:button {:style btn-styles :on-click update-profile!} "Save changes"]
+      [:div {:style {:margin "16px 0 24px 0"}}
+       (let [key-values [["Anything else you'd like your potential matches to know?" (editable-input "Anything else you'd like your potential matches to know?")]
+                         ["Social media links"               (editable-input "Social media links")]
+                         ["Email"                            (editable-input "Email")]
+                         ["First name"                       (editable-input "First name")]
+                         ["Last name"                        (editable-input "Last name")]
+                         ["Phone"                            (get-field @profile "Phone")] ; do not make this editable!
+                         ["Home base city"                   (editable-input "Home base city")]
+                         ["I'm interested in..."             (editable-input "I'm interested in...")]
+                         ["What makes this person awesome?"  (editable-input "What makes this person awesome?")]
+                         ["Gender"                           (editable-input "Gender")]
+                         ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                          (get-field @profile "Pictures"))]]]
+         [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em"}}
+          [:tbody
+           (map-indexed bio-row key-values)]])]])])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
