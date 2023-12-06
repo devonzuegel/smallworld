@@ -127,12 +127,6 @@
 
 (defn in? [list str] (some #(= str %) list))
 
-(defn change-interested-in-checkbox [-e]
-  (let [men-checkbox (js/document.getElementById "men-checkbox")
-        women-checkbox (js/document.getElementById "women-checkbox")]
-    (js/console.log "  men: " (.-checked men-checkbox))
-    (js/console.log "women: " (.-checked women-checkbox))))
-
 (def checkbox-values (r/atom ["A"]))
 
 (defn handle-checkbox-change [value]
@@ -143,21 +137,22 @@
                #(conj % value)
                #(remove (fn [v] (= value v)) %))))))
 
-(defn checkbox [value]
+(defn checkbox-component [value-name selected-values update-selected-values]
   [:div
    [:input {:type "checkbox"
-            :value value
-            :checked (in? @checkbox-values value)
+            :value value-name
+            :checked (boolean (in? selected-values value-name))
             :style {:margin "12px"}
-            :on-change (handle-checkbox-change value)}]
-   [:label {:for (str value "-checkbox")} value] ; TODO: make this a component that takes a value and returns the checkbox and label
+            :on-change #(update-selected-values ["Men"])}]
+            ;; :on-change (update-selected-values value-name)}]
+   [:label {:for (str value-name "-checkbox")} value-name] ; TODO: make this a component that takes a value and returns the checkbox and label
    ])
 
-(defn checkboxes-component []
-  (let [values ["A" "B" "C"]]
-    [:div
-     (for [value values] ^{:key value} [checkbox value])
-     [:div "Selected Values: " (str @checkbox-values)]]))
+(defn checkboxes-component [all-values selected-values update-selected-values]
+  [:div
+   (for [value all-values] ^{:key value} [checkbox-component value selected-values update-selected-values])
+   [:pre "     All Values: " (str all-values)]
+   [:pre "Selected Values: " (str selected-values)]])
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
@@ -197,18 +192,10 @@
                           (let [interested-in-list (get-field @profile "I'm interested in...")]
                             (println "fields: " interested-in-list)
                             (println "women?: " (in? interested-in-list "Women"))
-                            (checkboxes-component)
-
-                            #_[:div
-                               [:pre "current value:" (pr-str (get-field @profile "I'm interested in..."))]
-                               [:div {:style {:margin-right "12px"}}
-                                [:input {:type "checkbox" :id "men-checkbox"   :checked (in? interested-in-list "Men")   :on-change change-interested-in-checkbox}]
-                                [:label {:for "men-checkbox"} "Men"]]
-                               [:div {:style {:margin-right "12px"}}
-                                [:input {:type "checkbox" :id "women-checkbox" :checked (in? interested-in-list "Women") :on-change change-interested-in-checkbox}]
-                                [:label {:for "women-checkbox"} "Women"]]
-                                ;
-                               ])]
+                            (checkboxes-component ["Men" "Women"]
+                                                  (get-field @profile "I'm interested in...")
+                                                  #(reset! profile
+                                                           (assoc @profile (keyword "I'm interested in...") %))))]
                          ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
                          ["Gender"                           (editable-input "Gender")]
                          ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
