@@ -16,7 +16,7 @@
 
 (defn fetch-all-bios! []
   (println "fetching bios from Airtable")
-  (airtable/get-in-base airtable-base ["bios-devons-test"]))
+  (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
 
 (def fetch-all-bios-memoized
   (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
@@ -64,7 +64,7 @@
       (pp/pprint fields-to-change)
 
       (let [data (-> (airtable/update-in-base airtable-base
-                                              ["bios-devons-test" (:id bio)]
+                                              ["bios-devons-test-2" (:id bio)]
                                               {:fields fields-to-change})
                      :body
                      json/read-str)]
