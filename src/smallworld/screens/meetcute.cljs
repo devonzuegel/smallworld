@@ -62,12 +62,15 @@
         phone (str/replace phone #"[^0-9]" "")]
     (and (not-empty phone) (re-find #"^\d{10}$" phone))))
 
+(defn update-profile-with-result [result]
+  (reset! profile (merge (:fields result)
+                         {:id (:id result)})))
+
 (defn fetch-profile [phone]
   (println "\nfetching profile...")
   (let [clean-phone (str/replace phone #"[^0-9]" "")]
     (println "clean-phone: " clean-phone)
-    (util/fetch-post "/api/matchmaking/profile" {"Phone" clean-phone} (fn [result]
-                                                                        (reset! profile result)))))
+    (util/fetch-post "/api/matchmaking/profile" {"Phone" clean-phone} update-profile-with-result)))
 
 (defn sign-in []
   (if (valid-phone @phone)
@@ -84,7 +87,7 @@
                                                  "id" (get-field @profile "id")
                                                  "Email" "1@gmail.com"
                                                  "Anything else you'd like your potential matches to know?" new-anything-else}
-                     (fn [result] (reset! profile result)))))
+                     update-profile-with-result)))
 
 (defn render-my-bio []
   [:div
