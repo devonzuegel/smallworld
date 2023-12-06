@@ -32,6 +32,11 @@
                                 "What makes this person awesome?"
                                 "Gender"])
 
+(defn bio-row [i [key-name value]]
+  [:tr {:key i :style {:padding "24px" :background (if (even? i) "#ffffff11" "#ffffff22")}}
+   [:td {:style {:padding "8px" :text-align "right" :font-size ".85em" :opacity ".75"}} key-name]
+   [:td {:style {:padding "8px" :text-align "left"}} value]])
+
 (defn render-bio [i bio]
   [:div {:key i :style {:background "#ffffff11"
                         :border (when (get-field bio "Exclude from gallery?") "3px solid orange")
@@ -39,23 +44,26 @@
                         :border-radius "8px"
                         :padding "16px"
                         :line-height "1.8em"}}
-   (let [key-names fields-changeable-by-user
-         fields (map (fn [key-name]
-                       [:tr {:style {:border-bottom "1px solid #ffffff22" :padding "24px"}}
-                        [:td {:style {:padding "12px" :text-align "right" :font-size ".9em" :opacity ".8"}} key-name]
-                        [:td {:style {:padding "12px" :text-align "left"}} (str (get-field bio key-name))]])
-                     key-names)]
+   (let [key-values [; TODO: make these editable by the user
+                     ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
+                     ["Social media links"               [:pre (get-field bio "Social media links")]]
+                     ["Email"                            (get-field bio "Email")]
+                     ["First name"                       (get-field bio "First name")]
+                     ["Last name"                        (get-field bio "Last name")]
+                     ["Phone"                            (get-field bio "Phone")]
+                     ["Home base city"                   (get-field bio "Home base city")]
+                     ["I'm interested in..."             (get-field bio "I'm interested in...")]
+                     ["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
+                     ["Gender"                           (get-field bio "Gender")]
+                     ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                              (get-field bio "Pictures"))]]]
      [:div
-      [:pre (get-key-names bio)]
-      [:table {:style {:margin-top "12px" :border "1px solid #ffffff22" :border-radius "8px" :padding "12px" :vertical-align "top"}}
+      [:pre (println "bio: " (str bio))]
+      [:table {:style {:margin-top "12px" :border "1px solid #ffffff22" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em"}}
        [:tbody
-        fields
-        [:tr
-         [:td {:style {:padding-right "12px" :text-align "right"}}
-          "Pictures"]
-         [:td (map-indexed (fn [k2 v2]
-                             [:img {:src (:url v2) :key k2 :style {:height "120px" :margin "8px 8px 0 0"}}])
-                           (get-field bio "Pictures"))]]]]])]
+        (map-indexed bio-row key-values)
+        ;
+        ]]])]
 
   #_[:div {:key i :style {:background "#ffffff11"
                           :border (when (get-field bio "Exclude from gallery?") "3px solid orange")
@@ -82,7 +90,7 @@
 (defn home-tab []
   (let [included-bios (filter (fn [bio] (not (get-field bio "Exclude from gallery?"))) @bios)]
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-     [:h1 {:style {:font-size 80 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
+     [:h1 {:style {:font-size 60 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
      [:br]
      [:br]
      (if (nil? included-bios)
@@ -128,20 +136,14 @@
 (defn render-my-bio []
   [:div
    [:button {:style btn-styles :on-click update-anything-else} "update 'Anything else you'd like your potential matches to know?'"]
-   (let [key-names (get-key-names @profile)
-         fields (map (fn [key-name]
-                       [:tr
-                        [:td {:style {:padding-right "12px" :text-align "right"}} key-name]
-                        [:td (get-field @profile key-name)]])
-                     key-names)]
-     [:table {:style {:margin-top "12px" :border "1px solid #ffffff22" :border-radius "8px" :padding "12px"}}
-      [:tbody fields]])])
+   (render-bio 0 @profile)])
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
    [:h1 {:style {:font-size 80 :line-height "2em"}} "Your profile"]
 
-   [:pre "@profile: " (. js/JSON (stringify (clj->js @profile) nil 2))]
+   (when debug?
+     [:pre "@profile: " (. js/JSON (stringify (clj->js @profile) nil 2))])
 
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
