@@ -5,7 +5,8 @@
                                      [cheshire.core :refer [generate-string]]
                                      [clojure.data.json :as json]
                                      [clojure.string :as str]
-                                     #_[goog.object :as obj]))
+                                     #_[goog.object :as obj]
+                                     [cljs.spec.gen.alpha :as gen]))
 
 (def airtable-base {:api-key (util/get-env-var "AIRTABLE_BASE_API_KEY")
                     :base-id "appF2K8ThWvtrC6Hs"})
@@ -18,11 +19,14 @@
   (airtable/get-in-base airtable-base ["bios-devons-test"]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 30)))
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios []
   (let [all-bios-raw (fetch-all-bios-memoized)]
     (map (fn [bio] (merge (:fields bio) {:id (:id bio)})) all-bios-raw)))
+
+(defn get-field [bio field]
+  (get-in bio [(keyword field)]))
 
 (defn clean-phone [phone] (if (nil? phone)
                             nil
@@ -31,39 +35,39 @@
 (defn update-profile [req]
   (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
         all-bios (get-all-bios)
-        phone (get-in parsed-body [:phone])]
+        bio-id (get-field parsed-body "id")
+        phone (get-field parsed-body "Phone")]
     (println "")
-    (println "   phone: " phone)
-    (println "all-bios: ")
-    (pp/pprint (map (fn [bio] (clean-phone (get-in bio ["Phone"]))) all-bios))
+    (println "      phone : " phone)
+    (println "parsed-body :")
+    (pp/pprint parsed-body)
     (println "")
 
-    ;; (generate-string [1 2 3 4])
-
-    ; map through all bios and create a new array with true if the phone number matches, false if it doesn't:
-    (let [matching-bios (map (fn [bio] (= (clean-phone phone)
-                                          (clean-phone (get-in bio ["Phone"]))))
-                             all-bios)]
-      (println "matching-bios: " matching-bios)
+    (let [bio (first (filter (fn [this-bio]
+                               (or (= bio-id
+                                      (get-field this-bio "id"))
+                                   (= (clean-phone phone)
+                                      (clean-phone (get-in this-bio ["Phone"])))))
+                             all-bios))
+          fields-to-change  (util/exclude-keys parsed-body ["id"])]
+      (when (nil? bio) (throw (Exception. (str "No bio found with phone number " phone))))
       (println "")
+      (pp/pprint "bio:")
+      ;; (pp/pprint bio)
+      (println "")
+      (println "bio id: ")
+      (println "  " bio-id)
+      (println "")
+      (println "Anything else you'd like your potential matches to know?")
+      (println "  " (get-field parsed-body "Anything else you'd like your potential matches to know?"))
+      (pp/pprint "fields-to-change:")
+      (pp/pprint fields-to-change)
 
-      (let [bio (first (filter (fn [this-bio] (= (clean-phone phone)
-                                                 (clean-phone (get-in this-bio ["Phone"]))))
-                               all-bios))]
-        (println "selected bio: " bio)
-        (generate-string bio)
-
-        #_(let [new-data (get-in req [:body])]
-            (let [merged-data (merge bio new-data)]
-              (airtable/update-in-base airtable-base ["bios-devons-test" (:id bio)] merged-data))))
-
-      #_(generate-string [1 2 3]))))
-
-
-#_(defn update-profile [phone new-data]
-    (let [phone (str/replace phone #"[^0-9]" "")]
-    ; get the current profile without updating it:
-      (let [current-profile (airtable/get-in-base airtable-base ["bios-devons-test" phone])]
-        current-profile
-        #_(let [merged-data (merge current-profile new-data)]
-            (airtable/update-in-base airtable-base ["bios-devons-test" phone] merged-data)))))
+      (let [data (-> (airtable/update-in-base airtable-base
+                                              ["bios-devons-test" (:id bio)]
+                                              {:fields {}})
+                     :body
+                     json/read-str)]
+        (pp/pprint "data:")
+        (pp/pprint data)
+        (generate-string (airtable/kwdize data))))))

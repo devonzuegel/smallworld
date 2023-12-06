@@ -4,9 +4,9 @@
 
 (def debug? (r/atom false))
 (def bios   (r/atom nil))
-(def phone (r/atom nil))
+(def phone (r/atom "650-906-7099")) ; TODO: remove me
 (def profile (r/atom nil))
-(def current-tab (r/atom :home))
+(def current-tab (r/atom :profile))
 
 (defn fetch-bios []
   (println "fetching bios")
@@ -28,8 +28,10 @@
                         :padding "16px"
                         :line-height "1.8em"}}
    [:h1 {:style {:font-size "32px" :margin-bottom "24px"}} (str (get-field bio "First name") " " (get-field bio "Last name"))]
-   [:pre "id: " (get-field bio "id")]
-   [:p {:style {:margin-bottom "12px"}} (str (get-field bio "Phone") " · " (get-field bio "Email"))]
+   [:p {:style {:margin-bottom "12px"}} [:b "id: "] [:code (get-field bio "id")]]
+   [:p {:style {:margin-bottom "12px"}} [:b "Phone: "] [:code (get-field bio "Phone")]]
+   [:p {:style {:margin-bottom "12px"}} [:b "Email: "] [:code (get-field bio "Email")]]
+   [:br]
    [:p {:style {:margin-bottom "12px"}} [:b "I'm interested in...: "] (str/join ", " (get-field bio "I'm interested in..."))]
    [:p {:style {:margin-bottom "12px"}} [:b "Gender: "] (get-field bio "Gender")]
    [:p {:style {:margin-bottom "12px"}} [:b "Home base city: "] (get-field bio "Home base city")]
@@ -64,9 +66,8 @@
   (println "\nfetching profile...")
   (let [clean-phone (str/replace phone #"[^0-9]" "")]
     (println "clean-phone: " clean-phone)
-    (util/fetch-post "/api/matchmaking/profile" {:phone clean-phone} (fn [result]
-                                                                       (println "result: " result)
-                                                                       (reset! profile result)))))
+    (util/fetch-post "/api/matchmaking/profile" {"Phone" clean-phone} (fn [result]
+                                                                        (reset! profile result)))))
 
 (defn sign-in []
   (if (valid-phone @phone)
@@ -75,9 +76,26 @@
       (fetch-profile @phone))
     (reset! phone-input-error "Please enter a valid phone number")))
 
+(defn update-anything-else []
+  (let [new-anything-else (js/prompt "Anything else you'd like your potential matches to know?"
+                                     (get-field @profile "Anything else you'd like your potential matches to know?"))]
+    (println "new-anything-else: " new-anything-else)
+    (util/fetch-post "/api/matchmaking/profile" {"Phone" @phone
+                                                 "id" (get-field @profile "id")
+                                                 "Email" "1@gmail.com"
+                                                 "Anything else you'd like your potential matches to know?" new-anything-else}
+                     (fn [result] (reset! profile result)))))
+
+(defn render-my-bio []
+  [:div
+   [:button {:style btn-styles :on-click update-anything-else} "update 'Anything else you'd like your potential matches to know?'"]
+   (render-bio 0 @profile)])
+
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
    [:h1 {:style {:font-size 80 :line-height "2em"}} "Your profile"]
+
+   [:pre "@profile: " (. js/JSON (stringify (clj->js @profile) nil 2))]
 
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
@@ -85,12 +103,10 @@
                                       :on-change #(reset! phone (-> % .-target .-value))
                                       :on-key-press #(when (= (.-key %) "Enter") (sign-in))
                                       :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
-    [:button {:style btn-styles
-              :on-click sign-in} "Sign in / sign up"]]
-
-   (if (nil? @profile)
-     [:p "Sign in by telling us your phone number"]
-     (render-bio 0 @profile))])
+    (when (nil? @profile)
+      [:button {:style btn-styles :on-click sign-in} "Sign in / sign up"])]
+   (when (exists? @profile)
+     (render-my-bio))])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
