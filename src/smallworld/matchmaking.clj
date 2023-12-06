@@ -49,10 +49,10 @@
                                    (= (clean-phone phone)
                                       (clean-phone (get-in this-bio ["Phone"])))))
                              all-bios))
-          fields-to-change  (util/exclude-keys parsed-body ["id"])]
+          fields-to-change  (util/exclude-keys parsed-body [:id])]
       (when (nil? bio) (throw (Exception. (str "No bio found with phone number " phone))))
-      (println "")
-      (pp/pprint "bio:")
+      ;; (println "")
+      ;; (pp/pprint "bio:")
       ;; (pp/pprint bio)
       (println "")
       (println "bio id: ")
@@ -65,7 +65,7 @@
 
       (let [data (-> (airtable/update-in-base airtable-base
                                               ["bios-devons-test" (:id bio)]
-                                              {:fields {}})
+                                              {:fields fields-to-change})
                      :body
                      json/read-str)]
         (pp/pprint "data:")
