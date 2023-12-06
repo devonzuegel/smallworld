@@ -4,6 +4,7 @@
    Dependencies: [org.clojure/data.json \"0.2.6\"] [clj-http \"2.0.0\"]"
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
+            [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as string]))
 
@@ -17,7 +18,7 @@
   (let [req-uri (build-request-uri base-id resource-path)]
     (client/get req-uri {:headers {"Authorization" (str "Bearer " api-key)}})))
 
-(defn ^:private kwdize [m]
+(defn kwdize [m]
   (set/rename-keys m {"id" :id
                       "fields" :fields
                       "createdTime" :created-time}))
@@ -43,3 +44,19 @@
     (if (= (count resource-path) 1)
       (map kwdize (get data "records"))
       (kwdize data))))
+
+; only update the fields included in the request, do not overwrite any fields not provided
+(defn update-in-base [base resource-path record-id-or-records]
+  (validate-base base)
+  (validate-resource-path resource-path)
+  (let [req-uri (build-request-uri (:base-id base) resource-path)
+        req-body (json/write-str (if (sequential? record-id-or-records)
+                                   {:records record-id-or-records}
+                                   record-id-or-records))]
+    (println "")
+    (pp/pprint "req-body:")
+    (pp/pprint req-body)
+    (println "")
+    (client/patch req-uri {:headers {"Authorization" (str "Bearer " (:api-key base))
+                                     "Content-Type" "application/json"}
+                           :body req-body})))

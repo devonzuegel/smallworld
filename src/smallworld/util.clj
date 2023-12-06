@@ -32,6 +32,9 @@
       (println "=======================================================\n")
       response)))
 
+(defn exclude-keys [m keys-to-exclude]
+  (reduce dissoc m keys-to-exclude))
+
 (defn in? [string array]
   (some #(= string %) array))
 
