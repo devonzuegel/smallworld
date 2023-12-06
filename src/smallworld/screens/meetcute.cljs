@@ -143,8 +143,10 @@
             :value value-name
             :checked (boolean (in? selected-values value-name))
             :style {:margin "12px"}
-            :on-change #(update-selected-values ["Men"])}]
-            ;; :on-change (update-selected-values value-name)}]
+            :on-change (fn []
+                         (update-selected-values (if (in? selected-values value-name)
+                                                   (remove (fn [v] (= value-name v)) selected-values)
+                                                   (conj selected-values value-name))))}]
    [:label {:for (str value-name "-checkbox")} value-name] ; TODO: make this a component that takes a value and returns the checkbox and label
    ])
 
