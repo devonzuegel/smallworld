@@ -155,6 +155,22 @@
    (when debug? [:pre "     All Values: " (str all-values)])
    (when debug? [:pre "Selected Values: " (str selected-values)])])
 
+(defn radio-btn-component [value-name selected-value update-selected-value]
+  [:div
+   [:input {:type "radio"
+            :value value-name
+            :checked (= selected-value value-name)
+            :style {:margin "12px"}
+            :on-change (fn []
+                         (update-selected-value value-name))}]
+   [:label {:for (str value-name "-radio")} value-name]])
+
+(defn radio-btns-component [all-values selected-value update-selected-value]
+  [:div
+   (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
+   (when debug? [:pre "     All Values: " (str all-values)])
+   (when debug? [:pre "Selected Values: " (str selected-value)])])
+
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
    [:h1 {:style {:font-size 48 :line-height "2em"}} "Your profile"]
@@ -189,18 +205,16 @@
                          ["First name"                       (editable-input "First name")]
                          ["Last name"                        (editable-input "Last name")]
                          ["Home base city"                   (editable-input "Home base city")]
-                         ["I'm interested in..."
-                          (let [interested-in-list (get-field @profile "I'm interested in...")]
-                            (println "fields: " interested-in-list)
-                            (println "women?: " (in? interested-in-list "Women"))
-                            (checkboxes-component ["Men" "Women"]
-                                                  (get-field @profile "I'm interested in...")
-                                                  #(reset! profile
-                                                           (assoc @profile (keyword "I'm interested in...") %))))]
                          ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
-                         ["Gender"                           (editable-input "Gender")]
-                         ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                          (get-field @profile "Pictures"))]]]
+                         ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                                                                       (get-field @profile "I'm interested in...")
+                                                                       #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
+                         ["Gender" (radio-btns-component ["Man" "Woman"]
+                                                         (get-field @profile "Gender")
+                                                         #(reset! profile (assoc @profile (keyword "Gender") %)))]
+
+                         ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                  (get-field @profile "Pictures"))]]]
          [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
           [:tbody
            (map-indexed bio-row key-values)]])]])])
