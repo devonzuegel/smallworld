@@ -156,13 +156,13 @@
    (when debug? [:pre "Selected Values: " (str selected-values)])])
 
 (defn radio-btn-component [value-name selected-value update-selected-value]
-  [:div
+  [:div {:style {:display "flex" :align-items "center"}}
    [:input {:type "radio"
+            :id (str value-name "-radio")
             :value value-name
             :checked (= selected-value value-name)
-            :style {:margin "12px"}
-            :on-change (fn []
-                         (update-selected-value value-name))}]
+            :style {:margin-right "8px"}
+            :on-change (fn [] (update-selected-value value-name))}]
    [:label {:for (str value-name "-radio")} value-name]])
 
 (defn radio-btns-component [all-values selected-value update-selected-value]
