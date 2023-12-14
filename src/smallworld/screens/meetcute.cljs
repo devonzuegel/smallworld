@@ -1,12 +1,13 @@
 (ns smallworld.screens.meetcute (:require [clojure.string :as str]
                                           [reagent.core    :as r]
-                                          [smallworld.util :as util]))
+                                          [smallworld.util :as util]
+                                          [cljs.pprint :as pp]))
 
 (def debug? (r/atom false))
 (def bios   (r/atom nil))
 (def phone (r/atom "123-123-1234")) ; TODO: remove me
 (def profile (r/atom nil))
-(def current-tab (r/atom :profile))
+(def current-tab (r/atom :home))
 
 (defn fetch-bios []
   (println "fetching bios")
@@ -44,30 +45,41 @@
 
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
-   (let [key-values [["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
-                     ["Social media links"               [:pre (get-field bio "Social media links")]]
-                     ["Email"                            (get-field bio "Email")]
-                     ["First name"                       (get-field bio "First name")]
+   (let [key-values [["First name"                       (get-field bio "First name")]
                      ["Last name"                        (get-field bio "Last name")]
-                     ["Phone"                            (format-phone (get-field bio "Phone"))]
-                     ["Home base city"                   (get-field bio "Home base city")]
-                     ["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
-                     ["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
+                     #_["Social media links"               [:pre (get-field bio "Social media links")]]
+                     #_["Email"                            (get-field bio "Email")]
+                     #_["Phone"                            (format-phone (get-field bio "Phone"))]
+                     #_["Home base city"                   (get-field bio "Home base city")]
+                     #_["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
+                     #_["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
+                     #_["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
-                     ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                      (get-field bio "Pictures"))]]]
+                     #_["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                        (get-field bio "Pictures"))]]]
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
       [:tbody
        (map-indexed bio-row key-values)]])])
 
 (defn home-tab []
-  (let [included-bios (filter (fn [bio] (not (get-field bio "Exclude from gallery?"))) @bios)]
+  (let [interested-in (get-field @profile "I'm interested in...")
+        gender-filter (case interested-in
+                        [] []
+                        ["Women"] ["Woman"]
+                        ["Men"] ["Man"]
+                        ["Woman" "Man"] ; default
+                        )
+        included-bios (filter (fn [bio]
+                                (and (not (get-field bio "Exclude from gallery?"))
+                                     ; TODO: check it's not self
+                                     (some #(= (get-field bio "Gender") %) gender-filter)))
+                              @bios)]
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
      [:h1 {:style {:font-size 48 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
+     [:p (str "Filtered by gender: " (or gender-filter "NO FILTER"))]
      (if (nil? included-bios)
        [:p "Loading..."]
-       [:div
-        (map-indexed render-bio included-bios)])]))
+       [:div (map-indexed render-bio included-bios)])]))
 
 (def phone-input-error (r/atom nil))
 
