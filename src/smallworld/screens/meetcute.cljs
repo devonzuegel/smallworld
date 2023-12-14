@@ -5,7 +5,7 @@
 
 (def debug? (r/atom false))
 (def bios   (r/atom nil))
-(def phone (r/atom "123-123-1234")) ; TODO: remove me
+(def phone (r/atom "(111) 111-1111")) ; TODO: remove me
 (def profile (r/atom nil))
 (def current-tab (r/atom :home))
 
@@ -46,15 +46,15 @@
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
    (let [key-values [["First name"                       (get-field bio "First name")]
-                     ["Last name"                        (get-field bio "Last name")]
+                     #_["Last name"                        (get-field bio "Last name")]
                      #_["Social media links"               [:pre (get-field bio "Social media links")]]
                      #_["Email"                            (get-field bio "Email")]
                      #_["Phone"                            (format-phone (get-field bio "Phone"))]
                      #_["Home base city"                   (get-field bio "Home base city")]
                      #_["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
-                     #_["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
                      #_["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
+                     ["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
                      #_["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                                         (get-field bio "Pictures"))]]]
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
@@ -69,10 +69,38 @@
                         ["Men"] ["Man"]
                         ["Woman" "Man"] ; default
                         )
+
+        ; TODO:
+        ; TODO:
+        ; TODO:
+        ; TODO:
+        ; TODO: test for all the variations of genders/sexual orientatins
+        ; TODO:
+        ; TODO:
+        ; TODO:
+        ; TODO:
+        ; TODO:
+
         included-bios (filter (fn [bio]
-                                (and (not (get-field bio "Exclude from gallery?"))
-                                     ; TODO: check it's not self
-                                     (some #(= (get-field bio "Gender") %) gender-filter)))
+                                (let [bio-gender-filter (case (get-field bio "I'm interested in...")
+                                                          [] []
+                                                          ["Women"] ["Woman"]
+                                                          ["Men"] ["Man"]
+                                                          ["Woman" "Man"] ; default
+                                                          )]
+                                  (pp/pprint "bio:")
+                                  (pp/pprint bio)
+                                  (println)
+                                  (pp/pprint "bio id -- profile id:")
+                                  (pp/pprint (get-field bio "id"))
+                                  (pp/pprint (get-field @profile "id"))
+                                  (println)
+                                  (and (not (get-field bio "Exclude from gallery?")) ; don't include bios that have been explicitly excluded
+                                       (not (= (get-field bio "id") (get-field @profile "id"))) ; check it's not self
+                                       (some #(= (get-field bio "Gender") %) gender-filter) ; only show the gender that the user is interested in dating
+                                       (some #(= (get-field @profile "Gender") %) bio-gender-filter ; only show someone if they're interested in dating someone of the gender of the current user:
+                                             ))))
+
                               @bios)]
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
      [:h1 {:style {:font-size 48 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
@@ -164,8 +192,8 @@
 (defn checkboxes-component [all-values selected-values update-selected-values]
   [:div
    (for [value all-values] ^{:key value} [checkbox-component value selected-values update-selected-values])
-   (when debug? [:pre "     All Values: " (str all-values)])
-   (when debug? [:pre "Selected Values: " (str selected-values)])])
+   (when @debug? [:pre "     All Values: " (str all-values)])
+   (when @debug? [:pre "Selected Values: " (str selected-values)])])
 
 (defn radio-btn-component [value-name selected-value update-selected-value]
   [:div {:style {:display "flex" :align-items "center"}}
@@ -180,8 +208,8 @@
 (defn radio-btns-component [all-values selected-value update-selected-value]
   [:div
    (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
-   (when debug? [:pre "     All Values: " (str all-values)])
-   (when debug? [:pre "Selected Values: " (str selected-value)])])
+   (when @debug? [:pre "     All Values: " (str all-values)])
+   (when @debug? [:pre "Selected Values: " (str selected-value)])])
 
 (defn profile-tab []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
@@ -210,20 +238,20 @@
                                                        ;(keyword "What makes this person awesome?")
                                                        (keyword "Gender")]))]
       [:div {:style {:margin "16px 0 24px 0"}}
-       (let [key-values [["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
-                         ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
-                         ["Social media links"               (editable-textbox "Social media links")]
-                         ["Email"                            (editable-input "Email")]
-                         ["First name"                       (editable-input "First name")]
+       (let [key-values [["First name"                       (editable-input "First name")]
                          ["Last name"                        (editable-input "Last name")]
-                         ["Home base city"                   (editable-input "Home base city")]
-                         ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
                          ["I'm interested in..." (checkboxes-component ["Men" "Women"]
                                                                        (get-field @profile "I'm interested in...")
                                                                        #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
                          ["Gender" (radio-btns-component ["Man" "Woman"]
                                                          (get-field @profile "Gender")
                                                          #(reset! profile (assoc @profile (keyword "Gender") %)))]
+                         ["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
+                         ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
+                         ["Social media links"               (editable-textbox "Social media links")]
+                         ["Email"                            (editable-input "Email")]
+                         ["Home base city"                   (editable-input "Home base city")]
+                         ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
 
                          ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                   (get-field @profile "Pictures"))]]]
