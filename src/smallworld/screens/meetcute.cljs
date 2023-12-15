@@ -23,6 +23,7 @@
                                 "Phone"
                                 "Home base city"
                                 "I'm interested in..."
+                                "bios-devons-test-2"
                                 "What makes this person awesome?"
                                 "Pictures"
                                 "Gender"])
@@ -105,10 +106,6 @@
       [:tbody
        [:tr
         [:td
-        ;;  [:pre "          @profile: " @profile]
-        ;;  [:pre "bios-devons-test-2: " (pr-str (get-field @profile "bios-devons-test-2"))]
-        ;;  [:pre "[recbSeLI9wEjllKNQ recw4MWlZVkdVbH5P]: " (pr-str ["recbSeLI9wEjllKNQ" "recw4MWlZVkdVbH5P"])]
-
          (let [bio-id (get-field bio "id")
                currently-selected-ids (get-field @profile "bios-devons-test-2")]
            [checkbox-component
@@ -123,10 +120,6 @@
 
                                    (remove (fn [v] (= bio-id v))
                                            (get-field @profile "bios-devons-test-2")))]
-                (println)
-                (println "               checked? " checked?)
-                (println "currently-selected-ids: " currently-selected-ids)
-                (println "      now-selected-ids: " now-selected)
                 (reset! profile (assoc @profile
                                        (keyword "bios-devons-test-2")
                                        now-selected))
@@ -227,7 +220,7 @@
    (when (exists? @profile)
      [:div
       [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-profile!} "Save changes"]
-      (when @debug? [:pre "@profile:" (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
+      (when @debug? [:pre "@profile: " (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
                                                                      ;(keyword "Social media links")
                                                                      ;(keyword "Email")
                                                                      ;(keyword "First name")
@@ -235,10 +228,10 @@
                                                                      ;(keyword "Phone")
                                                                      ;(keyword "Home base city")
                                                                      ;(keyword "I'm interested in...")
-                                                                     (keyword "bios-devons-test-2")
+                                                                      (keyword "bios-devons-test-2")
                                                                      ;(keyword "What makes this person awesome?")
                                                                      ;(keyword "Gender")
-                                                                     ]))])
+                                                                      ]))])
       [:div {:style {:margin "16px 0 24px 0"}}
        (let [key-values [["First name"                       (editable-input "First name")]
                         ;;  ["Last name"                        (editable-input "Last name")]
@@ -272,6 +265,14 @@
   (util/fetch "/api/matchmaking/bios" (fn [result]
                                         (swap! bios (fn [_] result)))))
 
+(defn update-selections []
+  (println "updating selections")
+  (util/fetch-post "/api/matchmaking/profile"
+                   (select-keys @profile (map #(keyword %)
+                                              (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                      ["Phone"])))
+                   #(println "Done updating selections")))
+
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
         gender-filter (case interested-in
@@ -294,43 +295,16 @@
                                              ))))
 
                               @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-
-     (when @profile
-       [:<> [:pre "bios-devons-test-2" (pr-str (get-field @profile "bios-devons-test-2"))]
-        [checkbox-component
-         "recbSeLI9wEjllKNQ" ;; (get-field bio "id")
-         (get-field @profile "bios-devons-test-2")
-         (fn [event]
-           (let [checked? (.-checked (.-target event))
-                 currently-selected (get-field @profile "bios-devons-test-2")
-                 now-selected (if checked?
-                                (if (in? currently-selected "recbSeLI9wEjllKNQ")
-                                  currently-selected
-                                  (conj currently-selected "recbSeLI9wEjllKNQ"))
-
-                                (remove (fn [v] (= "recbSeLI9wEjllKNQ" v))
-                                        (get-field @profile "bios-devons-test-2")))]
-             (println)
-             (println "           checked? " checked?)
-             (println "currently-selected: " currently-selected)
-             (println "      now-selected: " now-selected)
-             (println)
-             (reset! profile (assoc @profile
-                                    (keyword "bios-devons-test-2")
-                                    now-selected))
-             ;
-             ))
-
-         #_(reset! profile (assoc @profile (keyword "bios-devons-test-2") selected-values))]])
-
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
      (profile-tab)
 
      [:h1 {:style {:font-size 32 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
      [:p (str "Filtered by gender: " (or gender-filter "NO FILTER"))]
      (if (nil? included-bios)
        [:p "Loading..."]
-       [:div (doall (map-indexed render-bio included-bios))])]))
+       [:div
+        [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-selections} "Save changes"]
+        (doall (map-indexed render-bio included-bios))])]))
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
@@ -342,11 +316,11 @@
 (defn screen []
   (r/create-class
    {:component-did-mount (fn [] (fetch-bios))
-    :reagent-render (fn []
-                      [:div
-                       [nav-btns]
+    :reagent-render home-tab #_(fn []
+                                 [:div
+                                  [nav-btns]
 
-                       (case @current-tab
-                         :profile (profile-tab)
-                         :home (home-tab)
-                         (home-tab))])}))
+                                  (case @current-tab
+                                    :profile (profile-tab)
+                                    :home (home-tab)
+                                    (home-tab))])}))
