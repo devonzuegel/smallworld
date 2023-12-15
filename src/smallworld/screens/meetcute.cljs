@@ -63,7 +63,7 @@
    (when @debug? [:pre "Selected Value: " (str selected-values)])])
 
 (defn radio-btn-component [value-name selected-value update-selected-value]
-  [:div {:style {:display "flex" :align-items "center"}}
+  [:span {:style {:display "flex" :align-items "center" :margin-left "10px"}}
    [:input {:type "radio"
             :id (str value-name "-radio")
             :value value-name
@@ -73,7 +73,7 @@
    [:label {:for (str value-name "-radio")} value-name]])
 
 (defn radio-btns-component [all-values selected-value update-selected-value]
-  [:div
+  [:div {:style {:display "inline-flex" :justify "space-between"}}
    (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
    (when @debug? [:pre "Selected Value: " (str selected-value)])])
 
@@ -94,8 +94,8 @@
                      #_["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
                      ["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
-                     ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                      (get-field bio "Pictures"))]]]
+                     #_["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                        (get-field bio "Pictures"))]]]
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
       [:tbody
        [:tr
@@ -116,9 +116,7 @@
                                            (get-field @profile "bios-devons-test-2")))]
                 (reset! profile (assoc @profile
                                        (keyword "bios-devons-test-2")
-                                       now-selected))
-                      ;
-                ))])]
+                                       now-selected))))])]
         [:td]]
        (map-indexed bio-row key-values)]])])
 
@@ -183,7 +181,7 @@
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div #_{:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
+  [:div {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
    [:h1 {:style {:font-size 32 :line-height "2em"}} "Your profile"]
 
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
@@ -276,13 +274,14 @@
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
      (profile-tab)
 
-     [:h1 {:style {:font-size 32 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
-     [:p (str "Filtered by gender: " (or gender-filter "NO FILTER"))]
-     (if (nil? included-bios)
-       [:p "Loading..."]
+     (when @profile
        [:div
-        [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-selections} "Save changes"]
-        (doall (map-indexed render-bio included-bios))])]))
+        [:h1 {:style {:font-size 32 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
+        (if (nil? included-bios)
+          [:p "Loading..."]
+          [:div
+           [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-selections} "Save changes"]
+           (doall (map-indexed render-bio included-bios))])])]))
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
