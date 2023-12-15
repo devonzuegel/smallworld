@@ -3,7 +3,7 @@
                                           [smallworld.util :as util]
                                           [cljs.pprint :as pp]))
 
-(def debug? (r/atom false))
+(def debug? (r/atom true))
 (def bios   (r/atom nil))
 (def phone (r/atom "(111) 111-1111")) ; TODO: remove me
 (def profile (r/atom nil))
@@ -33,6 +33,55 @@
   (let [digits-only (str/replace phone #"[^0-9]" "")]
     (str "(" (subs digits-only 0 3) ") " (subs digits-only 3 6) "-" (subs digits-only 6 10))))
 
+(defn in? [list str] (some #(= str %) list))
+
+(def checkbox-values (r/atom ["A"]))
+
+(defn handle-checkbox-change [value]
+  (fn [event]
+    (let [checked? (.-checked (.-target event))]
+      (swap! checkbox-values
+             (if checked?
+               #(conj % value)
+               #(remove (fn [v] (= value v)) %))))))
+
+(defn checkbox-component [value-name selected-values update-selected-values]
+  [:span
+   [:input {:type "checkbox"
+            :value value-name
+            :checked (boolean (in? selected-values value-name))
+            :style {:margin "12px"}
+            :on-click update-selected-values ; TODO: this never worked
+            ;; :on-change nil ;update-selected-values
+            #_:on-change #_(fn [] ; this worked until I tried to use it with the ids of the bios... I think?
+                        ;;  (pp/pprint "update-selected-values: " update-selected-values)
+                        ;;  (update-selected-values)
+                             (println "HIIII")
+                             #_(update-selected-values (if (in? selected-values value-name)
+                                                         (remove (fn [v] (= value-name v)) selected-values)
+                                                         (conj selected-values value-name))))}]
+   [:label {:for (str value-name "-checkbox")} value-name]])
+
+(defn checkboxes-component [all-values selected-values update-selected-values]
+  [:div
+   (for [value all-values] ^{:key value} [checkbox-component value selected-values update-selected-values])
+   (when @debug? [:pre "Selected Value: " (str selected-values)])])
+
+(defn radio-btn-component [value-name selected-value update-selected-value]
+  [:div {:style {:display "flex" :align-items "center"}}
+   [:input {:type "radio"
+            :id (str value-name "-radio")
+            :value value-name
+            :checked (= selected-value value-name)
+            :style {:margin-right "8px"}
+            :on-change (fn [] (update-selected-value value-name))}]
+   [:label {:for (str value-name "-radio")} value-name]])
+
+(defn radio-btns-component [all-values selected-value update-selected-value]
+  [:div
+   (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
+   (when @debug? [:pre "Selected Value: " (str selected-value)])])
+
 (defn bio-row [i [key-name value]]
   [:tr {:key i :style {:padding "24px" :background "#ffffff11" :vertical-align "top"}}
    [:td {:style {:padding "8px" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "200px"}} key-name]
@@ -54,6 +103,24 @@
                                                                         (get-field bio "Pictures"))]]]
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
       [:tbody
+       [:tr
+        [:td
+        ;;  [:pre "          @profile: " @profile]
+         [:pre "bios-devons-test-2: " (pr-str (get-field @profile "bios-devons-test-2"))]
+         [:pre "[recbSeLI9wEjllKNQ recw4MWlZVkdVbH5P]: " (pr-str ["recbSeLI9wEjllKNQ" "recw4MWlZVkdVbH5P"])]
+         [:input {:type "checkbox"
+                  :value "A"
+                  :checked true
+                  ;; :on-change #(js/alert "Changed")
+                  ;
+                  }]
+         #_[checkbox-component
+            (get-field bio "id")
+            (get-field @profile "bios-devons-test-2")
+          ;; ["recbSeLI9wEjllKNQ" "recw4MWlZVkdVbH5P"] ;(get-field @profile "bios-devons-test-2") ; TODO: this is where the bug is
+            #(reset! profile (assoc @profile (keyword "I'm interested in...") []))
+            #_#(println "HELLO")]]
+        [:td]]
        (map-indexed bio-row key-values)]])])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,7 +143,6 @@
 (defn fetch-profile [phone]
   (println "\nfetching profile...")
   (let [clean-phone (str/replace phone #"[^0-9]" "")]
-    (println "clean-phone: " clean-phone)
     (util/fetch-post "/api/matchmaking/profile" {"Phone" clean-phone} update-profile-with-result)))
 
 (defn sign-in []
@@ -117,55 +183,9 @@
                       :font-size ".9em"
                       :width "95%"}}])
 
-(defn in? [list str] (some #(= str %) list))
-
-(def checkbox-values (r/atom ["A"]))
-
-(defn handle-checkbox-change [value]
-  (fn [event]
-    (let [checked? (.-checked (.-target event))]
-      (swap! checkbox-values
-             (if checked?
-               #(conj % value)
-               #(remove (fn [v] (= value v)) %))))))
-
-(defn checkbox-component [value-name selected-values update-selected-values]
-  [:div
-   [:input {:type "checkbox"
-            :value value-name
-            :checked (boolean (in? selected-values value-name))
-            :style {:margin "12px"}
-            :on-change (fn []
-                         (update-selected-values (if (in? selected-values value-name)
-                                                   (remove (fn [v] (= value-name v)) selected-values)
-                                                   (conj selected-values value-name))))}]
-   [:label {:for (str value-name "-checkbox")} value-name]])
-
-(defn checkboxes-component [all-values selected-values update-selected-values]
-  [:div
-   (for [value all-values] ^{:key value} [checkbox-component value selected-values update-selected-values])
-   (when @debug? [:pre "     All Values: " (str all-values)])
-   (when @debug? [:pre "Selected Values: " (str selected-values)])])
-
-(defn radio-btn-component [value-name selected-value update-selected-value]
-  [:div {:style {:display "flex" :align-items "center"}}
-   [:input {:type "radio"
-            :id (str value-name "-radio")
-            :value value-name
-            :checked (= selected-value value-name)
-            :style {:margin-right "8px"}
-            :on-change (fn [] (update-selected-value value-name))}]
-   [:label {:for (str value-name "-radio")} value-name]])
-
-(defn radio-btns-component [all-values selected-value update-selected-value]
-  [:div
-   (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
-   (when @debug? [:pre "     All Values: " (str all-values)])
-   (when @debug? [:pre "Selected Values: " (str selected-value)])])
-
 (defn profile-tab []
   [:div #_{:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-   [:h1 {:style {:font-size 48 :line-height "2em"}} "Your profile"]
+   [:h1 {:style {:font-size 32 :line-height "2em"}} "Your profile"]
 
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
@@ -178,20 +198,22 @@
 
    (when (exists? @profile)
      [:div
-      [:button {:style btn-styles :on-click update-profile!} "Save changes"]
-      [:pre "@profile:" (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
-                                                       ;(keyword "Social media links")
-                                                       ;(keyword "Email")
-                                                       ;(keyword "First name")
-                                                       ;(keyword "Last name")
-                                                       ;(keyword "Phone")
-                                                       (keyword "Home base city")
-                                                       (keyword "I'm interested in...")
-                                                       ;(keyword "What makes this person awesome?")
-                                                       (keyword "Gender")]))]
+      [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-profile!} "Save changes"]
+      (when @debug? [:pre "@profile:" (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
+                                                                     ;(keyword "Social media links")
+                                                                     ;(keyword "Email")
+                                                                     ;(keyword "First name")
+                                                                     ;(keyword "Last name")
+                                                                     ;(keyword "Phone")
+                                                                     ;(keyword "Home base city")
+                                                                     ;(keyword "I'm interested in...")
+                                                                     (keyword "bios-devons-test-2")
+                                                                     ;(keyword "What makes this person awesome?")
+                                                                     ;(keyword "Gender")
+                                                                     ]))])
       [:div {:style {:margin "16px 0 24px 0"}}
        (let [key-values [["First name"                       (editable-input "First name")]
-                         ["Last name"                        (editable-input "Last name")]
+                        ;;  ["Last name"                        (editable-input "Last name")]
                          ["I'm interested in..." (checkboxes-component ["Men" "Women"]
                                                                        (get-field @profile "I'm interested in...")
                                                                        #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
@@ -210,7 +232,7 @@
          [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
           [:tbody
            (map-indexed bio-row key-values)]])]])
-   [:br] [:br] [:br]])
+   [:br]])
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -237,13 +259,6 @@
                                                           ["Men"] ["Man"]
                                                           ["Woman" "Man"] ; default
                                                           )]
-                                  (pp/pprint "bio:")
-                                  (pp/pprint bio)
-                                  (println)
-                                  (pp/pprint "bio id -- profile id:")
-                                  (pp/pprint (get-field bio "id"))
-                                  (pp/pprint (get-field @profile "id"))
-                                  (println)
                                   (and (not (get-field bio "Exclude from gallery?")) ; don't include bios that have been explicitly excluded
                                        (not (= (get-field bio "id") (get-field @profile "id"))) ; check it's not self
                                        (some #(= (get-field bio "Gender") %) gender-filter) ; only show the gender that the user is interested in dating
@@ -253,13 +268,41 @@
                               @bios)]
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
 
+     (when @profile
+       [:<> [:pre "bios-devons-test-2" (pr-str (get-field @profile "bios-devons-test-2"))]
+        [checkbox-component
+         "recbSeLI9wEjllKNQ" ;; (get-field bio "id")
+         (get-field @profile "bios-devons-test-2")
+         (fn [event]
+           (let [checked? (.-checked (.-target event))
+                 currently-selected (get-field @profile "bios-devons-test-2")
+                 now-selected (if checked?
+                                (if (in? currently-selected "recbSeLI9wEjllKNQ")
+                                  currently-selected
+                                  (conj currently-selected "recbSeLI9wEjllKNQ"))
+
+                                (remove (fn [v] (= "recbSeLI9wEjllKNQ" v))
+                                        (get-field @profile "bios-devons-test-2")))]
+             (println)
+             (println "           checked? " checked?)
+             (println "currently-selected: " currently-selected)
+             (println "      now-selected: " now-selected)
+             (println)
+             (reset! profile (assoc @profile
+                                    (keyword "bios-devons-test-2")
+                                    now-selected))
+             ;
+             ))
+
+         #_(reset! profile (assoc @profile (keyword "bios-devons-test-2") selected-values))]])
+
      (profile-tab)
 
-     [:h1 {:style {:font-size 48 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
+     [:h1 {:style {:font-size 32 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
      [:p (str "Filtered by gender: " (or gender-filter "NO FILTER"))]
      (if (nil? included-bios)
        [:p "Loading..."]
-       [:div (map-indexed render-bio included-bios)])]))
+       [:div (doall (map-indexed render-bio included-bios))])]))
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
