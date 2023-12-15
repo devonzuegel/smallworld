@@ -9,17 +9,10 @@
 (def profile (r/atom nil))
 (def current-tab (r/atom :home))
 
-(defn fetch-bios []
-  (println "fetching bios")
-  (util/fetch "/api/matchmaking/bios" (fn [result]
-                                        (swap! bios (fn [_] result)))))
+(def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
 (defn get-field [bio field]
   (get-in bio [(keyword field)]))
-
-(defn get-key-names [bio] (map first bio))
-
-(def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
 (def fields-changeable-by-user [; Phone is intentionally not included because it's used as the key to find the record to update, so we don't want to overwrite it
                                 "Anything else you'd like your potential matches to know?"
@@ -33,6 +26,8 @@
                                 "What makes this person awesome?"
                                 "Pictures"
                                 "Gender"])
+
+(defn get-key-names [bio] (map first bio))
 
 (defn format-phone [phone]
   (let [digits-only (str/replace phone #"[^0-9]" "")]
@@ -61,53 +56,10 @@
       [:tbody
        (map-indexed bio-row key-values)]])])
 
-(defn home-tab []
-  (let [interested-in (get-field @profile "I'm interested in...")
-        gender-filter (case interested-in
-                        [] []
-                        ["Women"] ["Woman"]
-                        ["Men"] ["Man"]
-                        ["Woman" "Man"] ; default
-                        )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; PROFILE TAB ;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-        ; TODO:
-        ; TODO:
-        ; TODO:
-        ; TODO:
-        ; TODO: test for all the variations of genders/sexual orientatins
-        ; TODO:
-        ; TODO:
-        ; TODO:
-        ; TODO:
-        ; TODO:
-
-        included-bios (filter (fn [bio]
-                                (let [bio-gender-filter (case (get-field bio "I'm interested in...")
-                                                          [] []
-                                                          ["Women"] ["Woman"]
-                                                          ["Men"] ["Man"]
-                                                          ["Woman" "Man"] ; default
-                                                          )]
-                                  (pp/pprint "bio:")
-                                  (pp/pprint bio)
-                                  (println)
-                                  (pp/pprint "bio id -- profile id:")
-                                  (pp/pprint (get-field bio "id"))
-                                  (pp/pprint (get-field @profile "id"))
-                                  (println)
-                                  (and (not (get-field bio "Exclude from gallery?")) ; don't include bios that have been explicitly excluded
-                                       (not (= (get-field bio "id") (get-field @profile "id"))) ; check it's not self
-                                       (some #(= (get-field bio "Gender") %) gender-filter) ; only show the gender that the user is interested in dating
-                                       (some #(= (get-field @profile "Gender") %) bio-gender-filter ; only show someone if they're interested in dating someone of the gender of the current user:
-                                             ))))
-
-                              @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
-     [:h1 {:style {:font-size 48 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
-     [:p (str "Filtered by gender: " (or gender-filter "NO FILTER"))]
-     (if (nil? included-bios)
-       [:p "Loading..."]
-       [:div (map-indexed render-bio included-bios)])]))
 
 (def phone-input-error (r/atom nil))
 
@@ -212,7 +164,7 @@
    (when @debug? [:pre "Selected Values: " (str selected-value)])])
 
 (defn profile-tab []
-  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
+  [:div #_{:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
    [:h1 {:style {:font-size 48 :line-height "2em"}} "Your profile"]
 
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
@@ -246,18 +198,68 @@
                          ["Gender" (radio-btns-component ["Man" "Woman"]
                                                          (get-field @profile "Gender")
                                                          #(reset! profile (assoc @profile (keyword "Gender") %)))]
-                         ["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
-                         ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
-                         ["Social media links"               (editable-textbox "Social media links")]
-                         ["Email"                            (editable-input "Email")]
-                         ["Home base city"                   (editable-input "Home base city")]
-                         ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
+                         #_["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
+                         #_["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
+                         #_["Social media links"               (editable-textbox "Social media links")]
+                         #_["Email"                            (editable-input "Email")]
+                         #_["Home base city"                   (editable-input "Home base city")]
+                         #_["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
 
-                         ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                  (get-field @profile "Pictures"))]]]
+                         #_["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                    (get-field @profile "Pictures"))]]]
          [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
           [:tbody
-           (map-indexed bio-row key-values)]])]])])
+           (map-indexed bio-row key-values)]])]])
+   [:br] [:br] [:br]])
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; HOME TAB ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn fetch-bios []
+  (println "fetching bios")
+  (util/fetch "/api/matchmaking/bios" (fn [result]
+                                        (swap! bios (fn [_] result)))))
+
+(defn home-tab []
+  (let [interested-in (get-field @profile "I'm interested in...")
+        gender-filter (case interested-in
+                        [] []
+                        ["Women"] ["Woman"]
+                        ["Men"] ["Man"]
+                        ["Woman" "Man"] ; default
+                        )
+        included-bios (filter (fn [bio]
+                                (let [bio-gender-filter (case (get-field bio "I'm interested in...")
+                                                          [] []
+                                                          ["Women"] ["Woman"]
+                                                          ["Men"] ["Man"]
+                                                          ["Woman" "Man"] ; default
+                                                          )]
+                                  (pp/pprint "bio:")
+                                  (pp/pprint bio)
+                                  (println)
+                                  (pp/pprint "bio id -- profile id:")
+                                  (pp/pprint (get-field bio "id"))
+                                  (pp/pprint (get-field @profile "id"))
+                                  (println)
+                                  (and (not (get-field bio "Exclude from gallery?")) ; don't include bios that have been explicitly excluded
+                                       (not (= (get-field bio "id") (get-field @profile "id"))) ; check it's not self
+                                       (some #(= (get-field bio "Gender") %) gender-filter) ; only show the gender that the user is interested in dating
+                                       (some #(= (get-field @profile "Gender") %) bio-gender-filter ; only show someone if they're interested in dating someone of the gender of the current user:
+                                             ))))
+
+                              @bios)]
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%"}}
+
+     (profile-tab)
+
+     [:h1 {:style {:font-size 48 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
+     [:p (str "Filtered by gender: " (or gender-filter "NO FILTER"))]
+     (if (nil? included-bios)
+       [:p "Loading..."]
+       [:div (map-indexed render-bio included-bios)])]))
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
