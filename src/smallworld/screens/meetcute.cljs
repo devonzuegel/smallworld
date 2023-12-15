@@ -3,7 +3,7 @@
                                           [smallworld.util :as util]
                                           [cljs.pprint :as pp]))
 
-(def debug? (r/atom true))
+(def debug? (r/atom false))
 (def bios   (r/atom nil))
 (def phone (r/atom "(111) 111-1111")) ; TODO: remove me
 (def profile (r/atom nil))
@@ -52,15 +52,9 @@
             :value value-name
             :checked (boolean (in? selected-values value-name))
             :style {:margin "12px"}
-            :on-click update-selected-values ; TODO: this never worked
-            ;; :on-change nil ;update-selected-values
-            #_:on-change #_(fn [] ; this worked until I tried to use it with the ids of the bios... I think?
-                        ;;  (pp/pprint "update-selected-values: " update-selected-values)
-                        ;;  (update-selected-values)
-                             (println "HIIII")
-                             #_(update-selected-values (if (in? selected-values value-name)
-                                                         (remove (fn [v] (= value-name v)) selected-values)
-                                                         (conj selected-values value-name))))}]
+            :on-change (fn [] (update-selected-values (if (in? selected-values value-name)
+                                                        (remove (fn [v] (= value-name v)) selected-values)
+                                                        (conj selected-values value-name))))}]
    [:label {:for (str value-name "-checkbox")} value-name]])
 
 (defn checkboxes-component [all-values selected-values update-selected-values]
@@ -90,7 +84,7 @@
 
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
-   (let [key-values [["First name"                       (get-field bio "First name")]
+   (let [key-values [#_["First name"                       (get-field bio "First name")]
                      #_["Last name"                        (get-field bio "Last name")]
                      #_["Social media links"               [:pre (get-field bio "Social media links")]]
                      #_["Email"                            (get-field bio "Email")]
@@ -100,8 +94,8 @@
                      #_["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
                      ["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
-                     #_["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                        (get-field bio "Pictures"))]]]
+                     ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                      (get-field bio "Pictures"))]]]
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
       [:tbody
        [:tr
@@ -109,7 +103,7 @@
          (let [bio-id (get-field bio "id")
                currently-selected-ids (get-field @profile "bios-devons-test-2")]
            [checkbox-component
-            bio-id
+            (get-field bio "First name")
             (get-field @profile "bios-devons-test-2")
             (fn [event]
               (let [checked? (.-checked (.-target event))
@@ -124,23 +118,7 @@
                                        (keyword "bios-devons-test-2")
                                        now-selected))
                       ;
-                ))
-
-            #_(reset! profile (assoc @profile (keyword "bios-devons-test-2") selected-values))])
-
-
-         #_[:input {:type "checkbox"
-                    :value "A"
-                    :checked true
-                  ;; :on-change #(js/alert "Changed")
-                  ;
-                    }]
-         #_[checkbox-component
-            (get-field bio "id")
-            (get-field @profile "bios-devons-test-2")
-          ;; ["recbSeLI9wEjllKNQ" "recw4MWlZVkdVbH5P"] ;(get-field @profile "bios-devons-test-2") ; TODO: this is where the bug is
-            #(reset! profile (assoc @profile (keyword "I'm interested in...") []))
-            #_#(println "HELLO")]]
+                ))])]
         [:td]]
        (map-indexed bio-row key-values)]])])
 
@@ -241,15 +219,15 @@
                          ["Gender" (radio-btns-component ["Man" "Woman"]
                                                          (get-field @profile "Gender")
                                                          #(reset! profile (assoc @profile (keyword "Gender") %)))]
-                         #_["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
-                         #_["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
-                         #_["Social media links"               (editable-textbox "Social media links")]
-                         #_["Email"                            (editable-input "Email")]
-                         #_["Home base city"                   (editable-input "Home base city")]
-                         #_["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
+                         ["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
+                         ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
+                         ["Social media links"               (editable-textbox "Social media links")]
+                         ["Email"                            (editable-input "Email")]
+                         ["Home base city"                   (editable-input "Home base city")]
+                         ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
 
-                         #_["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                    (get-field @profile "Pictures"))]]]
+                         ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                  (get-field @profile "Pictures"))]]]
          [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
           [:tbody
            (map-indexed bio-row key-values)]])]])
