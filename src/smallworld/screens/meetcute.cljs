@@ -106,14 +106,42 @@
        [:tr
         [:td
         ;;  [:pre "          @profile: " @profile]
-         [:pre "bios-devons-test-2: " (pr-str (get-field @profile "bios-devons-test-2"))]
-         [:pre "[recbSeLI9wEjllKNQ recw4MWlZVkdVbH5P]: " (pr-str ["recbSeLI9wEjllKNQ" "recw4MWlZVkdVbH5P"])]
-         [:input {:type "checkbox"
-                  :value "A"
-                  :checked true
+        ;;  [:pre "bios-devons-test-2: " (pr-str (get-field @profile "bios-devons-test-2"))]
+        ;;  [:pre "[recbSeLI9wEjllKNQ recw4MWlZVkdVbH5P]: " (pr-str ["recbSeLI9wEjllKNQ" "recw4MWlZVkdVbH5P"])]
+
+         (let [bio-id (get-field bio "id")
+               currently-selected-ids (get-field @profile "bios-devons-test-2")]
+           [checkbox-component
+            bio-id
+            (get-field @profile "bios-devons-test-2")
+            (fn [event]
+              (let [checked? (.-checked (.-target event))
+                    now-selected (if checked?
+                                   (if (in? currently-selected-ids bio-id)
+                                     currently-selected-ids
+                                     (conj currently-selected-ids bio-id))
+
+                                   (remove (fn [v] (= bio-id v))
+                                           (get-field @profile "bios-devons-test-2")))]
+                (println)
+                (println "               checked? " checked?)
+                (println "currently-selected-ids: " currently-selected-ids)
+                (println "      now-selected-ids: " now-selected)
+                (reset! profile (assoc @profile
+                                       (keyword "bios-devons-test-2")
+                                       now-selected))
+                      ;
+                ))
+
+            #_(reset! profile (assoc @profile (keyword "bios-devons-test-2") selected-values))])
+
+
+         #_[:input {:type "checkbox"
+                    :value "A"
+                    :checked true
                   ;; :on-change #(js/alert "Changed")
                   ;
-                  }]
+                    }]
          #_[checkbox-component
             (get-field bio "id")
             (get-field @profile "bios-devons-test-2")
