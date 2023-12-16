@@ -155,8 +155,11 @@
     (and (not-empty phone) (re-find #"^\d{10}$" phone))))
 
 (defn update-profile-with-result [result]
-  (reset! profile (merge (:fields result)
-                         {:id (:id result)})))
+  (println "update-profile-with-result: " result)
+  (if (:error result)
+    (reset! phone-input-error (:error result))
+    (reset! profile (merge (:fields result)
+                           {:id (:id result)}))))
 
 (defn fetch-profile [phone]
   (println "\nfetching profile...")
@@ -293,16 +296,41 @@
            [:button {:style btn-styles :on-click update-selections} "Save changes"]
            (doall (map-indexed render-bio included-bios))])])]))
 
+(defn sign-up-screen []
+  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
+
+   [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
+   [:iframe.airtable-embed.airtable-dynamic-height
+    {:src "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8?backgroundColor=purple"
+     :frameborder "0"
+     :onmousewheel ""
+     :width "100%"
+     :height "3918"
+     :style {:background "transparent"
+             :border "1px solid #ccc"}}]])
+
 (defn login-screen []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
+   [:br]
+   [:pre
+    "    @profile: " (pr-str @profile) "\n"
+    "@current-tab: " (pr-str @current-tab) "\n"]
+   [:br]
+   [:br]
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
                                       :value @phone
                                       :on-change #(reset! phone (-> % .-target .-value))
                                       :on-key-press #(when (= (.-key %) "Enter") (sign-in))
                                       :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
-    (when (nil? @profile)
-      [:button {:style btn-styles :on-click sign-in} "Sign in / sign up"])]])
+    [:button {:style btn-styles :on-click sign-in} "Sign in"]
+    [:a {:on-click #(reset! current-tab :sign-up)
+         :href "#"
+         :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
+     "Sign up"]
+
+    ;
+    ]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
@@ -318,7 +346,11 @@
     :reagent-render (fn []
 
                       (if (nil? @profile)
-                        [login-screen]
+                        (case @current-tab
+                          :sign-up (sign-up-screen)
+                          :login (login-screen)
+                          (login-screen))
+
                         [:div
                          [nav-btns]
 

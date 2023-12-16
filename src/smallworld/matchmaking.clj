@@ -50,24 +50,26 @@
                                       (clean-phone (get-in this-bio ["Phone"])))))
                              all-bios))
           fields-to-change  (util/exclude-keys parsed-body [:id])]
-      (when (nil? bio) (throw (Exception. (str "No bio found with phone number " phone))))
-      ;; (println "")
-      ;; (pp/pprint "bio:")
-      ;; (pp/pprint bio)
-      (println "")
-      (println "bio id: ")
-      (println "  " bio-id)
-      (println "")
-      (println "Anything else you'd like your potential matches to know?")
-      (println "  " (get-field parsed-body "Anything else you'd like your potential matches to know?"))
-      (pp/pprint "fields-to-change:")
-      (pp/pprint fields-to-change)
+      (if (nil? bio)
+        (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
+        (do
+          ;; (println "")
+          ;; (pp/pprint "bio:")
+          ;; (pp/pprint bio)
+          (println "")
+          (println "bio id: ")
+          (println "  " bio-id)
+          (println "")
+          (println "Anything else you'd like your potential matches to know?")
+          (println "  " (get-field parsed-body "Anything else you'd like your potential matches to know?"))
+          (pp/pprint "fields-to-change:")
+          (pp/pprint fields-to-change)
 
-      (let [data (-> (airtable/update-in-base airtable-base
-                                              ["bios-devons-test-2" (:id bio)]
-                                              {:fields fields-to-change})
-                     :body
-                     json/read-str)]
-        (pp/pprint "data:")
-        (pp/pprint data)
-        (generate-string (airtable/kwdize data))))))
+          (let [data (-> (airtable/update-in-base airtable-base
+                                                  ["bios-devons-test-2" (:id bio)]
+                                                  {:fields fields-to-change})
+                         :body
+                         json/read-str)]
+            (pp/pprint "data:")
+            (pp/pprint data)
+            (generate-string (airtable/kwdize data))))))))
