@@ -299,6 +299,14 @@
 (defn sign-up-screen []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
 
+   [:p
+    {:style {:margin-top "48x" :margin-bottom "36px" :color "white"}}
+    "Already have an account? "
+    [:a {:on-click #(reset! current-tab :sign-in)
+         :href "#"
+         :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
+     "Sign in"]]
+
    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
    [:iframe.airtable-embed.airtable-dynamic-height
     {:src "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8?backgroundColor=purple"
@@ -306,17 +314,11 @@
      :onmousewheel ""
      :width "100%"
      :height "3918"
-     :style {:background "transparent"
+     :style {:background "white"
              :border "1px solid #ccc"}}]])
 
 (defn login-screen []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
-   [:br]
-   [:pre
-    "    @profile: " (pr-str @profile) "\n"
-    "@current-tab: " (pr-str @current-tab) "\n"]
-   [:br]
-   [:br]
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
                                       :value @phone
@@ -327,10 +329,7 @@
     [:a {:on-click #(reset! current-tab :sign-up)
          :href "#"
          :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
-     "Sign up"]
-
-    ;
-    ]])
+     "Sign up"]]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
