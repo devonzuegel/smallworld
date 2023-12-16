@@ -102,21 +102,42 @@
         [:td
          (let [bio-id (get-field bio "id")
                currently-selected-ids (get-field @profile "bios-devons-test-2")]
-           [checkbox-component
-            (get-field bio "First name")
-            (get-field @profile "bios-devons-test-2")
-            (fn [event]
-              (let [checked? (.-checked (.-target event))
-                    now-selected (if checked?
-                                   (if (in? currently-selected-ids bio-id)
-                                     currently-selected-ids
-                                     (conj currently-selected-ids bio-id))
+           [:span
+            [:input {:type "checkbox"
+                     :value bio-id
+                     :checked (boolean (in? currently-selected-ids bio-id))
+                     :style {:margin "12px"}
+                     :on-change (fn [event]
+                                  (if (or (nil? event) (nil? (.-target event)))
+                                    (println "event: " event)
+                                    (let [checked? (.-checked (.-target event))
+                                          now-selected (if checked?
+                                                         (if (in? currently-selected-ids bio-id)
+                                                           currently-selected-ids
+                                                           (conj currently-selected-ids bio-id))
+                                                         (remove (fn [v] (= bio-id v))
+                                                                 (get-field @profile "bios-devons-test-2")))]
+                                      (reset! profile (assoc @profile
+                                                             (keyword "bios-devons-test-2")
+                                                             now-selected)))))}]
+            [:label {:for (str bio-id "-checkbox")} (get-field bio "First name")]]
 
-                                   (remove (fn [v] (= bio-id v))
-                                           (get-field @profile "bios-devons-test-2")))]
-                (reset! profile (assoc @profile
-                                       (keyword "bios-devons-test-2")
-                                       now-selected))))])]
+           #_[checkbox-component
+              (get-field bio "First name")
+              (get-field @profile "bios-devons-test-2")
+              (fn [event]
+                (if (or (nil? event) (nil? (.-target event)))
+                  (println "event: " event)
+                  (let [checked? (.-checked (.-target event))
+                        now-selected (if checked?
+                                       (if (in? currently-selected-ids bio-id)
+                                         currently-selected-ids
+                                         (conj currently-selected-ids bio-id))
+                                       (remove (fn [v] (= bio-id v))
+                                               (get-field @profile "bios-devons-test-2")))]
+                    (reset! profile (assoc @profile
+                                           (keyword "bios-devons-test-2")
+                                           now-selected)))))])]
         [:td]]
        (map-indexed bio-row key-values)]])])
 
@@ -181,17 +202,8 @@
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
+  [:div {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
    [:h1 {:style {:font-size 32 :line-height "2em"}} "Your profile"]
-
-   [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
-   [:p "Your phone number: " [:input {:type "text"
-                                      :value @phone
-                                      :on-change #(reset! phone (-> % .-target .-value))
-                                      :on-key-press #(when (= (.-key %) "Enter") (sign-in))
-                                      :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
-    (when (nil? @profile)
-      [:button {:style btn-styles :on-click sign-in} "Sign in / sign up"])]
 
    (when (exists? @profile)
      [:div
@@ -272,32 +284,45 @@
 
                               @bios)]
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
-     (profile-tab)
-
      (when @profile
        [:div
         [:h1 {:style {:font-size 32 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
         (if (nil? included-bios)
           [:p "Loading..."]
           [:div
-           [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-selections} "Save changes"]
+           [:button {:style btn-styles :on-click update-selections} "Save changes"]
            (doall (map-indexed render-bio included-bios))])])]))
+
+(defn login-screen []
+  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
+   [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
+   [:p "Your phone number: " [:input {:type "text"
+                                      :value @phone
+                                      :on-change #(reset! phone (-> % .-target .-value))
+                                      :on-key-press #(when (= (.-key %) "Enter") (sign-in))
+                                      :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
+    (when (nil? @profile)
+      [:button {:style btn-styles :on-click sign-in} "Sign in / sign up"])]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
    [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "All bios"]
    [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Your profile"]
    [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
+   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})} (str "Log out")]
    [:br]])
 
 (defn screen []
   (r/create-class
    {:component-did-mount (fn [] (fetch-bios))
-    :reagent-render home-tab #_(fn []
-                                 [:div
-                                  [nav-btns]
+    :reagent-render (fn []
 
-                                  (case @current-tab
-                                    :profile (profile-tab)
-                                    :home (home-tab)
-                                    (home-tab))])}))
+                      (if (nil? @profile)
+                        [login-screen]
+                        [:div
+                         [nav-btns]
+
+                         (case @current-tab
+                           :profile (profile-tab)
+                           :home (home-tab)
+                           (home-tab))]))}))
