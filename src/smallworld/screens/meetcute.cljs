@@ -113,7 +113,12 @@
                                                                   (get-field @profile "selections")))]
                                        (reset! profile (assoc @profile
                                                               (keyword "selections")
-                                                              now-selected)))))}]
+                                                              now-selected))
+                                       (when checked? ; if the bio is added to the list of selections, remove it from the list of rejections:
+                                         (reset! profile (assoc @profile
+                                                                (keyword "rejections")
+                                                                (remove (fn [v] (= bio-id v))
+                                                                        (get-field @profile "rejections"))))))))}]
              [:label {:for (str bio-id "-checkbox")} "Select"]]
 
 
@@ -134,7 +139,12 @@
                                                                   (get-field @profile "rejections")))]
                                        (reset! profile (assoc @profile
                                                               (keyword "rejections")
-                                                              now-rejected)))))}]
+                                                              now-rejected))
+                                       (when checked? ; if the bio is added to the list of rejections, remove it from the list of selections:
+                                         (reset! profile (assoc @profile
+                                                                (keyword "selections")
+                                                                (remove (fn [v] (= bio-id v))
+                                                                        (get-field @profile "selections"))))))))}]
              [:label {:for (str bio-id "-checkbox")} "Reject"]]])]
         [:td]]
 
@@ -307,10 +317,12 @@
                                        included-bios)
                  reviewed-bios (filter #(let [bio-id (get-field % "id")] (or (in? currently-selected-ids bio-id)
                                                                              (in? currently-rejected-ids bio-id)))
-                                       included-bios)]
+                                       included-bios)
+                 new-bio-count (str (count new-bios))]
              [:div
               [:div
-               [:h1 {:style {:font-size 32 :line-height "2em"}} "New profiles to review!"]
+               [:h1 {:style {:font-size 32 :line-height "2em"}}
+                new-bio-count " new profiles to review! "]
                (doall (map-indexed render-bio new-bios))]
 
               [:div {:style {:margin-top "24px"}}
