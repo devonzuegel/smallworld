@@ -296,12 +296,39 @@
     [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
      (when @profile
        [:div
-        [:h1 {:style {:font-size 32 :line-height "2em"}} (str "All bios " (when-not (nil? included-bios) (str "(" (count included-bios) ")")))]
         (if (nil? included-bios)
           [:p "Loading..."]
           [:div
-           [:button {:style btn-styles :on-click update-selections} "Save changes"]
-           (doall (map-indexed render-bio included-bios))])])]))
+           [:button {:style btn-styles :on-click update-selections} "Save selections"]
+           (let [new-bios (filter (fn [bio]
+                                    (let [bio-id (get-field bio "id")
+                                          currently-selected-ids (get-field @profile "selections")
+                                          currently-rejected-ids (get-field @profile "rejections")]
+                                      (not (or (in? currently-selected-ids bio-id) ; show bios that have been explicitly selected
+                                               (in? currently-rejected-ids bio-id) ; show bios that have been explicitly rejected
+                                               ))))
+
+                                  included-bios)
+                 reviewed-bios (filter (fn [bio]
+                                         (let [bio-id (get-field bio "id")
+                                               currently-selected-ids (get-field @profile "selections")
+                                               currently-rejected-ids (get-field @profile "rejections")]
+                                           (or (in? currently-selected-ids bio-id) ; show bios that have been explicitly selected
+                                               (in? currently-rejected-ids bio-id) ; show bios that have been explicitly rejected
+                                               )))
+
+                                       included-bios)]
+
+             [:div
+              [:div
+               [:h1 {:style {:font-size 32 :line-height "2em"}} "New profiles to review!"]
+               (doall (map-indexed render-bio new-bios))]
+
+              [:div {:style {:margin-top "24px"}}
+               [:details {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
+                [:summary {:style {:font-size 32 :line-height "2em"}} "Profiles you've already reviewed"]
+                [:div {:style {:margin-top "24px"}}
+                 (doall (map-indexed render-bio reviewed-bios))]]]])])])]))
 
 (defn css-spinner []
   (let [speed 1 ; lower is faster

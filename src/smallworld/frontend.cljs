@@ -107,15 +107,15 @@
 
 (def require-profile
   [{:start #(do
-              (pp/pprint "@meetcute/profile")
-              (pp/pprint @meetcute/profile)
+              ;; (pp/pprint "@meetcute/profile")
+              ;; (pp/pprint @meetcute/profile)
               #_(when (empty? @meetcute/profile)
                   (redirect! "meetcute-signin")))}])
 
 (def require-blank-profile
   [{:start #(do
-              (pp/pprint "@meetcute/profile")
-              (pp/pprint @meetcute/profile)
+              ;; (pp/pprint "@meetcute/profile")
+              ;; (pp/pprint @meetcute/profile)
               (when-not (empty? @meetcute/profile)
                 (redirect! "meetcute")))
     ;
