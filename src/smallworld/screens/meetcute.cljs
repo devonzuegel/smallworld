@@ -300,25 +300,20 @@
           [:p "Loading..."]
           [:div
            [:button {:style btn-styles :on-click update-selections} "Save selections"]
-           (let [new-bios (filter (fn [bio]
-                                    (let [bio-id (get-field bio "id")
-                                          currently-selected-ids (get-field @profile "selections")
-                                          currently-rejected-ids (get-field @profile "rejections")]
+           (let [currently-selected-ids (get-field @profile "selections")
+                 currently-rejected-ids (get-field @profile "rejections")
+                 new-bios (filter (fn [bio]
+                                    (let [bio-id (get-field bio "id")]
                                       (not (or (in? currently-selected-ids bio-id) ; show bios that have been explicitly selected
                                                (in? currently-rejected-ids bio-id) ; show bios that have been explicitly rejected
                                                ))))
-
                                   included-bios)
                  reviewed-bios (filter (fn [bio]
-                                         (let [bio-id (get-field bio "id")
-                                               currently-selected-ids (get-field @profile "selections")
-                                               currently-rejected-ids (get-field @profile "rejections")]
+                                         (let [bio-id (get-field bio "id")]
                                            (or (in? currently-selected-ids bio-id) ; show bios that have been explicitly selected
                                                (in? currently-rejected-ids bio-id) ; show bios that have been explicitly rejected
                                                )))
-
                                        included-bios)]
-
              [:div
               [:div
                [:h1 {:style {:font-size 32 :line-height "2em"}} "New profiles to review!"]
