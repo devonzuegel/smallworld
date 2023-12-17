@@ -105,18 +105,52 @@
                                   (redirect! "/signin")
                                   (session/update! %)))}])
 
+(def require-profile
+  [{:start #(do
+              (pp/pprint "@meetcute/profile")
+              (pp/pprint @meetcute/profile)
+              #_(when (empty? @meetcute/profile)
+                  (redirect! "meetcute-signin")))}])
+
+(def require-blank-profile
+  [{:start #(do
+              (pp/pprint "@meetcute/profile")
+              (pp/pprint @meetcute/profile)
+              (when-not (empty? @meetcute/profile)
+                (redirect! "meetcute")))
+    ;
+    }])
+
 (def require-admin
   [{:start (if-session-loading #(when (not (admin/is-admin %))
                                   (redirect! "/not-found")))}])
 
+(def     atom1 (r/atom 0))
+(defonce atom2 (r/atom 0))
+
 (def routes
   (rf/router
    ["/"
-    ["meetcute" {:name ::meetcute  :view meetcute/screen}]
-    ["signin"   {:name ::signin    :view signin-page     :controllers require-blank-session}]
-    [""         {:name ::home      :view home-page       :controllers require-session}]
-    ["settings" {:name ::settings  :view settings/screen :controllers require-session}]
-    ["admin"    {:name ::admin     :view admin/screen    :controllers require-admin}]]
+    #_["meetcute" ; TODO: not sure why this doesn't work
+       ["" {:name ::meetcute :view meetcute/screen}]
+       ["signin" {:name ::meetcute-signin :view meetcute/signin-screen}]]
+
+    ["foo"  {:name ::foo  :view (fn [] [:div "foo: "
+                                        [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
+                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
+                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
+    ["bar"  {:name ::bar  :view (fn [] [:div "bar: "
+                                        [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
+                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
+                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
+
+    ["meetcute-signin" {:name ::meetcute-signin  :view meetcute/signin-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
+    ["meetcute-signup" {:name ::meetcute-signup  :view meetcute/signup-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
+    ["meetcute"        {:name ::meetcute         :view meetcute/screen        :controllers require-profile}]
+    ["signin"          {:name ::signin           :view signin-page            :controllers require-blank-session}]
+    [""                {:name ::home             :view home-page              :controllers require-session}]
+    ["settings"        {:name ::settings         :view settings/screen        :controllers require-session}]
+    ["admin"           {:name ::admin            :view admin/screen           :controllers require-admin}]]
    {:data {:coercion rsc/coercion}}))
 
 (deftest test-routes ; note – this will not get run at the same time as the clj tests

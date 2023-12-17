@@ -155,3 +155,9 @@ https://mc.sendgrid.com/dynamic-templates
   lein uberjar # builds the jar
   java -Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8 -jar target/smallworld.jar -m smallworld.web
   ```
+
+# Matchmaking
+
+TODO before launch:
+- [ ] change the Airtable DB to the real one, instead of fake data
+- [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
