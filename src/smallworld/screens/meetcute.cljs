@@ -1,13 +1,14 @@
 (ns smallworld.screens.meetcute (:require [clojure.string :as str]
                                           [reagent.core    :as r]
                                           [smallworld.util :as util]
+                                          [goog.dom :as dom]
                                           [cljs.pprint :as pp]))
 
 (def debug? (r/atom false))
 (def bios   (r/atom nil))
 (def phone (r/atom "(111) 111-1111")) ; TODO: remove me
 (def profile (r/atom nil))
-(def current-tab (r/atom :home))
+(def current-tab (r/atom :sign-up))
 
 (def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
@@ -296,26 +297,56 @@
            [:button {:style btn-styles :on-click update-selections} "Save changes"]
            (doall (map-indexed render-bio included-bios))])])]))
 
+(defn css-spinner []
+  (let [speed 1 ; lower is faster
+        rotation (r/atom 0)]
+    (js/setInterval #(swap! rotation + 1) speed)
+    (fn []
+      [:div {:style {:width "20px"
+                     :height "20px"
+                     :margin "auto" ; center the spinner
+                     :margin-top "80px"
+                     :border "6px solid rgba(255, 255, 255, 0.1)"
+                     :border-top-color "white"
+                     :border-radius "50%"
+                     :transform (str "rotate(" @rotation "deg)")}
+             :key @rotation}])))
+
+(defn loading-iframe [src]
+  (let [loading? (r/atom true)] ; State to track loading status
+    (fn []
+      [:div {:style {:position "relative"
+                     :align-self "center"
+                     :width "100%"}}
+       (when @loading? [css-spinner])
+       [:iframe {:src src
+                 :style {:display (if @loading? "none" "block")
+                         :frameborder "0"
+                         :onmousewheel ""
+                         :border-radius "8px"
+                         :width "100%"
+                         :height (str (- (.-innerHeight (dom/getWindow)) 180) "px")}
+                 :on-load #(do
+                             (println "iframe loaded")
+                             (reset! loading? false))}]])))
+
 (defn sign-up-screen []
-  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
+  [:div  {:style {:display "flex" :flex-direction "column" :height "100vh" :justify-content "center" :align-items "center"
+                  :color "white" :font-family "sans-serif" :font-size "1.2em" :line-height "1.5em" :text-align "center" :overflow "hidden" :padding "0 12px"}}
+   [:div
+    [:p {:style {:margin-top "48x" :margin-bottom "18px" :color "white"}}
+     "Already have an account? "
+     [:a {:on-click #(reset! current-tab :sign-in)
+          :href "#"
+          :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
+      "Sign in"]]
 
-   [:p
-    {:style {:margin-top "48x" :margin-bottom "36px" :color "white"}}
-    "Already have an account? "
-    [:a {:on-click #(reset! current-tab :sign-in)
-         :href "#"
-         :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
-     "Sign in"]]
+    [:p {:style {:margin-bottom "48px" :color "white"}}
+     "Otherwise sign up below:"]]
 
-   [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-   [:iframe.airtable-embed.airtable-dynamic-height
-    {:src "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8?backgroundColor=purple"
-     :frameborder "0"
-     :onmousewheel ""
-     :width "100%"
-     :height "3918"
-     :style {:background "white"
-             :border "1px solid #ccc"}}]])
+   [:div {:style {:width "100%"}}
+    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
+    [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8?backgroundColor=purple"]]])
 
 (defn login-screen []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
