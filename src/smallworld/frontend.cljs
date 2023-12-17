@@ -131,22 +131,26 @@
 (def routes
   (rf/router
    ["/"
-    #_["meetcute" ; TODO: not sure why this doesn't work
-       ["" {:name ::meetcute :view meetcute/screen}]
-       ["signin" {:name ::meetcute-signin :view meetcute/signin-screen}]]
+    ;; ["meetcute" {:name ::meetcute :view meetcute/screen}]
+    ;; ["meetcute/signin" {:name ::meetcute-signin :view meetcute/signin-screen}]
 
-    ["foo"  {:name ::foo  :view (fn [] [:div "foo: "
-                                        [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
-                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
-                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
-    ["bar"  {:name ::bar  :view (fn [] [:div "bar: "
-                                        [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
-                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
-                                        [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
+    ;; ["meetcute" ; TODO: not sure why this doesn't work
+    ;;  ["" {:name ::meetcute :view meetcute/screen}]
+    ;;  ["/signin" {:name ::meetcute-signin :view meetcute/signin-screen}]]
+
+    ;; ["foo"  {:name ::foo  :view (fn [] [:div "foo: "
+    ;;                                     [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
+    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
+    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
+    ;; ["bar"  {:name ::bar  :view (fn [] [:div "bar: "
+    ;;                                     [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
+    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
+    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
 
     ["meetcute-signin" {:name ::meetcute-signin  :view meetcute/signin-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
     ["meetcute-signup" {:name ::meetcute-signup  :view meetcute/signup-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
     ["meetcute"        {:name ::meetcute         :view meetcute/screen        :controllers require-profile}]
+
     ["signin"          {:name ::signin           :view signin-page            :controllers require-blank-session}]
     [""                {:name ::home             :view home-page              :controllers require-session}]
     ["settings"        {:name ::settings         :view settings/screen        :controllers require-session}]
