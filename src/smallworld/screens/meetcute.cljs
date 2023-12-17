@@ -8,7 +8,7 @@
 (defonce bios   (r/atom nil))
 (defonce phone (r/atom "(111) 111-1111")) ; TODO: remove me
 (defonce profile (r/atom nil))
-(defonce current-tab (r/atom :signup))
+(defonce current-tab (r/atom :home))
 
 (def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
@@ -24,7 +24,8 @@
                                 "Phone"
                                 "Home base city"
                                 "I'm interested in..."
-                                "bios-devons-test-2"
+                                "selections"
+                                "rejections"
                                 "What makes this person awesome?"
                                 "Pictures"
                                 "Gender"])
@@ -36,16 +37,6 @@
     (str "(" (subs digits-only 0 3) ") " (subs digits-only 3 6) "-" (subs digits-only 6 10))))
 
 (defn in? [list str] (some #(= str %) list))
-
-(def checkbox-values (r/atom ["A"]))
-
-(defn handle-checkbox-change [value]
-  (fn [event]
-    (let [checked? (.-checked (.-target event))]
-      (swap! checkbox-values
-             (if checked?
-               #(conj % value)
-               #(remove (fn [v] (= value v)) %))))))
 
 (defn checkbox-component [value-name selected-values update-selected-values]
   [:span
@@ -85,12 +76,12 @@
 
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
-   (let [key-values [#_["First name"                       (get-field bio "First name")]
+   (let [key-values [["First name"                       (get-field bio "First name")]
                      #_["Last name"                        (get-field bio "Last name")]
                      #_["Social media links"               [:pre (get-field bio "Social media links")]]
                      #_["Email"                            (get-field bio "Email")]
                      #_["Phone"                            (format-phone (get-field bio "Phone"))]
-                     #_["Home base city"                   (get-field bio "Home base city")]
+                     #_["Home base city"                   (get-field bio "hHome base city")]
                      #_["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
                      #_["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
                      ["Gender"                           (get-field bio "Gender")]
@@ -102,44 +93,51 @@
        [:tr
         [:td
          (let [bio-id (get-field bio "id")
-               currently-selected-ids (get-field @profile "bios-devons-test-2")]
-           [:span
-            [:input {:type "checkbox"
-                     :value bio-id
-                     :checked (boolean (in? currently-selected-ids bio-id))
-                     :style {:margin "12px"}
-                     :on-change (fn [event]
-                                  (if (or (nil? event) (nil? (.-target event)))
-                                    (println "event: " event)
-                                    (let [checked? (.-checked (.-target event))
-                                          now-selected (if checked?
-                                                         (if (in? currently-selected-ids bio-id)
-                                                           currently-selected-ids
-                                                           (conj currently-selected-ids bio-id))
-                                                         (remove (fn [v] (= bio-id v))
-                                                                 (get-field @profile "bios-devons-test-2")))]
-                                      (reset! profile (assoc @profile
-                                                             (keyword "bios-devons-test-2")
-                                                             now-selected)))))}]
-            [:label {:for (str bio-id "-checkbox")} (get-field bio "First name")]]
+               currently-selected-ids (get-field @profile "selections")
+               currently-rejected-ids (get-field @profile "rejections")]
+           [:div
+            [:span
+             [:input {:type "checkbox"
+                      :value bio-id
+                      :checked (boolean (in? currently-selected-ids bio-id))
+                      :style {:margin "12px"}
+                      :on-change (fn [event]
+                                   (if (or (nil? event) (nil? (.-target event)))
+                                     (println "event: " event)
+                                     (let [checked? (.-checked (.-target event))
+                                           now-selected (if checked?
+                                                          (if (in? currently-selected-ids bio-id)
+                                                            currently-selected-ids
+                                                            (conj currently-selected-ids bio-id))
+                                                          (remove (fn [v] (= bio-id v))
+                                                                  (get-field @profile "selections")))]
+                                       (reset! profile (assoc @profile
+                                                              (keyword "selections")
+                                                              now-selected)))))}]
+             [:label {:for (str bio-id "-checkbox")} "Select"]]
 
-           #_[checkbox-component
-              (get-field bio "First name")
-              (get-field @profile "bios-devons-test-2")
-              (fn [event]
-                (if (or (nil? event) (nil? (.-target event)))
-                  (println "event: " event)
-                  (let [checked? (.-checked (.-target event))
-                        now-selected (if checked?
-                                       (if (in? currently-selected-ids bio-id)
-                                         currently-selected-ids
-                                         (conj currently-selected-ids bio-id))
-                                       (remove (fn [v] (= bio-id v))
-                                               (get-field @profile "bios-devons-test-2")))]
-                    (reset! profile (assoc @profile
-                                           (keyword "bios-devons-test-2")
-                                           now-selected)))))])]
+
+            [:span
+             [:input {:type "checkbox"
+                      :value bio-id
+                      :checked (boolean (in? currently-rejected-ids bio-id))
+                      :style {:margin "12px"}
+                      :on-change (fn [event]
+                                   (if (or (nil? event) (nil? (.-target event)))
+                                     (println "event: " event)
+                                     (let [checked? (.-checked (.-target event))
+                                           now-rejected (if checked?
+                                                          (if (in? currently-rejected-ids bio-id)
+                                                            currently-rejected-ids
+                                                            (conj currently-rejected-ids bio-id))
+                                                          (remove (fn [v] (= bio-id v))
+                                                                  (get-field @profile "rejections")))]
+                                       (reset! profile (assoc @profile
+                                                              (keyword "rejections")
+                                                              now-rejected)))))}]
+             [:label {:for (str bio-id "-checkbox")} "Reject"]]])]
         [:td]]
+
        (map-indexed bio-row key-values)]])])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -228,7 +226,7 @@
                                                                      ;(keyword "Phone")
                                                                      ;(keyword "Home base city")
                                                                      ;(keyword "I'm interested in...")
-                                                                      (keyword "bios-devons-test-2")
+                                                                      (keyword "selections")
                                                                      ;(keyword "What makes this person awesome?")
                                                                      ;(keyword "Gender")
                                                                       ]))])
@@ -386,19 +384,21 @@
    {:component-did-mount (fn [] (fetch-bios))
     :reagent-render (fn []
 
-                      [:div
-                       [:p "HOME"]
-                       [:pre "@profile: " (pr-str @profile)]]
-                      #_(if (nil? @profile)
-                          (case @current-tab
-                            :signup (signup-screen)
-                            :signin (signin-screen)
-                            (signin-screen))
+                      #_[:div
+                         [:p "HOME"]
+                         [:pre "@profile: " (pr-str @profile)]]
 
-                          [:div
-                           [nav-btns]
 
-                           (case @current-tab
-                             :profile (profile-tab)
-                             :home (home-tab)
-                             (home-tab))]))}))
+                      (if (nil? @profile)
+                        (case @current-tab
+                          :signup (signup-screen)
+                          :signin (signin-screen)
+                          (signin-screen))
+
+                        [:div
+                         [nav-btns]
+
+                         (case @current-tab
+                           :profile (profile-tab)
+                           :home (home-tab)
+                           (home-tab))]))}))
