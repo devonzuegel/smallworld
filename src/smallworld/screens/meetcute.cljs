@@ -98,9 +98,10 @@
            [:div
             [:span
              [:input {:type "checkbox"
+                      :id (str bio-id "-select")
                       :value bio-id
                       :checked (boolean (in? currently-selected-ids bio-id))
-                      :style {:margin "12px"}
+                      :style {:display "none"}
                       :on-change (fn [event]
                                    (if (or (nil? event) (nil? (.-target event)))
                                      (println "event: " event)
@@ -114,19 +115,31 @@
                                        (reset! profile (assoc @profile
                                                               (keyword "selections")
                                                               now-selected))
-                                       (when checked? ; if the bio is added to the list of selections, remove it from the list of rejections:
+                                       (when checked?
                                          (reset! profile (assoc @profile
                                                                 (keyword "rejections")
                                                                 (remove (fn [v] (= bio-id v))
                                                                         (get-field @profile "rejections"))))))))}]
-             [:label {:for (str bio-id "-checkbox")} "Select"]]
-
+             [:label {:for (str bio-id "-select")
+                      :style (merge {:display "inline-block"
+                                     :padding "10px 20px"
+                                     :background-color "#4CAF50"
+                                     :color "white"
+                                     :opacity (if (or (in? currently-selected-ids bio-id)
+                                                      (not (in? currently-rejected-ids bio-id))) "1" ".7")
+                                     :margin "5px"
+                                     :cursor "pointer"
+                                     :border-radius "5px"
+                                     :border (if (in? currently-selected-ids bio-id) "3px solid white" "3px solid transparent")}
+                                    (if (in? currently-selected-ids bio-id) {:box-shadow "0 4px 8px 0 rgba(0,0,0,0.2)"} {}))}
+              "Select"]]
 
             [:span
              [:input {:type "checkbox"
+                      :id (str bio-id "-reject")
                       :value bio-id
                       :checked (boolean (in? currently-rejected-ids bio-id))
-                      :style {:margin "12px"}
+                      :style {:display "none"}
                       :on-change (fn [event]
                                    (if (or (nil? event) (nil? (.-target event)))
                                      (println "event: " event)
@@ -140,12 +153,24 @@
                                        (reset! profile (assoc @profile
                                                               (keyword "rejections")
                                                               now-rejected))
-                                       (when checked? ; if the bio is added to the list of rejections, remove it from the list of selections:
+                                       (when checked?
                                          (reset! profile (assoc @profile
                                                                 (keyword "selections")
                                                                 (remove (fn [v] (= bio-id v))
                                                                         (get-field @profile "selections"))))))))}]
-             [:label {:for (str bio-id "-checkbox")} "Reject"]]])]
+             [:label {:for (str bio-id "-reject")
+                      :style (merge {:display "inline-block"
+                                     :padding "10px 20px"
+                                     :background-color "#D32F2F"
+                                     :color "white"
+                                     :opacity (if (or (in? currently-rejected-ids bio-id)
+                                                      (not (in? currently-selected-ids bio-id))) "1" ".7")
+                                     :margin "5px"
+                                     :cursor "pointer"
+                                     :border-radius "5px"
+                                     :border (if (in? currently-rejected-ids bio-id) "3px solid white" "3px solid transparent")}
+                                    (if (in? currently-rejected-ids bio-id) {:box-shadow "0 4px 8px 0 rgba(0,0,0,0.2)"} {}))}
+              "Reject"]]])]
         [:td]]
 
        (map-indexed bio-row key-values)]])])
@@ -322,8 +347,10 @@
              [:div
               [:div
                [:h1 {:style {:font-size 32 :line-height "2em"}}
-                new-bio-count " new profiles to review! "]
-               (doall (map-indexed render-bio new-bios))]
+                new-bio-count " new profiles to review"]
+               (if (= 0 (count new-bios))
+                 [:p "You've reviewed all the profiles in your area. Check back later for more!"]
+                 (doall (map-indexed render-bio new-bios)))]
 
               [:div {:style {:margin-top "24px"}}
                [:details {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
