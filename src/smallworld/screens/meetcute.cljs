@@ -302,17 +302,11 @@
            [:button {:style btn-styles :on-click update-selections} "Save selections"]
            (let [currently-selected-ids (get-field @profile "selections")
                  currently-rejected-ids (get-field @profile "rejections")
-                 new-bios (filter (fn [bio]
-                                    (let [bio-id (get-field bio "id")]
-                                      (not (or (in? currently-selected-ids bio-id) ; show bios that have been explicitly selected
-                                               (in? currently-rejected-ids bio-id) ; show bios that have been explicitly rejected
-                                               ))))
-                                  included-bios)
-                 reviewed-bios (filter (fn [bio]
-                                         (let [bio-id (get-field bio "id")]
-                                           (or (in? currently-selected-ids bio-id) ; show bios that have been explicitly selected
-                                               (in? currently-rejected-ids bio-id) ; show bios that have been explicitly rejected
-                                               )))
+                 new-bios      (filter #(let [bio-id (get-field % "id")] (not (or (in? currently-selected-ids bio-id)
+                                                                                  (in? currently-rejected-ids bio-id))))
+                                       included-bios)
+                 reviewed-bios (filter #(let [bio-id (get-field % "id")] (or (in? currently-selected-ids bio-id)
+                                                                             (in? currently-rejected-ids bio-id)))
                                        included-bios)]
              [:div
               [:div
