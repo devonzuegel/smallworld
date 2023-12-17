@@ -4,11 +4,11 @@
                                           [goog.dom :as dom]
                                           [cljs.pprint :as pp]))
 
-(def debug? (r/atom false))
-(def bios   (r/atom nil))
-(def phone (r/atom "(111) 111-1111")) ; TODO: remove me
-(def profile (r/atom nil))
-(def current-tab (r/atom :sign-up))
+(defonce debug? (r/atom false))
+(defonce bios   (r/atom nil))
+(defonce phone (r/atom "(111) 111-1111")) ; TODO: remove me
+(defonce profile (r/atom nil))
+(defonce current-tab (r/atom :signup))
 
 (def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
@@ -155,19 +155,27 @@
         phone (str/replace phone #"[^0-9]" "")]
     (and (not-empty phone) (re-find #"^\d{10}$" phone))))
 
+
+(defn redirect! [path]
+  (.replace (.-location js/window) path))
+
 (defn update-profile-with-result [result]
-  (println "update-profile-with-result: " result)
   (if (:error result)
     (reset! phone-input-error (:error result))
-    (reset! profile (merge (:fields result)
-                           {:id (:id result)}))))
+    (do (reset! profile (merge (:fields result)
+                               {:id (:id result)}))
+        (pp/pprint "profile keys: ")
+        (pp/pprint (keys @profile))
+        ;; (redirect! "/meetcute")
+        ;
+        )))
 
 (defn fetch-profile [phone]
   (println "\nfetching profile...")
   (let [clean-phone (str/replace phone #"[^0-9]" "")]
     (util/fetch-post "/api/matchmaking/profile" {"Phone" clean-phone} update-profile-with-result)))
 
-(defn sign-in []
+(defn signin []
   (if (valid-phone @phone)
     (do
       (reset! phone-input-error nil)
@@ -326,41 +334,44 @@
                          :border-radius "8px"
                          :width "100%"
                          :height (str (- (.-innerHeight (dom/getWindow)) 180) "px")}
-                 :on-load #(do
-                             (println "iframe loaded")
-                             (reset! loading? false))}]])))
+                 :on-load #(reset! loading? false)}]])))
 
-(defn sign-up-screen []
-  [:div  {:style {:display "flex" :flex-direction "column" :height "100vh" :justify-content "center" :align-items "center"
-                  :color "white" :font-family "sans-serif" :font-size "1.2em" :line-height "1.5em" :text-align "center" :overflow "hidden" :padding "0 12px"}}
-   [:div
-    [:p {:style {:margin-top "48x" :margin-bottom "18px" :color "white"}}
+(defn signup-screen []
+  [:div  {:style {:display "flex" :flex-direction "column" :height "100vh"
+                  :align-items "center" ; center horizontally
+                  :color "white" :font-family "sans-serif" :font-size "1.2em" :line-height "1.5em" :text-align "center" :overflow "hidden" :padding "0 12px"
+                  :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
+                  ; TODO:: this flexbox and its contents should resize when the page size changes
+                  }}
+   [:div {:style {:padding-top "36px" :padding-bottom "36px"}}
+    [:h1 {:style {:font-size 48 :line-height "1.6em"}} "Sign up"]
+    [:p {:style {:color "white"}}
      "Already have an account? "
-     [:a {:on-click #(reset! current-tab :sign-in)
+     [:a {:on-click #(reset! current-tab :signin)
           :href "#"
-          :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
-      "Sign in"]]
-
-    [:p {:style {:margin-bottom "48px" :color "white"}}
-     "Otherwise sign up below:"]]
+          :style {:margin-left "8px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
+      "Sign in"]]]
 
    [:div {:style {:width "100%"}}
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-    [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8?backgroundColor=purple"]]])
+    [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8"]]])
 
-(defn login-screen []
+(defn signin-screen []
   [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
    [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
    [:p "Your phone number: " [:input {:type "text"
                                       :value @phone
                                       :on-change #(reset! phone (-> % .-target .-value))
-                                      :on-key-press #(when (= (.-key %) "Enter") (sign-in))
+                                      :on-key-press #(when (= (.-key %) "Enter") (signin))
                                       :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
-    [:button {:style btn-styles :on-click sign-in} "Sign in"]
-    [:a {:on-click #(reset! current-tab :sign-up)
+    [:button {:style btn-styles :on-click signin} "Sign in"]
+    [:a {:on-click #(reset! current-tab :signup)
          :href "#"
          :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
-     "Sign up"]]])
+     "Sign up"]
+    [:br]
+    [:br]]
+   [:pre "@profile: " (pr-str @profile)]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
@@ -375,16 +386,19 @@
    {:component-did-mount (fn [] (fetch-bios))
     :reagent-render (fn []
 
-                      (if (nil? @profile)
-                        (case @current-tab
-                          :sign-up (sign-up-screen)
-                          :login (login-screen)
-                          (login-screen))
+                      [:div
+                       [:p "HOME"]
+                       [:pre "@profile: " (pr-str @profile)]]
+                      #_(if (nil? @profile)
+                          (case @current-tab
+                            :signup (signup-screen)
+                            :signin (signin-screen)
+                            (signin-screen))
 
-                        [:div
-                         [nav-btns]
+                          [:div
+                           [nav-btns]
 
-                         (case @current-tab
-                           :profile (profile-tab)
-                           :home (home-tab)
-                           (home-tab))]))}))
+                           (case @current-tab
+                             :profile (profile-tab)
+                             :home (home-tab)
+                             (home-tab))]))}))
