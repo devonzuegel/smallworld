@@ -69,6 +69,14 @@
    (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
    (when @debug? [:pre "Selected Value: " (str selected-value)])])
 
+(defn update-selections []
+  (println "updating selections")
+  (util/fetch-post "/api/matchmaking/profile"
+                   (select-keys @profile (map #(keyword %)
+                                              (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                      ["Phone"])))
+                   #(println "Done updating selections")))
+
 (defn bio-row [i [key-name value]]
   [:tr {:key i :style {:padding "24px" :background "#ffffff11" :vertical-align "top"}}
    [:td {:style {:padding "8px" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "200px"}} key-name]
@@ -119,7 +127,8 @@
                                          (reset! profile (assoc @profile
                                                                 (keyword "rejections")
                                                                 (remove (fn [v] (= bio-id v))
-                                                                        (get-field @profile "rejections"))))))))}]
+                                                                        (get-field @profile "rejections")))))
+                                       (update-selections))))}]
              [:label {:for (str bio-id "-select")
                       :style (merge {:display "inline-block"
                                      :padding "10px 20px"
@@ -157,7 +166,8 @@
                                          (reset! profile (assoc @profile
                                                                 (keyword "selections")
                                                                 (remove (fn [v] (= bio-id v))
-                                                                        (get-field @profile "selections"))))))))}]
+                                                                        (get-field @profile "selections")))))
+                                       (update-selections))))}]
              [:label {:for (str bio-id "-reject")
                       :style (merge {:display "inline-block"
                                      :padding "10px 20px"
@@ -298,14 +308,6 @@
   (util/fetch "/api/matchmaking/bios" (fn [result]
                                         (swap! bios (fn [_] result)))))
 
-(defn update-selections []
-  (println "updating selections")
-  (util/fetch-post "/api/matchmaking/profile"
-                   (select-keys @profile (map #(keyword %)
-                                              (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
-                                                      ["Phone"])))
-                   #(println "Done updating selections")))
-
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
         gender-filter (case interested-in
@@ -334,7 +336,6 @@
         (if (nil? included-bios)
           [:p "Loading..."]
           [:div
-           [:button {:style btn-styles :on-click update-selections} "Save selections"]
            (let [currently-selected-ids (get-field @profile "selections")
                  currently-rejected-ids (get-field @profile "rejections")
                  new-bios      (filter #(let [bio-id (get-field % "id")] (not (or (in? currently-selected-ids bio-id)
@@ -354,7 +355,8 @@
 
               [:div {:style {:margin-top "24px"}}
                [:details {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
-                [:summary {:style {:font-size 32 :line-height "2em"}} "Profiles you've already reviewed"]
+                [:summary {:style {:font-size 32 :line-height "2em" :cursor "pointer"}}
+                 [:h1 {:style {:display "inline"}} "Profiles you've already reviewed"]]
                 [:div {:style {:margin-top "24px"}}
                  (doall (map-indexed render-bio reviewed-bios))]]]])])])]))
 
