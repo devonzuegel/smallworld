@@ -244,7 +244,7 @@
                                                            (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                                         (get-field bio "Pictures")))]]]
 
-     [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
+     [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
       [:tbody (map-indexed bio-row key-values)]])
    [select-reject-btns (get-field bio "id") (get-field @profile "selections") (get-field @profile "rejections")]])
 
@@ -330,10 +330,10 @@
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px"}}
+  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "860px"}}
 
    [:div {:style {:margin-bottom "36px" :display "flex" :justify-content "space-between"}}
-    [:h1 {:style {:font-size 36 :line-height "2em"}} "Your profile"]
+    [:h1 {:style {:font-size 36 :line-height "1.3em" :margin-top "12px" :margin-bottom "12px"}} "Your profile"]
     [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save changes"]]
 
    [:div {:style {:margin "16px 0 24px 0"}}
@@ -369,7 +369,7 @@
                                                 (get-field @profile "Pictures"))
                                    [small-text [:span "If you'd like to add or remove pictures, please email them to Lei Ugale at "
                                                 [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]]]]]
-      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
+      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
        [:tbody
         (map-indexed bio-row key-values)]])]
    [:br]])
@@ -406,7 +406,7 @@
                                              ))))
 
                               @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px"}}
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "90%" :max-width "860px"}}
      (when @profile
        [:div
         (if (nil? included-bios)
@@ -423,7 +423,7 @@
                  new-bio-count (str (count new-bios))]
              [:div
               [:div
-               [:h1 {:style {:font-size 36 :line-height "2em" :margin-top "12px"}}
+               [:h1 {:style {:font-size 36 :line-height "1.3em" :margin-top "12px" :margin-bottom "12px"}}
                 new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
                (if (= 0 (count new-bios))
                  [:p "You've reviewed all the profiles for today. Check back later for more!"]
@@ -488,18 +488,18 @@
     [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8"]]])
 
 (defn signin-screen []
-  [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
-   [:div {:style {:color "red" :min-height "1.4em"}} @phone-input-error]
-   [:p "Your phone number: " [:input {:type "text"
-                                      :value @phone
-                                      :on-change #(reset! phone (-> % .-target .-value))
-                                      :on-key-press #(when (= (.-key %) "Enter") (signin))
-                                      :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
-    [:button {:style btn-styles :on-click signin} "Sign in"]
-    [:a {:on-click #(reset! current-tab :signup) :href "#" :style {:margin-left "12px"}}
-     "Sign up"]
-    [:br]
-    [:br]]])
+  [:div {:style {:margin-left "auto" :margin-right "auto" :width "90%" :padding-top "48px" :text-align "center"}}
+   [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
+   [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}} @phone-input-error]
+   [:p {:style {:line-height "2.5em"}} "Your phone number:"]
+   [:input {:type "text"
+            :value @phone
+            :on-change #(reset! phone (-> % .-target .-value))
+            :on-key-press #(when (= (.-key %) "Enter") (signin))
+            :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
+   [:div {:style {:margin-bottom "12px"}}]
+   [:button {:style (merge btn-styles {:margin-right "12px"}) :on-click signin} "Sign in"]
+   [:a {:on-click #(reset! current-tab :signup) :href "#"}                      "Sign up"]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
