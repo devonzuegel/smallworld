@@ -121,12 +121,12 @@
                    #(println "Done updating selections")))
 
 (defn bio-row [i [key-name value]]
-  #_[:div {:key i}
-     [:div {:style {:flex 1 :margin-top "24px" :font-size ".8em" :opacity ".75" :text-transform "uppercase"}} key-name]
-     [:div {:style {:flex 1 :margin-top "4px" :min-width "500px"}} value]]
-  [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
-   [:div {:style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width "140px" :min-width "140px" :text-transform "uppercase"}} key-name]
-   [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]])
+  (let [width "170px"]
+    [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
+     [:style (str "@media screen and (min-width: 590px) { .flex-item { max-width: " width "; text-align: right; } }")]
+     [:div {:class "flex-item"
+            :style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width width :min-width width :text-transform "uppercase"}} key-name]
+     [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
 
 
 (defn tag-component [value]
@@ -336,7 +336,6 @@
 
 (defn profile-tab []
   [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
-
    [:div {:style {:margin-bottom "12px" :display "flex" :justify-content "space-between"}}
     [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}} "Your profile"]
     [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save"]]
