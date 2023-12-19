@@ -331,10 +331,10 @@
    [:div {:style {:margin "16px 0 24px 0"}}
     (let [key-values [["First name"                       (editable-input "First name")]
                       ["Last name"                        (editable-input "Last name")]
-                      ["I'm interested in..." (checkboxes-component ["Men" "Women" "Other"]
+                      ["I'm interested in..." (checkboxes-component ["Men" "Women"]
                                                                     (get-field @profile "I'm interested in...")
                                                                     #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
-                      ["Gender" (radio-btns-component ["Man" "Woman" "Other"]
+                      ["Gender" (radio-btns-component ["Man" "Woman"]
                                                       (get-field @profile "Gender")
                                                       #(reset! profile (assoc @profile (keyword "Gender") %)))]
                       ["Phone"                            [:div
