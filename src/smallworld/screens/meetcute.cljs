@@ -2,6 +2,7 @@
                                           [reagent.core    :as r]
                                           [smallworld.util :as util]
                                           [goog.dom :as dom]
+                                          [markdown.core :as md]
                                           [cljs.pprint :as pp]))
 
 (defonce debug? (r/atom false))
@@ -11,6 +12,14 @@
 (defonce current-tab (r/atom :home))
 
 (def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
+
+(def a-href-styles {:color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"})
+
+(defn small-text [str]
+  [:p {:style {:padding-top "4px" :font-size ".8em" :opacity ".7"}} str])
+
+(defn md->hiccup [md-string]
+  [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}}])
 
 (defn get-field [bio field]
   (get-in bio [(keyword field)]))
@@ -38,34 +47,68 @@
 
 (defn in? [list str] (some #(= str %) list))
 
+(defn my-checkbox-component []
+  (let [checked (r/atom false)]
+    (fn []
+      [:div
+       [:input {:type "checkbox"
+                :id "custom-checkbox"
+                :style {:display "none"}
+                :checked @checked
+                :onChange #(reset! checked (not @checked))}]
+       [:label {:for "custom-checkbox"
+                :style {:display "inline-block"
+                        :width "20px"
+                        :height "20px"
+                        :background-color (if @checked "white" "transparent")
+                        :border "1px solid white"
+                        :content (when @checked "✔")
+                        :color "green"
+                        :text-align "center"
+                        :line-height "20px"}}]])))
+
 (defn checkbox-component [value-name selected-values update-selected-values]
-  [:span
-   [:input {:type "checkbox"
-            :value value-name
-            :checked (boolean (in? selected-values value-name))
-            :style {:margin "12px"}
-            :on-change (fn [] (update-selected-values (if (in? selected-values value-name)
-                                                        (remove (fn [v] (= value-name v)) selected-values)
-                                                        (conj selected-values value-name))))}]
-   [:label {:for (str value-name "-checkbox")} value-name]])
+  (let [checked? (boolean (in? selected-values value-name))]
+    [:span #_{:style {:margin-left "24px"}}
+     [:input {:type "checkbox"
+              :value value-name
+              :checked checked?
+              :style {:margin-left "17px" :margin-right "11px"
+                      :background (if checked? "white" "transparent")
+                      :border (if checked? "3px solid green" "3px solid white")}
+              ;; :style {:display "none"}
+              :on-change (fn [] (update-selected-values (if checked?
+                                                          (remove (fn [v] (= value-name v)) selected-values)
+                                                          (conj selected-values value-name))))}]
+     [:label {:for (str value-name "-checkbox")
+              #_:style #_{:display "inline-block"
+                          :width "20px"
+                          :height "20px"
+                          :background-color (if checked? "white" "transparent")
+                          :border "1px solid white"
+                          :content (when checked? "✔")
+                          :color "green"
+                          :text-align "center"
+                          :line-height "20px"}}
+      value-name]]))
 
 (defn checkboxes-component [all-values selected-values update-selected-values]
-  [:div
+  [:div {:style {:margin-left "-16px"}}
    (for [value all-values] ^{:key value} [checkbox-component value selected-values update-selected-values])
    (when @debug? [:pre "Selected Value: " (str selected-values)])])
 
 (defn radio-btn-component [value-name selected-value update-selected-value]
-  [:span {:style {:display "flex" :align-items "center" :margin-left "10px"}}
+  [:span {:style {:display "flex" :align-items "center"}}
    [:input {:type "radio"
             :id (str value-name "-radio")
             :value value-name
             :checked (= selected-value value-name)
-            :style {:margin-right "8px"}
+            :style {:margin-left "16px" :margin-right "10px"}
             :on-change (fn [] (update-selected-value value-name))}]
    [:label {:for (str value-name "-radio")} value-name]])
 
 (defn radio-btns-component [all-values selected-value update-selected-value]
-  [:div {:style {:display "inline-flex" :justify "space-between"}}
+  [:div {:style {:display "inline-flex" :justify "space-between" :margin-left "-16px"}}
    (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
    (when @debug? [:pre "Selected Value: " (str selected-value)])])
 
@@ -78,9 +121,10 @@
                    #(println "Done updating selections")))
 
 (defn bio-row [i [key-name value]]
-  [:tr {:key i :style {:padding "24px" :background "#ffffff11" :vertical-align "top"}}
-   [:td {:style {:padding "8px" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "200px"}} key-name]
-   [:td {:style {:padding "8px" :text-align "left"}} value]])
+  [:tr {:key i :style {:background "transparent" :vertical-align "top"}}
+   [:td {:style {:padding "12px" :vertical-align "top" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "200px"}} key-name]
+   [:td {:style {:padding "12px" :vertical-align "top" :text-align "left"}} value]])
+
 
 (defn tag-component [value]
   (let [icon (case value
@@ -89,18 +133,21 @@
                "Woman" "🚺 "
                "Women" "🚺 "
                "")]
-    [:span {:style {:margin-right "8px" :background "#ffffff33" :padding "4px 6px" :border-radius "8px"}} icon value]))
+    [:span {:style {:margin-right "8px" :background "#ffffff33" :padding "4px 6px" :border-radius "8px"}
+            :key value}
+     icon value]))
 
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
    (let [key-values [["First name"                       (get-field bio "First name")]
                      ["Last name"                        (get-field bio "Last name")]
-                     ["Social media links"               [:pre (get-field bio "Social media links")]]
-                     ["Email"                            (get-field bio "Email")]
-                     ["Phone"                            (format-phone (get-field bio "Phone"))]
+                     ["Social media links"               [:pre (or (get-field bio "Social media links")
+                                                                   "[did not share social media links]")]]
+                    ;;  ["Email"                            (get-field bio "Email")]                 ; do not include contact info in public profile
+                    ;;  ["Phone"                            (format-phone (get-field bio "Phone"))]  ; do not include contact info in public profile
                      ["Home base city"                   (get-field bio "Home base city")]
                      ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
-                     ["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
+                     ["What makes this person awesome?"  (md->hiccup (get-field bio "What makes this person awesome?"))]
                      ["Gender"                           [tag-component (get-field bio "Gender")]]
                      ["I'm interested in..."             (map tag-component (get-field bio "I'm interested in..."))]
                      ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
@@ -144,7 +191,7 @@
                                      :background-color "#4CAF50"
                                      :color "white"
                                      :opacity (if (or (in? currently-selected-ids bio-id)
-                                                      (not (in? currently-rejected-ids bio-id))) "1" ".7")
+                                                      (not (in? currently-rejected-ids bio-id))) "1" ".5")
                                      :margin "5px"
                                      :cursor "pointer"
                                      :border-radius "5px"
@@ -216,8 +263,8 @@
     (reset! phone-input-error (:error result))
     (do (reset! profile (merge (:fields result)
                                {:id (:id result)}))
-        (pp/pprint "profile keys: ")
-        (pp/pprint (keys @profile))
+        ;; (pp/pprint "profile keys: ")
+        ;; (pp/pprint (keys @profile))
         ;; (redirect! "/meetcute")
         ;
         )))
@@ -251,12 +298,12 @@
   [:input {:type "text"
            :value (get-field @profile field-name)
            :on-change (change-profile-field field-name)
-           :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px :width "95%"}}])
+           :style {:background "#ffffff15" :border-radius "8px" :padding "6px 8px" :margin-right :4px :width "95%"}}])
 
 (defn editable-textbox [field-name]
   [:textarea {:value (get-field @profile field-name)
               :on-change (change-profile-field field-name)
-              :style {:background "#ffffff22"
+              :style {:background "#ffffff15"
                       :border-radius "8px"
                       :padding "6px 8px"
                       :margin-right "12px"
@@ -266,45 +313,54 @@
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
-   [:h1 {:style {:font-size 32 :line-height "2em"}} "Your profile"]
+  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
 
-   (when (exists? @profile)
-     [:div
-      [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-profile!} "Save changes"]
-      (when @debug? [:pre "@profile: " (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
-                                                                     ;(keyword "Social media links")
-                                                                     ;(keyword "Email")
-                                                                     ;(keyword "First name")
-                                                                     ;(keyword "Last name")
-                                                                     ;(keyword "Phone")
-                                                                     ;(keyword "Home base city")
-                                                                     ;(keyword "I'm interested in...")
-                                                                      (keyword "selections")
-                                                                     ;(keyword "What makes this person awesome?")
-                                                                     ;(keyword "Gender")
-                                                                      ]))])
-      [:div {:style {:margin "16px 0 24px 0"}}
-       (let [key-values [["First name"                       (editable-input "First name")]
-                        ;;  ["Last name"                        (editable-input "Last name")]
-                         ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                       (get-field @profile "I'm interested in...")
-                                                                       #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
-                         ["Gender" (radio-btns-component ["Man" "Woman"]
-                                                         (get-field @profile "Gender")
-                                                         #(reset! profile (assoc @profile (keyword "Gender") %)))]
-                         ["Phone"                            (format-phone (get-field @profile "Phone"))] ; do not make this editable!
-                         ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
-                         ["Social media links"               (editable-textbox "Social media links")]
-                         ["Email"                            (editable-input "Email")]
-                         ["Home base city"                   (editable-input "Home base city")]
-                         ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
+   [:div {:style {:margin-bottom "24px"}}
+    [:h1 {:style {:font-size 32 :line-height "2em" :float "left"}} "Your profile"]
+    [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-profile!} "Save changes"]]
 
-                         ["Pictures" (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                  (get-field @profile "Pictures"))]]]
-         [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
-          [:tbody
-           (map-indexed bio-row key-values)]])]])
+   (when @debug? [:pre "@profile: " (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
+                                                                         ;(keyword "Social media links")
+                                                                         ;(keyword "Email")
+                                                                         ;(keyword "First name")
+                                                                         ;(keyword "Last name")
+                                                                         ;(keyword "Phone")
+                                                                         ;(keyword "Home base city")
+                                                                         ;(keyword "I'm interested in...")
+                                                                   (keyword "selections")
+                                                                         ;(keyword "What makes this person awesome?")
+                                                                         ;(keyword "Gender")
+                                                                   ]))])
+   [:div {:style {:margin "16px 0 24px 0"}}
+    (let [key-values [["First name"                       (editable-input "First name")]
+                      ["Last name"                        (editable-input "Last name")]
+                      ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                                                                    (get-field @profile "I'm interested in...")
+                                                                    #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
+                      ["Gender" (radio-btns-component ["Man" "Woman"]
+                                                      (get-field @profile "Gender")
+                                                      #(reset! profile (assoc @profile (keyword "Gender") %)))]
+                      ["Phone"                            [:div
+                                                           (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
+                                                           [small-text "We will only share your contact info when you match with someone. It is not public."]]]
+                      ["Email"                            [:div
+                                                           (editable-input "Email")
+                                                           [small-text "We will only share your contact info when you match with someone. It is not public."]]]
+                      ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
+                      ["Social media links"               (editable-textbox "Social media links")]
+                      ["Email"                            (editable-input "Email")]
+                      ["Home base city"                   (editable-input "Home base city")]
+                      ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
+
+                      ["Pictures" [:div
+                                   (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                (get-field @profile "Pictures"))
+                                   [small-text [:span "If you'd like to add or remove pictures, please email them to Lei Ugale at "
+                                                [:a {:href "mailto:lei@turpentine.co" :style a-href-styles}
+                                                 "lei@turpentine.co"]]]]]]]
+      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
+       [:tbody
+        (map-indexed bio-row key-values)]])]
    [:br]])
 
 
@@ -362,7 +418,7 @@
                  [:p "You've reviewed all the profiles in your area. Check back later for more!"]
                  (doall (map-indexed render-bio new-bios)))]
 
-              [:div {:style {:margin-top "24px"}}
+              [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
                [:details {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
                 [:summary {:style {:font-size 32 :line-height "2em" :cursor "pointer"}}
                  [:h1 {:style {:display "inline"}} "Profiles you've already reviewed"]]
@@ -413,7 +469,7 @@
      "Already have an account? "
      [:a {:on-click #(reset! current-tab :signin)
           :href "#"
-          :style {:margin-left "8px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
+          :style a-href-styles}
       "Sign in"]]]
 
    [:div {:style {:width "100%"}}
@@ -441,7 +497,7 @@
   [:div {:style {:margin "12px"}}
    [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "All bios"]
    [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Your profile"]
-   [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
+  ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
    [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})} (str "Log out")]
    [:br]])
 
