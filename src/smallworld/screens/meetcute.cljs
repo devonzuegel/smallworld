@@ -19,7 +19,8 @@
   [:p {:style {:padding-top "4px" :font-size ".8em" :opacity ".7"}} str])
 
 (defn md->hiccup [md-string]
-  [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}}])
+  [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}
+         :style {:line-height "1.4"}}])
 
 (defn get-field [bio field]
   (get-in bio [(keyword field)]))
@@ -122,7 +123,7 @@
 
 (defn bio-row [i [key-name value]]
   [:tr {:key i :style {:background "transparent" :vertical-align "top"}}
-   [:td {:style {:padding "12px" :vertical-align "top" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "200px"}} key-name]
+   [:td {:style {:padding "12px" :vertical-align "top" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "400px"}} key-name]
    [:td {:style {:padding "12px" :vertical-align "top" :text-align "left"}} value]])
 
 
@@ -137,109 +138,115 @@
             :key value}
      icon value]))
 
+(defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
+  [:div {:style {:display "flex" :margin "8px"}}
+   [:div {:style {:flex 1 :margin "8px"}}
+    [:input {:type "checkbox"
+             :id (str bio-id "-select")
+             :value bio-id
+             :checked (boolean (in? currently-selected-ids bio-id))
+             :style {:display "none"}
+             :on-change (fn [event]
+                          (if (or (nil? event) (nil? (.-target event)))
+                            (println "event: " event)
+                            (let [checked? (.-checked (.-target event))
+                                  now-selected (if checked?
+                                                 (if (in? currently-selected-ids bio-id)
+                                                   currently-selected-ids
+                                                   (conj currently-selected-ids bio-id))
+                                                 (remove (fn [v] (= bio-id v))
+                                                         (get-field @profile "selections")))]
+                              (reset! profile (assoc @profile
+                                                     (keyword "selections")
+                                                     now-selected))
+                              (when checked?
+                                (reset! profile (assoc @profile
+                                                       (keyword "rejections")
+                                                       (remove (fn [v] (= bio-id v))
+                                                               (get-field @profile "rejections")))))
+                              (update-selections))))}]
+    [:label {:for (str bio-id "-select")
+            ;;  :on-mouse-enter #(js/setStyle % {:opacity ".1"})
+            ;;  :on-mouse-leave #(js/setStyle % {:opacity (if (or (in? currently-selected-ids bio-id)
+            ;;                                                    (not (in? currently-rejected-ids bio-id))) "1" ".8")})
+             :style {:padding "30px 20px"
+                     :background-color "white"
+                     :color "black"
+                     :font-size "1.1em"
+                     :font-weight "500"
+                     :opacity (if (or (in? currently-selected-ids bio-id)
+                                      (not (in? currently-rejected-ids bio-id))) "1" ".5")
+                     :cursor "pointer"
+                     :text-align "center"
+                     :display "block"
+                     :flex-grow 1
+                     :border-radius "5px"
+                     :border (if (in? currently-selected-ids bio-id) "3px solid white" "3px solid transparent")}}
+     "I'd like to meet this person!"]]
+
+   [:div {:style {:flex 1 :margin "8px"}}
+    [:input {:type "checkbox"
+             :id (str bio-id "-reject")
+             :value bio-id
+             :checked (boolean (in? currently-rejected-ids bio-id))
+             :style {:display "none"}
+             :on-change (fn [event]
+                          (if (or (nil? event) (nil? (.-target event)))
+                            (println "event: " event)
+                            (let [checked? (.-checked (.-target event))
+                                  now-rejected (if checked?
+                                                 (if (in? currently-rejected-ids bio-id)
+                                                   currently-rejected-ids
+                                                   (conj currently-rejected-ids bio-id))
+                                                 (remove (fn [v] (= bio-id v))
+                                                         (get-field @profile "rejections")))]
+                              (reset! profile (assoc @profile
+                                                     (keyword "rejections")
+                                                     now-rejected))
+                              (when checked?
+                                (reset! profile (assoc @profile
+                                                       (keyword "selections")
+                                                       (remove (fn [v] (= bio-id v))
+                                                               (get-field @profile "selections")))))
+                              (update-selections))))}]
+    [:label {:for (str bio-id "-reject")
+            ;;  :on-mouse-enter #(js/setStyle % {:opacity ".1"})
+            ;;  :on-mouse-leave #(js/setStyle % {:opacity (if (or (in? currently-selected-ids bio-id)
+            ;;                                                    (not (in? currently-rejected-ids bio-id))) "1" ".8")})
+             :style {:padding "30px 20px"
+                     :background-color "#ffffff22"
+                     :color "white"
+                     :font-size "1.1em"
+                     :font-weight "500"
+                     :opacity (if (or (in? currently-rejected-ids bio-id)
+                                      (not (in? currently-selected-ids bio-id))) "1" ".5")
+                     :cursor "pointer"
+                     :text-align "center"
+                     :display "block"
+                     :flex-grow 1
+                     :border-radius "5px"
+                     :border (if (in? currently-rejected-ids bio-id) "3px solid white" "3px solid transparent")}}
+     "Not interested, but thanks"]]])
+
 (defn render-bio [i bio]
-  [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
-   (let [key-values [["First name"                       (get-field bio "First name")]
-                     ["Last name"                        (get-field bio "Last name")]
+  [:div {:key i :style {:margin "16px 0 24px 0" :border "3px solid #ffffff33" :border-radius "8px" :padding "18px"}}
+   [:h2 {:style {:font-size 24 :line-height "2em" :margin-left "12px"}} (get-field bio "First name")]
+   (let [key-values [["What makes this person awesome?"  (md->hiccup (get-field bio "What makes this person awesome?"))]
+                     ["Home base city"                   (get-field bio "Home base city")]
                      ["Social media links"               [:pre (or (get-field bio "Social media links")
                                                                    "[did not share social media links]")]]
-                    ;;  ["Email"                            (get-field bio "Email")]                 ; do not include contact info in public profile
-                    ;;  ["Phone"                            (format-phone (get-field bio "Phone"))]  ; do not include contact info in public profile
-                     ["Home base city"                   (get-field bio "Home base city")]
+                     ;; ["Email"                            (get-field bio "Email")]                 ; do not include contact info in public profile
+                     ;; ["Phone"                            (format-phone (get-field bio "Phone"))]  ; do not include contact info in public profile
                      ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
-                     ["What makes this person awesome?"  (md->hiccup (get-field bio "What makes this person awesome?"))]
+
                      ["Gender"                           [tag-component (get-field bio "Gender")]]
                      ["I'm interested in..."             (map tag-component (get-field bio "I'm interested in..."))]
                      ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                                       (get-field bio "Pictures"))]]]
+
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
-      [:tbody
-       [:tr
-        [:td
-         (let [bio-id (get-field bio "id")
-               currently-selected-ids (get-field @profile "selections")
-               currently-rejected-ids (get-field @profile "rejections")]
-           [:div
-            [:span
-             [:input {:type "checkbox"
-                      :id (str bio-id "-select")
-                      :value bio-id
-                      :checked (boolean (in? currently-selected-ids bio-id))
-                      :style {:display "none"}
-                      :on-change (fn [event]
-                                   (if (or (nil? event) (nil? (.-target event)))
-                                     (println "event: " event)
-                                     (let [checked? (.-checked (.-target event))
-                                           now-selected (if checked?
-                                                          (if (in? currently-selected-ids bio-id)
-                                                            currently-selected-ids
-                                                            (conj currently-selected-ids bio-id))
-                                                          (remove (fn [v] (= bio-id v))
-                                                                  (get-field @profile "selections")))]
-                                       (reset! profile (assoc @profile
-                                                              (keyword "selections")
-                                                              now-selected))
-                                       (when checked?
-                                         (reset! profile (assoc @profile
-                                                                (keyword "rejections")
-                                                                (remove (fn [v] (= bio-id v))
-                                                                        (get-field @profile "rejections")))))
-                                       (update-selections))))}]
-             [:label {:for (str bio-id "-select")
-                      :style (merge {:display "inline-block"
-                                     :padding "10px 20px"
-                                     :background-color "#4CAF50"
-                                     :color "white"
-                                     :opacity (if (or (in? currently-selected-ids bio-id)
-                                                      (not (in? currently-rejected-ids bio-id))) "1" ".5")
-                                     :margin "5px"
-                                     :cursor "pointer"
-                                     :border-radius "5px"
-                                     :border (if (in? currently-selected-ids bio-id) "3px solid white" "3px solid transparent")}
-                                    (if (in? currently-selected-ids bio-id) {:box-shadow "0 4px 8px 0 rgba(0,0,0,0.2)"} {}))}
-              "Select"]]
-
-            [:span
-             [:input {:type "checkbox"
-                      :id (str bio-id "-reject")
-                      :value bio-id
-                      :checked (boolean (in? currently-rejected-ids bio-id))
-                      :style {:display "none"}
-                      :on-change (fn [event]
-                                   (if (or (nil? event) (nil? (.-target event)))
-                                     (println "event: " event)
-                                     (let [checked? (.-checked (.-target event))
-                                           now-rejected (if checked?
-                                                          (if (in? currently-rejected-ids bio-id)
-                                                            currently-rejected-ids
-                                                            (conj currently-rejected-ids bio-id))
-                                                          (remove (fn [v] (= bio-id v))
-                                                                  (get-field @profile "rejections")))]
-                                       (reset! profile (assoc @profile
-                                                              (keyword "rejections")
-                                                              now-rejected))
-                                       (when checked?
-                                         (reset! profile (assoc @profile
-                                                                (keyword "selections")
-                                                                (remove (fn [v] (= bio-id v))
-                                                                        (get-field @profile "selections")))))
-                                       (update-selections))))}]
-             [:label {:for (str bio-id "-reject")
-                      :style (merge {:display "inline-block"
-                                     :padding "10px 20px"
-                                     :background-color "#D32F2F"
-                                     :color "white"
-                                     :opacity (if (or (in? currently-rejected-ids bio-id)
-                                                      (not (in? currently-selected-ids bio-id))) "1" ".7")
-                                     :margin "5px"
-                                     :cursor "pointer"
-                                     :border-radius "5px"
-                                     :border (if (in? currently-rejected-ids bio-id) "3px solid white" "3px solid transparent")}
-                                    (if (in? currently-rejected-ids bio-id) {:box-shadow "0 4px 8px 0 rgba(0,0,0,0.2)"} {}))}
-              "Reject"]]])]
-        [:td]]
-
-       (map-indexed bio-row key-values)]])])
+      [:tbody (map-indexed bio-row key-values)]])
+   [select-reject-btns (get-field bio "id") (get-field @profile "selections") (get-field @profile "rejections")]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; PROFILE TAB ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -313,10 +320,10 @@
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
+  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px" :margin-top "48px"}}
 
    [:div {:style {:margin-bottom "24px"}}
-    [:h1 {:style {:font-size 32 :line-height "2em" :float "left"}} "Your profile"]
+    [:h1 {:style {:font-size 36 :line-height "2em" :float "left"}} "Your profile"]
     [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-profile!} "Save changes"]]
 
    (when @debug? [:pre "@profile: " (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
@@ -395,7 +402,7 @@
                                              ))))
 
                               @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :margin-top "48px"}}
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px" :margin-top "48px"}}
      (when @profile
        [:div
         (if (nil? included-bios)
@@ -412,18 +419,19 @@
                  new-bio-count (str (count new-bios))]
              [:div
               [:div
-               [:h1 {:style {:font-size 32 :line-height "2em"}}
-                new-bio-count " new profiles to review"]
+               [:h1 {:style {:font-size 36 :line-height "2em"}}
+                new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
                (if (= 0 (count new-bios))
-                 [:p "You've reviewed all the profiles in your area. Check back later for more!"]
+                 [:p "You've reviewed all the profiles for today. Check back later for more!"]
                  (doall (map-indexed render-bio new-bios)))]
 
-              [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
-               [:details {:style {:border "3px solid #ffffff33" :border-radius "8px" :padding "12px"}}
-                [:summary {:style {:font-size 32 :line-height "2em" :cursor "pointer"}}
-                 [:h1 {:style {:display "inline"}} "Profiles you've already reviewed"]]
-                [:div {:style {:margin-top "24px"}}
-                 (doall (map-indexed render-bio reviewed-bios))]]]])])])]))
+              (when (> (count reviewed-bios) 0)
+                [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
+                 [:details {:style {:border-radius "8px" :padding "12px"}} [:summary {:style {:font-size 36 :line-height "2em" :cursor "pointer" :margin-left "-42px"}}
+                                                                            [:h1 {:style {:display "inline" :margin-left "8px"}} "Profiles you've already reviewed"]]
+                  [:div {:style {:margin-top "24px"}} (doall (map-indexed render-bio reviewed-bios))]]])
+
+              [:br] [:br]])])])]))
 
 (defn css-spinner []
   (let [speed 1 ; lower is faster
@@ -459,7 +467,7 @@
 (defn signup-screen []
   [:div  {:style {:display "flex" :flex-direction "column" :height "100vh"
                   :align-items "center" ; center horizontally
-                  :color "white" :font-family "sans-serif" :font-size "1.2em" :line-height "1.5em" :text-align "center" :overflow "hidden" :padding "0 12px"
+                  :font-family "sans-serif" :font-size "1.2em" :line-height "1.5em" :text-align "center" :overflow "hidden" :padding "0 12px"
                   :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
                   ; TODO:: this flexbox and its contents should resize when the page size changes
                   }}
