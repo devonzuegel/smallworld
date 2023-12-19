@@ -82,20 +82,29 @@
    [:td {:style {:padding "8px" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "200px"}} key-name]
    [:td {:style {:padding "8px" :text-align "left"}} value]])
 
+(defn tag-component [value]
+  (let [icon (case value
+               "Man" "🚹 "
+               "Men" "🚹 "
+               "Woman" "🚺 "
+               "Women" "🚺 "
+               "")]
+    [:span {:style {:margin-right "8px" :background "#ffffff33" :padding "4px 6px" :border-radius "8px"}} icon value]))
+
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :background "#ffffff11"}}
    (let [key-values [["First name"                       (get-field bio "First name")]
-                     #_["Last name"                        (get-field bio "Last name")]
-                     #_["Social media links"               [:pre (get-field bio "Social media links")]]
-                     #_["Email"                            (get-field bio "Email")]
-                     #_["Phone"                            (format-phone (get-field bio "Phone"))]
-                     #_["Home base city"                   (get-field bio "hHome base city")]
-                     #_["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
-                     #_["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
-                     ["Gender"                           (get-field bio "Gender")]
-                     ["I'm interested in..."             (pr-str (get-field bio "I'm interested in..."))]
-                     #_["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                        (get-field bio "Pictures"))]]]
+                     ["Last name"                        (get-field bio "Last name")]
+                     ["Social media links"               [:pre (get-field bio "Social media links")]]
+                     ["Email"                            (get-field bio "Email")]
+                     ["Phone"                            (format-phone (get-field bio "Phone"))]
+                     ["Home base city"                   (get-field bio "Home base city")]
+                     ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
+                     ["What makes this person awesome?"  (get-field bio "What makes this person awesome?")]
+                     ["Gender"                           [tag-component (get-field bio "Gender")]]
+                     ["I'm interested in..."             (map tag-component (get-field bio "I'm interested in..."))]
+                     ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                      (get-field bio "Pictures"))]]]
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
       [:tbody
        [:tr
