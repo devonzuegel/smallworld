@@ -256,6 +256,9 @@ a a {
   color: #d9d3cc;
   text-decoration: none;
   font-weight: 500;
+}
+a,
+a a {
   border-bottom: 3px solid #ffffff22;
   padding-bottom: 1px;
 }
@@ -264,7 +267,12 @@ a:hover,
 a:hover a {
   color: #f5f0eb;
   transition: all 50ms ease-out;
-  // border-bottom: 3px solid #ffffff44;
+}
+a:hover,
+a:hover a {
+  color: #f5f0eb;
+  transition: all 50ms ease-out;
+  border-bottom: 3px solid #ffffff44;
 }
 .friends-list .location-info {
   opacity: 0.7;
