@@ -14,7 +14,7 @@
 (def btn-styles {:border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
 (defn small-text [str & [styles]]
-  [:p {:style (merge {:padding-top "4px" :padding-bottom "4px" :font-size ".8em" :opacity ".7"}
+  [:p {:style (merge {:padding-top "4px" :padding-bottom "4px" :font-size ".7em" :opacity ".6"}
                      styles)} str])
 
 (defn md->hiccup [md-string]
@@ -121,9 +121,12 @@
                    #(println "Done updating selections")))
 
 (defn bio-row [i [key-name value]]
-  [:tr {:key i :style {:background "transparent" :vertical-align "top"}}
-   [:td {:style {:padding "12px" :vertical-align "top" :text-align "right" :font-size ".85em" :opacity ".75" :width "140px"}} key-name]
-   [:td {:style {:padding "12px" :vertical-align "top" :text-align "left"}} value]])
+  #_[:div {:key i}
+     [:div {:style {:flex 1 :margin-top "24px" :font-size ".8em" :opacity ".75" :text-transform "uppercase"}} key-name]
+     [:div {:style {:flex 1 :margin-top "4px" :min-width "500px"}} value]]
+  [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
+   [:div {:style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width "140px" :min-width "140px" :text-transform "uppercase"}} key-name]
+   [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]])
 
 
 (defn tag-component [value]
@@ -138,7 +141,7 @@
      icon value]))
 
 (defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
-  [:div {:style {:display "flex" :margin "8px"}}
+  [:div {:style {:display "flex" :flex-wrap "wrap" :margin "8px"}}
    [:div {:style {:flex 1 :margin "8px"}}
     [:input {:type "checkbox"
              :id (str bio-id "-select")
@@ -179,6 +182,7 @@
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
+                     :min-width "200px"
                      :border-radius "5px"
                      :border (if (in? currently-selected-ids bio-id) "3px solid white" "3px solid transparent")}}
      "I'd like to meet this person!"]]
@@ -222,6 +226,7 @@
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
+                     :min-width "200px"
                      :border-radius "5px"
                      :border (if (in? currently-rejected-ids bio-id) "3px solid white" "3px solid transparent")}}
      "Not interested, but thanks"]]])
@@ -244,8 +249,8 @@
                                                            (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                                         (get-field bio "Pictures")))]]]
 
-     [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
-      [:tbody (map-indexed bio-row key-values)]])
+     [:div {:style {:display "flex" :margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
+      (map-indexed bio-row key-values)])
    [select-reject-btns (get-field bio "id") (get-field @profile "selections") (get-field @profile "rejections")]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -312,9 +317,9 @@
                    :border "1px solid #ffffff22"
                    :border-radius "8px"
                    :padding "6px 8px"
-                   :margin-right
-                   :4px
-                   :width "95%"}}])
+                   :margin-right "4px"
+                   :width "95%"
+                   :max-width "300px"}}])
 
 (defn editable-textbox [field-name]
   [:textarea {:value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
@@ -330,11 +335,11 @@
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "860px"}}
+  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
 
-   [:div {:style {:margin-bottom "36px" :display "flex" :justify-content "space-between"}}
-    [:h1 {:style {:font-size 36 :line-height "1.3em" :margin-top "12px" :margin-bottom "12px"}} "Your profile"]
-    [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save changes"]]
+   [:div {:style {:margin-bottom "12px" :display "flex" :justify-content "space-between"}}
+    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}} "Your profile"]
+    [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save"]]
 
    [:div {:style {:margin "16px 0 24px 0"}}
     (let [key-values [["First name"                       (editable-input "First name")]
@@ -365,10 +370,10 @@
                                                             {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]
 
                       ["Pictures" [:div
-                                   (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                (get-field @profile "Pictures"))
                                    [small-text [:span "If you'd like to add or remove pictures, please email them to Lei Ugale at "
-                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]]]]]
+                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]
+                                   (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
+                                                (get-field @profile "Pictures"))]]]]
       [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
        [:tbody
         (map-indexed bio-row key-values)]])]
@@ -406,7 +411,7 @@
                                              ))))
 
                               @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "90%" :max-width "860px"}}
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "90%" :max-width "750px"}}
      (when @profile
        [:div
         (if (nil? included-bios)
@@ -423,7 +428,7 @@
                  new-bio-count (str (count new-bios))]
              [:div
               [:div
-               [:h1 {:style {:font-size 36 :line-height "1.3em" :margin-top "12px" :margin-bottom "12px"}}
+               [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}}
                 new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
                (if (= 0 (count new-bios))
                  [:p "You've reviewed all the profiles for today. Check back later for more!"]
@@ -498,15 +503,15 @@
             :on-key-press #(when (= (.-key %) "Enter") (signin))
             :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
    [:div {:style {:margin-bottom "12px"}}]
-   [:button {:style (merge btn-styles {:margin-right "12px"}) :on-click signin} "Sign in"]
-   [:a {:on-click #(reset! current-tab :signup) :href "#"}                      "Sign up"]])
+   [:button {:style btn-styles :on-click signin} "Sign in"]
+   [:a {:on-click #(reset! current-tab :signup) :style {:margin-left "12px" :margin-right "12px"} :href "#"}                      "Sign up"]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
-   [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "All bios"]
-   [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Your profile"]
+   [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "Home"]
+   [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Profile"]
   ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
-   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})} (str "Log out")]
+   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})} (str "Logout")]
    [:br]])
 
 (defn screen []
