@@ -305,12 +305,12 @@
 
 (defn editable-input [field-name]
   [:input {:type "text"
-           :value (trim-trailing-whitespace (get-field @profile field-name))
+           :value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
            :style {:background "#ffffff15" :border-radius "8px" :padding "6px 8px" :margin-right :4px :width "95%"}}])
 
 (defn editable-textbox [field-name]
-  [:textarea {:value (trim-trailing-whitespace (get-field @profile field-name))
+  [:textarea {:value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
               :style {:background "#ffffff15"
                       :border-radius "8px"
@@ -328,25 +328,13 @@
     [:h1 {:style {:font-size 36 :line-height "2em"}} "Your profile"]
     [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save changes"]]
 
-   (when @debug? [:pre "@profile: " (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
-                                                                         ;(keyword "Social media links")
-                                                                         ;(keyword "Email")
-                                                                         ;(keyword "First name")
-                                                                         ;(keyword "Last name")
-                                                                         ;(keyword "Phone")
-                                                                         ;(keyword "Home base city")
-                                                                         ;(keyword "I'm interested in...")
-                                                                   (keyword "selections")
-                                                                         ;(keyword "What makes this person awesome?")
-                                                                         ;(keyword "Gender")
-                                                                   ]))])
    [:div {:style {:margin "16px 0 24px 0"}}
     (let [key-values [["First name"                       (editable-input "First name")]
                       ["Last name"                        (editable-input "Last name")]
-                      ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                      ["I'm interested in..." (checkboxes-component ["Men" "Women" "Other"]
                                                                     (get-field @profile "I'm interested in...")
                                                                     #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
-                      ["Gender" (radio-btns-component ["Man" "Woman"]
+                      ["Gender" (radio-btns-component ["Man" "Woman" "Other"]
                                                       (get-field @profile "Gender")
                                                       #(reset! profile (assoc @profile (keyword "Gender") %)))]
                       ["Phone"                            [:div
@@ -499,8 +487,7 @@
     [:a {:on-click #(reset! current-tab :signup) :href "#" :style {:margin-left "12px"}}
      "Sign up"]
     [:br]
-    [:br]]
-   [:pre "@profile: " (pr-str @profile)]])
+    [:br]]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
