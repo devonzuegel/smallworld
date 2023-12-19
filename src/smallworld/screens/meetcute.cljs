@@ -11,12 +11,10 @@
 (defonce profile (r/atom nil))
 (defonce current-tab (r/atom :home))
 
-(def btn-styles {:color "white" :border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
-
-(def a-href-styles {:color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"})
+(def btn-styles {:border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
 (defn small-text [str]
-  [:p {:style {:padding-top "4px" :font-size ".8em" :opacity ".7"}} str])
+  [:p {:style {:padding-top "4px" :padding-bottom "4px" :font-size ".8em" :opacity ".7"}} str])
 
 (defn md->hiccup [md-string]
   [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}
@@ -123,7 +121,7 @@
 
 (defn bio-row [i [key-name value]]
   [:tr {:key i :style {:background "transparent" :vertical-align "top"}}
-   [:td {:style {:padding "12px" :vertical-align "top" :text-align "right" :font-size ".85em" :opacity ".75" :max-width "400px"}} key-name]
+   [:td {:style {:padding "12px" :vertical-align "top" :text-align "right" :font-size ".85em" :opacity ".75" :width "140px"}} key-name]
    [:td {:style {:padding "12px" :vertical-align "top" :text-align "left"}} value]])
 
 
@@ -215,7 +213,6 @@
             ;;                                                    (not (in? currently-rejected-ids bio-id))) "1" ".8")})
              :style {:padding "30px 20px"
                      :background-color "#ffffff22"
-                     :color "white"
                      :font-size "1.1em"
                      :font-weight "500"
                      :opacity (if (or (in? currently-rejected-ids bio-id)
@@ -233,16 +230,18 @@
    [:h2 {:style {:font-size 24 :line-height "2em" :margin-left "12px"}} (get-field bio "First name")]
    (let [key-values [["What makes this person awesome?"  (md->hiccup (get-field bio "What makes this person awesome?"))]
                      ["Home base city"                   (get-field bio "Home base city")]
-                     ["Social media links"               [:pre (or (get-field bio "Social media links")
-                                                                   "[did not share social media links]")]]
+                     ["Social media links"               (md->hiccup (or (get-field bio "Social media links")
+                                                                         "[did not share social media links]"))]
                      ;; ["Email"                            (get-field bio "Email")]                 ; do not include contact info in public profile
                      ;; ["Phone"                            (format-phone (get-field bio "Phone"))]  ; do not include contact info in public profile
                      ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
 
                      ["Gender"                           [tag-component (get-field bio "Gender")]]
                      ["I'm interested in..."             (map tag-component (get-field bio "I'm interested in..."))]
-                     ["Pictures"                         (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                      (get-field bio "Pictures"))]]]
+                     ["Pictures"                         (if (empty? (get-field bio "Pictures"))
+                                                           [:p "No pictures yet :)"]
+                                                           (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
+                                                                        (get-field bio "Pictures")))]]]
 
      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em"}}
       [:tbody (map-indexed bio-row key-values)]])
@@ -301,30 +300,33 @@
   #(reset! profile
            (assoc @profile (keyword field-name) (-> % .-target .-value))))
 
+(defn trim-trailing-whitespace [str]
+  (str/replace str #"\s+$" ""))
+
 (defn editable-input [field-name]
   [:input {:type "text"
-           :value (get-field @profile field-name)
+           :value (trim-trailing-whitespace (get-field @profile field-name))
            :on-change (change-profile-field field-name)
            :style {:background "#ffffff15" :border-radius "8px" :padding "6px 8px" :margin-right :4px :width "95%"}}])
 
 (defn editable-textbox [field-name]
-  [:textarea {:value (get-field @profile field-name)
+  [:textarea {:value (trim-trailing-whitespace (get-field @profile field-name))
               :on-change (change-profile-field field-name)
               :style {:background "#ffffff15"
                       :border-radius "8px"
                       :padding "6px 8px"
                       :margin-right "12px"
-                      :min-height "150px"
+                      :min-height "120px"
                       :color "#d9d3cc"
-                      :font-size ".9em"
+                      :font-size ".9em !important" ; TODO: this is overridden by styles.css, need to fix
                       :width "95%"}}])
 
 (defn profile-tab []
-  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px" :margin-top "48px"}}
+  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px"}}
 
-   [:div {:style {:margin-bottom "24px"}}
-    [:h1 {:style {:font-size 36 :line-height "2em" :float "left"}} "Your profile"]
-    [:button {:style (merge btn-styles {:float "right" :margin-top 0}) :on-click update-profile!} "Save changes"]]
+   [:div {:style {:margin-bottom "36px" :display "flex" :justify-content "space-between"}}
+    [:h1 {:style {:font-size 36 :line-height "2em"}} "Your profile"]
+    [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save changes"]]
 
    (when @debug? [:pre "@profile: " (pr-str (select-keys @profile [;(keyword "Anything else you'd like your potential matches to know?")
                                                                          ;(keyword "Social media links")
@@ -349,22 +351,24 @@
                                                       #(reset! profile (assoc @profile (keyword "Gender") %)))]
                       ["Phone"                            [:div
                                                            (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                           [small-text "We will only share your contact info when you match with someone. It is not public."]]]
+                                                           [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]
                       ["Email"                            [:div
                                                            (editable-input "Email")
-                                                           [small-text "We will only share your contact info when you match with someone. It is not public."]]]
+                                                           [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]
                       ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
                       ["Social media links"               (editable-textbox "Social media links")]
                       ["Email"                            (editable-input "Email")]
                       ["Home base city"                   (editable-input "Home base city")]
-                      ["What makes this person awesome?"  (editable-textbox "What makes this person awesome?")]
+                      ["What makes this person awesome?"  [:div
+                                                           [:div {:style {:margin-bottom "4px"}}
+                                                            [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
+                                                           (editable-textbox "What makes this person awesome?")]]
 
                       ["Pictures" [:div
                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                 (get-field @profile "Pictures"))
                                    [small-text [:span "If you'd like to add or remove pictures, please email them to Lei Ugale at "
-                                                [:a {:href "mailto:lei@turpentine.co" :style a-href-styles}
-                                                 "lei@turpentine.co"]]]]]]]
+                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]]]]]
       [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :width "100%"}}
        [:tbody
         (map-indexed bio-row key-values)]])]
@@ -402,7 +406,7 @@
                                              ))))
 
                               @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px" :margin-top "48px"}}
+    [:div {:style {:margin-left "auto" :margin-right "auto" :width "80%" :max-width "860px"}}
      (when @profile
        [:div
         (if (nil? included-bios)
@@ -419,7 +423,7 @@
                  new-bio-count (str (count new-bios))]
              [:div
               [:div
-               [:h1 {:style {:font-size 36 :line-height "2em"}}
+               [:h1 {:style {:font-size 36 :line-height "2em" :margin-top "12px"}}
                 new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
                (if (= 0 (count new-bios))
                  [:p "You've reviewed all the profiles for today. Check back later for more!"]
@@ -467,17 +471,16 @@
 (defn signup-screen []
   [:div  {:style {:display "flex" :flex-direction "column" :height "100vh"
                   :align-items "center" ; center horizontally
-                  :font-family "sans-serif" :font-size "1.2em" :line-height "1.5em" :text-align "center" :overflow "hidden" :padding "0 12px"
+                  :font-family "sans-serif" :font-size "1.2em" :line-height "1.6em" :text-align "center" :overflow "hidden" :padding "0 12px"
                   :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
                   ; TODO:: this flexbox and its contents should resize when the page size changes
                   }}
    [:div {:style {:padding-top "36px" :padding-bottom "36px"}}
     [:h1 {:style {:font-size 48 :line-height "1.6em"}} "Sign up"]
-    [:p {:style {:color "white"}}
+    [:p
      "Already have an account? "
      [:a {:on-click #(reset! current-tab :signin)
-          :href "#"
-          :style a-href-styles}
+          :href "#"}
       "Sign in"]]]
 
    [:div {:style {:width "100%"}}
@@ -493,9 +496,7 @@
                                       :on-key-press #(when (= (.-key %) "Enter") (signin))
                                       :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right :4px}}]
     [:button {:style btn-styles :on-click signin} "Sign in"]
-    [:a {:on-click #(reset! current-tab :signup)
-         :href "#"
-         :style {:margin-left "12px" :color "white" :border-bottom "3px solid #ffffff33" :padding-bottom "2px"}}
+    [:a {:on-click #(reset! current-tab :signup) :href "#" :style {:margin-left "12px"}}
      "Sign up"]
     [:br]
     [:br]]
