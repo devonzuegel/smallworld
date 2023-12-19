@@ -13,8 +13,9 @@
 
 (def btn-styles {:border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
 
-(defn small-text [str]
-  [:p {:style {:padding-top "4px" :padding-bottom "4px" :font-size ".8em" :opacity ".7"}} str])
+(defn small-text [str & [styles]]
+  [:p {:style (merge {:padding-top "4px" :padding-bottom "4px" :font-size ".8em" :opacity ".7"}
+                     styles)} str])
 
 (defn md->hiccup [md-string]
   [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}
@@ -307,16 +308,23 @@
   [:input {:type "text"
            :value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
-           :style {:background "#ffffff15" :border-radius "8px" :padding "6px 8px" :margin-right :4px :width "95%"}}])
+           :style {:background "#ffffff15"
+                   :border "1px solid #ffffff22"
+                   :border-radius "8px"
+                   :padding "6px 8px"
+                   :margin-right
+                   :4px
+                   :width "95%"}}])
 
 (defn editable-textbox [field-name]
   [:textarea {:value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
               :style {:background "#ffffff15"
+                      :border "1px solid #ffffff22"
                       :border-radius "8px"
                       :padding "6px 8px"
                       :margin-right "12px"
-                      :min-height "120px"
+                      :min-height "140px"
                       :color "#d9d3cc"
                       :font-size ".9em !important" ; TODO: this is overridden by styles.css, need to fix
                       :width "95%"}}])
@@ -350,7 +358,11 @@
                       ["What makes this person awesome?"  [:div
                                                            [:div {:style {:margin-bottom "4px"}}
                                                             [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
-                                                           (editable-textbox "What makes this person awesome?")]]
+                                                           (editable-textbox "What makes this person awesome?")
+                                                           [small-text (md->hiccup "*Here's a template for asking a friend to write you a vouch:*")]
+                                                           [small-text (md->hiccup (str "\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                        "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\""))
+                                                            {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]
 
                       ["Pictures" [:div
                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
