@@ -11,7 +11,8 @@
 html {
   color: #d9d3cc;
   font-size: 15px;
-  font-family: 'Roboto Mono', monospace; //'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue',
+    monospace;
   background-color: #013917;
   background-image: url(../az-subtle.png);
 }
@@ -25,7 +26,8 @@ body {
 input {
   color: #d9d3cc;
   transition: color 200ms ease-in-out;
-  font-family: 'Roboto Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue',
+    monospace;
 }
 input:focus {
   color: #f1ece8;
@@ -235,7 +237,8 @@ select {
 }
 pre {
   white-space: pre-wrap;
-  font-family: 'Roboto Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue',
+    monospace;
   overflow: hidden;
   background-color: #ffffff11;
   padding: 8px;
@@ -255,7 +258,8 @@ a a {
   color: #d9d3cc;
   text-decoration: none;
   font-weight: 500;
-  font-family: 'Roboto Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue',
+    monospace;
 }
 a,
 a a {
@@ -1308,7 +1312,8 @@ input[type='radio']:focus {
   width: 30px;
   border-radius: 8px;
   white-space: pre;
-  font-family: 'Roboto Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue',
+    monospace;
 
   transition: height 500ms ease-out, width 500ms ease-out;
   animation: fadein 1s;
@@ -1443,7 +1448,8 @@ a.btn:hover {
 }
 .mapboxgl-popup-content .bottom-row code {
   margin-left: 10px;
-  font-family: 'Roboto Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue',
+    monospace;
   opacity: 0.6;
 }
 .mapboxgl-popup-content .bottom-row svg.location {
