@@ -738,6 +738,7 @@
   (GET "/api/v1/worker" req (worker-endpoint req))
 
   ;; general resources
+  (ANY "/meetcute" [] (io/resource "public/meetcute.html"))
   (route/resources "/")
   (ANY "*" [] (io/resource "public/index.html")))
 
