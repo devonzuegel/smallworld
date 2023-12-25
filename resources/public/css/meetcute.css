@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Inria+Serif:ital,wght@1,400;1,700&display=swap');
+
+* {
+  margin: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+html {
+  color: #220b01;
+  font-size: 15px;
+  font-family: 'Roboto Mono', monospace; //'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+}
+body {
+  margin: 0;
+}
+html,
+body {
+  height: 100%;
+}
+input {
+  color: #220b01;
+  transition: color 200ms ease-in-out;
+  font-family: 'Roboto Mono', monospace;
+}
+input:focus {
+  color: #000000;
+  transition: color 200ms ease-in-out;
+}
+/* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
+body {
+  line-height: 1.3em;
+  font-size: 16px;
+}
+input,
+select {
+  font-size: 16px;
+}
