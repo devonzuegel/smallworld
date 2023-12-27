@@ -38,7 +38,7 @@
           bio (first (filter (fn [bio]
                                (= phone (clean-phone (get-in bio ["Phone"]))))
                              all-bios))]
-      (generate-string (airtable/kwdize bio)))
+      (generate-string {:fields (airtable/kwdize bio)}))
     {:status 401 :body "Unauthorized!!!"}))
 
 (defn update-profile [req]
