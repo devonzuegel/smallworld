@@ -7,7 +7,7 @@
             [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [compojure.core :refer [ANY defroutes GET POST]]
+            [compojure.core :as compo :refer [ANY defroutes GET POST]]
             [compojure.handler :as compojure-handler]
             [compojure.route :as route]
             [oauth.twitter :as oauth]
@@ -16,11 +16,11 @@
             [ring.util.io :as ring-io]
             [ring.util.request :as ring-request]
             [ring.util.response :as ring-response]
+            [meetcute.routes :as mc.routes]
             [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
             [smallworld.email :as email]
-            [smallworld.matchmaking :as matchmaking]
             [smallworld.memoize :as m]
             [smallworld.mocks :as mocks]
             [smallworld.session :as session]
@@ -698,9 +698,6 @@
   (GET "/api/v2/users" _ (generate-string (map select-user-fields (db/select-all db/users-table))))
   (POST "/api/v2/ping" req (ping req))
 
-  (GET "/api/matchmaking/bios" _ (generate-string (matchmaking/get-all-bios)))
-  (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
-
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
   (GET "/authorized" req (store-fetched-access-token-then-redirect-home req))
@@ -737,8 +734,12 @@
                                                (refresh-friends-from-twitter settings nil nil))) ; TODO: keep refactoring
   (GET "/api/v1/worker" req (worker-endpoint req))
 
+  ;; meetcute
+  (compo/context "/meetcute" []
+    mc.routes/app)
+
   ;; general resources
-  (ANY "/meetcute" [] (io/resource "public/meetcute.html"))
+
   (route/resources "/")
   (ANY "*" [] (io/resource "public/index.html")))
 
@@ -829,14 +830,21 @@
   (some-> @server* (.stop))
   ; create the tables if they don't already exist
   ; SMALL WORLD tables:
-  (db/create-table db/settings-table         db/settings-schema)
-  (db/create-table db/twitter-profiles-table db/twitter-profiles-schema)
-  (db/create-table db/friends-table          db/friends-schema)
-  (db/create-table db/coordinates-table      db/coordinates-schema)
-  (db/create-table db/access_tokens-table    db/access-tokens-schema)
-  (db/create-table db/impersonation-table    db/impersonation-schema)
+  (comment
+    (db/create-table db/settings-table         db/settings-schema)
+
+    (db/create-table db/twitter-profiles-table db/twitter-profiles-schema)
+
+    (db/create-table db/friends-table          db/friends-schema)
+
+    (db/create-table db/coordinates-table      db/coordinates-schema)
+
+    (db/create-table db/access_tokens-table    db/access-tokens-schema)
+
+    (db/create-table db/impersonation-table    db/impersonation-schema)
+
   ; KETCHUP CLUB tables:
-  (db/create-table db/users-table            db/users-schema)
+    (db/create-table db/users-table            db/users-schema))
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
         server (jetty/run-jetty #'app-handler {:port port :join? false})]
