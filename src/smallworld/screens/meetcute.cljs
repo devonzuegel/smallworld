@@ -277,11 +277,6 @@
 
 (defn fetch-my-profile! []
   (println "\nfetching my profile...")
-  (util/fetch-post "/meetcute/api/echo"
-                   {}
-                   println)
-
-
   (util/fetch-post "/meetcute/api/matchmaking/me"
                    {}
                    update-profile-with-result))
@@ -453,8 +448,11 @@
   ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
 
    ;; TODO(sebas): make this a post request to clear the cookie
-   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})}
-    (str "Logout")]
+   [:form {:action "/meetcute/api/auth/logout" :method "post"}
+    [:input {:type "submit"
+             :on-click #(reset! profile nil)
+             :value "Logout"
+             :style (merge btn-styles {:float "right"})}]]
    [:br]])
 
 (defn screen []
