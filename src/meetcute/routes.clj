@@ -5,38 +5,34 @@
             [smallworld.matchmaking :as matchmaking]
             [meetcute.auth :as mc.auth]
             [ring.util.request]
-            [ring.middleware.params :as ring.params]))
-
-#_(defn stream? [x]
-    (instance? java.io.InputStream x))
-
-(defn reader? [x]
-  (instance? java.io.Reader x))
-
-
+            [ring.util.response :as resp]))
 
 (defn parse-body-params [body]
-  (json/parse-string body true)
-  #_(cond
-      (string? body)
-    ;; (stream? body) (json/parse-stream body :key-fn keyword)
-    ;; :else body
-      ))
+  (json/parse-string body true))
 
 (defn signin-route [req]
   (let [params (:params req)
         phone (:phone params)]
-    {:status 200
-     :body (json/generate-string {:jwt (mc.auth/create-auth-token {:phone phone})
-                                  :params params})}))
+    ;; redirect to the home page with the cookie set
+    ;; this session is now authenticated
+    (-> (resp/redirect "/meetcute")
+        (assoc :session {:auth/jwt (mc.auth/create-auth-token {:phone phone})}))))
+
+(defn logout-route [_req]
+  (-> (resp/redirect "/meetcute")
+      (assoc :session {:auth/jwt nil})))
 
 (defroutes open-routes
   (ANY "/" [] (io/resource "public/meetcute.html"))
-  (POST "/api/auth/signin" req (signin-route req)))
+  (POST "/api/auth/signin" req (signin-route req))
+  (POST "/api/auth/logout" req (logout-route req)))
 
 (defroutes authenticated-routes
   (GET "/api/matchmaking/bios" _ (json/generate-string (matchmaking/get-all-bios)))
-  (POST "/api/matchmaking/profile" req (matchmaking/update-profile req)))
+  (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
+  (ANY "/api/echo" req (resp/response (pr-str req)))
+  (POST "/api/matchmaking/me" req
+    (matchmaking/my-profile (:auth/phone (mc.auth/req->parsed-jwt req)))))
 
 (defn wrap-body-string [handler]
   (fn [request]

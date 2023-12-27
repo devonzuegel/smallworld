@@ -275,10 +275,21 @@
         ;
         )))
 
+(defn fetch-my-profile! []
+  (println "\nfetching my profile...")
+  (util/fetch-post "/meetcute/api/echo"
+                   {}
+                   println)
+
+
+  (util/fetch-post "/meetcute/api/matchmaking/me"
+                   {}
+                   update-profile-with-result))
+
 (defn fetch-profile! [phone]
   (println "\nfetching profile...")
   (let [clean-phone (str/replace phone #"[^0-9]" "")]
-    (util/fetch-post "/api/matchmaking/profile"
+    (util/fetch-post "/meetcute/api/matchmaking/profile"
                      {"Phone" clean-phone}
                      update-profile-with-result)))
 
@@ -374,8 +385,9 @@
 
 (defn fetch-bios []
   (println "fetching bios")
-  (util/fetch "/api/matchmaking/bios" (fn [result]
-                                        (swap! bios (fn [_] result)))))
+  (util/fetch "/meetcute/api/matchmaking/bios" (fn [result]
+                                                 ;; TODO: if success, then navigate to profile
+                                                 (swap! bios (fn [_] result)))))
 
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
@@ -432,15 +444,24 @@
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
-   [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "Home"]
-   [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Profile"]
+   [:button {:on-click #(reset! current-tab :home)
+             :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))}
+    "Home"]
+   [:button {:on-click #(reset! current-tab :profile)
+             :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))}
+    "Profile"]
   ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
-   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})} (str "Logout")]
+
+   ;; TODO(sebas): make this a post request to clear the cookie
+   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})}
+    (str "Logout")]
    [:br]])
 
 (defn screen []
   (r/create-class
-   {:component-did-mount (fn [] (fetch-bios))
+   {:component-did-mount (fn []
+                           (fetch-my-profile!)
+                           (fetch-bios))
     :reagent-render (fn []
 
                       #_[:div
