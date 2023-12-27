@@ -27,6 +27,7 @@
   (POST "/api/auth/signin" req (signin-route req))
   (POST "/api/auth/logout" req (logout-route req)))
 
+;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
   (GET "/api/matchmaking/bios" _ (json/generate-string (matchmaking/get-all-bios)))
   (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
