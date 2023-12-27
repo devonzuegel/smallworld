@@ -32,6 +32,15 @@
                             nil
                             (str/replace phone #"[^0-9]" "")))
 
+(defn my-profile [req-phone]
+  (if-let [phone (some-> req-phone clean-phone)]
+    (let [all-bios (get-all-bios)
+          bio (first (filter (fn [bio]
+                               (= phone (clean-phone (get-in bio ["Phone"]))))
+                             all-bios))]
+      (generate-string (airtable/kwdize bio)))
+    {:status 401 :body "Unauthorized!!!"}))
+
 (defn update-profile [req]
   (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
         all-bios (get-all-bios)

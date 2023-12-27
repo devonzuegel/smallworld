@@ -86,26 +86,31 @@
     [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8"]]])
 
 (defn signin-screen [{:keys [to-signup]}]
-  [:div {:style {:margin-left "auto"
-                 :margin-right "auto"
-                 :width "90%"
-                 :padding-top "48px"
-                 :text-align "center"}}
-   [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
-   [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-    @phone-input-error]
-   [:p {:style {:line-height "2.5em"}} "Your phone number:"]
-   [:input {:type "text"
-            :value @phone
-            :on-change #(reset! phone (-> % .-target .-value))
-            :on-key-press #(when (= (.-key %) "Enter")
-                             (signin))
-            :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
-   [:div {:style {:margin-bottom "12px"}}]
-   [:button {:style mc.styles/btn
-             :on-click signin}
-    "Sign in"]
-   [:a {:on-click (fn [_] (to-signup))
-        :style {:margin-left "12px" :margin-right "12px"}
-        :href "#"}
-    "Sign up"]])
+  [:form {:method "post" :action "/meetcute/api/auth/signin"}
+   [:div {:style {:margin-left "auto"
+                  :margin-right "auto"
+                  :width "90%"
+                  :padding-top "48px"
+                  :text-align "center"}}
+    [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
+    [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+     @phone-input-error]
+    [:label {:for "phone"}
+     [:p {:style {:line-height "2.5em"}} "Your phone number:"]]
+    [:input {:type "text"
+             :name "phone"
+             :value @phone
+             :on-change #(reset! phone (-> % .-target .-value))
+             :on-key-press #(when (= (.-key %) "Enter")
+                              (signin))
+             :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
+    [:div {:style {:margin-bottom "12px"}}]
+    [:button {:style mc.styles/btn
+              :type "submit"
+            ;;   :on-click signin
+              }
+     "Sign in"]
+    [:a {:on-click (fn [_] (to-signup))
+         :style {:margin-left "12px" :margin-right "12px"}
+         :href "#"}
+     "Sign up"]]])
