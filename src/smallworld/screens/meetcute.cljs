@@ -130,7 +130,7 @@
     value]]
   #_(let [width "170px"]
       [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
-    ;;  [:style (str "@media screen and (min-width: 590px) { .flex-item { max-width: " width "; text-align: right; } }")]
+    ;;  [:style (str "@media screen and (min-width: 805px) { .flex-item { max-width: " width "; text-align: right; } }")]
        [:div {:className "flex-item"
               :style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width width :min-width width :text-transform "uppercase"}} key-name]
        [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
@@ -148,9 +148,11 @@
      icon value]))
 
 (defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
-  [:div {:style {:display "flex" :flex-wrap "wrap" :margin-right "8px"}}
-   [:style (str ".select-reject-btn { opacity: .8; } .select-reject-btn:hover { opacity: 1; transition: opacity .3ms ease-in }")]
-   [:div {:style {:flex 1 :margin "6px"}}
+  [:div {:style {:display "flex" :flex-wrap "wrap" :flex-direction "column" :width "100%" :margin-right "8px"}}
+   [:style (str ".select-reject-btn { opacity: .8; }"
+                ".select-reject-btn:hover { opacity: 1; transition: opacity .3ms ease-in }"
+                "@media screen and (min-width: 805px) { .select-reject-btn { min-width: 160px; max-width: 260px; } }")]
+   [:div {:style {:margin "6px"}}
     [:input {:type "checkbox"
              :id (str bio-id "-select")
              :value bio-id
@@ -186,14 +188,14 @@
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
-                     :min-width "160px"
+                    ;;  :width "100%"
                      :border-radius "3000px"
                      :background (if (in? currently-rejected-ids bio-id) "#42b72a" "#42b72a22")
                      :border "5px solid #42b72a"}}
      "I'd like to" [:br]
      "meet this person!"]]
 
-   [:div {:style {:flex 1 :margin "6px"}}
+   [:div {:style {:margin "6px"}}
     [:input {:type "checkbox"
              :id (str bio-id "-reject")
              :value bio-id
@@ -229,7 +231,7 @@
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
-                     :min-width "160px"
+                    ;;  :width "100%"
                      :border-radius "3000px"
                      :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
                      :border "5px solid #aaaaaa"}}
@@ -247,7 +249,7 @@
       ".page-container { display: flex; flex-wrap: wrap; justify-content: space-between; }"
       ".page { padding: 12px; background-color: #ffffff22; border-radius: 8px; margin-bottom: 12px; }"
       ".page.active { background-color: #ffffff44; }"]
-     [:style (str "@media screen and (min-width: 590px) { .tab { max-width: 200px; } }")]
+     [:style (str "@media screen and (min-width: 805px) { .tab { max-width: 200px; } }")]
      [:div.tab-container
       (for [tab @tabs]
         ^{:key tab}
@@ -434,57 +436,64 @@
    [:div
     content]])
 
-(defn render-profile [profile-to-show]
-  [:div {:style {:column-count 2
-                 :column-width "300px"
-                 :column-gap "8px"
-                 :padding "12px"
+(defn render-profile [bio]
+  [:div {:style {:padding "12px"
                  :margin "12px"
                  :border-radius "8px"
                  :border "2px solid #ddd"}}
 
    [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
-    (get-field profile-to-show "First name")]
+    (get-field bio "First name")]
 
-  ;;  [profile-section [:<>
-  ;;                    [profile-item "Home base" "New York City"]
-  ;;                    [profile-item "Frequency visits" [:div
-  ;;                                                      [:div "San Francisco"]
-  ;;                                                      [:div "Boston"]
-  ;;                                                      [:div "Miami"]]]]]
-  ;;  [profile-section [:<>
-  ;;                    [profile-item "Gender" "Woman"]
-  ;;                    [profile-item "Looking for" "Man"]]]
+   [:div  {:style {:column-count 2
+                   :column-width "300px"
+                   :column-gap "12px"}}
 
-   [profile-item "Home base" "New York City"]
-   [profile-item "Frequency visits" [:div
-                                     [:div "San Francisco"]
-                                     [:div "Boston"]
-                                     [:div "Miami"]]]
-   [profile-item "Gender" "Woman"]
-   [profile-item "Looking for" "Man"]
-   [profile-item "Social media" [:ul
-                                 [:li [:a {:href "https://twitter.com/anastasia" :style {:color "#1DA1F2"}} "twitter.com/anastasia"]]
-                                 [:li [:a {:href "https://instagram.com/anastasia" :style {:color "#C13584"}} "instagram.com/anastasia"]]]]
-   [profile-item "Vouch from a friend" "Christina is one of the most loving and persistently joyful human beings I and all of her friends know..."]
-   [profile-item "Pictures" [:div
-                             [:img {:src "url-to-image1" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
-                             [:img {:src "url-to-image2" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
-                             [:img {:src "url-to-image3" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]]]
-   [profile-item "About Anastasia" [:div
-                                    [:p "If you're curious to know a bit about meee..."]
-                                    [:p "I want to understand and engage deeply with the world and the people around me! Trying to find ways to help people be happy and healthy, currently through neuroscience. Previously studied psychedelic-assisted psychiatry, now at a wacky start-up, which we can chat about if we meet. Love to play and be covered in mud. Using my work and art (mostly songwriting at the moment) to explore/"]]]])
+      ;;  [profile-section [:<>
+      ;;                    [profile-item "Home base" "New York City"]
+      ;;                    [profile-item "Frequency visits" [:div
+      ;;                                                      [:div "San Francisco"]
+      ;;                                                      [:div "Boston"]
+      ;;                                                      [:div "Miami"]]]]]
+      ;;  [profile-section [:<>
+      ;;                    [profile-item "Gender" "Woman"]
+      ;;                    [profile-item "Looking for" "Man"]]]    
+
+    [profile-item "Home base" "New York City"]
+    [profile-item "Frequency visits" [:div
+                                      [:div "San Francisco"]
+                                      [:div "Boston"]
+                                      [:div "Miami"]]]
+    [profile-item "Gender" [tag-component (get-field bio "Gender")]]
+    [profile-item "Looking for" (map tag-component (get-field bio "I'm interested in..."))]
+    [profile-item "Social media" [:ul
+                                  [:li [:a {:href "https://twitter.com/anastasia" :style {:color "#1DA1F2"}} "twitter.com/anastasia"]]
+                                  [:li [:a {:href "https://instagram.com/anastasia" :style {:color "#C13584"}} "instagram.com/anastasia"]]]]
+    [profile-item "Vouch from a friend" "Christina is one of the most loving and persistently joyful human beings I and all of her friends know..."]
+    [profile-item "About Anastasia" [:div
+                                     [:p "If you're curious to know a bit about meee..."]
+                                     [:p "I want to understand and engage deeply with the world and the people around me! Trying to find ways to help people be happy and healthy, currently through neuroscience. Previously studied psychedelic-assisted psychiatry, now at a wacky start-up, which we can chat about if we meet. Love to play and be covered in mud. Using my work and art (mostly songwriting at the moment) to explore/"]]]
+    [profile-item "Pictures" [:div
+                              [:img {:src "url-to-image1" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
+                              [:img {:src "url-to-image2" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
+                              [:img {:src "url-to-image3" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]]]]
+   ;
+   ])
 
 ; TODO: use aspects of render-bio before getting rid of it
-(defn profile-with-buttons [i profile-to-show]
+(defn profile-with-buttons [i bio]
 
-  [:div {:style {:display "flex" :flex-direction "row" :width "100%"}}
+  [:div {:style {:display "flex" :flex-direction "row" :flex-wrap "wrap" :width "100%" :margin "auto"}}
 
-       ; Left column takes all available space
-   [:div {:style {:flex "1" :min-width "0"}}       [render-profile profile-to-show]]
+   ; Left column takes all available space
+   [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
+   [:div {:style {:flex 1} :className "profile-column"}
+    [render-profile bio]]
 
-       ; Right column with fixed width
-   [:div {:style {:flex "1" :max-width "260px"}}   [select-reject-btns]]])
+   ; Right column with fixed width
+   [:style "@media screen and (min-width: 805px) { .btns-column { max-width: 250px; } }"]
+   [:div {:style {:flex 1} :className "btns-column"}
+    [select-reject-btns]]])
 
 
 (defn home-tab []
@@ -510,7 +519,7 @@
 
                               @bios)]
     (when @profile
-      [:div {:style {:padding "12px"}}
+      [:div {:style {:padding "12px" :padding-top "0"}}
        (if (nil? included-bios)
          [:p "Loading..."]
          [:div
@@ -523,13 +532,12 @@
                                                                             (in? currently-rejected-ids bio-id)))
                                       included-bios)
                 new-bio-count (str (count new-bios))]
-            [:div
-             [:div
-              [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px 12px 12px" :text-align "center"}}
-               new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
-              (if (= 0 (count new-bios))
-                [:p "You've reviewed all the profiles for today. Check back later for more!"]
-                (doall (map-indexed profile-with-buttons new-bios)))]
+            [:div {:style {:width "95%" :margin "auto"}}
+             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
+              new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
+             (if (= 0 (count new-bios))
+               [:p "You've reviewed all the profiles for today. Check back later for more!"]
+               (doall (map-indexed profile-with-buttons new-bios)))
 
              (when (> (count reviewed-bios) 0)
                [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
@@ -540,7 +548,7 @@
              [:br] [:br]])])])))
 
 (defn nav-btns []
-  [:div {:style {:margin "12px"}}
+  [:div {:style {:margin "12px" :margin-bottom "0"}}
    [:button {:on-click #(reset! current-tab :home)
              :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))}
     "Home"]
