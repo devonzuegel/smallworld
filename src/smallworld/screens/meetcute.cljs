@@ -123,12 +123,17 @@
                    #(println "Done updating selections")))
 
 (defn bio-row [i [key-name value]]
-  (let [width "170px"]
-    [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
-     [:style (str "@media screen and (min-width: 590px) { .flex-item { max-width: " width "; text-align: right; } }")]
-     [:div {:class "flex-item"
-            :style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width width :min-width width :text-transform "uppercase"}} key-name]
-     [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
+  [:div {:key i}
+   [:div {:style {:padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :text-transform "uppercase"}}
+    key-name]
+   [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}}
+    value]]
+  #_(let [width "170px"]
+      [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
+    ;;  [:style (str "@media screen and (min-width: 590px) { .flex-item { max-width: " width "; text-align: right; } }")]
+       [:div {:className "flex-item"
+              :style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width width :min-width width :text-transform "uppercase"}} key-name]
+       [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
 
 
 (defn tag-component [value]
@@ -143,8 +148,9 @@
      icon value]))
 
 (defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
-  [:div {:style {:display "flex" :flex-wrap "wrap" :margin "8px"}}
-   [:div {:style {:flex 1 :margin "8px"}}
+  [:div {:style {:display "flex" :flex-wrap "wrap" :margin-right "8px"}}
+   [:style (str ".select-reject-btn { opacity: .8; } .select-reject-btn:hover { opacity: 1; transition: opacity .3ms ease-in }")]
+   [:div {:style {:flex 1 :margin "6px"}}
     [:input {:type "checkbox"
              :id (str bio-id "-select")
              :value bio-id
@@ -170,26 +176,24 @@
                                                                (get-field @profile "rejections")))))
                               (update-selections))))}]
     [:label {:for (str bio-id "-select")
-            ;;  :on-mouse-enter #(js/setStyle % {:opacity ".1"})
-            ;;  :on-mouse-leave #(js/setStyle % {:opacity (if (or (in? currently-selected-ids bio-id)
-            ;;                                                    (not (in? currently-rejected-ids bio-id))) "1" ".8")})
-             :style {:padding "30px 20px"
-                     :background-color "white"
-                     :color "black"
+             :className "select-reject-btn"
+             :style {:padding "20px"
+                     :color "#42b72a"
                      :font-size "1.1em"
-                     :font-weight "500"
-                     :opacity (if (or (in? currently-selected-ids bio-id)
-                                      (not (in? currently-rejected-ids bio-id))) "1" ".5")
+                     :line-height "1.3em"
+                     :font-weight "600"
                      :cursor "pointer"
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
-                     :min-width "200px"
-                     :border-radius "5px"
-                     :border (if (in? currently-selected-ids bio-id) "3px solid white" "3px solid transparent")}}
-     "I'd like to meet this person!"]]
+                     :min-width "160px"
+                     :border-radius "3000px"
+                     :background (if (in? currently-rejected-ids bio-id) "#42b72a" "#42b72a22")
+                     :border "5px solid #42b72a"}}
+     "I'd like to" [:br]
+     "meet this person!"]]
 
-   [:div {:style {:flex 1 :margin "8px"}}
+   [:div {:style {:flex 1 :margin "6px"}}
     [:input {:type "checkbox"
              :id (str bio-id "-reject")
              :value bio-id
@@ -215,23 +219,47 @@
                                                                (get-field @profile "selections")))))
                               (update-selections))))}]
     [:label {:for (str bio-id "-reject")
-            ;;  :on-mouse-enter #(js/setStyle % {:opacity ".1"})
-            ;;  :on-mouse-leave #(js/setStyle % {:opacity (if (or (in? currently-selected-ids bio-id)
-            ;;                                                    (not (in? currently-rejected-ids bio-id))) "1" ".8")})
-             :style {:padding "30px 20px"
-                     :background-color "#ffffff22"
+             :className "select-reject-btn"
+             :style {:padding "20px"
+                     :color "#aaaaaa"
                      :font-size "1.1em"
-                     :font-weight "500"
-                     :opacity (if (or (in? currently-rejected-ids bio-id)
-                                      (not (in? currently-selected-ids bio-id))) "1" ".5")
+                     :line-height "1.3em"
+                     :font-weight "600"
                      :cursor "pointer"
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
-                     :min-width "200px"
-                     :border-radius "5px"
-                     :border (if (in? currently-rejected-ids bio-id) "3px solid white" "3px solid transparent")}}
-     "Not interested, but thanks"]]])
+                     :min-width "160px"
+                     :border-radius "3000px"
+                     :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
+                     :border "5px solid #aaaaaa"}}
+     "Not interested," [:br] "but thanks"]]])
+
+
+(defn tabs []
+  (let [tabs (r/atom ["A" "B" "C"])
+        active-tab (r/atom (first @tabs))]
+    [:div
+     [:style
+      ".tab-container { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 12px; }"
+      ".tab { padding: 12px; background-color: #ffffff22; border-radius: 8px; cursor: pointer; margin-bottom: 12px; }"
+      ".tab.active { background-color: #ffffff44; }"
+      ".page-container { display: flex; flex-wrap: wrap; justify-content: space-between; }"
+      ".page { padding: 12px; background-color: #ffffff22; border-radius: 8px; margin-bottom: 12px; }"
+      ".page.active { background-color: #ffffff44; }"]
+     [:style (str "@media screen and (min-width: 590px) { .tab { max-width: 200px; } }")]
+     [:div.tab-container
+      (for [tab @tabs]
+        ^{:key tab}
+        [:div.tab
+         {:className (when (= tab @active-tab) "active")}
+         tab])]
+     [:div.page-container
+      (for [tab @tabs]
+        ^{:key tab}
+        [:div.page
+         {:className (when (= tab @active-tab) "active")}
+         (str tab ": Lorem ipsum dolor sit amet, consectetur adipiscing elit.")])]]))
 
 (defn render-bio [i bio]
   [:div {:key i :style {:margin "16px 0 24px 0" :border "3px solid #ffffff33" :border-radius "8px" :padding "18px"}}
@@ -251,7 +279,9 @@
                                                            (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
                                                                         (get-field bio "Pictures")))]]]
 
-     [:div {:style {:display "flex" :margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
+     #_[tabs]
+
+     [:div #_{:style {:display "flex" :margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
       (map-indexed bio-row key-values)])
    [select-reject-btns (get-field bio "id") (get-field @profile "selections") (get-field @profile "rejections")]])
 
@@ -385,6 +415,78 @@
                                                  ;; TODO: if success, then navigate to profile
                                                  (swap! bios (fn [_] result)))))
 
+(defn profile-section [contents]
+  [:div {:className "profile-section"
+         :style {:break-inside "avoid"
+                 :column-count 2
+                 :column-width "100px"
+                 :margin-top "24px"}}
+   [:style ".profile-section > .profile-item:first-of-type { margin-top: 0 !important}"] ; if first child of profile-section, 0 margin on top
+   contents])
+
+(defn profile-item [title content]
+  [:div {:className "profile-item"
+         :style {:margin "24px 12px 12px 12px" :break-inside "avoid"
+                ;;  :border "2px solid #ff00ff11" ; for debugging only
+                 }}
+   [:div {:style {:font-weight "bold" :text-transform "uppercase" :font-style "italic" :color "#ccc" :font-size ".8em"}}
+    title]
+   [:div
+    content]])
+
+(defn render-profile [profile-to-show]
+  [:div {:style {:column-count 2
+                 :column-width "300px"
+                 :column-gap "8px"
+                 :padding "12px"
+                 :margin "12px"
+                 :border-radius "8px"
+                 :border "2px solid #ddd"}}
+
+   [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
+    (get-field profile-to-show "First name")]
+
+  ;;  [profile-section [:<>
+  ;;                    [profile-item "Home base" "New York City"]
+  ;;                    [profile-item "Frequency visits" [:div
+  ;;                                                      [:div "San Francisco"]
+  ;;                                                      [:div "Boston"]
+  ;;                                                      [:div "Miami"]]]]]
+  ;;  [profile-section [:<>
+  ;;                    [profile-item "Gender" "Woman"]
+  ;;                    [profile-item "Looking for" "Man"]]]
+
+   [profile-item "Home base" "New York City"]
+   [profile-item "Frequency visits" [:div
+                                     [:div "San Francisco"]
+                                     [:div "Boston"]
+                                     [:div "Miami"]]]
+   [profile-item "Gender" "Woman"]
+   [profile-item "Looking for" "Man"]
+   [profile-item "Social media" [:ul
+                                 [:li [:a {:href "https://twitter.com/anastasia" :style {:color "#1DA1F2"}} "twitter.com/anastasia"]]
+                                 [:li [:a {:href "https://instagram.com/anastasia" :style {:color "#C13584"}} "instagram.com/anastasia"]]]]
+   [profile-item "Vouch from a friend" "Christina is one of the most loving and persistently joyful human beings I and all of her friends know..."]
+   [profile-item "Pictures" [:div
+                             [:img {:src "url-to-image1" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
+                             [:img {:src "url-to-image2" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
+                             [:img {:src "url-to-image3" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]]]
+   [profile-item "About Anastasia" [:div
+                                    [:p "If you're curious to know a bit about meee..."]
+                                    [:p "I want to understand and engage deeply with the world and the people around me! Trying to find ways to help people be happy and healthy, currently through neuroscience. Previously studied psychedelic-assisted psychiatry, now at a wacky start-up, which we can chat about if we meet. Love to play and be covered in mud. Using my work and art (mostly songwriting at the moment) to explore/"]]]])
+
+; TODO: use aspects of render-bio before getting rid of it
+(defn profile-with-buttons [i profile-to-show]
+
+  [:div {:style {:display "flex" :flex-direction "row" :width "100%"}}
+
+       ; Left column takes all available space
+   [:div {:style {:flex "1" :min-width "0"}}       [render-profile profile-to-show]]
+
+       ; Right column with fixed width
+   [:div {:style {:flex "1" :max-width "260px"}}   [select-reject-btns]]])
+
+
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
         gender-filter (case interested-in
@@ -407,36 +509,35 @@
                                              ))))
 
                               @bios)]
-    [:div {:style {:margin-left "auto" :margin-right "auto" :width "90%" :max-width "750px"}}
-     (when @profile
-       [:div
-        (if (nil? included-bios)
-          [:p "Loading..."]
-          [:div
-           (let [currently-selected-ids (get-field @profile "selections")
-                 currently-rejected-ids (get-field @profile "rejections")
-                 new-bios      (filter #(let [bio-id (get-field % "id")] (not (or (in? currently-selected-ids bio-id)
-                                                                                  (in? currently-rejected-ids bio-id))))
-                                       included-bios)
-                 reviewed-bios (filter #(let [bio-id (get-field % "id")] (or (in? currently-selected-ids bio-id)
-                                                                             (in? currently-rejected-ids bio-id)))
-                                       included-bios)
-                 new-bio-count (str (count new-bios))]
+    (when @profile
+      [:div {:style {:padding "12px"}}
+       (if (nil? included-bios)
+         [:p "Loading..."]
+         [:div
+          (let [currently-selected-ids (get-field @profile "selections")
+                currently-rejected-ids (get-field @profile "rejections")
+                new-bios      (filter #(let [bio-id (get-field % "id")] (not (or (in? currently-selected-ids bio-id)
+                                                                                 (in? currently-rejected-ids bio-id))))
+                                      included-bios)
+                reviewed-bios (filter #(let [bio-id (get-field % "id")] (or (in? currently-selected-ids bio-id)
+                                                                            (in? currently-rejected-ids bio-id)))
+                                      included-bios)
+                new-bio-count (str (count new-bios))]
+            [:div
              [:div
-              [:div
-               [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}}
-                new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
-               (if (= 0 (count new-bios))
-                 [:p "You've reviewed all the profiles for today. Check back later for more!"]
-                 (doall (map-indexed render-bio new-bios)))]
+              [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px 12px 12px" :text-align "center"}}
+               new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
+              (if (= 0 (count new-bios))
+                [:p "You've reviewed all the profiles for today. Check back later for more!"]
+                (doall (map-indexed profile-with-buttons new-bios)))]
 
-              (when (> (count reviewed-bios) 0)
-                [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
-                 [:details {:style {:border-radius "8px" :padding "12px"}} [:summary {:style {:font-size 36 :line-height "2em" :cursor "pointer" :margin-left "-42px"}}
-                                                                            [:h1 {:style {:display "inline" :margin-left "8px"}} "Profiles you've already reviewed"]]
-                  [:div {:style {:margin-top "24px"}} (doall (map-indexed render-bio reviewed-bios))]]])
+             (when (> (count reviewed-bios) 0)
+               [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
+                [:details {:style {:border-radius "8px" :padding "12px"}} [:summary {:style {:font-size 36 :line-height "2em" :cursor "pointer" :margin-left "-42px"}}
+                                                                           [:h1 {:style {:display "inline" :margin-left "8px"}} "Profiles you've already reviewed"]]
+                 [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))]]])
 
-              [:br] [:br]])])])]))
+             [:br] [:br]])])])))
 
 (defn nav-btns []
   [:div {:style {:margin "12px"}}

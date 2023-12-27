@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Inria+Serif:ital,wght@1,400;1,700&display=swap');
-
 * {
   margin: 0;
   border: 0;
@@ -11,7 +9,11 @@
 html {
   color: #220b01;
   font-size: 15px;
-  font-family: 'Roboto Mono', monospace; //'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', monospace;
+  font-family: 'Roboto Mono', monospace;
+}
+button,
+a {
+  font-family: 'Roboto Mono', monospace;
 }
 body {
   margin: 0;
