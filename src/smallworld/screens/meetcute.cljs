@@ -1,17 +1,18 @@
-(ns smallworld.screens.meetcute (:require [clojure.string :as str]
-                                          [reagent.core    :as r]
-                                          [smallworld.util :as util]
-                                          [goog.dom :as dom]
-                                          [markdown.core :as md]
-                                          [cljs.pprint :as pp]))
+(ns smallworld.screens.meetcute
+  (:require [clojure.string :as str]
+            [reagent.core    :as r]
+            [smallworld.util :as util]
+            [meetcute.screens.styles :as mc.styles]
+            [meetcute.screens.auth :as mc.screens.auth]
+            [markdown.core :as md]
+            [cljs.pprint :as pp]))
 
 (defonce debug? (r/atom false))
 (defonce bios   (r/atom nil))
-(defonce phone (r/atom "(111) 111-1111")) ; TODO: remove me
 (defonce profile (r/atom nil))
 (defonce current-tab (r/atom :home))
 
-(def btn-styles {:border "3px solid #ffffff33" :padding "12px" :border-radius "8px" :cursor "pointer" :margin "6px"})
+(def btn-styles mc.styles/btn)
 
 (defn small-text [str & [styles]]
   [:p {:style (merge {:padding-top "4px" :padding-bottom "4px" :font-size ".7em" :opacity ".6"}
@@ -260,13 +261,6 @@
 
 (def phone-input-error (r/atom nil))
 
-(defn valid-phone [phone]
-  ; strip the phone number of all non-numeric characters, then check if it's a valid phone number. if yes, return true; if not, return false:
-  (let [phone (or phone "")
-        phone (str/replace phone #"[^0-9]" "")]
-    (and (not-empty phone) (re-find #"^\d{10}$" phone))))
-
-
 (defn redirect! [path]
   (.replace (.-location js/window) path))
 
@@ -281,17 +275,18 @@
         ;
         )))
 
-(defn fetch-profile [phone]
+(defn fetch-my-profile! []
+  (println "\nfetching my profile...")
+  (util/fetch-post "/meetcute/api/matchmaking/me"
+                   {}
+                   update-profile-with-result))
+
+(defn fetch-profile! [phone]
   (println "\nfetching profile...")
   (let [clean-phone (str/replace phone #"[^0-9]" "")]
-    (util/fetch-post "/api/matchmaking/profile" {"Phone" clean-phone} update-profile-with-result)))
-
-(defn signin []
-  (if (valid-phone @phone)
-    (do
-      (reset! phone-input-error nil)
-      (fetch-profile @phone))
-    (reset! phone-input-error "Please enter a valid phone number")))
+    (util/fetch-post "/meetcute/api/matchmaking/profile"
+                     {"Phone" clean-phone}
+                     update-profile-with-result)))
 
 (defn update-profile! []
   (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
@@ -385,8 +380,9 @@
 
 (defn fetch-bios []
   (println "fetching bios")
-  (util/fetch "/api/matchmaking/bios" (fn [result]
-                                        (swap! bios (fn [_] result)))))
+  (util/fetch "/meetcute/api/matchmaking/bios" (fn [result]
+                                                 ;; TODO: if success, then navigate to profile
+                                                 (swap! bios (fn [_] result)))))
 
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
@@ -441,81 +437,29 @@
 
               [:br] [:br]])])])]))
 
-(defn css-spinner []
-  (let [speed 1 ; lower is faster
-        rotation (r/atom 0)]
-    (js/setInterval #(swap! rotation + 1) speed)
-    (fn []
-      [:div {:style {:width "20px"
-                     :height "20px"
-                     :margin "auto" ; center the spinner
-                     :margin-top "80px"
-                     :border "6px solid rgba(255, 255, 255, 0.1)"
-                     :border-top-color "white"
-                     :border-radius "50%"
-                     :transform (str "rotate(" @rotation "deg)")}
-             :key @rotation}])))
-
-(defn loading-iframe [src]
-  (let [loading? (r/atom true)] ; State to track loading status
-    (fn []
-      [:div {:style {:position "relative"
-                     :align-self "center"
-                     :width "100%"}}
-       (when @loading? [css-spinner])
-       [:iframe {:src src
-                 :style {:display (if @loading? "none" "block")
-                         :frameborder "0"
-                         :onmousewheel ""
-                         :border-radius "8px"
-                         :width "100%"
-                         :height (str (- (.-innerHeight (dom/getWindow)) 180) "px")}
-                 :on-load #(reset! loading? false)}]])))
-
-(defn signup-screen []
-  [:div  {:style {:display "flex" :flex-direction "column" :height "100vh"
-                  :align-items "center" ; center horizontally
-                  :font-family "sans-serif" :font-size "1.2em" :line-height "1.6em" :text-align "center" :overflow "hidden" :padding "0 12px"
-                  :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
-                  ; TODO:: this flexbox and its contents should resize when the page size changes
-                  }}
-   [:div {:style {:padding-top "36px" :padding-bottom "36px"}}
-    [:h1 {:style {:font-size 48 :line-height "1.6em"}} "Sign up"]
-    [:p
-     "Already have an account? "
-     [:a {:on-click #(reset! current-tab :signin)
-          :href "#"}
-      "Sign in"]]]
-
-   [:div {:style {:width "100%"}}
-    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-    [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8"]]])
-
-(defn signin-screen []
-  [:div {:style {:margin-left "auto" :margin-right "auto" :width "90%" :padding-top "48px" :text-align "center"}}
-   [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
-   [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}} @phone-input-error]
-   [:p {:style {:line-height "2.5em"}} "Your phone number:"]
-   [:input {:type "text"
-            :value @phone
-            :on-change #(reset! phone (-> % .-target .-value))
-            :on-key-press #(when (= (.-key %) "Enter") (signin))
-            :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
-   [:div {:style {:margin-bottom "12px"}}]
-   [:button {:style btn-styles :on-click signin} "Sign in"]
-   [:a {:on-click #(reset! current-tab :signup) :style {:margin-left "12px" :margin-right "12px"} :href "#"}                      "Sign up"]])
-
 (defn nav-btns []
   [:div {:style {:margin "12px"}}
-   [:button {:on-click #(reset! current-tab :home) :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))} "Home"]
-   [:button {:on-click #(reset! current-tab :profile) :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))} "Profile"]
+   [:button {:on-click #(reset! current-tab :home)
+             :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))}
+    "Home"]
+   [:button {:on-click #(reset! current-tab :profile)
+             :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))}
+    "Profile"]
   ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
-   [:button {:on-click #(reset! profile nil) :style (merge btn-styles {:float "right"})} (str "Logout")]
+
+   ;; TODO(sebas): make this a post request to clear the cookie
+   [:form {:action "/meetcute/api/auth/logout" :method "post"}
+    [:input {:type "submit"
+             :on-click #(reset! profile nil)
+             :value "Logout"
+             :style (merge btn-styles {:float "right"})}]]
    [:br]])
 
 (defn screen []
   (r/create-class
-   {:component-did-mount (fn [] (fetch-bios))
+   {:component-did-mount (fn []
+                           (fetch-my-profile!)
+                           (fetch-bios))
     :reagent-render (fn []
 
                       #_[:div
@@ -525,9 +469,9 @@
 
                       (if (nil? @profile)
                         (case @current-tab
-                          :signup (signup-screen)
-                          :signin (signin-screen)
-                          (signin-screen))
+                          :signup (mc.screens.auth/signup-screen {:to-signin #(reset! current-tab :signin)})
+                          :signin (mc.screens.auth/signin-screen {:to-signup #(reset! current-tab :signup)})
+                          (mc.screens.auth/signin-screen {:to-signup #(reset! current-tab :signup)}))
 
                         [:div
                          [nav-btns]
