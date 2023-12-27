@@ -550,7 +550,7 @@
   ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
 
    ;; TODO(sebas): make this a post request to clear the cookie
-   [:form {:action "/meetcute/api/auth/logout" :method "post"}
+   [:form {:action "/meetcute/api/auth/logout" :method "post" :style {:float "right"}}
     [:input {:type "submit"
              :on-click #(reset! profile nil)
              :value "Logout"
