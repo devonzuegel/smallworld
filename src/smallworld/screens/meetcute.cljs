@@ -2,7 +2,6 @@
   (:require [clojure.string :as str]
             [reagent.core    :as r]
             [smallworld.util :as util]
-            [meetcute.screens.styles :as mc.styles]
             [meetcute.screens.auth :as mc.screens.auth]
             [markdown.core :as md]
             [cljs.pprint :as pp]))
@@ -12,10 +11,11 @@
 (def bios   (r/atom nil))
 (def profile (r/atom nil))
 
-(def btn-styles mc.styles/btn)
-
 (defn small-text [str & [styles]]
-  [:p {:style (merge {:padding-top "4px" :padding-bottom "4px" :font-size ".7em" :opacity ".6"}
+  [:p {:style (merge {:padding-top "4px"
+                      :padding-bottom "4px"
+                      :font-size ".7em"
+                      :color "rgb(119, 103, 89, 1)"}
                      styles)} str])
 
 (defn md->hiccup [md-string]
@@ -33,6 +33,7 @@
                                 "Last name"
                                 "Phone"
                                 "Home base city"
+                                "Other cities where you spend time"
                                 "I'm interested in..."
                                 "selections"
                                 "rejections"
@@ -266,7 +267,7 @@
            :value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
            :style {:background "white"
-                   :border "3px solid #eee"
+                   :border "3px solid rgb(188, 181, 175, .3)"
                   ;;  :background "#66666620"
                   ;;  :border "1px solid #66666622"
                    :border-radius "8px"
@@ -279,7 +280,7 @@
   [:textarea {:value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
               :style {:background "white"
-                      :border "3px solid #eee"
+                      :border "3px solid rgb(188, 181, 175, .3)"
                       ;; :background "#66666620"
                       ;; :border "1px solid #66666622"
                       :border-radius "8px"
@@ -318,7 +319,7 @@
 
    [saved-toast]
 
-   [:style "@media screen and (max-width: 800px) { .your-profile { margin-top: 24px; } }"]
+   [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
    [:div {:style {:margin "0"
@@ -343,8 +344,8 @@
                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
                                                                       (update-profile-debounced!)))]
                       ["Phone"                            [:div {:style {:max-width "380px"}}
-                                                           [:div {:style {:background "#f5f5f5"
-                                                                          :border "3px solid #eee"
+                                                           [:div {:style {:background "rgb(188, 181, 175, .1)"
+                                                                          :border "3px solid rgb(188, 181, 175, .3)"
                                                                           :cursor "not-allowed"
                                                                           :border-radius "8px"
                                                                           :padding "6px 8px"
@@ -367,7 +368,7 @@
                                                             (editable-textbox "What makes this person awesome?")
                                                             [:div {:style {:margin-top "8px"}}] ; spacer
                                                             [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
-                                                            [:div {:style {:border-left "5px solid #eee" :background "#f9f9f9" :margin-left "8px" :max-width "90%"}}
+                                                            [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
                                                              [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
                                                                                           "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
                                                               {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
@@ -416,7 +417,7 @@
                  :margin "12px"
                  :border-radius "8px"
                  :background "white"
-                 :border "2px solid #ddd"}}
+                 :border "3px solid rgba(188, 181, 175, .3)"}}
 
    [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
     (get-field bio "First name")]
@@ -511,7 +512,7 @@
                 new-bio-count (str (count new-bios))]
             [:div {:style {:width "95%" :margin "auto"}}
 
-             [:div {:style {:margin-left "40px"}}
+             [:div {:style {:margin-left "40px" :margin-top "24px"}}
               [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
                [:span {:style {:margin-left "-40px"}}
                 (if (= (count new-bios) 0)  [fa-icon "check" :style {:font-size "0.85em"}] [fa-icon "heart" :outlined true])]
@@ -543,19 +544,27 @@
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
    [:button {:on-click #(reset! current-tab :home)
-             :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #cccccc88"} {}))}
+             :className "btn"
+             :style (when (= @current-tab :home)
+                      {:border  "3px solid transparent"
+                       :background "rgb(188, 181, 175,.6)"
+                       :color "white"})}
     "Home"]
    [:button {:on-click #(reset! current-tab :profile)
-             :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #cccccc88"} {}))}
+             :className "btn"
+             :style (when (= @current-tab :profile)
+                      {:border  "3px solid transparent"
+                       :background "rgb(188, 181, 175,.6)"
+                       :color "white"})}
     "Profile"]
-  ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
 
    ;; TODO(sebas): make this a post request to clear the cookie
    [:form {:action "/meetcute/api/auth/logout" :method "post" :style {:float "right"}}
     [:input {:type "submit"
+             :className "btn"
              :on-click #(reset! profile nil)
              :value "Logout"
-             :style (merge btn-styles {:float "right"})}]]
+             :style {:float "right"}}]]
    [:br]])
 
 (defn screen []

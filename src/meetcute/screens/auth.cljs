@@ -2,8 +2,7 @@
   (:require [reagent.core :as r]
             [goog.dom :as dom]
             [clojure.string :as str]
-            [smallworld.util :as util]
-            [meetcute.screens.styles :as mc.styles]))
+            [smallworld.util :as util]))
 
 ;; ============================================================================
 ;; Helper components
@@ -105,7 +104,7 @@
                               (signin))
              :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
     [:div {:style {:margin-bottom "12px"}}]
-    [:button {:style mc.styles/btn
+    [:button {:className "btn"
               :type "submit"
             ;;   :on-click signin
               }
