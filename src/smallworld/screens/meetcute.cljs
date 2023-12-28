@@ -77,9 +77,9 @@
             :id (str value-name "-radio")
             :value value-name
             :checked (= selected-value value-name)
-            :style {:margin-left "16px" :margin-right "10px"}
+            :style {:margin-left "16px" :margin-right "10px" :cursor "pointer"}
             :on-change (fn [] (update-selected-value value-name))}]
-   [:label {:for (str value-name "-radio")} value-name]])
+   [:label {:for (str value-name "-radio") :style {:cursor "pointer"}} value-name]])
 
 (defn radio-btns-component [all-values selected-value update-selected-value]
   [:div {:style {:display "inline-flex" :justify "space-between" :margin-left "-16px"}}
@@ -136,7 +136,7 @@
                                                        (keyword "rejections")
                                                        (remove (fn [v] (= bio-id v))
                                                                (get-field @profile "rejections")))))
-                              (update-selections))))}]
+                              #_(update-selections))))}]
     [:label {:for (str bio-id "-select")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -148,7 +148,6 @@
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
-                    ;;  :width "100%"
                      :border-radius "3000px"
                      :background (if (in? currently-rejected-ids bio-id) "#42b72a" "#42b72a22")
                      :border "5px solid #42b72a"}}
@@ -171,6 +170,7 @@
                                                    (conj currently-rejected-ids bio-id))
                                                  (remove (fn [v] (= bio-id v))
                                                          (get-field @profile "rejections")))]
+                              (println "now-rejected: " now-rejected)
                               (reset! profile (assoc @profile
                                                      (keyword "rejections")
                                                      now-rejected))
@@ -179,7 +179,7 @@
                                                        (keyword "selections")
                                                        (remove (fn [v] (= bio-id v))
                                                                (get-field @profile "selections")))))
-                              (update-selections))))}]
+                              #_(update-selections))))}]
     [:label {:for (str bio-id "-reject")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -191,7 +191,6 @@
                      :text-align "center"
                      :display "block"
                      :flex-grow 1
-                    ;;  :width "100%"
                      :border-radius "3000px"
                      :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
                      :border "5px solid #aaaaaa"}}
@@ -283,7 +282,7 @@
                       ["Phone"                            [:div
                                                            (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]
-                                                           [small-text [:span "If you'd like to change your phone number, please email Lei Ugale at "
+                                                           [small-text [:span "If you'd like to change your phone number, please email "
                                                                         [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]]]
                       ["Email"                            [:div
                                                            (editable-input "Email")
@@ -303,7 +302,7 @@
                                                              {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                       ["Pictures" [:div
-                                   [small-text [:span "If you'd like to add or remove pictures, please email them to Lei Ugale at "
+                                   [small-text [:span "If you'd like to add or remove pictures, please email "
                                                 [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]
                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
                                                 (get-field @profile "Pictures"))]]]]
@@ -403,7 +402,10 @@
    ; Right column with fixed width
    [:style "@media screen and (min-width: 805px) { .btns-column { max-width: 250px; } }"]
    [:div {:style {:flex 1} :className "btns-column"}
-    [select-reject-btns]]])
+    [select-reject-btns
+     (get-field bio "id")
+     (get-field @profile "selections")
+     (get-field @profile "rejections")]]])
 
 
 (defn home-tab []
