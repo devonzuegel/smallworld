@@ -232,9 +232,12 @@
                      profile-editable-fields-only
                      update-profile-with-result)))
 
+(def update-profile-debounced! (util/debounce update-profile! 800))
+
 (defn change-profile-field [field-name]
-  #(reset! profile
-           (assoc @profile (keyword field-name) (-> % .-target .-value))))
+  (fn [event]
+    (reset! profile (assoc @profile (keyword field-name) (-> event .-target .-value)))
+    (update-profile-debounced!)))
 
 (defn trim-trailing-whitespace [str]
   (str/replace str #"\s+$" ""))
@@ -267,18 +270,21 @@
 (defn profile-tab []
   [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
    [:div {:style {:margin-bottom "12px" :display "flex" :justify-content "space-between"}}
-    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}} "Your profile"]
-    [:button {:style (merge btn-styles {:align-self "center"}) :on-click update-profile!} "Save"]]
+    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}} "Your profile"]]
 
    [:div {:style {:margin "16px 0 24px 0"}}
     (let [key-values [["First name"                       (editable-input "First name")]
                       ["Last name"                        (editable-input "Last name")]
                       ["Gender" (radio-btns-component ["Man" "Woman"]
                                                       (get-field @profile "Gender")
-                                                      #(reset! profile (assoc @profile (keyword "Gender") %)))]
+                                                      (fn [foobar]
+                                                        (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                        (update-profile-debounced!)))]
                       ["I'm interested in..." (checkboxes-component ["Men" "Women"]
                                                                     (get-field @profile "I'm interested in...")
-                                                                    #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
+                                                                    (fn [foobar]
+                                                                      (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
+                                                                      (update-profile-debounced!)))]
                       ["Phone"                            [:div
                                                            (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]
