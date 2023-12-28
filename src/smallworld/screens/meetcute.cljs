@@ -269,6 +269,7 @@
               :style {:background "#66666620"
                       ;; :border "1px solid #66666622"
                       :border-radius "8px"
+                      :resize "vertical" ; disallow horizontal resize
                       :padding "6px 8px"
                       :margin-right "12px"
                       :min-height "140px"
