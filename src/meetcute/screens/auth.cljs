@@ -17,7 +17,7 @@
                      :height "20px"
                      :margin "auto" ; center the spinner
                      :margin-top "80px"
-                     :border "6px solid rgba(255, 255, 255, 0.1)"
+                     :border "6px solid rgba(0, 0, 0, 0.1)"
                      :border-top-color "white"
                      :border-radius "50%"
                      :transform (str "rotate(" @rotation "deg)")}
@@ -103,7 +103,7 @@
              :on-change #(reset! phone (-> % .-target .-value))
              :on-key-press #(when (= (.-key %) "Enter")
                               (signin))
-             :style {:background "#ffffff22" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
+             :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
     [:div {:style {:margin-bottom "12px"}}]
     [:button {:style mc.styles/btn
               :type "submit"
