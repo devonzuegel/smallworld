@@ -12,11 +12,11 @@
 (def profile (r/atom nil))
 
 (defn small-text [str & [styles]]
-  [:p {:style (merge {:padding-top "4px"
-                      :padding-bottom "4px"
-                      :font-size ".7em"
-                      :color "rgb(119, 103, 89, 1)"}
-                     styles)} str])
+  [:div {:style (merge {:padding-top "4px"
+                        :padding-bottom "4px"
+                        :font-size ".7em"
+                        :color "rgb(119, 103, 89, 1)"}
+                       styles)} str])
 
 (defn md->hiccup [md-string]
   [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}
@@ -145,7 +145,7 @@
                                                        (keyword "rejections")
                                                        (remove (fn [v] (= bio-id v))
                                                                (get-field @profile "rejections")))))
-                              #_(update-selections))))}]
+                              (update-selections))))}]
     [:label {:for (str bio-id "-select")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -192,7 +192,7 @@
                                                        (keyword "selections")
                                                        (remove (fn [v] (= bio-id v))
                                                                (get-field @profile "selections")))))
-                              #_(update-selections))))}]
+                              (update-selections))))}]
     [:label {:for (str bio-id "-reject")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -295,7 +295,7 @@
 (defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
   [:i {:className (str/join " " [(if outlined "far" "fas")
                                  (str "fa-" icon-name)])
-       :style (merge {:min-width "40px" :margin-right "16px" :text-align "center"} style)}])
+       :style (merge {:min-width "40px" :margin-right "24px" :text-align "right"} style)}])
 
 (defn saved-toast []
   [:div {:style {:position "fixed"
@@ -514,8 +514,7 @@
 
              [:div {:style {:margin-left "40px" :margin-top "24px"}}
               [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
-               [:span {:style {:margin-left "-40px"}}
-                (if (= (count new-bios) 0)  [fa-icon "check" :style {:font-size "0.85em"}] [fa-icon "heart" :outlined true])]
+               [:span {:style {:margin-left "-40px"}} [fa-icon "heart" :outlined true :style {:font-size ".9"}]]
                new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]]
 
              (if (= 0 (count new-bios))
