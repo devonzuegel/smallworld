@@ -103,7 +103,7 @@
                   :font-weight "bold"
                   :text-transform "uppercase"
                   :font-style "italic"
-                  :color "#bebebe"
+                  :color "#bcb5af"
                   :font-size ".8em"}}
     key-name]
    [:div {:style {:padding "12px" :padding-top "6px"} :className "bio-row-value"}
@@ -229,12 +229,12 @@
     (reset! phone-input-error (:error result))
     (do (reset! profile (merge (:fields result)
                                {:id (:id result)}))
+        (println "finished updating profile with result!")
         ;; (pp/pprint "profile keys: ")
         ;; (pp/pprint (keys @profile))
         ;; (redirect! "/meetcute")
-        ;
         )))
-3
+
 (defn fetch-my-profile! []
   (println "\nfetching my profile...")
   (util/fetch-post "/meetcute/api/matchmaking/me"
@@ -291,17 +291,26 @@
                       :font-size ".9em !important" ; TODO: this is overridden by styles.css, need to fix
                       :width "98%"}}])
 
+(defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
+  [:i {:className (str/join " " [(if outlined "far" "fas")
+                                 (str "fa-" icon-name)])
+       :style (merge {:min-width "40px" :margin-right "16px" :text-align "center"} style)}])
+
 (defn saved-toast []
   [:div {:style {:position "fixed"
-                 :bottom "30px"
-                 :right "30px"
+                 :top "30px"
+                 :left "50%"
+                 :transform "translateX(-50%)"
                  :background-color "#42b72a"
-                 :color "#fff"
                  :font-weight "bold"
-                 :padding "12px"
+                 :padding "20px 28px"
+                 :color "rgb(66, 183, 42)"
+                 :background "rgb(235 255 231)"
+                 :border "3px solid rgb(66, 183, 42)"
                  :border-radius "8px"
                  :opacity (if @show-toast 1 0)
                  :transition "opacity 0.3s"}}
+   [fa-icon "check-circle" :style {:min-width "auto" :margin-right "12px"}]
    "Saved!"])
 
 (defn profile-tab []
@@ -397,7 +406,7 @@
          :style {:margin "24px 12px 12px 12px" :break-inside "avoid"
                 ;;  :border "2px solid #ff00ff11" ; for debugging only
                  }}
-   [:div {:style {:font-weight "bold" :text-transform "uppercase" :font-style "italic" :color "#bebebe" :font-size ".8em"}}
+   [:div {:style {:font-weight "bold" :text-transform "uppercase" :font-style "italic" :color "#bcb5af" :font-size ".8em"}}
     title]
    [:div
     content]])
@@ -464,12 +473,6 @@
      (get-field @profile "rejections")]]])
 
 (def reviewed-bios-expanded? (r/atom false))
-
-(defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
-  [:i {:className (str/join " " [(if outlined "far" "fas")
-                                 (str "fa-" icon-name)])
-       :style (merge {:min-width "40px" :margin-right "16px" :text-align "center"} style)}])
-
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
         gender-filter (case interested-in
@@ -519,19 +522,20 @@
                (doall (map-indexed profile-with-buttons new-bios)))
 
              (when (> (count reviewed-bios) 0)
-               [:div {:style {:padding "24px 0" :margin-left "40px" :margin-top "24px"}}
-                [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
-                      :style {:display "inline"
-                              :margin-left "8px"
-                              :font-size 36
-                              :line-height "1.3"
-                              :cursor "pointer"}}
-                 [:span {:style {:margin-left "-40px"
-                                 :transition "all .3s"
-                                 :margin-top "8px"}} (if @reviewed-bios-expanded?
-                                                       [fa-icon "chevron-down"]
-                                                       [fa-icon "chevron-right"])]
-                 "Profiles you've already reviewed "]
+               [:div
+                [:div {:style {:padding "24px 0 0 0" :margin-left "40px" :margin-top "24px"}}
+                 [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
+                       :style {:display "inline"
+                               :margin-left "8px"
+                               :font-size 36
+                               :line-height "1.3"
+                               :cursor "pointer"}}
+                  [:span {:style {:margin-left "-40px"
+                                  :transition "all .3s"
+                                  :margin-top "8px"}} (if @reviewed-bios-expanded?
+                                                        [fa-icon "chevron-down"]
+                                                        [fa-icon "chevron-right"])]
+                  "Profiles you've already reviewed "]] r
                 (when @reviewed-bios-expanded?
                   [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))])])
              [:br] [:br]])])])))
