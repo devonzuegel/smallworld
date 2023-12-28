@@ -1,7 +1,12 @@
 (ns meetcute.auth
   (:require [buddy.sign.jwt :as jwt]
             [clojure.string :as str]
-            [meetcute.env :as env]))
+            [cheshire.core :as json]
+            [ring.util.response :as resp]
+            [hiccup2.core :as hiccup]
+            [meetcute.util :as mc.util]
+            [meetcute.env :as env]
+            [meetcute.screens.styles :as mc.styles]))
 
 ;; Adding authentication to some of the pages
 ;; She wants everything to be stateless if possible
@@ -28,12 +33,173 @@
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
 
+(defn json-req? [req]
+  (= "application/json"
+     (some-> (or (get-in req [:headers "content-type"])
+                 (get-in req [:headers "Content-Type"]))
+             (str/trim)
+             (str/lower-case))))
+
+(defn unauthorized-response [req]
+  (if (json-req? req)
+    {:status 401
+     :headers {"Content-Type" "application/json"}
+     :body (json/generate-string {:error "unauthorized"})}
+    {:status 401
+     :headers {"Content-Type" "text/html"}
+     :body "Unauthorized"}))
+
 (defn wrap-authenticated [handler]
   (fn [request]
     (if-let [auth-token (req->auth-token request)]
       (if-let [jwt (verify-auth-token auth-token)]
         (handler (assoc request :auth/parsed-jwt jwt))
-        {:status 401
-         :body "Unauthorized!"})
-      {:status 401
-       :body "Unauthorized!"})))
+        (unauthorized-response request))
+      (unauthorized-response request))))
+
+;; ====================================================================== 
+;; SMS verification flow
+
+(comment
+  {"phone" {:code "123456"
+            :attempts [{:time 123 :code "1234" :result :success}]}})
+
+(defonce sms-sessions (atom {}))
+
+(defn reset-sms-sessions! []
+  (reset! sms-sessions {}))
+
+(defn new-random-code []
+  "123456")
+
+(defn add-new-code [sms-sessions phone]
+  (if (get sms-sessions phone)
+    (update sms-sessions phone assoc :code (new-random-code))
+    (assoc sms-sessions phone {:code (new-random-code)
+                               :attempts []})))
+
+(defn now [] (java.util.Date.))
+
+(def MAX_ATTEMPTS_PER_HOUR 6)
+
+(defn in-last-hour? [now time]
+  (< (- (.getTime now) (.getTime time)) (* 60 60 1000)))
+
+(defn new-attempt [sms-sessions phone attempted-code]
+  (let [{:keys [attempts code]} (get sms-sessions phone)
+        last-hour-attempts (->> attempts
+                                (map :time)
+                                (filter (partial in-last-hour? (now)))
+                                count)
+        r (cond
+            (nil? attempted-code) :error
+            (< MAX_ATTEMPTS_PER_HOUR last-hour-attempts) :error
+            (= code attempted-code) :success
+            :else :error)
+        attempt {:code attempted-code
+                 :time (now)
+                 :result r}]
+    (update-in sms-sessions [phone :attempts] conj attempt)))
+
+(defn last-attempt [attempts]
+  (->> attempts
+       (sort-by (fn [{:keys [time]}]
+                  (- (.getTime time))))
+       first))
+
+;; ====================================================================== 
+;; Pages
+
+(defn signin-screen [{:keys [phone phone-input-error started? code-error]}]
+  [:form {:method "post" :action (if started?
+                                   "/meetcute/verify"
+                                   "/meetcute/signin")}
+   [:div {:style {:margin-left "auto"
+                  :margin-right "auto"
+                  :width "90%"
+                  :padding-top "48px"
+                  :text-align "center"}}
+    [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
+    (when phone-input-error
+      [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+       phone-input-error])
+    [:label {:for "phone"}
+     [:p {:style {:line-height "2.5em"}} "Your phone number:"]]
+    [:input {:type "text"
+             :name "phone"
+             :value phone
+            ;;  :on-change #(reset! phone (-> % .-target .-value))
+            ;;  :on-key-press #(when (= (.-key %) "Enter")
+                            ;;   (signin))
+             :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
+    (when started?
+      [:div
+       (when code-error
+         [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+          code-error])
+       [:label {:for "code"}
+        [:p {:style {:line-height "2.5em"}} "Code:"]]
+       [:input {:type "text"
+                :name "code"
+                ;;  :on-change #(reset! phone (-> % .-target .-value))
+            ;;  :on-key-press #(when (= (.-key %) "Enter")
+                            ;;   (signin))
+                :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]])
+    [:div {:style {:margin-bottom "12px"}}]
+    [:button {:style mc.styles/btn
+              :type "submit"}
+     "Sign in"]
+    [:a {:style {:margin-left "12px" :margin-right "12px"}
+         :href "/meetcute/signup"}
+     "Sign up"]]])
+
+;; TODO(sebas): use index.html around the content
+(defn html-response [hiccup-body]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (str (hiccup/html hiccup-body))})
+
+(defn signin-route [_]
+  (html-response (signin-screen {:phone "" :phone-input-error nil :started? false})))
+
+(defn start-signin-route [req]
+  (let [params (:params req)]
+    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
+      (do
+        (swap! sms-sessions add-new-code phone)
+        (html-response
+         (signin-screen {:phone (:phone params)
+                         :started? true})))
+      (html-response
+       (signin-screen {:phone (:phone params)
+                       :phone-input-error "Invalid phone number"})))))
+
+(defn verify-route [req]
+  (let [params (:params req)
+        error-response (delay
+                         (html-response
+                          (signin-screen {:phone (:phone params)
+                                          :started? true
+                                          :code-error "Invalid code"})))]
+    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
+      (if-let [code (some-> (:code params) str/trim)]
+        (let [sms-sessions' (swap! sms-sessions new-attempt phone code)
+              {:keys [attempts]} (get sms-sessions' phone)
+              attempt (last-attempt attempts)]
+          (case (:result attempt)
+            ;; redirect to the home page with the cookie set
+            ;; this session is now authenticated
+            :success (-> (resp/redirect "/meetcute")
+                         (assoc :session {:auth/jwt (create-auth-token {:phone phone})}))
+            @error-response))
+        @error-response)
+      @error-response)))
+
+(defn logout-route [_req]
+  (-> (resp/redirect "/meetcute")
+      (assoc :session {:auth/jwt nil})))
+
+
+
+
+

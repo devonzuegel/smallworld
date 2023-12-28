@@ -2,8 +2,7 @@
   (:require [reagent.core :as r]
             [goog.dom :as dom]
             [clojure.string :as str]
-            [smallworld.util :as util]
-            [meetcute.screens.styles :as mc.styles]))
+            [smallworld.util :as util]))
 
 ;; ============================================================================
 ;; Helper components
@@ -84,33 +83,3 @@
    [:div {:style {:width "100%"}}
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
     [loading-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8"]]])
-
-(defn signin-screen [{:keys [to-signup]}]
-  [:form {:method "post" :action "/meetcute/api/auth/signin"}
-   [:div {:style {:margin-left "auto"
-                  :margin-right "auto"
-                  :width "90%"
-                  :padding-top "48px"
-                  :text-align "center"}}
-    [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
-    [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-     @phone-input-error]
-    [:label {:for "phone"}
-     [:p {:style {:line-height "2.5em"}} "Your phone number:"]]
-    [:input {:type "text"
-             :name "phone"
-             :value @phone
-             :on-change #(reset! phone (-> % .-target .-value))
-             :on-key-press #(when (= (.-key %) "Enter")
-                              (signin))
-             :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
-    [:div {:style {:margin-bottom "12px"}}]
-    [:button {:style mc.styles/btn
-              :type "submit"
-            ;;   :on-click signin
-              }
-     "Sign in"]
-    [:a {:on-click (fn [_] (to-signup))
-         :style {:margin-left "12px" :margin-right "12px"}
-         :href "#"}
-     "Sign up"]]])

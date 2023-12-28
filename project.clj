@@ -16,6 +16,8 @@
                  [oauth-clj "0.1.16"]
                  [org.xerial/sqlite-jdbc "3.34.0"]
                  [metosin/reitit "0.5.18"]
+                 [hiccup "2.0.0-RC2"]
+                 [enlive "1.1.6"]
                  [cljsjs/mapbox "0.46.0-0"]
                  [ring/ring-jetty-adapter "1.9.5"]
                  [ring/ring-ssl "0.3.0"]
