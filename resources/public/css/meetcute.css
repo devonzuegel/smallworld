@@ -13,7 +13,8 @@ html {
   font-family: 'Roboto Mono', monospace;
 }
 button,
-a {
+a,
+textarea {
   font-family: 'Roboto Mono', monospace;
 }
 .btn {
