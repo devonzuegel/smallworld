@@ -237,56 +237,6 @@
                      :border "5px solid #aaaaaa"}}
      "Not interested," [:br] "but thanks"]]])
 
-
-(defn tabs []
-  (let [tabs (r/atom ["A" "B" "C"])
-        active-tab (r/atom (first @tabs))]
-    [:div
-     [:style
-      ".tab-container { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 12px; }"
-      ".tab { padding: 12px; background-color: #ffffff22; border-radius: 8px; cursor: pointer; margin-bottom: 12px; }"
-      ".tab.active { background-color: #ffffff44; }"
-      ".page-container { display: flex; flex-wrap: wrap; justify-content: space-between; }"
-      ".page { padding: 12px; background-color: #ffffff22; border-radius: 8px; margin-bottom: 12px; }"
-      ".page.active { background-color: #ffffff44; }"]
-     [:style (str "@media screen and (min-width: 805px) { .tab { max-width: 200px; } }")]
-     [:div.tab-container
-      (for [tab @tabs]
-        ^{:key tab}
-        [:div.tab
-         {:className (when (= tab @active-tab) "active")}
-         tab])]
-     [:div.page-container
-      (for [tab @tabs]
-        ^{:key tab}
-        [:div.page
-         {:className (when (= tab @active-tab) "active")}
-         (str tab ": Lorem ipsum dolor sit amet, consectetur adipiscing elit.")])]]))
-
-(defn render-bio [i bio]
-  [:div {:key i :style {:margin "16px 0 24px 0" :border "3px solid #ffffff33" :border-radius "8px" :padding "18px"}}
-   [:h2 {:style {:font-size 24 :line-height "2em" :margin-left "12px"}} (get-field bio "First name")]
-   (let [key-values [["What makes this person awesome?"  (md->hiccup (get-field bio "What makes this person awesome?"))]
-                     ["Home base city"                   (get-field bio "Home base city")]
-                     ["Social media links"               (md->hiccup (or (get-field bio "Social media links")
-                                                                         "[did not share social media links]"))]
-                     ;; ["Email"                            (get-field bio "Email")]                 ; do not include contact info in public profile
-                     ;; ["Phone"                            (format-phone (get-field bio "Phone"))]  ; do not include contact info in public profile
-                     ["Anything else you'd like your potential matches to know?" (get-field bio "Anything else you'd like your potential matches to know?")]
-
-                     ["Gender"                           [tag-component (get-field bio "Gender")]]
-                     ["I'm interested in..."             (map tag-component (get-field bio "I'm interested in..."))]
-                     ["Pictures"                         (if (empty? (get-field bio "Pictures"))
-                                                           [:p "No pictures yet :)"]
-                                                           (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "180px" :margin "8px 8px 0 0"}}])
-                                                                        (get-field bio "Pictures")))]]]
-
-     #_[tabs]
-
-     [:div #_{:style {:display "flex" :margin-top "12px" :border-radius "8px" :padding "6px" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
-      (map-indexed bio-row key-values)])
-   [select-reject-btns (get-field bio "id") (get-field @profile "selections") (get-field @profile "rejections")]])
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; PROFILE TAB ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -341,8 +291,8 @@
   [:input {:type "text"
            :value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
-           :style {:background "#ffffff15"
-                   :border "1px solid #ffffff22"
+           :style {:background "#66666620"
+                  ;;  :border "1px solid #66666622"
                    :border-radius "8px"
                    :padding "6px 8px"
                    :margin-right "4px"
@@ -352,13 +302,13 @@
 (defn editable-textbox [field-name]
   [:textarea {:value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
-              :style {:background "#ffffff15"
-                      :border "1px solid #ffffff22"
+              :style {:background "#66666620"
+                      ;; :border "1px solid #66666622"
                       :border-radius "8px"
                       :padding "6px 8px"
                       :margin-right "12px"
                       :min-height "140px"
-                      :color "#d9d3cc"
+                      :color "#333"
                       :font-size ".9em !important" ; TODO: this is overridden by styles.css, need to fix
                       :width "95%"}}])
 
@@ -371,15 +321,17 @@
    [:div {:style {:margin "16px 0 24px 0"}}
     (let [key-values [["First name"                       (editable-input "First name")]
                       ["Last name"                        (editable-input "Last name")]
-                      ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                    (get-field @profile "I'm interested in...")
-                                                                    #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
                       ["Gender" (radio-btns-component ["Man" "Woman"]
                                                       (get-field @profile "Gender")
                                                       #(reset! profile (assoc @profile (keyword "Gender") %)))]
+                      ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                                                                    (get-field @profile "I'm interested in...")
+                                                                    #(reset! profile (assoc @profile (keyword "I'm interested in...") %)))]
                       ["Phone"                            [:div
                                                            (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                           [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]
+                                                           [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]
+                                                           [small-text [:span "If you'd like to change your phone number, please email Lei Ugale at "
+                                                                        [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]]]
                       ["Email"                            [:div
                                                            (editable-input "Email")
                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]
@@ -391,10 +343,11 @@
                                                            [:div {:style {:margin-bottom "4px"}}
                                                             [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
                                                            (editable-textbox "What makes this person awesome?")
-                                                           [small-text (md->hiccup "*Here's a template for asking a friend to write you a vouch:*")]
-                                                           [small-text (md->hiccup (str "\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
-                                                                                        "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\""))
-                                                            {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]
+                                                           [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
+                                                           [:div {:style {:border-left "5px solid #eee" :background "#f9f9f9" :margin-left "8px" :max-width "90%"}}
+                                                            [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                         "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
+                                                             {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                       ["Pictures" [:div
                                    [small-text [:span "If you'd like to add or remove pictures, please email them to Lei Ugale at "
@@ -445,6 +398,8 @@
    [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
     (get-field bio "First name")]
 
+   [:style ".profile-item:first-of-type { margin-top: 0 !important}"] ; if first child of profile-section, 0 margin on top
+
    [:div  {:style {:column-count 2
                    :column-width "300px"
                    :column-gap "12px"}}
@@ -459,31 +414,32 @@
       ;;                    [profile-item "Gender" "Woman"]
       ;;                    [profile-item "Looking for" "Man"]]]    
 
-    [profile-item "Home base" "New York City"]
-    [profile-item "Frequency visits" [:div
-                                      [:div "San Francisco"]
-                                      [:div "Boston"]
-                                      [:div "Miami"]]]
-    [profile-item "Gender" [tag-component (get-field bio "Gender")]]
-    [profile-item "Looking for" (map tag-component (get-field bio "I'm interested in..."))]
-    [profile-item "Social media" [:ul
-                                  [:li [:a {:href "https://twitter.com/anastasia" :style {:color "#1DA1F2"}} "twitter.com/anastasia"]]
-                                  [:li [:a {:href "https://instagram.com/anastasia" :style {:color "#C13584"}} "instagram.com/anastasia"]]]]
-    [profile-item "Vouch from a friend" "Christina is one of the most loving and persistently joyful human beings I and all of her friends know..."]
-    [profile-item "About Anastasia" [:div
-                                     [:p "If you're curious to know a bit about meee..."]
-                                     [:p "I want to understand and engage deeply with the world and the people around me! Trying to find ways to help people be happy and healthy, currently through neuroscience. Previously studied psychedelic-assisted psychiatry, now at a wacky start-up, which we can chat about if we meet. Love to play and be covered in mud. Using my work and art (mostly songwriting at the moment) to explore/"]]]
-    [profile-item "Pictures" [:div
-                              [:img {:src "url-to-image1" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
-                              [:img {:src "url-to-image2" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]
-                              [:img {:src "url-to-image3" :style {:border-radius "8px" :width "100%" :margin-bottom "12px"}}]]]]
-   ;
-   ])
+    (when (get-field bio "Anything else you'd like your potential matches to know?")
+      [profile-item (str "About " (get-field bio "First name"))  (md->hiccup (get-field bio "Anything else you'd like your potential matches to know?"))])
 
-; TODO: use aspects of render-bio before getting rid of it
+    [profile-item "Home base"                                    (get-field bio "Home base city")]
+
+    (when (get-field bio "Frequency visits")
+      [profile-item "Frequency visits"                           (get-field bio "Frequency visits")])
+
+    (when (get-field bio "Social media links")
+      [profile-item "Social media"                               (md->hiccup (get-field bio "Social media links"))])
+
+    (when (get-field bio "What makes this person awesome?")
+      [profile-item "Vouch from a friend"                        (md->hiccup (get-field bio "What makes this person awesome?"))])
+
+    [profile-item "Pictures" (if (empty? (get-field bio "Pictures"))
+                               [:p "No pictures yet :)"]
+                               (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "150px" :margin "8px 8px 0 0" :border-radius "4px"}}])
+                                            (get-field bio "Pictures")))]]])
+
 (defn profile-with-buttons [i bio]
 
-  [:div {:style {:display "flex" :flex-direction "row" :flex-wrap "wrap" :width "100%" :margin "auto"}}
+  [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
+                 :flex-direction "row"
+                 :flex-wrap "wrap"
+                 :width "100%"
+                 :margin "auto"}}
 
    ; Left column takes all available space
    [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
@@ -511,7 +467,7 @@
                                                           ["Men"] ["Man"]
                                                           ["Woman" "Man"] ; default
                                                           )]
-                                  (and (not (get-field bio "Exclude from gallery?")) ; don't include bios that have been explicitly excluded
+                                  (and (= (get-field bio "Include in gallery?") "include in gallery") ; don't include bios that have been explicitly excluded
                                        (not (= (get-field bio "id") (get-field @profile "id"))) ; check it's not self
                                        (some #(= (get-field bio "Gender") %) gender-filter) ; only show the gender that the user is interested in dating
                                        (some #(= (get-field @profile "Gender") %) bio-gender-filter ; only show someone if they're interested in dating someone of the gender of the current user:
