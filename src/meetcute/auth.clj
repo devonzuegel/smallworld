@@ -198,10 +198,5 @@
       @error-response)))
 
 (defn logout-route [_req]
-  (-> (resp/redirect "/meetcute")
+  (-> (resp/redirect "/meetcute/signin")
       (assoc :session {:auth/jwt nil})))
-
-
-
-
-
