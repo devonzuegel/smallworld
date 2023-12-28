@@ -63,7 +63,7 @@
                                                           (remove (fn [v] (= value-name v)) selected-values)
                                                           (conj selected-values value-name))))}]
      [:label {:for (str value-name "-checkbox")
-              :style {:cursor "pointer"}}
+              :style {:cursor "pointer" :margin-right "12px"}}
       value-name]]))
 
 (defn checkboxes-component [all-values selected-values update-selected-values]
@@ -79,7 +79,8 @@
             :checked (= selected-value value-name)
             :style {:margin-left "16px" :margin-right "10px" :cursor "pointer"}
             :on-change (fn [] (update-selected-value value-name))}]
-   [:label {:for (str value-name "-radio") :style {:cursor "pointer"}} value-name]])
+   [:label {:for (str value-name "-radio") :style {:cursor "pointer" :margin-right "12px"}}
+    value-name]])
 
 (defn radio-btns-component [all-values selected-value update-selected-value]
   [:div {:style {:display "inline-flex" :justify "space-between" :margin-left "-16px"}}
@@ -96,6 +97,7 @@
 
 (defn bio-row [i [key-name value]]
   [:div {:key i :className "bio-row" :style {:width "fit-content"}}
+   [:style "@media screen and (min-width: 600px) { .bio-row-value { min-width: 380px; }  }"]
    [:div {:style {:padding "24px 12px 0 12px"
                   :opacity ".75"
                   :font-weight "bold"
@@ -104,7 +106,7 @@
                   :color "#bebebe"
                   :font-size ".8em"}}
     key-name]
-   [:div {:style {:padding "12px" :padding-top "6px" :min-width "380px"}}
+   [:div {:style {:padding "12px" :padding-top "6px"} :className "bio-row-value"}
     value]]
   #_(let [width "170px"]
       [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
@@ -274,7 +276,7 @@
                       ;; :border "1px solid #66666622"
                       :border-radius "8px"
                       :resize "vertical" ; disallow horizontal resize
-                      :padding "6px 8px"
+                      :padding "16px 20px"
                       :margin-right "12px"
                       :min-height "140px"
                       :color "#333"
@@ -299,9 +301,10 @@
 
    [saved-toast]
 
-   [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"}} "Your profile"]
+   [:style "@media screen and (max-width: 800px) { .your-profile { margin-top: 24px; } }"]
+   [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
-   [:div {:style {:margin "24px 0"
+   [:div {:style {:margin "0"
                   :border-radius "8px"
                   :padding "6px"
                   :vertical-align "top"
@@ -454,10 +457,10 @@
 
 (def reviewed-bios-expanded? (r/atom false))
 
-(defn fa-icon [icon-name & {:keys [outlined] :or {outlined false}}]
+(defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
   [:i {:className (str/join " " [(if outlined "far" "fas")
                                  (str "fa-" icon-name)])
-       :style {:min-width "40px"}}])
+       :style (merge {:min-width "40px" :margin-right "12px" :text-align "center"} style)}])
 
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
@@ -496,26 +499,31 @@
                                       included-bios)
                 new-bio-count (str (count new-bios))]
             [:div {:style {:width "95%" :margin "auto"}}
-             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
-              (if (= (count new-bios) 0)  [fa-icon "check"] [fa-icon "heart" :outlined true])
-              " " new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
+
+             [:div {:style {:margin-left "40px"}}
+              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
+               [:span {:style {:margin-left "-40px"}}
+                (if (= (count new-bios) 0)  [fa-icon "check" :style {:font-size "0.85em"}] [fa-icon "heart" :outlined true])]
+               new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]]
+
              (if (= 0 (count new-bios))
                [:p {:style {:padding "8px 16px 24px 16px"}} "You've reviewed all the profiles for today. Check back later for more!"]
                (doall (map-indexed profile-with-buttons new-bios)))
 
              (when (> (count reviewed-bios) 0)
-               [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
+               [:div {:style {:padding "24px 0" :margin-left "40px"}}
                 [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
                       :style {:display "inline"
                               :margin-left "8px"
                               :font-size 36
                               :line-height "1.3"
                               :cursor "pointer"}}
-                 [:span {:style {:transition "all .3s"
+                 [:span {:style {:margin-left "-40px"
+                                 :transition "all .3s"
                                  :margin-top "8px"}} (if @reviewed-bios-expanded?
                                                        [fa-icon "chevron-down"]
                                                        [fa-icon "chevron-right"])]
-                 " Profiles you've already reviewed "]
+                 "Profiles you've already reviewed "]
                 (when @reviewed-bios-expanded?
                   [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))])])
              [:br] [:br]])])])))
