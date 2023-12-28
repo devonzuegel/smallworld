@@ -40,7 +40,7 @@
                      route
                      #js {:method "POST"
                           :body (.stringify js/JSON (clj->js body))
-                          :headers (new js/Headers #js{:Content-Type "application/json"})})]
+                          :headers (new js/Headers #js {"Content-Type" "application/json"})})]
     (-> (js/fetch request)
         (.then #(.json %))
         (.then #(js->clj % :keywordize-keys true)) ; parse
