@@ -40,3 +40,9 @@ input,
 select {
   font-size: 16px;
 }
+ul {
+  padding-inline-start: 20px;
+}
+li {
+  padding-left: 4px;
+}
