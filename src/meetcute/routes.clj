@@ -23,17 +23,16 @@
       (assoc :session {:auth/jwt nil})))
 
 (defroutes open-routes
-  (ANY "/" [] (io/resource "public/meetcute.html"))
+  (ANY  "/"                []  (io/resource "public/meetcute.html"))
   (POST "/api/auth/signin" req (signin-route req))
   (POST "/api/auth/logout" req (logout-route req)))
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
-  (GET "/api/matchmaking/bios" _ (json/generate-string (matchmaking/get-all-bios)))
+  (GET  "/api/matchmaking/bios"    ___ (json/generate-string (matchmaking/get-all-bios)))
   (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
-  (ANY "/api/echo" req (resp/response (pr-str req)))
-  (POST "/api/matchmaking/me" req
-    (matchmaking/my-profile (:auth/phone (mc.auth/req->parsed-jwt req)))))
+  (ANY  "/api/echo"                req (resp/response (pr-str req)))
+  (POST "/api/matchmaking/me"      req (matchmaking/my-profile (:auth/phone (mc.auth/req->parsed-jwt req)))))
 
 (defn wrap-body-string [handler]
   (fn [request]

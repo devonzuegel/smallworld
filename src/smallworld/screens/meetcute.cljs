@@ -116,7 +116,7 @@
 
 (defn update-selections []
   (println "updating selections")
-  (util/fetch-post "/api/matchmaking/profile"
+  (util/fetch-post "/meetcute/api/matchmaking/profile"
                    (select-keys @profile (map #(keyword %)
                                               (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                       ["Phone"])))
@@ -264,19 +264,12 @@
                    {}
                    update-profile-with-result))
 
-(defn fetch-profile! [phone]
-  (println "\nfetching profile...")
-  (let [clean-phone (str/replace phone #"[^0-9]" "")]
-    (util/fetch-post "/meetcute/api/matchmaking/profile"
-                     {"Phone" clean-phone}
-                     update-profile-with-result)))
-
 (defn update-profile! []
   (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
                                                                 (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                                         ["Phone"])))]
     (js/console.log "profile-editable-fields-only: " profile-editable-fields-only)
-    (util/fetch-post "/api/matchmaking/profile"
+    (util/fetch-post "/meetcute/api/matchmaking/profile"
                      profile-editable-fields-only
                      update-profile-with-result)))
 
