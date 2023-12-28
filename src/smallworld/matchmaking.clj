@@ -42,13 +42,15 @@
     {:status 401 :body "Unauthorized!!!"}))
 
 (defn update-profile [req]
-  (let [parsed-body (json/read-str (slurp (:body req)) :key-fn keyword)
+  (pp/pprint "req:")
+  (pp/pprint req)
+  (let [parsed-body (:params req)
         all-bios (get-all-bios)
         bio-id (get-field parsed-body "id")
         phone (get-field parsed-body "Phone")]
     (println "")
     (println "      phone : " phone)
-    (println "parsed-body :")
+    (println "parsed-body : ")
     (pp/pprint parsed-body)
     (println "")
 
