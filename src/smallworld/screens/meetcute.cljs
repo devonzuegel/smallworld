@@ -255,7 +255,9 @@
   [:input {:type "text"
            :value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
-           :style {:background "#66666620"
+           :style {:background "white"
+                   :border "3px solid #eee"
+                  ;;  :background "#66666620"
                   ;;  :border "1px solid #66666622"
                    :border-radius "8px"
                    :padding "6px 8px"
@@ -266,7 +268,9 @@
 (defn editable-textbox [field-name]
   [:textarea {:value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
-              :style {:background "#66666620"
+              :style {:background "white"
+                      :border "3px solid #eee"
+                      ;; :background "#66666620"
                       ;; :border "1px solid #66666622"
                       :border-radius "8px"
                       :resize "vertical" ; disallow horizontal resize
@@ -319,7 +323,8 @@
                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
                                                                       (update-profile-debounced!)))]
                       ["Phone"                            [:div {:style {:max-width "380px"}}
-                                                           [:div {:style {:background "#66666620"
+                                                           [:div {:style {:background "#f5f5f5"
+                                                                          :border "3px solid #eee"
                                                                           :cursor "not-allowed"
                                                                           :border-radius "8px"
                                                                           :padding "6px 8px"
@@ -387,9 +392,10 @@
     content]])
 
 (defn render-profile [bio]
-  [:div {:style {:padding "12px"
+  [:div {:style {:padding "12px 12px 24px 12px"
                  :margin "12px"
                  :border-radius "8px"
+                 :background "white"
                  :border "2px solid #ddd"}}
 
    [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
@@ -446,6 +452,12 @@
      (get-field @profile "selections")
      (get-field @profile "rejections")]]])
 
+(def reviewed-bios-expanded? (r/atom false))
+
+(defn fa-icon [icon-name & {:keys [outlined] :or {outlined false}}]
+  [:i {:className (str/join " " [(if outlined "far" "fas")
+                                 (str "fa-" icon-name)])
+       :style {:min-width "40px"}}])
 
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
@@ -485,17 +497,27 @@
                 new-bio-count (str (count new-bios))]
             [:div {:style {:width "95%" :margin "auto"}}
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
-              new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
+              (if (= (count new-bios) 0)  [fa-icon "check"] [fa-icon "heart" :outlined true])
+              " " new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]
              (if (= 0 (count new-bios))
-               [:p "You've reviewed all the profiles for today. Check back later for more!"]
+               [:p {:style {:padding "8px 16px 24px 16px"}} "You've reviewed all the profiles for today. Check back later for more!"]
                (doall (map-indexed profile-with-buttons new-bios)))
 
              (when (> (count reviewed-bios) 0)
                [:div {:style {:padding-top "24px" :padding-bottom "24px"}}
-                [:details {:style {:border-radius "8px" :padding "12px"}} [:summary {:style {:font-size 36 :line-height "2em" :cursor "pointer" :margin-left "-42px"}}
-                                                                           [:h1 {:style {:display "inline" :margin-left "8px"}} "Profiles you've already reviewed"]]
-                 [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))]]])
-
+                [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
+                      :style {:display "inline"
+                              :margin-left "8px"
+                              :font-size 36
+                              :line-height "1.3"
+                              :cursor "pointer"}}
+                 [:span {:style {:transition "all .3s"
+                                 :margin-top "8px"}} (if @reviewed-bios-expanded?
+                                                       [fa-icon "chevron-down"]
+                                                       [fa-icon "chevron-right"])]
+                 " Profiles you've already reviewed "]
+                (when @reviewed-bios-expanded?
+                  [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))])])
              [:br] [:br]])])])))
 
 (defn nav-btns []
