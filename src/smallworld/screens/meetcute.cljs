@@ -95,10 +95,16 @@
                    #(println "Done updating selections")))
 
 (defn bio-row [i [key-name value]]
-  [:div {:key i}
-   [:div {:style {:padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :text-transform "uppercase"}}
+  [:div {:key i :className "bio-row" :style {:width "fit-content"}}
+   [:div {:style {:padding "24px 12px 0 12px"
+                  :opacity ".75"
+                  :font-weight "bold"
+                  :text-transform "uppercase"
+                  :font-style "italic"
+                  :color "#bebebe"
+                  :font-size ".8em"}}
     key-name]
-   [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}}
+   [:div {:style {:padding "12px" :padding-top "6px" :min-width "380px"}}
     value]]
   #_(let [width "170px"]
       [:div {:key i :style {:vertical-align "top" :display "flex" :flex-wrap "wrap"}}
@@ -255,7 +261,7 @@
                    :padding "6px 8px"
                    :margin-right "4px"
                    :width "95%"
-                   :max-width "300px"}}])
+                   :max-width "380px"}}])
 
 (defn editable-textbox [field-name]
   [:textarea {:value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
@@ -268,7 +274,7 @@
                       :min-height "140px"
                       :color "#333"
                       :font-size ".9em !important" ; TODO: this is overridden by styles.css, need to fix
-                      :width "95%"}}])
+                      :width "98%"}}])
 
 (defn saved-toast []
   [:div {:style {:position "fixed"
@@ -288,52 +294,65 @@
 
    [saved-toast]
 
-   [:div {:style {:margin-bottom "12px" :display "flex" :justify-content "space-between"}}
-    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}} "Your profile"]]
+   [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"}} "Your profile"]
 
-   [:div {:style {:margin "16px 0 24px 0"}}
+   [:div {:style {:margin "24px 0"
+                  :border-radius "8px"
+                  :padding "6px"
+                  :vertical-align "top"
+                  :line-height "1.2em"
+                  :display "flex"
+                  :justify-content "space-between"
+                  :flex-wrap "wrap"
+                  :width "100%"}}
     (let [key-values [["First name"                       (editable-input "First name")]
                       ["Last name"                        (editable-input "Last name")]
-                      ["Gender" (radio-btns-component ["Man" "Woman"]
-                                                      (get-field @profile "Gender")
-                                                      (fn [foobar]
-                                                        (reset! profile (assoc @profile (keyword "Gender") foobar))
-                                                        (update-profile-debounced!)))]
+                      ["My gender" (radio-btns-component ["Man" "Woman"]
+                                                         (get-field @profile "Gender")
+                                                         (fn [foobar]
+                                                           (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                           (update-profile-debounced!)))]
                       ["I'm interested in..." (checkboxes-component ["Men" "Women"]
                                                                     (get-field @profile "I'm interested in...")
                                                                     (fn [foobar]
                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
                                                                       (update-profile-debounced!)))]
-                      ["Phone"                            [:div
-                                                           (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                           [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]
-                                                           [small-text [:span "If you'd like to change your phone number, please email "
-                                                                        [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]]]
-                      ["Email"                            [:div
+                      ["Phone"                            [:div {:style {:max-width "380px"}}
+                                                           [:div {:style {:background "#66666620"
+                                                                          :cursor "not-allowed"
+                                                                          :border-radius "8px"
+                                                                          :padding "6px 8px"
+                                                                          :margin-right "4px"
+                                                                          :width "95%"
+                                                                          :max-width "380px"}}
+                                                            (format-phone (get-field @profile "Phone"))] ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
+                                                           [small-text [:span "If you'd like to change your phone number, email "
+                                                                        [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]]]
+                      ["Email"                            [:div {:style {:max-width "380px"}}
                                                            (editable-input "Email")
                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]
-                      ["Anything else you'd like your potential matches to know?" (editable-textbox "Anything else you'd like your potential matches to know?")]
-                      ["Social media links"               (editable-textbox "Social media links")]
-                      ["Email"                            (editable-input "Email")]
-                      ["Home base city"                   (editable-input "Home base city")]
-                      ["What makes this person awesome?"  [:div
-                                                           [:div {:style {:margin-bottom "4px"}}
-                                                            [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
-                                                           (editable-textbox "What makes this person awesome?")
-                                                           [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
-                                                           [:div {:style {:border-left "5px solid #eee" :background "#f9f9f9" :margin-left "8px" :max-width "90%"}}
-                                                            [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
-                                                                                         "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
-                                                             {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
+                      ["Home base city"                    (editable-input "Home base city")]
+                      ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
+                      ["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
+                      ["Social media links"                (editable-textbox "Social media links")]
+                      ["What makes this person awesome?"   [:div
+                                                            [:div {:style {:margin-bottom "4px"}}
+                                                             [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
+                                                            (editable-textbox "What makes this person awesome?")
+                                                            [:div {:style {:margin-top "8px"}}] ; spacer
+                                                            [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
+                                                            [:div {:style {:border-left "5px solid #eee" :background "#f9f9f9" :margin-left "8px" :max-width "90%"}}
+                                                             [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                          "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
+                                                              {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                       ["Pictures" [:div
-                                   [small-text [:span "If you'd like to add or remove pictures, please email "
-                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"]]]
+                                   [small-text [:span "Here are the pictures you added when you signed up. If you'd like to add or remove pictures, email "
+                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]
                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
                                                 (get-field @profile "Pictures"))]]]]
-      [:table {:style {:margin-top "12px" :border-radius "8px" :padding "6px" :vertical-align "top" :line-height "1.2em" :table-layout "fixed" :width "100%"}}
-       [:tbody
-        (map-indexed bio-row key-values)]])]
+      (map-indexed bio-row key-values))]
+
    [:br]])
 
 
@@ -361,7 +380,7 @@
          :style {:margin "24px 12px 12px 12px" :break-inside "avoid"
                 ;;  :border "2px solid #ff00ff11" ; for debugging only
                  }}
-   [:div {:style {:font-weight "bold" :text-transform "uppercase" :font-style "italic" :color "#ccc" :font-size ".8em"}}
+   [:div {:style {:font-weight "bold" :text-transform "uppercase" :font-style "italic" :color "#bebebe" :font-size ".8em"}}
     title]
    [:div
     content]])
@@ -382,12 +401,6 @@
                    :column-gap "12px"}}
 
       ;;  [profile-section [:<>
-      ;;                    [profile-item "Home base" "New York City"]
-      ;;                    [profile-item "Frequency visits" [:div
-      ;;                                                      [:div "San Francisco"]
-      ;;                                                      [:div "Boston"]
-      ;;                                                      [:div "Miami"]]]]]
-      ;;  [profile-section [:<>
       ;;                    [profile-item "Gender" "Woman"]
       ;;                    [profile-item "Looking for" "Man"]]]    
 
@@ -396,8 +409,8 @@
 
     [profile-item "Home base"                                    (get-field bio "Home base city")]
 
-    (when (get-field bio "Frequency visits")
-      [profile-item "Frequency visits"                           (get-field bio "Frequency visits")])
+    (when (get-field bio "Other cities where you spend time")
+      [profile-item "Frequently visits"                           (get-field bio "Other cities where you spend time")])
 
     (when (get-field bio "Social media links")
       [profile-item "Social media"                               (md->hiccup (get-field bio "Social media links"))])
