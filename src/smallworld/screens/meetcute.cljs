@@ -40,8 +40,6 @@
                                 "Pictures"
                                 "Gender"])
 
-(defn get-key-names [bio] (map first bio))
-
 (defn format-phone [phone]
   (assert phone)
   (let [digits-only (str/replace phone #"[^0-9]" "")]
@@ -49,49 +47,23 @@
 
 (defn in? [list str] (some #(= str %) list))
 
-(defn my-checkbox-component []
-  (let [checked (r/atom false)]
-    (fn []
-      [:div
-       [:input {:type "checkbox"
-                :id "custom-checkbox"
-                :style {:display "none"}
-                :checked @checked
-                :onChange #(reset! checked (not @checked))}]
-       [:label {:for "custom-checkbox"
-                :style {:display "inline-block"
-                        :width "20px"
-                        :height "20px"
-                        :background-color (if @checked "white" "transparent")
-                        :border "1px solid white"
-                        :content (when @checked "✔")
-                        :color "green"
-                        :text-align "center"
-                        :line-height "20px"}}]])))
-
 (defn checkbox-component [value-name selected-values update-selected-values]
   (let [checked? (boolean (in? selected-values value-name))]
-    [:span #_{:style {:margin-left "24px"}}
+    [:span
      [:input {:type "checkbox"
               :value value-name
               :checked checked?
               :style {:margin-left "17px" :margin-right "11px"
                       :background (if checked? "white" "transparent")
+                      :cursor "pointer"
+
                       :border (if checked? "3px solid green" "3px solid white")}
               ;; :style {:display "none"}
               :on-change (fn [] (update-selected-values (if checked?
                                                           (remove (fn [v] (= value-name v)) selected-values)
                                                           (conj selected-values value-name))))}]
      [:label {:for (str value-name "-checkbox")
-              #_:style #_{:display "inline-block"
-                          :width "20px"
-                          :height "20px"
-                          :background-color (if checked? "white" "transparent")
-                          :border "1px solid white"
-                          :content (when checked? "✔")
-                          :color "green"
-                          :text-align "center"
-                          :line-height "20px"}}
+              :style {:cursor "pointer"}}
       value-name]]))
 
 (defn checkboxes-component [all-values selected-values update-selected-values]
@@ -100,7 +72,7 @@
    (when @debug? [:pre "Selected Value: " (str selected-values)])])
 
 (defn radio-btn-component [value-name selected-value update-selected-value]
-  [:span {:style {:display "flex" :align-items "center"}}
+  [:span {:style {:display "flex" :align-items "center" :cursor "pointer"}}
    [:input {:type "radio"
             :id (str value-name "-radio")
             :value value-name
@@ -134,18 +106,6 @@
        [:div {:className "flex-item"
               :style {:flex 1 :padding "12px" :padding-bottom "0" :font-size ".85em" :opacity ".75" :width width :min-width width :text-transform "uppercase"}} key-name]
        [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
-
-
-(defn tag-component [value]
-  (let [icon (case value
-               "Man" "🚹 "
-               "Men" "🚹 "
-               "Woman" "🚺 "
-               "Women" "🚺 "
-               "")]
-    [:span {:style {:margin-right "8px" :background "#ffffff33" :padding "4px 6px" :border-radius "8px"}
-            :key value}
-     icon value]))
 
 (defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
   [:div {:style {:display "flex" :flex-wrap "wrap" :flex-direction "column" :width "100%" :margin-right "8px"}}
@@ -282,7 +242,7 @@
 
 (defn editable-input [field-name]
   [:input {:type "text"
-           :value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
+           :value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
            :style {:background "#66666620"
                   ;;  :border "1px solid #66666622"
@@ -293,7 +253,7 @@
                    :max-width "300px"}}])
 
 (defn editable-textbox [field-name]
-  [:textarea {:value (trim-trailing-whitespace (or (get-field @profile field-name) ""))
+  [:textarea {:value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
               :style {:background "#66666620"
                       ;; :border "1px solid #66666622"
@@ -432,7 +392,8 @@
                  :flex-direction "row"
                  :flex-wrap "wrap"
                  :width "100%"
-                 :margin "auto"}}
+                 :margin "auto"}
+         :key i}
 
    ; Left column takes all available space
    [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
@@ -499,10 +460,10 @@
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
    [:button {:on-click #(reset! current-tab :home)
-             :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #ffffff88"} {}))}
+             :style (merge btn-styles (if (= @current-tab :home) {:border  "3px solid #cccccc88"} {}))}
     "Home"]
    [:button {:on-click #(reset! current-tab :profile)
-             :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #ffffff88"} {}))}
+             :style (merge btn-styles (if (= @current-tab :profile) {:border  "3px solid #cccccc88"} {}))}
     "Profile"]
   ;;  [:button {:on-click #(reset! debug? (not @debug?)) :style (merge btn-styles {:float "right"})} (str "Debug: " @debug?)]
 
