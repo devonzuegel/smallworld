@@ -57,6 +57,9 @@
     (pp/pprint "req-body:")
     (pp/pprint req-body)
     (println "")
+    (pp/pprint "record-id-or-records:")
+    (pp/pprint record-id-or-records)
+    (println "")
     (client/patch req-uri {:headers {"Authorization" (str "Bearer " (:api-key base))
                                      "Content-Type" "application/json"}
                            :body req-body})))
