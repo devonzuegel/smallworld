@@ -4,9 +4,11 @@
             [cheshire.core :as json]
             [ring.util.response :as resp]
             [hiccup2.core :as hiccup]
+            [net.cgrand.enlive-html :as enlive]
             [meetcute.util :as mc.util]
             [meetcute.env :as env]
-            [meetcute.screens.styles :as mc.styles]))
+            [meetcute.screens.styles :as mc.styles]
+            [clojure.java.io :as io]))
 
 ;; Adding authentication to some of the pages
 ;; She wants everything to be stateless if possible
@@ -148,11 +150,16 @@
          :href "/meetcute/signup"}
      "Sign up"]]])
 
+(enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
+  [body]
+  [:section#app] (enlive/html-content body)
+  [:script#cljs] nil)
+
 ;; TODO(sebas): use index.html around the content
 (defn html-response [hiccup-body]
   {:status 200
    :headers {"Content-Type" "text/html"}
-   :body (str (hiccup/html hiccup-body))})
+   :body (base-index (str (hiccup/html hiccup-body)))})
 
 (defn signin-route [_]
   (html-response (signin-screen {:phone "" :phone-input-error nil :started? false})))
