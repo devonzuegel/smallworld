@@ -206,6 +206,8 @@
 (defn redirect! [path]
   (.replace (.-location js/window) path))
 
+(def show-toast (r/atom false))
+
 (defn update-profile-with-result [result]
   (if (:error result)
     (reset! phone-input-error (:error result))
@@ -216,7 +218,7 @@
         ;; (redirect! "/meetcute")
         ;
         )))
-
+3
 (defn fetch-my-profile! []
   (println "\nfetching my profile...")
   (util/fetch-post "/meetcute/api/matchmaking/me"
@@ -227,12 +229,13 @@
   (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
                                                                 (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                                         ["Phone"])))]
-    (js/console.log "profile-editable-fields-only: " profile-editable-fields-only)
+    (reset! show-toast true)
+    (js/setTimeout #(reset! show-toast false) 2000)
     (util/fetch-post "/meetcute/api/matchmaking/profile"
                      profile-editable-fields-only
                      update-profile-with-result)))
 
-(def update-profile-debounced! (util/debounce update-profile! 800))
+(def update-profile-debounced! (util/debounce update-profile! 500))
 
 (defn change-profile-field [field-name]
   (fn [event]
@@ -267,8 +270,24 @@
                       :font-size ".9em !important" ; TODO: this is overridden by styles.css, need to fix
                       :width "95%"}}])
 
+(defn saved-toast []
+  [:div {:style {:position "fixed"
+                 :bottom "30px"
+                 :right "30px"
+                 :background-color "#42b72a"
+                 :color "#fff"
+                 :font-weight "bold"
+                 :padding "12px"
+                 :border-radius "8px"
+                 :opacity (if @show-toast 1 0)
+                 :transition "opacity 0.3s"}}
+   "Saved!"])
+
 (defn profile-tab []
   [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
+
+   [saved-toast]
+
    [:div {:style {:margin-bottom "12px" :display "flex" :justify-content "space-between"}}
     [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "12px"}} "Your profile"]]
 
