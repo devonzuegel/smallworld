@@ -535,7 +535,7 @@
                                   :margin-top "8px"}} (if @reviewed-bios-expanded?
                                                         [fa-icon "chevron-down"]
                                                         [fa-icon "chevron-right"])]
-                  "Profiles you've already reviewed "]] r
+                  "Profiles you've already reviewed "]]
                 (when @reviewed-bios-expanded?
                   [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))])])
              [:br] [:br]])])])))
