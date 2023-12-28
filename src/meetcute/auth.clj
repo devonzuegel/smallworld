@@ -128,9 +128,6 @@
     [:input {:type "text"
              :name "phone"
              :value phone
-            ;;  :on-change #(reset! phone (-> % .-target .-value))
-            ;;  :on-key-press #(when (= (.-key %) "Enter")
-                            ;;   (signin))
              :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
     (when started?
       [:div
@@ -140,10 +137,8 @@
        [:label {:for "code"}
         [:p {:style {:line-height "2.5em"}} "Code:"]]
        [:input {:type "text"
+                :autocomplete "one-time-code"
                 :name "code"
-                ;;  :on-change #(reset! phone (-> % .-target .-value))
-            ;;  :on-key-press #(when (= (.-key %) "Enter")
-                            ;;   (signin))
                 :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]])
     [:div {:style {:margin-bottom "12px"}}]
     [:button {:style mc.styles/btn
