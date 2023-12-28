@@ -543,18 +543,10 @@
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
    [:button {:on-click #(reset! current-tab :home)
-             :className "btn"
-             :style (when (= @current-tab :home)
-                      {:border  "3px solid transparent"
-                       :background "rgb(188, 181, 175,.6)"
-                       :color "white"})}
+             :className (if (= @current-tab :home)    "btn primary" "btn")}
     "Home"]
    [:button {:on-click #(reset! current-tab :profile)
-             :className "btn"
-             :style (when (= @current-tab :profile)
-                      {:border  "3px solid transparent"
-                       :background "rgb(188, 181, 175,.6)"
-                       :color "white"})}
+             :className (if (= @current-tab :profile) "btn primary" "btn")}
     "Profile"]
 
    ;; TODO(sebas): make this a post request to clear the cookie
