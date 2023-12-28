@@ -8,9 +8,9 @@
             [cljs.pprint :as pp]))
 
 (defonce debug? (r/atom false))
-(defonce bios   (r/atom nil))
-(defonce profile (r/atom nil))
 (defonce current-tab (r/atom :home))
+(def bios   (r/atom nil))
+(def profile (r/atom nil))
 
 (def btn-styles mc.styles/btn)
 
@@ -157,8 +157,12 @@
                      :display "block"
                      :flex-grow 1
                      :border-radius "3000px"
-                     :background (if (in? currently-rejected-ids bio-id) "#42b72a" "#42b72a22")
-                     :border "5px solid #42b72a"}}
+                     :background "#42b72a22"
+                    ;;  :background (if (in? currently-selected-ids bio-id) "#42b72a" "#42b72a22")
+                    ;;  :border "5px solid #42b72a"
+                     :border (if (in? currently-selected-ids bio-id) "5px solid #42b72a" "5px solid #42b72a0d")
+                     ;
+                     }}
      "I'd like to" [:br]
      "meet this person!"]]
 
@@ -200,8 +204,12 @@
                      :display "block"
                      :flex-grow 1
                      :border-radius "3000px"
-                     :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
-                     :border "5px solid #aaaaaa"}}
+                     :background "#aaaaaa22"
+                    ;;  :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
+                    ;;  :border "5px solid #aaaaaa"
+                     :border (if (in? currently-rejected-ids bio-id) "5px solid #aaaaaa" "5px solid #aaaaaa0d")
+                     ;
+                     }}
      "Not interested," [:br] "but thanks"]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -460,7 +468,7 @@
 (defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
   [:i {:className (str/join " " [(if outlined "far" "fas")
                                  (str "fa-" icon-name)])
-       :style (merge {:min-width "40px" :margin-right "12px" :text-align "center"} style)}])
+       :style (merge {:min-width "40px" :margin-right "16px" :text-align "center"} style)}])
 
 (defn home-tab []
   (let [interested-in (get-field @profile "I'm interested in...")
@@ -511,7 +519,7 @@
                (doall (map-indexed profile-with-buttons new-bios)))
 
              (when (> (count reviewed-bios) 0)
-               [:div {:style {:padding "24px 0" :margin-left "40px"}}
+               [:div {:style {:padding "24px 0" :margin-left "40px" :margin-top "24px"}}
                 [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
                       :style {:display "inline"
                               :margin-left "8px"
