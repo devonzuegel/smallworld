@@ -104,12 +104,12 @@
                               (signin))
              :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
     [:div {:style {:margin-bottom "12px"}}]
-    [:button {:className "btn"
+    [:button {:className "btn primary"
               :type "submit"
             ;;   :on-click signin
               }
      "Sign in"]
-    [:a {:on-click (fn [_] (to-signup))
-         :style {:margin-left "12px" :margin-right "12px"}
-         :href "#"}
+    [:button {:className "btn"
+              :on-click (fn [_] (to-signup))
+              :style {:margin-left "12px" :margin-right "12px"}}
      "Sign up"]]])

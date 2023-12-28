@@ -27,8 +27,14 @@ a {
   font-weight: bold;
 }
 .btn:hover {
-  border: 3px solid rgb(188, 181, 175, 0.2);
-  transition: border 0.2s ease-in-out;
+  color: rgb(157, 149, 143);
+  transition: all 0.1s ease-in-out;
+}
+.btn.primary {
+  border: 3px solid rgb(188, 181, 175, 0.4);
+}
+.btn.primary:hover {
+  border: 3px solid rgb(188, 181, 175, 1);
 }
 body {
   margin: 0;
