@@ -7,7 +7,6 @@
 (defn valid-phone?
   "Strips the phone number of all non-numeric characters, then check if it's a valid phone number. "
   [phone]
-  {:post [(boolean? %)]}
   (let [phone (or (some-> phone clean-phone) "")]
     (and (not-empty phone) (re-find #"^\d{10}$" phone))))
 
