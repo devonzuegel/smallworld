@@ -207,17 +207,23 @@
                    :phone-input-error nil
                    :started? false})))
 
+(def TEST_PHONE_NUMBER (mc.util/clean-phone "111-111-1111"))
+(def TEST_SMS_CODE "123456")
+
 (defn start-signin-route [req]
   (let [params (:params req)
         phone (some-> (:phone params) mc.util/clean-phone)]
     (if (mc.util/valid-phone? phone)
-      (let [new-code (random-code)
-            sms-r (try
-                    (sms/send! {:phone phone
-                                :message (sms/code-template new-code)})
-                    nil
-                    (catch Exception _e
-                      :error))]
+      (let [new-code (if (= TEST_PHONE_NUMBER phone)
+                       TEST_SMS_CODE
+                       (random-code))
+            sms-r (when-not (= TEST_PHONE_NUMBER phone)
+                    (try
+                      (sms/send! {:phone phone
+                                  :message (sms/code-template new-code)})
+                      nil
+                      (catch Exception _e
+                        :error)))]
         (if (= :error sms-r)
           (html-response
            (signin-screen {:phone (:phone params)
