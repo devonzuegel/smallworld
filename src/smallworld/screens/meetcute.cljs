@@ -2,9 +2,7 @@
   (:require [clojure.string :as str]
             [reagent.core    :as r]
             [smallworld.util :as util]
-            [meetcute.screens.auth :as mc.screens.auth]
-            [markdown.core :as md]
-            [cljs.pprint :as pp]))
+            [markdown.core :as md]))
 
 (defonce debug? (r/atom false))
 (defonce current-tab (r/atom :home))
@@ -16,7 +14,8 @@
                         :padding-bottom "4px"
                         :font-size ".7em"
                         :color "rgb(119, 103, 89, 1)"}
-                       styles)} str])
+                       styles)}
+   str])
 
 (defn md->hiccup [md-string]
   [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}

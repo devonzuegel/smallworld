@@ -169,11 +169,12 @@
                    :started? false})))
 
 (defn start-signin-route [req]
-  (let [params (:params req)]
-    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
+  (let [params (:params req)
+        phone (some-> (:phone params) mc.util/clean-phone)]
+    (if (mc.util/valid-phone? phone)
       (let [new-code (random-code)
             sms-r (try
-                    (sms/send! {:to phone
+                    (sms/send! {:phone phone
                                 :message (sms/code-template new-code)})
                     nil
                     (catch Exception _e
@@ -188,7 +189,7 @@
              (signin-screen {:phone (:phone params)
                              :started? true})))))
       (html-response
-       (signin-screen {:phone (:phone params)
+       (signin-screen {:phone (or (:phone params) "")
                        :phone-input-error "Invalid phone number"})))))
 
 (defn verify-route [req]

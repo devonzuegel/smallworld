@@ -6,6 +6,7 @@
   (format "%s is your MeetCute verification code" code))
 
 (defn send! [{:keys [phone message]}]
+  {:pre [(string? phone) (string? message)]}
   (let [sid (env/get-env-var "TWILIO_SID")]
     (http/post
      (format "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" sid)
