@@ -9,6 +9,7 @@
             [meetcute.util :as mc.util]
             [meetcute.env :as env]
             [meetcute.screens.styles :as mc.styles]
+            [smallworld.matchmaking :as matchmaking]
             [clojure.java.io :as io]))
 
 ;; Adding authentication to some of the pages
@@ -217,25 +218,30 @@
   (let [params (:params req)
         phone (some-> (:phone params) mc.util/clean-phone)]
     (if (mc.util/valid-phone? phone)
-      (let [new-code (if (= TEST_PHONE_NUMBER phone)
-                       TEST_SMS_CODE
-                       (random-code))
-            sms-r (when-not (= TEST_PHONE_NUMBER phone)
-                    (try
-                      (sms/send! {:phone phone
-                                  :message (sms/code-template new-code)})
-                      nil
-                      (catch Exception _e
-                        :error)))]
-        (if (= :error sms-r)
-          (html-response
-           (signin-screen {:phone (:phone params)
-                           :phone-input-error "Error sending SMS. Try again later."}))
-          (do
-            (swap! sms-sessions add-new-code phone new-code)
+      ;; TODO(sebas): check if the phone number is there
+      (if (matchmaking/existing-phone-number? phone)
+        (let [new-code (if (= TEST_PHONE_NUMBER phone)
+                         TEST_SMS_CODE
+                         (random-code))
+              sms-r (when-not (= TEST_PHONE_NUMBER phone)
+                      (try
+                        (sms/send! {:phone phone
+                                    :message (sms/code-template new-code)})
+                        nil
+                        (catch Exception _e
+                          :error)))]
+          (if (= :error sms-r)
             (html-response
              (signin-screen {:phone (:phone params)
-                             :started? true})))))
+                             :phone-input-error "Error sending SMS. Try again later."}))
+            (do
+              (swap! sms-sessions add-new-code phone new-code)
+              (html-response
+               (signin-screen {:phone (:phone params)
+                               :started? true})))))
+        (html-response
+         (signin-screen {:phone (or (:phone params) "")
+                         :phone-input-error "No account associated to this phone number. Sign up first."})))
       (html-response
        (signin-screen {:phone (or (:phone params) "")
                        :phone-input-error "Invalid phone number"})))))
