@@ -127,11 +127,11 @@
 ;; ====================================================================== 
 ;; Sign Up
 
-(defn simple-iframe [src]
+(defn airtable-iframe [src]
   ;; keep id in sync with resources/public/signup.js
   [:iframe {:id "airtable-signup"
             :src src
-            :style {:display "block"
+            :style {:display "none"
                     :frameborder "0"
                     :onmousewheel ""
                     :border-radius "8px"
@@ -154,7 +154,7 @@
     ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
     [:div#loading-spinner.spinner {:style {:display "block"}}]
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-    (simple-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
+    (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
     [:script {} (hiccup/raw (slurp (io/resource "public/signup.js")))]]])
 
 (defn signup-route [_]

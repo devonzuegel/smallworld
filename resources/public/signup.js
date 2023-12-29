@@ -4,6 +4,7 @@ const loadingSpinner = document.getElementById('loading-spinner');
 
 function onLoad() {
     loadingSpinner.style.display = 'none';
+    airtableIframe.style.display = 'block';
 };
 
 if (airtableIframe) {
