@@ -138,10 +138,10 @@
                     :width "100%"}}])
 
 (defn signup-screen []
+
   [:div {:style {:display "flex"
                  :flex-direction "column"
                  :height "100vh"
-                 :align-items "center" ; center horizontally
                  :font-size "1.2em"
                  :line-height "1.6em"
                  :text-align "center"
@@ -149,8 +149,11 @@
                  :padding "0 12px"
                  :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
                  }}
-   [:p {:style {:padding "36px 0 30px 0"
-                :font-size ".85em"}}
+   [:p {:style {:text-align "right"
+                :font-size ".8em"
+                :position "fixed"
+                :top "12px"
+                :right "48px"}}
     "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
    [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
     [:div#loading-spinner.spinner {:style {:display "block"}}]
