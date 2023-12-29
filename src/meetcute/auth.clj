@@ -199,7 +199,10 @@
      "Sign in"]
     [:a {:style {:margin-left "12px" :margin-right "12px"}
          :href "/meetcute/signup"}
-     "Sign up"]]])
+     "Sign up"]
+    (when started?
+      [:div {:class "resend" :style {:margin-top "2rem"}}
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])]])
 
 (defn signin-route [_]
   (html-response
