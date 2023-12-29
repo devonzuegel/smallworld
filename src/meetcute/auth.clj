@@ -150,7 +150,6 @@
                      :color "#bcb5af"
                      :font-size ".8em"}} "SMS code:"]]
        [:input {:type "text"
-
                 :autocomplete "one-time-code"
                 :name "code"
                 :style {:background "#66666620"
@@ -158,12 +157,11 @@
                         :padding "6px 8px"
                         :margin-right "4px"}}]])
     [:div {:style {:margin-bottom "12px"}}]
-    [:button {:style mc.styles/btn
+    [:button {:class "btn primary"
               :type "submit"}
      "Sign in"]
-    [:a {:style {:margin-left "12px" :margin-right "12px"}
-         :href "/meetcute/signup"
-         :className "btn"}
+    [:button {;:href "/meetcute/signup"
+              :class "btn"}
      "Sign up"]]])
 
 (enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
