@@ -135,24 +135,28 @@
             :style {:display "none"
                     :frameborder "0"
                     :onmousewheel ""
-                    :border-radius "8px"
+                    :height "100%"
                     :width "100%"}}])
 
 (defn signup-screen []
-  [:div {:style {:display "flex" :flex-direction "column" :height "100vh"
-                 :align-items "center" ; center horizontally
-                 :font-family "sans-serif" :font-size "1.2em" :line-height "1.6em" :text-align "center" :overflow "hidden" :padding "0 12px"
+
+  [:div {:style {:display "flex"
+                 :flex-direction "column"
+                 :height "100vh"
+                 :font-size "1.2em"
+                 :line-height "1.6em"
+                 :text-align "center"
+                 :overflow "hidden"
+                 :padding "0 12px"
                  :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
-                  ; TODO:: this flexbox and its contents should resize when the page size changes
                  }}
-   [:div {:style {:padding-top "36px" :padding-bottom "36px"}}
-    [:h1 {:style {:font-size 48 :line-height "1.6em"}} "Sign up"]
-    [:p
-     "Already have an account? "
-     [:a {:href "/meetcute/signin"}
-      "Sign in"]]]
-   [:div {:style {:width "100%"}}
-    ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
+   [:p {:style {:text-align "right"
+                :font-size ".8em"
+                :position "fixed"
+                :top "12px"
+                :right "48px"}}
+    "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+   [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
     [:div#loading-spinner.spinner {:style {:display "block"}}]
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
     (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
