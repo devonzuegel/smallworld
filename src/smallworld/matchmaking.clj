@@ -1,12 +1,11 @@
-(ns smallworld.matchmaking (:require [clojure.core.memoize :as memoize]
-                                     [clojure.pprint       :as pp]
-                                     [smallworld.airtable  :as airtable]
-                                     [smallworld.util      :as util]
-                                     [cheshire.core :refer [generate-string]]
-                                     [clojure.data.json :as json]
-                                     [clojure.string :as str]
-                                     #_[goog.object :as obj]
-                                     [cljs.spec.gen.alpha :as gen]))
+(ns smallworld.matchmaking
+  (:require [clojure.core.memoize :as memoize]
+            [clojure.pprint       :as pp]
+            [smallworld.airtable  :as airtable]
+            [smallworld.util      :as util]
+            [cheshire.core :refer [generate-string]]
+            [clojure.data.json :as json]
+            [meetcute.util :as mc.util]))
 
 (def airtable-base {:api-key (util/get-env-var "AIRTABLE_BASE_API_KEY")
                     :base-id "appF2K8ThWvtrC6Hs"})
@@ -28,18 +27,12 @@
 (defn get-field [bio field]
   (get-in bio [(keyword field)]))
 
-(defn clean-phone [phone] (if (nil? phone)
-                            nil
-                            (str/replace phone #"[^0-9]" "")))
-
-(defn my-profile [req-phone]
-  (if-let [phone (some-> req-phone clean-phone)]
-    (let [all-bios (get-all-bios)
-          bio (first (filter (fn [bio]
-                               (= phone (clean-phone (get-in bio ["Phone"]))))
-                             all-bios))]
-      (generate-string {:fields (airtable/kwdize bio)}))
-    {:status 401 :body "Unauthorized!!!"}))
+(defn my-profile [phone]
+  (let [all-bios (get-all-bios)
+        bio (first (filter (fn [bio]
+                             (= phone (mc.util/clean-phone (get-in bio ["Phone"]))))
+                           all-bios))]
+    (generate-string {:fields (airtable/kwdize bio)})))
 
 (defn update-profile [req]
   (pp/pprint "req:")
@@ -57,8 +50,8 @@
     (let [bio (first (filter (fn [this-bio]
                                (or (= bio-id
                                       (get-field this-bio "id"))
-                                   (= (clean-phone phone)
-                                      (clean-phone (get-in this-bio ["Phone"])))))
+                                   (= (mc.util/clean-phone phone)
+                                      (mc.util/clean-phone (get-in this-bio ["Phone"])))))
                              all-bios))
           fields-to-change  (util/exclude-keys parsed-body [:id])]
       (if (nil? bio)
