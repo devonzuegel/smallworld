@@ -111,8 +111,61 @@
                   (- (.getTime time))))
        first))
 
+;; ================================================================================ 
+;; HTML
+
+(enlive/deftemplate base-index (io/resource "public/meetcute.html")
+  [body]
+  [:section#app] (enlive/html-content body)
+  [:script#cljs] nil)
+
+(defn html-response [hiccup-body]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (base-index (str (hiccup/html hiccup-body)))})
+
 ;; ====================================================================== 
-;; Pages
+;; Sign Up
+
+(defn simple-iframe [src]
+  [:iframe {:id "airtable-signup" ;; keep in sync with resources/public/signup.js
+            :src src
+            :style {:display "block" #_(if @loading? "none" "block")
+                    :frameborder "0"
+                    :onmousewheel ""
+                    :border-radius "8px"
+                    :width "100%"
+                    ;; :height (str (- (.-innerHeight (dom/getWindow)) 180) "px")
+                    }
+            ;; :on-load #(reset! loading? false)
+            }])
+
+(defn signup-screen []
+  [:div {:style {:display "flex" :flex-direction "column" :height "100vh"
+                 :align-items "center" ; center horizontally
+                 :font-family "sans-serif" :font-size "1.2em" :line-height "1.6em" :text-align "center" :overflow "hidden" :padding "0 12px"
+                 :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
+                  ; TODO:: this flexbox and its contents should resize when the page size changes
+                 }}
+   [:div {:style {:padding-top "36px" :padding-bottom "36px"}}
+    [:h1 {:style {:font-size 48 :line-height "1.6em"}} "Sign up"]
+    [:p
+     "Already have an account? "
+     [:a {:href "/meetcute/signin"}
+      "Sign in"]]]
+   [:div {:style {:width "100%"}}
+    ;; keep in sync with resources/public/signup
+    [:div#loading-message {:style {:display "block"}}
+     "Loading..."]
+    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
+    (simple-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
+    [:script {} (hiccup/raw (slurp (io/resource "public/signup.js")))]]])
+
+(defn signup-route [_]
+  (html-response (signup-screen)))
+
+;; ====================================================================== 
+;; Sign In
 
 (defn signin-screen [{:keys [phone phone-input-error started? code-error]}]
   [:form {:method "post" :action (if started?
@@ -151,16 +204,6 @@
     [:a {:style {:margin-left "12px" :margin-right "12px"}
          :href "/meetcute/signup"}
      "Sign up"]]])
-
-(enlive/deftemplate base-index (io/resource "public/meetcute.html")
-  [body]
-  [:section#app] (enlive/html-content body)
-  [:script#cljs] nil)
-
-(defn html-response [hiccup-body]
-  {:status 200
-   :headers {"Content-Type" "text/html"}
-   :body (base-index (str (hiccup/html hiccup-body)))})
 
 (defn signin-route [_]
   (html-response
