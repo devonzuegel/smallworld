@@ -236,11 +236,20 @@
         ;; (redirect! "/meetcute")
         )))
 
+(def profile-error (r/atom nil))
+
 (defn fetch-my-profile! []
   (println "\nfetching my profile...")
-  (util/fetch-post "/meetcute/api/matchmaking/me"
-                   {}
-                   update-profile-with-result))
+  (util/fetch-post
+   "/meetcute/api/matchmaking/me"
+   {}
+   (fn [result]
+     (if-let [error (:error result)]
+       (reset! profile-error error)
+       (do
+         (reset! profile (merge (:fields result)
+                                {:id (:id result)}))
+         (println "finished updating profile with result!"))))))
 
 (defn update-profile! []
   (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
@@ -550,7 +559,8 @@
     "Profile"]
 
    ;; TODO(sebas): make this a post request to clear the cookie
-   [:form {:action "/meetcute/api/auth/logout" :method "post" :style {:float "right"}}
+   [:form {:action "/meetcute/logout" :method "post"
+           :style {:float "right"}}
     [:input {:type "submit"
              :className "btn"
              :on-click #(reset! profile nil)
@@ -558,27 +568,30 @@
              :style {:float "right"}}]]
    [:br]])
 
+;; TODO: better loading page
+(defn loading-profile []
+  [:div
+   [:p "Loading profile"]])
+
+(defn error-screen [error]
+  [:div
+   [:p "Error: " error]
+   [:a {:href "/meetcute/signin"}
+    "Sign in"]])
+
 (defn screen []
   (r/create-class
    {:component-did-mount (fn []
                            (fetch-my-profile!)
                            (fetch-bios))
     :reagent-render (fn []
-
-                      #_[:div
-                         [:p "HOME"]
-                         [:pre "@profile: " (pr-str @profile)]]
-
-
-                      (if (nil? @profile)
-                        (case @current-tab
-                          :signup (mc.screens.auth/signup-screen {:to-signin #(reset! current-tab :signin)})
-                          :signin (mc.screens.auth/signin-screen {:to-signup #(reset! current-tab :signup)})
-                          (mc.screens.auth/signin-screen {:to-signup #(reset! current-tab :signup)}))
-
+                      (cond
+                        ;; TODO: profile could be nil because of some access problem
+                        (some? @profile-error) (error-screen @profile-error)
+                        (nil? @profile) (loading-profile)
+                        :else
                         [:div
                          [nav-btns]
-
                          (case @current-tab
                            :profile (profile-tab)
                            :home (home-tab)
