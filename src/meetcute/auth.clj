@@ -5,6 +5,7 @@
             [ring.util.response :as resp]
             [hiccup2.core :as hiccup]
             [net.cgrand.enlive-html :as enlive]
+            [meetcute.sms :as sms]
             [meetcute.util :as mc.util]
             [meetcute.env :as env]
             [meetcute.screens.styles :as mc.styles]
@@ -71,13 +72,14 @@
 (defn reset-sms-sessions! []
   (reset! sms-sessions {}))
 
-(defn new-random-code []
-  "123456")
+(defn random-code []
+  (str (+ 100000 (rand-int 900000))))
 
-(defn add-new-code [sms-sessions phone]
+(defn add-new-code [sms-sessions phone code]
+  {:pre [(string? phone) (string? code)]}
   (if (get sms-sessions phone)
-    (update sms-sessions phone assoc :code (new-random-code))
-    (assoc sms-sessions phone {:code (new-random-code)
+    (update sms-sessions phone assoc :code code)
+    (assoc sms-sessions phone {:code code
                                :attempts []})))
 
 (defn now [] (java.util.Date.))
@@ -150,25 +152,29 @@
          :href "/meetcute/signup"}
      "Sign up"]]])
 
-(enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
+(enlive/deftemplate base-index (io/resource "public/meetcute.html")
   [body]
   [:section#app] (enlive/html-content body)
   [:script#cljs] nil)
 
-;; TODO(sebas): use index.html around the content
 (defn html-response [hiccup-body]
   {:status 200
    :headers {"Content-Type" "text/html"}
    :body (base-index (str (hiccup/html hiccup-body)))})
 
 (defn signin-route [_]
-  (html-response (signin-screen {:phone "" :phone-input-error nil :started? false})))
+  (html-response
+   (signin-screen {:phone ""
+                   :phone-input-error nil
+                   :started? false})))
 
 (defn start-signin-route [req]
   (let [params (:params req)]
     (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
-      (do
-        (swap! sms-sessions add-new-code phone)
+      (let [new-code (random-code)]
+        (sms/send! {:to phone
+                    :message (sms/code-template new-code)})
+        (swap! sms-sessions add-new-code phone new-code)
         (html-response
          (signin-screen {:phone (:phone params)
                          :started? true})))
