@@ -46,23 +46,6 @@
 
 (def phone-input-error (r/atom nil))
 
-(defn valid-phone [phone]
-  ;; strip the phone number of all non-numeric characters, then check if it's a valid phone number. if yes, return true; if not, return false:
-  (let [phone (or phone "")
-        phone (str/replace phone #"[^0-9]" "")]
-    (and (not-empty phone) (re-find #"^\d{10}$" phone))))
-
-(defn request-sms-token! [phone]
-  (println "phone" phone)
-  (util/fetch-post "/meetcute/api/auth/signin" {:phone phone} (fn [data] (println "response" data))))
-
-(defn signin []
-  (if (valid-phone @phone)
-    (do
-      (reset! phone-input-error nil)
-      (request-sms-token! @phone))
-    (reset! phone-input-error "Please enter a valid phone number")))
-
 ;; ============================================================================
 ;; Screens
 

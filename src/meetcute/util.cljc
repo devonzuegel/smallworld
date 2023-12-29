@@ -2,13 +2,12 @@
   (:require [clojure.string :as str]))
 
 (defn clean-phone [phone]
-  (if (nil? phone)
-    nil
-    (str/replace phone #"[^0-9]" "")))
+  (some-> phone (str/replace #"[^0-9]" "")))
 
-(defn valid-phone? [phone]
+(defn valid-phone?
+  "Strips the phone number of all non-numeric characters, then check if it's a valid phone number. "
+  [phone]
   {:post [(boolean? %)]}
-  (let [phone (some-> phone clean-phone)]
-    (and (string? phone)
-         (not (empty? phone))
-         (< 9 (count phone)))))
+  (let [phone (or (some-> phone clean-phone) "")]
+    (and (not-empty phone) (re-find #"^\d{10}$" phone))))
+
