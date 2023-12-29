@@ -155,8 +155,7 @@
       "Sign in"]]]
    [:div {:style {:width "100%"}}
     ;; keep in sync with resources/public/signup
-    [:div#loading-message {:style {:display "block"}}
-     "Loading..."]
+    [:div#loading-message.spinner {:style {:display "block"}}]
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
     (simple-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
     [:script {} (hiccup/raw (slurp (io/resource "public/signup.js")))]]])
