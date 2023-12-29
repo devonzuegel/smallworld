@@ -128,17 +128,14 @@
 ;; Sign Up
 
 (defn simple-iframe [src]
-  [:iframe {:id "airtable-signup" ;; keep in sync with resources/public/signup.js
+  ;; keep id in sync with resources/public/signup.js
+  [:iframe {:id "airtable-signup"
             :src src
-            :style {:display "block" #_(if @loading? "none" "block")
+            :style {:display "block"
                     :frameborder "0"
                     :onmousewheel ""
                     :border-radius "8px"
-                    :width "100%"
-                    ;; :height (str (- (.-innerHeight (dom/getWindow)) 180) "px")
-                    }
-            ;; :on-load #(reset! loading? false)
-            }])
+                    :width "100%"}}])
 
 (defn signup-screen []
   [:div {:style {:display "flex" :flex-direction "column" :height "100vh"
