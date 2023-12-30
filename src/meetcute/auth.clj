@@ -5,9 +5,11 @@
             [ring.util.response :as resp]
             [hiccup2.core :as hiccup]
             [net.cgrand.enlive-html :as enlive]
+            [meetcute.sms :as sms]
             [meetcute.util :as mc.util]
             [meetcute.env :as env]
             [meetcute.screens.styles :as mc.styles]
+            [smallworld.matchmaking :as matchmaking]
             [clojure.java.io :as io]))
 
 ;; Adding authentication to some of the pages
@@ -71,13 +73,14 @@
 (defn reset-sms-sessions! []
   (reset! sms-sessions {}))
 
-(defn new-random-code []
-  "123456")
+(defn random-code []
+  (str (+ 100000 (rand-int 900000))))
 
-(defn add-new-code [sms-sessions phone]
+(defn add-new-code [sms-sessions phone code]
+  {:pre [(string? phone) (string? code)]}
   (if (get sms-sessions phone)
-    (update sms-sessions phone assoc :code (new-random-code))
-    (assoc sms-sessions phone {:code (new-random-code)
+    (update sms-sessions phone assoc :code code)
+    (assoc sms-sessions phone {:code code
                                :attempts []})))
 
 (defn now [] (java.util.Date.))
@@ -109,8 +112,61 @@
                   (- (.getTime time))))
        first))
 
+;; ================================================================================ 
+;; HTML
+
+(enlive/deftemplate base-index (io/resource "public/meetcute.html")
+  [body]
+  [:section#app] (enlive/html-content body)
+  [:script#cljs] nil)
+
+(defn html-response [hiccup-body]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (base-index (str (hiccup/html hiccup-body)))})
+
 ;; ====================================================================== 
-;; Pages
+;; Sign Up
+
+(defn airtable-iframe [src]
+  ;; keep id in sync with resources/public/signup.js
+  [:iframe {:id "airtable-signup"
+            :src src
+            :style {:display "none"
+                    :frameborder "0"
+                    :onmousewheel ""
+                    :height "100%"
+                    :width "100%"}}])
+
+(defn signup-screen []
+
+  [:div {:style {:display "flex"
+                 :flex-direction "column"
+                 :height "100vh"
+                 :font-size "1.2em"
+                 :line-height "1.6em"
+                 :text-align "center"
+                 :overflow "hidden"
+                 :padding "0 12px"
+                 :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
+                 }}
+   [:p {:style {:text-align "right"
+                :font-size ".8em"
+                :position "fixed"
+                :top "12px"
+                :right "48px"}}
+    "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+   [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
+    [:div#loading-spinner.spinner {:style {:display "block"}}]
+    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
+    (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
+    [:script {} (hiccup/raw (slurp (io/resource "public/signup.js")))]]])
+
+(defn signup-route [_]
+  (html-response (signup-screen)))
+
+;; ====================================================================== 
+;; Sign In
 
 (defn signin-screen [{:keys [phone phone-input-error started? code-error]}]
   [:form {:method "post" :action (if started?
@@ -160,9 +216,13 @@
     [:button {:class "btn primary"
               :type "submit"}
      "Sign in"]
-    [:button {;:href "/meetcute/signup"
-              :class "btn"}
-     "Sign up"]]])
+
+    [:a {:style {:margin-left "12px" :margin-right "12px"}
+         :href "/meetcute/signup"}
+     "Sign up"]
+    (when started?
+      [:div {:class "resend" :style {:margin-top "2rem"}}
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])]])
 
 (enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
   [body]
@@ -176,18 +236,44 @@
    :body (base-index (str (hiccup/html hiccup-body)))})
 
 (defn signin-route [_]
-  (html-response (signin-screen {:phone "" :phone-input-error nil :started? false})))
+  (html-response
+   (signin-screen {:phone ""
+                   :phone-input-error nil
+                   :started? false})))
+
+(def TEST_PHONE_NUMBER (mc.util/clean-phone "111-111-1111"))
+(def TEST_SMS_CODE "123456")
 
 (defn start-signin-route [req]
-  (let [params (:params req)]
-    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
-      (do
-        (swap! sms-sessions add-new-code phone)
+  (let [params (:params req)
+        phone (some-> (:phone params) mc.util/clean-phone)]
+    (if (mc.util/valid-phone? phone)
+      ;; TODO(sebas): check if the phone number is there
+      (if (matchmaking/existing-phone-number? phone)
+        (let [new-code (if (= TEST_PHONE_NUMBER phone)
+                         TEST_SMS_CODE
+                         (random-code))
+              sms-r (when-not (= TEST_PHONE_NUMBER phone)
+                      (try
+                        (sms/send! {:phone phone
+                                    :message (sms/code-template new-code)})
+                        nil
+                        (catch Exception _e
+                          :error)))]
+          (if (= :error sms-r)
+            (html-response
+             (signin-screen {:phone (:phone params)
+                             :phone-input-error "Error sending SMS. Try again later."}))
+            (do
+              (swap! sms-sessions add-new-code phone new-code)
+              (html-response
+               (signin-screen {:phone (:phone params)
+                               :started? true})))))
         (html-response
-         (signin-screen {:phone (:phone params)
-                         :started? true})))
+         (signin-screen {:phone (or (:phone params) "")
+                         :phone-input-error "No account associated to this phone number. Sign up first."})))
       (html-response
-       (signin-screen {:phone (:phone params)
+       (signin-screen {:phone (or (:phone params) "")
                        :phone-input-error "Invalid phone number"})))))
 
 (defn verify-route [req]

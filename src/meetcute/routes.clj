@@ -13,6 +13,7 @@
 
 (defroutes open-routes
   (ANY "/" [] (io/resource "public/meetcute.html"))
+  (GET "/signup" req (mc.auth/signup-route req))
   (GET "/signin" req (mc.auth/signin-route req))
   (POST "/signin" req (mc.auth/start-signin-route req))
   (POST "/verify" req (mc.auth/verify-route req))
