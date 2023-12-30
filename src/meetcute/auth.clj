@@ -125,6 +125,9 @@
    :headers {"Content-Type" "text/html"}
    :body (base-index (str (hiccup/html hiccup-body)))})
 
+(defn embed-js-script [resource]
+  [:script {} (hiccup/raw (slurp resource))])
+
 ;; ====================================================================== 
 ;; Sign Up
 
@@ -139,7 +142,6 @@
                     :width "100%"}}])
 
 (defn signup-screen []
-
   [:div {:style {:display "flex"
                  :flex-direction "column"
                  :height "100vh"
@@ -160,7 +162,7 @@
     [:div#loading-spinner.spinner {:style {:display "block"}}]
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
     (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
-    [:script {} (hiccup/raw (slurp (io/resource "public/signup.js")))]]])
+    (embed-js-script (io/resource "public/signup.js"))]])
 
 (defn signup-route [_]
   (html-response (signup-screen)))
@@ -190,13 +192,19 @@
                   :font-style "italic"
                   :color "#bcb5af"
                   :font-size ".8em"}} "Your phone number:"]]
-    [:input {:type "text"
+    [:input {:id "phone"
              :name "phone"
+             :value phone
+             :type "hidden"}]
+    [:input {:id "display-phone"
+             :type "tel"
+             :name "display-phone"
              :value phone
              :style {:background "#66666620"
                      :border-radius "8px"
                      :padding "6px 8px"
-                     :margin-right "4px"}}]
+                     :margin-right "4px"
+                     :padding-left "50px"}}]
     (when started?
       [:div
        [:label {:for "code"}
@@ -222,7 +230,8 @@
      "Sign up"]
     (when started?
       [:div {:class "resend" :style {:margin-top "2rem"}}
-       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])]])
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
+    (embed-js-script (io/resource "public/signin.js"))]])
 
 (enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
   [body]
