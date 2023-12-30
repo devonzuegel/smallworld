@@ -88,3 +88,16 @@ li {
     transform: rotate(360deg);
   }
 }
+
+// Phone input for signin page:
+#display-phone {
+  background-color: #c2bbb833;
+}
+#display-phone::placeholder {
+  color: #cbc4c1;
+}
+.iti__country-list {
+  max-width: 330px;
+  overflow-x: hidden;
+  font-size: 0.8em;
+}

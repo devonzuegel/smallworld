@@ -202,10 +202,15 @@
              :value phone
              :style {:background "#66666620"
                      :border-radius "8px"
+                     :width "13em"
                      :padding "6px 8px"
                      :margin-right "4px"
                      :padding-left "50px"}}]
-    (when started?
+    (if-not started?
+      [:p {:style {:margin-top "8px"
+                   :color "#9e958d"
+                   :font-size ".8em"}}
+       "We will text a code to your phone via SMS"]
       [:div
        [:label {:for "code"}
         [:p {:style {:font-weight "bold"
