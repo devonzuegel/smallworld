@@ -62,7 +62,7 @@
       (unauthorized-response request))))
 
 ;; ====================================================================== 
-;; SMS verification flow
+;; (deprecated for Twilio verify) SMS verification flow
 
 (comment
   {"phone" {:code "123456"
@@ -284,7 +284,6 @@
                                           :code-error msg})))]
     (if-let [phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
       (if-let [code (some-> (:code params) str/trim)]
-        ;; TODO(sebas): check if test-phone to just say yes to any code
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
                            (when-not (sms/check-code! {:phone phone :code code})
