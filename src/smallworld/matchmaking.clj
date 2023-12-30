@@ -24,6 +24,18 @@
   (let [all-bios-raw (fetch-all-bios-memoized)]
     (map (fn [bio] (merge (:fields bio) {:id (:id bio)})) all-bios-raw)))
 
+(defn get-all-phones []
+  (->> (get-all-bios)
+       (map (fn [bio]
+              (get-in bio ["Phone"])))
+       (map mc.util/clean-phone)
+       set))
+
+(defn existing-phone-number? [phone]
+  (let [phone (mc.util/clean-phone phone)
+        all-phones (get-all-phones)]
+    (contains? all-phones phone)))
+
 (defn get-field [bio field]
   (get-in bio [(keyword field)]))
 

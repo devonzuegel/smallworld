@@ -12,6 +12,9 @@ export ENVIRONMENT=e.g. dev-m1-macbook
 export JWT_SECRET_KEY=generate a 5-word random string
 export AIRTABLE_BASE_API_KEY=get from https://airtable.com
 export SMS_CODE=generate a random code here
+export TWILIO_SID=get from twilio.com
+export TWILIO_AUTH_TOKEN=get from twilio.com
+export TWILIO_PHONE_NUMBER=+16502295016
 
 # when you add a new environment variable to to this file, make
 # sure to also add it to `bin/set-env-variables.sh`
