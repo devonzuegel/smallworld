@@ -168,7 +168,8 @@
 ;; ====================================================================== 
 ;; Sign In
 
-(defn signin-screen [{:keys [phone phone-input-error started? code-error]}]
+(defn signin-screen
+  [{:keys [phone phone-input-error code-error started?]}]
   [:form {:method "post" :action (if started?
                                    "/meetcute/verify"
                                    "/meetcute/signin")}
@@ -216,7 +217,6 @@
     [:button {:class "btn primary"
               :type "submit"}
      "Sign in"]
-
     [:a {:style {:margin-left "12px" :margin-right "12px"}
          :href "/meetcute/signup"}
      "Sign up"]
@@ -238,37 +238,36 @@
 (defn signin-route [_]
   (html-response
    (signin-screen {:phone ""
-                   :phone-input-error nil
-                   :started? false})))
+                   :started? false
+                   :phone-input-error nil})))
+
+(comment
+  (def TEST_SMS_CODE "123456"))
 
 (def TEST_PHONE_NUMBER (mc.util/clean-phone "111-111-1111"))
-(def TEST_SMS_CODE "123456")
+(def TEST_VERIFICATION_ID "VE478b3f02238dee0544e9062cfc16c1ff")
 
 (defn start-signin-route [req]
   (let [params (:params req)
-        phone (some-> (:phone params) mc.util/clean-phone)]
+  ;; TODO: clean-phone doesn't work anymore
+        phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
     (if (mc.util/valid-phone? phone)
       ;; TODO(sebas): check if the phone number is there
       (if (matchmaking/existing-phone-number? phone)
-        (let [new-code (if (= TEST_PHONE_NUMBER phone)
-                         TEST_SMS_CODE
-                         (random-code))
-              sms-r (when-not (= TEST_PHONE_NUMBER phone)
-                      (try
-                        (sms/send! {:phone phone
-                                    :message (sms/code-template new-code)})
-                        nil
-                        (catch Exception _e
-                          :error)))]
-          (if (= :error sms-r)
+        (let [verification-id
+              (if (= TEST_PHONE_NUMBER phone)
+                TEST_VERIFICATION_ID
+                (try
+                  (sms/start-verification! {:phone phone})
+                  (catch Exception _e
+                    :error)))]
+          (if (= :error verification-id)
             (html-response
              (signin-screen {:phone (:phone params)
                              :phone-input-error "Error sending SMS. Try again later."}))
-            (do
-              (swap! sms-sessions add-new-code phone new-code)
-              (html-response
-               (signin-screen {:phone (:phone params)
-                               :started? true})))))
+            (html-response
+             (signin-screen {:phone (:phone params)
+                             :started? true}))))
         (html-response
          (signin-screen {:phone (or (:phone params) "")
                          :phone-input-error "No account associated to this phone number. Sign up first."})))
@@ -278,24 +277,28 @@
 
 (defn verify-route [req]
   (let [params (:params req)
-        error-response (delay
+        error-response (fn [msg]
                          (html-response
                           (signin-screen {:phone (:phone params)
                                           :started? true
-                                          :code-error "Invalid code"})))]
-    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
+                                          :code-error msg})))]
+    (if-let [phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
       (if-let [code (some-> (:code params) str/trim)]
-        (let [sms-sessions' (swap! sms-sessions new-attempt phone code)
-              {:keys [attempts]} (get sms-sessions' phone)
-              attempt (last-attempt attempts)]
-          (case (:result attempt)
+        ;; TODO(sebas): check if test-phone to just say yes to any code
+        (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
+                         (try
+                           (when-not (sms/check-code! {:phone phone :code code})
+                             {:error "Wrong code"})
+                           (catch Exception _e
+                             {:error "We encountered an error while trying to verify your code. Please try later"})))]
+          (if-let [error-msg (:error verify-r)]
+            (error-response error-msg)
             ;; redirect to the home page with the cookie set
             ;; this session is now authenticated
-            :success (-> (resp/redirect "/meetcute")
-                         (assoc :session {:auth/jwt (create-auth-token {:phone phone})}))
-            @error-response))
-        @error-response)
-      @error-response)))
+            (-> (resp/redirect "/meetcute")
+                (assoc :session {:auth/jwt (create-auth-token {:phone phone})}))))
+        (error-response "Invalid code."))
+      (error-response "Invalid request. Missing phone."))))
 
 (defn logout-route [_req]
   (-> (resp/redirect "/meetcute/signin")
