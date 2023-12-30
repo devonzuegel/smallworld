@@ -258,11 +258,17 @@
 
 (defn start-signin-route [req]
   (let [params (:params req)
-  ;; TODO: clean-phone doesn't work anymore
-        phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
-    (if (mc.util/valid-phone? phone)
-      ;; TODO(sebas): check if the phone number is there
-      (if (matchmaking/existing-phone-number? phone)
+        phone (some-> (:phone params) mc.util/clean-phone)]
+    (if-not (mc.util/valid-phone? phone)
+      (html-response
+       (signin-screen {:phone (or (:phone params) "")
+                       :phone-input-error "Invalid phone number"}))
+
+      (if-not (matchmaking/existing-phone-number? phone)
+        (html-response
+         (signin-screen {:phone (or (:phone params) "")
+                         :phone-input-error "No account associated to this phone number. Sign up first."}))
+
         (let [verification-id
               (if (= TEST_PHONE_NUMBER phone)
                 TEST_VERIFICATION_ID
@@ -272,17 +278,11 @@
                     :error)))]
           (if (= :error verification-id)
             (html-response
-             (signin-screen {:phone (:phone params)
+             (signin-screen {:phone (or (:phone params) "")
                              :phone-input-error "Error sending SMS. Try again later."}))
             (html-response
-             (signin-screen {:phone (:phone params)
-                             :started? true}))))
-        (html-response
-         (signin-screen {:phone (or (:phone params) "")
-                         :phone-input-error "No account associated to this phone number. Sign up first."})))
-      (html-response
-       (signin-screen {:phone (or (:phone params) "")
-                       :phone-input-error "Invalid phone number"})))))
+             (signin-screen {:phone (or (:phone params) "")
+                             :started? true}))))))))
 
 (defn verify-route [req]
   (let [params (:params req)
@@ -291,7 +291,7 @@
                           (signin-screen {:phone (:phone params)
                                           :started? true
                                           :code-error msg})))]
-    (if-let [phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
+    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
       (if-let [code (some-> (:code params) str/trim)]
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
