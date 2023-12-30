@@ -125,6 +125,9 @@
    :headers {"Content-Type" "text/html"}
    :body (base-index (str (hiccup/html hiccup-body)))})
 
+(defn embed-js-script [resource]
+  [:script {} (hiccup/raw (slurp resource))])
+
 ;; ====================================================================== 
 ;; Sign Up
 
@@ -139,7 +142,6 @@
                     :width "100%"}}])
 
 (defn signup-screen []
-
   [:div {:style {:display "flex"
                  :flex-direction "column"
                  :height "100vh"
@@ -160,7 +162,7 @@
     [:div#loading-spinner.spinner {:style {:display "block"}}]
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
     (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
-    [:script {} (hiccup/raw (slurp (io/resource "public/signup.js")))]]])
+    (embed-js-script (io/resource "public/signup.js"))]])
 
 (defn signup-route [_]
   (html-response (signup-screen)))
@@ -190,13 +192,19 @@
                   :font-style "italic"
                   :color "#bcb5af"
                   :font-size ".8em"}} "Your phone number:"]]
-    [:input {:type "text"
+    [:input {:id "phone"
              :name "phone"
+             :value phone
+             :type "hidden"}]
+    [:input {:id "display-phone"
+             :type "tel"
+             :name "display-phone"
              :value phone
              :style {:background "#66666620"
                      :border-radius "8px"
                      :padding "6px 8px"
-                     :margin-right "4px"}}]
+                     :margin-right "4px"
+                     :padding-left "50px"}}]
     (when started?
       [:div
        [:label {:for "code"}
@@ -222,7 +230,8 @@
      "Sign up"]
     (when started?
       [:div {:class "resend" :style {:margin-top "2rem"}}
-       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])]])
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
+    (embed-js-script (io/resource "public/signin.js"))]])
 
 (enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
   [body]
@@ -249,11 +258,17 @@
 
 (defn start-signin-route [req]
   (let [params (:params req)
-  ;; TODO: clean-phone doesn't work anymore
-        phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
-    (if (mc.util/valid-phone? phone)
-      ;; TODO(sebas): check if the phone number is there
-      (if (matchmaking/existing-phone-number? phone)
+        phone (some-> (:phone params) mc.util/clean-phone)]
+    (if-not (mc.util/valid-phone? phone)
+      (html-response
+       (signin-screen {:phone (or (:phone params) "")
+                       :phone-input-error "Invalid phone number"}))
+
+      (if-not (matchmaking/existing-phone-number? phone)
+        (html-response
+         (signin-screen {:phone (or (:phone params) "")
+                         :phone-input-error "No account associated to this phone number. Sign up first."}))
+
         (let [verification-id
               (if (= TEST_PHONE_NUMBER phone)
                 TEST_VERIFICATION_ID
@@ -263,17 +278,11 @@
                     :error)))]
           (if (= :error verification-id)
             (html-response
-             (signin-screen {:phone (:phone params)
+             (signin-screen {:phone (or (:phone params) "")
                              :phone-input-error "Error sending SMS. Try again later."}))
             (html-response
-             (signin-screen {:phone (:phone params)
-                             :started? true}))))
-        (html-response
-         (signin-screen {:phone (or (:phone params) "")
-                         :phone-input-error "No account associated to this phone number. Sign up first."})))
-      (html-response
-       (signin-screen {:phone (or (:phone params) "")
-                       :phone-input-error "Invalid phone number"})))))
+             (signin-screen {:phone (or (:phone params) "")
+                             :started? true}))))))))
 
 (defn verify-route [req]
   (let [params (:params req)
@@ -282,7 +291,7 @@
                           (signin-screen {:phone (:phone params)
                                           :started? true
                                           :code-error msg})))]
-    (if-let [phone (some-> (:phone params) str/trim #_mc.util/clean-phone)]
+    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
       (if-let [code (some-> (:code params) str/trim)]
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
