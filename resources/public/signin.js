@@ -6,7 +6,6 @@ const hiddenPhoneInput = document.getElementById("phone");
 console.log('phone input', displayPhoneInput, hiddenPhoneInput);
 
 if (displayPhoneInput && hiddenPhoneInput) {
-  console.log('in');
   const iti = window.intlTelInput(displayPhoneInput, {
     separateDialCode: true,
     initialCountry: "us",
@@ -15,10 +14,7 @@ if (displayPhoneInput && hiddenPhoneInput) {
   });
 
   displayPhoneInput.addEventListener('change', function(event) {
-    console.log('selected country data',  iti.getSelectedCountryData());
     var formattedNumber = iti.getNumber(intlTelInputUtils.numberFormat.E164);
-    console.log('original number', event.target.value);
-    console.log('formatted number', formattedNumber);
     hiddenPhoneInput.value = formattedNumber;
   });
 }
