@@ -177,37 +177,63 @@
                   :width "90%"
                   :padding-top "48px"
                   :text-align "center"}}
-    [:h1 {:style {:font-size 48 :line-height "1.6em" :margin-bottom "18px"}} "Sign in"]
-    (when phone-input-error
+    [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
+    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin-bottom "18px"}} "Sign in"]
+    (when (or phone-input-error code-error)
       [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-       phone-input-error])
+       (or phone-input-error code-error)])
     [:label {:for "phone"}
-     [:p {:style {:line-height "2.5em"}} "Your phone number:"]]
+     [:p {:style {:font-weight "bold"
+                  :margin "24px 4px 4px 4px"
+                  :text-transform "uppercase"
+                  :font-style "italic"
+                  :color "#bcb5af"
+                  :font-size ".8em"}} "Your phone number:"]]
     [:input {:type "text"
              :name "phone"
              :value phone
-             :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]
+             :style {:background "#66666620"
+                     :border-radius "8px"
+                     :padding "6px 8px"
+                     :margin-right "4px"}}]
     (when started?
       [:div
-       (when code-error
-         [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-          code-error])
        [:label {:for "code"}
-        [:p {:style {:line-height "2.5em"}} "Code:"]]
+        [:p {:style {:font-weight "bold"
+                     :margin "24px 4px 4px 4px"
+                     :text-transform "uppercase"
+                     :font-style "italic"
+                     :color "#bcb5af"
+                     :font-size ".8em"}} "SMS code:"]]
        [:input {:type "text"
                 :autocomplete "one-time-code"
                 :name "code"
-                :style {:background "#66666620" :border-radius "8px" :padding "6px 8px" :margin-right "4px"}}]])
+                :style {:background "#66666620"
+                        :border-radius "8px"
+                        :padding "6px 8px"
+                        :margin-right "4px"}}]])
     [:div {:style {:margin-bottom "12px"}}]
-    [:button {:style mc.styles/btn
+    [:button {:class "btn primary"
               :type "submit"}
      "Sign in"]
+
     [:a {:style {:margin-left "12px" :margin-right "12px"}
          :href "/meetcute/signup"}
      "Sign up"]
     (when started?
       [:div {:class "resend" :style {:margin-top "2rem"}}
        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])]])
+
+(enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
+  [body]
+  [:section#app] (enlive/html-content body)
+  [:script#cljs] nil)
+
+;; TODO(sebas): use index.html around the content
+(defn html-response [hiccup-body]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (base-index (str (hiccup/html hiccup-body)))})
 
 (defn signin-route [_]
   (html-response
