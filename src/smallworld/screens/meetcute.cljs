@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]
             [reagent.core    :as r]
             [smallworld.util :as util]
-            [markdown.core :as md]))
+            [markdown.core :as md]
+            [cljs.pprint :as pp]))
 
 (defonce debug? (r/atom false))
 (defonce current-tab (r/atom :home))
@@ -34,8 +35,10 @@
                                 "Home base city"
                                 "Other cities where you spend time"
                                 "I'm interested in..."
-                                "selections"
-                                "rejections"
+                                "unseen-cuties"
+                                "todays-cutie"
+                                "selected-cuties"
+                                "rejected-cuties"
                                 "What makes this person awesome?"
                                 "Pictures"
                                 "Gender"])
@@ -88,13 +91,13 @@
    (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
    (when @debug? [:pre "Selected Value: " (str selected-value)])])
 
-(defn update-selections []
-  (println "updating selections")
+(defn update-selected-cuties []
+  (println "updating selected-cuties")
   (util/fetch-post "/meetcute/api/matchmaking/profile"
                    (select-keys @profile (map #(keyword %)
                                               (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                       ["Phone"])))
-                   #(println "Done updating selections")))
+                   #(println "Done updating selected-cuties")))
 
 (defn bio-row [i [key-name value]]
   [:div {:key i :className "bio-row" :style {:width "fit-content"}}
@@ -136,16 +139,16 @@
                                                    currently-selected-ids
                                                    (conj currently-selected-ids bio-id))
                                                  (remove (fn [v] (= bio-id v))
-                                                         (get-field @profile "selections")))]
+                                                         (get-field @profile "selected-cuties")))]
                               (reset! profile (assoc @profile
-                                                     (keyword "selections")
+                                                     (keyword "selected-cuties")
                                                      now-selected))
                               (when checked?
                                 (reset! profile (assoc @profile
-                                                       (keyword "rejections")
+                                                       (keyword "rejected-cuties")
                                                        (remove (fn [v] (= bio-id v))
-                                                               (get-field @profile "rejections")))))
-                              (update-selections))))}]
+                                                               (get-field @profile "rejected-cuties")))))
+                              (update-selected-cuties))))}]
     [:label {:for (str bio-id "-select")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -182,17 +185,17 @@
                                                    currently-rejected-ids
                                                    (conj currently-rejected-ids bio-id))
                                                  (remove (fn [v] (= bio-id v))
-                                                         (get-field @profile "rejections")))]
+                                                         (get-field @profile "rejected-cuties")))]
                               (println "now-rejected: " now-rejected)
                               (reset! profile (assoc @profile
-                                                     (keyword "rejections")
+                                                     (keyword "rejected-cuties")
                                                      now-rejected))
                               (when checked?
                                 (reset! profile (assoc @profile
-                                                       (keyword "selections")
+                                                       (keyword "selected-cuties")
                                                        (remove (fn [v] (= bio-id v))
-                                                               (get-field @profile "selections")))))
-                              (update-selections))))}]
+                                                               (get-field @profile "selected-cuties")))))
+                              (update-selected-cuties))))}]
     [:label {:for (str bio-id "-reject")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -461,6 +464,14 @@
                                (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "150px" :margin "8px 8px 0 0" :border-radius "4px"}}])
                                             (get-field bio "Pictures")))]]])
 
+(defn how-it-works []
+  [:div {:style {:margin-top "24px" :font-style "italic"}}
+   [:p {:style {:padding "2px 16px"}} "How MeetCute works:"]
+   [:ul {:padding "0 16px"}
+    [:li {:style {:padding "2px 8px" :margin-left "16px"}} "Every day, we'll send you an email with one new person"]
+    [:li {:style {:padding "2px 8px" :margin-left "16px"}} "You let us know if you're interested in meeting them"]
+    [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, we'll introduce you!"]]])
+
 (defn profile-with-buttons [i bio]
 
   [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
@@ -480,8 +491,10 @@
    [:div {:style {:flex 1} :className "btns-column"}
     [select-reject-btns
      (get-field bio "id")
-     (get-field @profile "selections")
-     (get-field @profile "rejections")]]])
+     (get-field @profile "selected-cuties")
+     (get-field @profile "rejected-cuties")]]])
+
+(defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
 (def reviewed-bios-expanded? (r/atom false))
 (defn home-tab []
@@ -511,43 +524,83 @@
        (if (nil? included-bios)
          [:p "Loading..."]
          [:div
-          (let [currently-selected-ids (get-field @profile "selections")
-                currently-rejected-ids (get-field @profile "rejections")
+          (let [currently-selected-ids (get-field @profile "selected-cuties")
+                currently-rejected-ids (get-field @profile "rejected-cuties")
                 new-bios      (filter #(let [bio-id (get-field % "id")] (not (or (in? currently-selected-ids bio-id)
                                                                                  (in? currently-rejected-ids bio-id))))
                                       included-bios)
                 reviewed-bios (filter #(let [bio-id (get-field % "id")] (or (in? currently-selected-ids bio-id)
                                                                             (in? currently-rejected-ids bio-id)))
                                       included-bios)
-                new-bio-count (str (count new-bios))]
+                todays-cutie-id (first (get-field @profile "todays-cutie"))
+                todays-cutie (first (filter #(= (get-field % "id")
+                                                todays-cutie-id)
+                                            included-bios))]
+
+             ; problem context:
+             ; i have a list of bios, and i want to show the first one that hasn't been reviewed yet
+             ; once it has been reviewed, i still want it to show up as "today's bio" until tomorrow, when the next bio is shown
+
             [:div {:style {:width "95%" :margin "auto"}}
+             [how-it-works]
 
-             [:div {:style {:margin-left "40px" :margin-top "24px"}}
-              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px" :text-align "left"}}
-               [:span {:style {:margin-left "-40px"}} [fa-icon "heart" :outlined true :style {:font-size ".9"}]]
-               new-bio-count " new " (if (= (count new-bios) 1) "profile" "profiles") " to review"]]
+             #_[:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                [:b "       new-bios: "] (count new-bios) "\n"
+                [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
+                [:b "  included-bios: "] (count included-bios) "\n\n"]
 
-             (if (= 0 (count new-bios))
-               [:p {:style {:padding "8px 16px 24px 16px"}} "You've reviewed all the profiles for today. Check back later for more!"]
-               (doall (map-indexed profile-with-buttons new-bios)))
+             #_[:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                "included-bios: " (render-obj (map :id included-bios))]
 
-             (when (> (count reviewed-bios) 0)
-               [:div
-                [:div {:style {:padding "24px 0 0 0" :margin-left "40px" :margin-top "24px"}}
-                 [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
-                       :style {:display "inline"
-                               :margin-left "8px"
-                               :font-size 36
-                               :line-height "1.3"
-                               :cursor "pointer"}}
-                  [:span {:style {:margin-left "-40px"
-                                  :transition "all .3s"
-                                  :margin-top "8px"}} (if @reviewed-bios-expanded?
-                                                        [fa-icon "chevron-down"]
-                                                        [fa-icon "chevron-right"])]
-                  "Profiles you've already reviewed "]]
-                (when @reviewed-bios-expanded?
-                  [:div {:style {:margin-top "24px"}} (doall (map-indexed profile-with-buttons reviewed-bios))])])
+             [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+              (render-obj (select-keys @profile [:unseen-cuties
+                                                 :todays-cutie
+                                                 :selected-cuties
+                                                 :rejected-cuties])) "\n\n"
+              [:b "todays-cutie-id: "] todays-cutie-id "\n\n"
+              [:b "   todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
+                                                                              :Phone
+                                                                              :id]))]
+
+             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
+
+             (if (nil? todays-cutie)
+               [:p {:style {:padding "6px 16px"}} "No profiles to review right now. We'll email you with more people to meet soon!"]
+               (profile-with-buttons 0 todays-cutie))
+
+             #_(if (= 0 (count new-bios))
+                 [:<>
+                  [:p {:style {:padding "6px 16px"}} "No profiles to review right now"]
+                  [:p {:style {:padding "6px 16px"}} "We'll email you with more people to meet soon!"]]
+
+                 [:<>
+                  [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's person:"]
+                  (profile-with-buttons 0 todays-bio)])
+
+
+             #_(if (= 0 (count new-bios))
+                 [:<> [:p {:style {:padding "8px 16px 24px 16px"}} "No profiles to review right now"]
+                  [:p {:style {:padding "8px 16px 24px 16px"}} "We'll email you with more people to meet soon!"]]
+                 (doall (map-indexed profile-with-buttons new-bios)))
+
+             [:div {:style {:padding "24px 0 0 0" :margin-left "40px" :margin-top "24px"}}
+              [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
+                    :style {:display "inline"
+                            :margin-left "8px"
+                            :font-size 36
+                            :line-height "1.3"
+                            :cursor "pointer"}}
+               [:span {:style {:margin-left "-40px"
+                               :transition "all .3s"
+                               :margin-top "8px"}} (if @reviewed-bios-expanded?
+                                                     [fa-icon "chevron-down"]
+                                                     [fa-icon "chevron-right"])]
+               "Profiles you've already reviewed "]]
+             (when @reviewed-bios-expanded?
+               [:div {:style {:margin-top "24px"}}
+                (if (> (count reviewed-bios) 0)
+                  (doall (map-indexed profile-with-buttons reviewed-bios))
+                  [:p {:style {:margin-left "8px"}} "You haven't reviewed any profiles yet :)"])])
              [:br] [:br]])])])))
 
 (defn nav-btns []
@@ -599,4 +652,4 @@
                                (case @current-tab
                                  :profile (profile-tab)
                                  :home (home-tab)
-                                 (home-tab))]))}))
+                                 (home-tab))]))})) ""

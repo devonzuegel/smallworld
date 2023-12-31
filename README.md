@@ -13,6 +13,9 @@ https://smallworld.kiwi
 - [emails](#emails)
 - [sql cheatsheet](#sql-cheatsheet)
 - [misc commands cheatsheet](#misc-commands-cheatsheet)
+- [how the matchmaking algorithm works](#how-the-matchmaking-algorithm-works)
+- [branding ideas](#branding-ideas)
+- [TODO before launch](#todo-before-launch)
 
 ## run, build, & deploy
 ### local setup
@@ -156,8 +159,55 @@ https://mc.sendgrid.com/dynamic-templates
   java -Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8 -jar target/smallworld.jar -m smallworld.web
   ```
 
-# Matchmaking
+# MeetCute
 
-TODO before launch:
+## how the matchmaking algorithm works
+
+1. each user has `N` lists of cuties:
+   - `unseen-cuties`: the cuties the user hasn't seen yet
+   - `todays-cutie`: the cutie the user is currently seeing
+   - `selected-cuties`: the cuties the user has selected
+   - `rejected-cuties`: the cuties the user has rejected
+2. each night, there's a cron job that runs and does the following:
+      1. pick a random* cutie from the `unseen` list
+         - *the cutie has to meet the user's criteria (sexual orientation, etc)
+         - in the future, the selection will be more sophisticated, but for now, it's just random
+         - if the user has no `unseen` cuties, then leave it blank
+      2. add it to the `todays-cutie` list
+      3. remove that cutie from the `unseen` list
+
+**invariants that should be true:**
+- each cutie should be in exactly 1 of the 3 lists at a time (`unseen-`, `selected-`, or `rejected-`)
+- the `todays-cutie` list should always have 0 or 1 cuties; that cutie will also be in one of `unseen-`, `selected-`, or `rejected-`
+- if `unseen` is empty for any given user, email the admin to let them know that they need to add more cuties to the db
+
+## branding ideas
+
+- "cuties"
+- orange favicon
+- "media naranja" (spanish for "half orange", their word for "soulmate")
+
+## TODO before launch
 - [ ] change the Airtable DB to the real one, instead of fake data
 - [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
+- [ ] implement the matchmaking algorithm
+- [ ] implement the daily email
+- [ ] get Twilio account unsuspended
+- [ ] add a button for the user to make their account public/private
+- [ ] add an orange favicon
+- [ ] for valentine's day, we can do corny citrus puns like:
+   - "will you be my clementine?"
+   - "you're a cutie"
+   - "you're my main squeeze"
+   - "you're the zest"
+   - "you're a-peeling"
+   - "you're the apple of my eye"
+   - "orange you glad we met?"
+   - "you're berry special to me"
+   - "you're the cherry on top"
+   - "you're the pineapple of my eye"
+   - "you're the lime to my coconut"
+   - "I'm grapefruit-ful for your love!"
+   - "you're one in a melon!"
+
+
