@@ -125,47 +125,15 @@
   [{:start (if-session-loading #(when (not (admin/is-admin %))
                                   (redirect! "/not-found")))}])
 
-(def     atom1 (r/atom 0))
-(defonce atom2 (r/atom 0))
-
 (def routes
   (rf/router
    ["/"
-    ;; ["meetcute" {:name ::meetcute :view meetcute/screen}]
-    ;; ["meetcute/signin" {:name ::meetcute-signin :view meetcute/signin-screen}]
-
-    ;; ["meetcute" ; TODO: not sure why this doesn't work
-    ;;  ["" {:name ::meetcute :view meetcute/screen}]
-    ;;  ["/signin" {:name ::meetcute-signin :view meetcute/signin-screen}]]
-
-    ;; ["foo"  {:name ::foo  :view (fn [] [:div "foo: "
-    ;;                                     [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
-    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
-    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
-    ;; ["bar"  {:name ::bar  :view (fn [] [:div "bar: "
-    ;;                                     [:pre "atom1: " (pr-str @atom1) "\natom2: " (pr-str @atom2)]
-    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom1 inc)} "inc atom1"]
-    ;;                                     [:button {:style {:color "yellow" :border "3px solid yellow" :padding "4px"} :on-click #(swap! atom2 inc)} "inc atom2"]])}]
-
-    ;; ["meetcute-signin" {:name ::meetcute-signin  :view meetcute/signin-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
-    ;; ["meetcute-signup" {:name ::meetcute-signup  :view meetcute/signup-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
-    ["meetcute/signup" {:name ::signup           :view (fn [] [:div "TODO"])}]
+    ;; ["meetcute/signup" {:name ::signup           :view meetcute/sign-up}]
     ["meetcute"        {:name ::meetcute         :view meetcute/screen        :controllers require-profile}]
     [""                {:name ::home             :view home-page              :controllers require-session}]
     ["settings"        {:name ::settings         :view settings/screen        :controllers require-session}]
     ["admin"           {:name ::admin            :view admin/screen           :controllers require-admin}]]
    {:data {:coercion rsc/coercion}}))
-
-(comment
-  (def routes
-    (rf/router
-     ["/"
-      ["meetcute/signup" {:name ::signup}]
-      ["meetcute"        {:name ::meetcute}]
-      [""                {:name ::home}]
-      ["settings"        {:name ::settings}]
-      ["admin"           {:name ::admin}]]
-     {:data {:coercion rsc/coercion}})))
 
 (deftest test-routes ; note – this will not get run at the same time as the clj tests
   (is (=    (rf/match-by-path routes "/no-match")  nil))

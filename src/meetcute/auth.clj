@@ -51,7 +51,13 @@
      :body (json/generate-string {:error "unauthorized"})}
     {:status 401
      :headers {"Content-Type" "text/html"}
-     :body "Oops! You need to <a href='/meetcute/signin'>sign in</a> first."}))
+     :body (str (hiccup/html [:p {:style {:font-family "monospace"
+                                          :max-width "200px"
+                                          :text-align "center"
+                                          :margin "48px auto"
+                                          :line-height "1.5em"}}
+                              "Oops! You need to " [:a {:href "/meetcute/signin"} "sign in"]
+                              " or " [:a {:href "/meetcute/signup"} "sign up"] " first."]))}))
 
 (defn wrap-authenticated [handler]
   (fn [request]
@@ -141,31 +147,101 @@
                     :height "100%"
                     :width "100%"}}])
 
-(defn signup-screen []
-  [:div {:style {:display "flex"
-                 :flex-direction "column"
-                 :height "100vh"
-                 :font-size "1.2em"
-                 :line-height "1.6em"
-                 :text-align "center"
-                 :overflow "hidden"
-                 :padding "0 12px"
-                 :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
-                 }}
-   [:p {:style {:text-align "right"
-                :font-size ".8em"
-                :position "fixed"
-                :top "12px"
-                :right "48px"}}
-    "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
-   [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
-    [:div#loading-spinner.spinner {:style {:display "block"}}]
-    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-    (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
-    (embed-js-script (io/resource "public/signup.js"))]])
+#_(defn signup-screen-old []
+    [:div {:style {:display "flex"
+                   :flex-direction "column"
+                   :height "100vh"
+                   :font-size "1.2em"
+                   :line-height "1.6em"
+                   :text-align "center"
+                   :overflow "hidden"
+                   :padding "0 12px"
+                   :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
+                   }}
+     [:p {:style {:text-align "right"
+                  :font-size ".8em"
+                  :position "fixed"
+                  :top "12px"
+                  :right "48px"}}
+      "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+     [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
+      [:div#loading-spinner.spinner {:style {:display "block"}}]
+      [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
+      (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
+      (embed-js-script (io/resource "public/signup.js"))]])
+
+(defn signup-screen [{:keys [phone phone-input-error code-error started?]}]
+  [:form {:method "post" :action (if started?
+                                   "/meetcute/verify"
+                                   "/meetcute/signup")}
+   [:div {:style {:margin-left "auto"
+                  :margin-right "auto"
+                  :width "90%"
+                  :padding-top "48px"
+                  :text-align "center"}}
+    ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
+    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "24px"}} "Sign up"]
+    (when (or phone-input-error code-error)
+      [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+       (or phone-input-error code-error)])
+    [:label {:for "phone"}
+     [:p {:style {:font-weight "bold"
+                  :margin "24px 4px 4px 4px"
+                  :text-transform "uppercase"
+                  :font-style "italic"
+                  :color "#bcb5af"
+                  :font-size ".8em"}} "Your phone number:"]]
+    [:input {:id "phone"
+             :name "phone"
+             :value phone
+             :type "hidden"}]
+    [:input {:id "display-phone"
+             :type "tel"
+             :name "display-phone"
+             :value phone
+             :style {:background "#66666620"
+                     :border-radius "8px"
+                     :width "13em"
+                     :padding "6px 8px"
+                     :margin-right "4px"
+                     :padding-left "50px"}}]
+    (if-not started?
+      [:p {:style {:margin-top "8px"
+                   :color "#9e958d"
+                   :font-size ".8em"}}
+       "We will text a code to your phone via SMS"]
+      [:div
+       [:label {:for "code"}
+        [:p {:style {:font-weight "bold"
+                     :margin "24px 4px 4px 4px"
+                     :text-transform "uppercase"
+                     :font-style "italic"
+                     :color "#bcb5af"
+                     :font-size ".8em"}} "SMS code:"]]
+       [:input {:type "text"
+                :autocomplete "one-time-code"
+                :name "code"
+                :style {:background "#66666620"
+                        :border-radius "8px"
+                        :padding "6px 8px"
+                        :margin-right "4px"}}]])
+    [:div {:style {:margin-bottom "12px"}}]
+    [:button {:class "btn primary"
+              :type "submit"}
+     "Sign up"]
+    [:p {:style {:font-size ".8em"
+                 :margin-top "24px"}}
+     "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+    (when started?
+      [:div {:class "resend" :style {:margin-top "2rem"}}
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
+    (embed-js-script (io/resource "public/signin.js"))]])
 
 (defn signup-route [_]
-  (html-response (signup-screen)))
+  (html-response
+   (signup-screen {:phone ""
+                   :started? false
+                   :phone-input-error nil})))
 
 ;; ====================================================================== 
 ;; Sign In
@@ -180,8 +256,8 @@
                   :width "90%"
                   :padding-top "48px"
                   :text-align "center"}}
-    [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
-    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin-bottom "18px"}} "Sign in"]
+    ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
+    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "18px"}} "Sign in"]
     (when (or phone-input-error code-error)
       [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
        (or phone-input-error code-error)])
@@ -230,9 +306,10 @@
     [:button {:class "btn primary"
               :type "submit"}
      "Sign in"]
-    [:a {:style {:margin-left "12px" :margin-right "12px"}
-         :href "/meetcute/signup"}
-     "Sign up"]
+    [:p {:style {:font-size ".8em"
+                 :margin-top "24px"}}
+     "No account yet? " [:a {:href "/meetcute/signup"} "Sign up"]]
+
     (when started?
       [:div {:class "resend" :style {:margin-top "2rem"}}
        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])

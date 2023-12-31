@@ -361,7 +361,8 @@
                                                                           :margin-right "4px"
                                                                           :width "95%"
                                                                           :max-width "380px"}}
-                                                            (format-phone (get-field @profile "Phone"))] ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
+                                                            ;; (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
+                                                            (get-field @profile "Phone")]
                                                            [small-text [:span "If you'd like to change your phone number, email "
                                                                         [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]]]
                       ["Email"                            [:div {:style {:max-width "380px"}}
