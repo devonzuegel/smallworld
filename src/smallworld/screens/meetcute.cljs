@@ -540,24 +540,24 @@
             [:div {:style {:width "95%" :margin "auto"}}
              [how-it-works]
 
-             (when true #_@debug?
-                   [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+             #_(when true #_@debug?
+                     [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
                   ;; [:b "       new-bios: "] (count new-bios) "\n"
-                    [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
-                    [:b "  included-bios: "] (count included-bios) "\n\n"]
+                      [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
+                      [:b "  included-bios: "] (count included-bios) "\n\n"]
 
-                   [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                    "included-bios: " (render-obj (map :id included-bios))]
+                     [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                      "included-bios: " (render-obj (map :id included-bios))]
 
-                   [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                    (render-obj (select-keys @profile [:unseen-cuties
-                                                       :todays-cutie
-                                                       :selected-cuties
-                                                       :rejected-cuties])) "\n\n"
-                    #_[:b "todays-cutie-id: "] #_todays-cutie-id #_"\n\n"
-                    #_[:b "   todays-cutie: "] #_(render-obj (select-keys todays-cutie [(keyword "First name")
-                                                                                        :Phone
-                                                                                        :id]))])
+                     [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                      (render-obj (select-keys @profile [:unseen-cuties
+                                                         :todays-cutie
+                                                         :selected-cuties
+                                                         :rejected-cuties])) "\n\n"
+                      #_[:b "todays-cutie-id: "] #_todays-cutie-id #_"\n\n"
+                      #_[:b "   todays-cutie: "] #_(render-obj (select-keys todays-cutie [(keyword "First name")
+                                                                                          :Phone
+                                                                                          :id]))])
 
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
 
