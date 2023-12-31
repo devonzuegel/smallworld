@@ -186,16 +186,7 @@ https://mc.sendgrid.com/dynamic-templates
 - "cuties"
 - orange favicon
 - "media naranja" (spanish for "half orange", their word for "soulmate")
-
-## TODO before launch
-- [ ] change the Airtable DB to the real one, instead of fake data
-- [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
-- [ ] implement the matchmaking algorithm
-- [ ] implement the daily email
-- [ ] get Twilio account unsuspended
-- [ ] add a button for the user to make their account public/private
-- [ ] add an orange favicon
-- [ ] for valentine's day, we can do corny citrus puns like:
+- for valentine's day, we can do corny citrus puns like:
    - "will you be my clementine?"
    - "you're a cutie"
    - "you're my main squeeze"
@@ -209,5 +200,15 @@ https://mc.sendgrid.com/dynamic-templates
    - "you're the lime to my coconut"
    - "I'm grapefruit-ful for your love!"
    - "you're one in a melon!"
+
+## TODO before launch
+- [x] add an orange favicon
+- [x] implement the "today's cutie" screen
+- [ ] implement the matchmaking algorithm + cron job in the backend
+- [ ] implement the daily email
+- [ ] get Twilio account unsuspended
+- [ ] add a button for the user to make their account public/private
+- [ ] change the Airtable DB to the real one, instead of fake data
+- [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
 
 
