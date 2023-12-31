@@ -492,6 +492,15 @@
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "You let us know if you're interested in meeting them"]
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, we'll introduce you!"]]])
 
+(defn refresh-todays-cutie-btn []
+  [:div {:style {:width "100%" :text-align "right" :margin "48px 36px"}}
+   [:a {:href "#"
+        :style {:padding "12px" :border "4x solid green" :border-radius "8px"}
+        :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie"
+                                          {}
+                                          #(js/location.reload true)))}
+    "Refresh todays-cutie [this is for debug only!]"]])
+
 (defn profile-with-buttons [i bio]
 
   [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
@@ -526,9 +535,6 @@
          [:div
           (let [currently-selected-ids (mc.util/get-field @profile "selected-cuties")
                 currently-rejected-ids (mc.util/get-field @profile "rejected-cuties")
-                ;; new-bios      (filter #(let [bio-id (mc.util/get-field % "id")] (not (or (in? currently-selected-ids bio-id)
-                ;;                                                                          (in? currently-rejected-ids bio-id))))
-                ;;                       included-bios)
                 reviewed-bios (filter #(let [bio-id (mc.util/get-field % "id")] (or (in? currently-selected-ids bio-id)
                                                                                     (in? currently-rejected-ids bio-id)))
                                       included-bios)
@@ -538,6 +544,7 @@
                                             included-bios))]
 
             [:div {:style {:width "95%" :margin "auto"}}
+
              [how-it-works]
 
              #_(when true #_@debug?
@@ -572,6 +579,8 @@
                     [:p {:style {:padding "6px 16px"}} "Are you interested to meet this cutie?"]))
                 (profile-with-buttons 0 todays-cutie)])
 
+             [refresh-todays-cutie-btn]
+
              #_(if (= 0 (count new-bios))
                  [:<>
                   [:p {:style {:padding "6px 16px"}} "No profiles to review right now"]
@@ -587,24 +596,24 @@
                   [:p {:style {:padding "8px 16px 24px 16px"}} "We'll email you with more people to meet soon!"]]
                  (doall (map-indexed profile-with-buttons new-bios)))
 
-             [:div {:style {:padding "24px 0 0 0" :margin-left "40px" :margin-top "24px"}}
-              [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
-                    :style {:display "inline"
-                            :margin-left "8px"
-                            :font-size 36
-                            :line-height "1.3"
-                            :cursor "pointer"}}
-               [:span {:style {:margin-left "-40px"
-                               :transition "all .3s"
-                               :margin-top "8px"}} (if @reviewed-bios-expanded?
-                                                     [fa-icon "chevron-down"]
-                                                     [fa-icon "chevron-right"])]
-               "Profiles you've already reviewed "]]
-             (when @reviewed-bios-expanded?
-               [:div {:style {:margin-top "24px"}}
-                (if (> (count reviewed-bios) 0)
-                  (doall (map-indexed profile-with-buttons reviewed-bios))
-                  [:p {:style {:margin-left "8px"}} "You haven't reviewed any profiles yet :)"])])
+             #_[:div {:style {:padding "24px 0 0 0" :margin-left "40px" :margin-top "24px"}}
+                [:h1 {:on-click #(reset! reviewed-bios-expanded? (not @reviewed-bios-expanded?))
+                      :style {:display "inline"
+                              :margin-left "8px"
+                              :font-size 36
+                              :line-height "1.3"
+                              :cursor "pointer"}}
+                 [:span {:style {:margin-left "-40px"
+                                 :transition "all .3s"
+                                 :margin-top "8px"}} (if @reviewed-bios-expanded?
+                                                       [fa-icon "chevron-down"]
+                                                       [fa-icon "chevron-right"])]
+                 "Profiles you've already reviewed "]]
+             #_(when @reviewed-bios-expanded?
+                 [:div {:style {:margin-top "24px"}}
+                  (if (> (count reviewed-bios) 0)
+                    (doall (map-indexed profile-with-buttons reviewed-bios))
+                    [:p {:style {:margin-left "8px"}} "You haven't reviewed any profiles yet :)"])])
              [:br] [:br]])])])))
 
 (defn nav-btns []

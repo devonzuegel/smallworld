@@ -39,8 +39,7 @@
   (GET  "/signin" req (mc.auth/signin-route req))
   (POST "/signin" req (mc.auth/start-signin-route req))
   (POST "/verify" req (mc.auth/verify-route req))
-  (POST "/logout" req (mc.auth/logout-route req))
-  #_(GET  "/todays-cutie" req (mc.auth/todays-cutie req)))
+  (POST "/logout" req (mc.auth/logout-route req)))
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
@@ -51,7 +50,8 @@
                                                            :auth/phone
                                                            mc.util/clean-phone)]
                                          (assert phone)
-                                         (generate-string {:fields (matchmaking/my-profile phone)}))))
+                                         (generate-string {:fields (matchmaking/my-profile phone)})))
+  (POST "/api/refresh-todays-cutie" req (matchmaking/refresh-todays-cutie-route req)))
 
 (defn wrap-body-string [handler]
   (fn [request]
