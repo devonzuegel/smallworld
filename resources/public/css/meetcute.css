@@ -89,7 +89,14 @@ li {
   }
 }
 
+.bio-row-value input:focus {
+  border: 3px solid rgba(188, 181, 175, 0.6) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+//////////////////////////////////////////////////
 // Phone input for signin page:
+
 #display-phone {
   background-color: #c2bbb833;
 }
