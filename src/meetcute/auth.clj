@@ -51,7 +51,7 @@
      :body (json/generate-string {:error "unauthorized"})}
     {:status 401
      :headers {"Content-Type" "text/html"}
-     :body "Unauthorized"}))
+     :body "Oops! You need to <a href='/meetcute/signin'>sign in</a> first."}))
 
 (defn wrap-authenticated [handler]
   (fn [request]

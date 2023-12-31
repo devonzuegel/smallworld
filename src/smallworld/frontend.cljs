@@ -149,13 +149,23 @@
 
     ;; ["meetcute-signin" {:name ::meetcute-signin  :view meetcute/signin-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
     ;; ["meetcute-signup" {:name ::meetcute-signup  :view meetcute/signup-screen :controllers require-blank-profile}] ; TODO: replace this with meetcute/signin once the above works
+    ["meetcute/signup" {:name ::signup           :view (fn [] [:div "TODO"])}]
     ["meetcute"        {:name ::meetcute         :view meetcute/screen        :controllers require-profile}]
-
-    ["signin"          {:name ::signin           :view signin-page            :controllers require-blank-session}]
     [""                {:name ::home             :view home-page              :controllers require-session}]
     ["settings"        {:name ::settings         :view settings/screen        :controllers require-session}]
     ["admin"           {:name ::admin            :view admin/screen           :controllers require-admin}]]
    {:data {:coercion rsc/coercion}}))
+
+(comment
+  (def routes
+    (rf/router
+     ["/"
+      ["meetcute/signup" {:name ::signup}]
+      ["meetcute"        {:name ::meetcute}]
+      [""                {:name ::home}]
+      ["settings"        {:name ::settings}]
+      ["admin"           {:name ::admin}]]
+     {:data {:coercion rsc/coercion}})))
 
 (deftest test-routes ; note – this will not get run at the same time as the clj tests
   (is (=    (rf/match-by-path routes "/no-match")  nil))
