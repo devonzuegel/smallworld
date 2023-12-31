@@ -89,7 +89,7 @@
    (for [value all-values] ^{:key value} [radio-btn-component value selected-value update-selected-value])
    (when @debug? [:pre "Selected Value: " (str selected-value)])])
 
-(defn update-selected-cuties []
+(defn update-selected-cuties! []
   (println "updating selected-cuties")
   (util/fetch-post "/meetcute/api/matchmaking/profile"
                    (select-keys @profile (map #(keyword %)
@@ -128,25 +128,37 @@
              :value bio-id
              :checked (boolean (in? currently-selected-ids bio-id))
              :style {:display "none"}
-             :on-change (fn [event]
+             :on-change (fn [event] ; TODO: this is almost identical to the on-change fn for the reject button. refactor to share code
                           (if (or (nil? event) (nil? (.-target event)))
                             (println "event: " event)
-                            (let [checked? (.-checked (.-target event))
-                                  now-selected (if checked?
-                                                 (if (in? currently-selected-ids bio-id)
+                            (let [selected-chosen? (.-checked (.-target event))
+                                  now-selected (if selected-chosen?
+
+                                                 (if (in? currently-selected-ids bio-id) ; add to selected-cuties only if it's not already there
                                                    currently-selected-ids
                                                    (conj currently-selected-ids bio-id))
+
+                                                 (remove (fn [v] (= bio-id v)) ; remove from selected-cuties selected-chosen?=false
+                                                         (mc.util/get-field @profile "selected-cuties")))
+
+                                  now-rejected (when selected-chosen? ; make sure it's not in rejected-cuties if selected-chosen?=true
                                                  (remove (fn [v] (= bio-id v))
-                                                         (mc.util/get-field @profile "selected-cuties")))]
-                              (reset! profile (assoc @profile
-                                                     (keyword "selected-cuties")
-                                                     now-selected))
-                              (when checked?
-                                (reset! profile (assoc @profile
-                                                       (keyword "rejected-cuties")
-                                                       (remove (fn [v] (= bio-id v))
-                                                               (mc.util/get-field @profile "rejected-cuties")))))
-                              (update-selected-cuties))))}]
+                                                         (mc.util/get-field @profile "rejected-cuties")))
+
+                                  now-unseen (if selected-chosen? ; make sure it's not in unseen-cuties if selected-chosen?=true
+
+                                               (remove (fn [v] (= bio-id v))
+                                                       (mc.util/get-field @profile "unseen-cuties"))
+
+                                               (if (in? now-rejected bio-id) ; add it to unseen-cuties if it's neither selected nor rejected:
+                                                 (mc.util/get-field @profile "unseen-cuties")
+                                                 (conj (mc.util/get-field @profile "unseen-cuties") bio-id)))]
+
+                              (reset! profile (assoc @profile :selected-cuties now-selected))
+                              (reset! profile (assoc @profile :unseen-cuties   now-unseen))
+                              (reset! profile (assoc @profile :rejected-cuties now-rejected))
+
+                              (update-selected-cuties!))))}]
     [:label {:for (str bio-id "-select")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -174,26 +186,36 @@
              :value bio-id
              :checked (boolean (in? currently-rejected-ids bio-id))
              :style {:display "none"}
-             :on-change (fn [event]
+             :on-change (fn [event] ; TODO: this is almost identical to the on-change fn for the select button. refactor to share code
                           (if (or (nil? event) (nil? (.-target event)))
                             (println "event: " event)
-                            (let [checked? (.-checked (.-target event))
-                                  now-rejected (if checked?
-                                                 (if (in? currently-rejected-ids bio-id)
+                            (let [rejected-chosen? (.-checked (.-target event))
+                                  now-rejected (if rejected-chosen?
+                                                 (if (in? currently-rejected-ids bio-id) ; add to selected-cuties only if it's not already there
                                                    currently-rejected-ids
                                                    (conj currently-rejected-ids bio-id))
+
+                                                 (remove (fn [v] (= bio-id v)) ; remove from selected-cuties rejected-chosen?=false
+                                                         (mc.util/get-field @profile "selected-cuties")))
+
+                                  now-selected (when rejected-chosen? ; make sure it's not in rejected-cuties if rejected-chosen?=true
                                                  (remove (fn [v] (= bio-id v))
-                                                         (mc.util/get-field @profile "rejected-cuties")))]
-                              (println "now-rejected: " now-rejected)
-                              (reset! profile (assoc @profile
-                                                     (keyword "rejected-cuties")
-                                                     now-rejected))
-                              (when checked?
-                                (reset! profile (assoc @profile
-                                                       (keyword "selected-cuties")
-                                                       (remove (fn [v] (= bio-id v))
-                                                               (mc.util/get-field @profile "selected-cuties")))))
-                              (update-selected-cuties))))}]
+                                                         (mc.util/get-field @profile "rejected-cuties")))
+
+                                  now-unseen (if rejected-chosen? ; make sure it's not in unseen-cuties if rejected-chosen?=true
+
+                                               (remove (fn [v] (= bio-id v))
+                                                       (mc.util/get-field @profile "unseen-cuties"))
+
+                                               (if (in? now-selected bio-id) ; add it to unseen-cuties if it's neither selected nor rejected:
+                                                 (mc.util/get-field @profile "unseen-cuties")
+                                                 (conj (mc.util/get-field @profile "unseen-cuties") bio-id)))]
+
+                              (reset! profile (assoc @profile :selected-cuties now-selected))
+                              (reset! profile (assoc @profile :unseen-cuties   now-unseen))
+                              (reset! profile (assoc @profile :rejected-cuties now-rejected))
+
+                              (update-selected-cuties!))))}]
     [:label {:for (str bio-id "-reject")
              :className "select-reject-btn"
              :style {:padding "20px"
@@ -518,29 +540,30 @@
             [:div {:style {:width "95%" :margin "auto"}}
              [how-it-works]
 
-             #_(when @debug?
-                 [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+             (when true #_@debug?
+                   [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
                   ;; [:b "       new-bios: "] (count new-bios) "\n"
-                  [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
-                  [:b "  included-bios: "] (count included-bios) "\n\n"]
+                    [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
+                    [:b "  included-bios: "] (count included-bios) "\n\n"]
 
-                 [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                  "included-bios: " (render-obj (map :id included-bios))]
+                   [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                    "included-bios: " (render-obj (map :id included-bios))]
 
-                 [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                  (render-obj (select-keys @profile [:unseen-cuties
-                                                     :todays-cutie
-                                                     :selected-cuties
-                                                     :rejected-cuties])) "\n\n"
-                  [:b "todays-cutie-id: "] todays-cutie-id "\n\n"
-                  [:b "   todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
-                                                                                  :Phone
-                                                                                  :id]))])
+                   [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                    (render-obj (select-keys @profile [:unseen-cuties
+                                                       :todays-cutie
+                                                       :selected-cuties
+                                                       :rejected-cuties])) "\n\n"
+                    #_[:b "todays-cutie-id: "] #_todays-cutie-id #_"\n\n"
+                    #_[:b "   todays-cutie: "] #_(render-obj (select-keys todays-cutie [(keyword "First name")
+                                                                                        :Phone
+                                                                                        :id]))])
 
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
 
              (if (nil? todays-cutie)
                [:p {:style {:padding "6px 16px"}} "No profiles to review right now. We'll email you with more people to meet soon!"]
+
                [:<>
                 (if (in? currently-selected-ids todays-cutie-id)
                   [:p {:style {:padding "6px 16px"}} "You've selected this person! We'll let you know if they select you too :)"]
