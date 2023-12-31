@@ -89,3 +89,21 @@
             (pp/pprint "data:")
             (pp/pprint data)
             (generate-string (airtable/kwdize data))))))))
+
+; new feature: nightly job that update's each user's todays-cutie, prioritizing cuties who've selected them:
+;   1. build the feature for just 1 user
+;      - pull `todays-cutie` + the lists of `unseen-cuties`, `selected-cuties`, and `rejected-cuties` from the user's profile in AirTable
+;      - if `todays-cutie` hasn't been selected yet, then put them at the *end* of the `unseen-cuties` list (TODO: check if sorting is possible/trustworthy in AirTable)
+;          - note: the old `todays-cutie` will always be in one of the lists, so we don't need to change which list it's in, we just need to change the sort order so that they aren't shown again until everyone else has been shown
+;      - take the first cutie from the `unseen-cuties` list and set them as `todays-cutie`
+;   2. iterate through all users
+;   3. make it a nightly job to update the cuties
+;   4. send a daily email to each user with their todays-cutie
+;   5. add a button for admin to force update todays-cutie for a single user, including sending the email
+
+
+
+
+
+
+
