@@ -218,8 +218,9 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues
 
 *nice-to-haves, but not necessary for launch:*
-- [ ] consider adding a `seen-but-not-decided-cuties` list, to distinguish between `unseen` and `not-decided`
+- [ ] consider adding a `undecided-cuties` list, to distinguish between `unseen` and `not-decided`
 - [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
 - [ ] rename `matchmaking` to `meetcute` throughout the codebase
+- [ ] verify email addresses with Twilio Verify
 
