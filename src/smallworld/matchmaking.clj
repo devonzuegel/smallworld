@@ -21,7 +21,7 @@
   (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold 10 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios []
   (let [all-bios-raw  (fetch-all-bios-memoized)
@@ -153,7 +153,7 @@
           unseen-ids-updated  (move-to-end todays-cutie-id
                                            unseen-ids-combined)
           new-values          {:unseen-cuties unseen-ids-updated
-                               :todays-cutie  (first unseen-ids-updated)}]
+                               :todays-cutie  [(first unseen-ids-updated)]}]
 
       (println (count fresh-unseen-ids) "fresh-unseen-ids added to unseen-ids")
 
@@ -171,9 +171,9 @@
                   :fresh-unseen-ids    fresh-unseen-ids ; this will often be zero, especially when we don't have many signups
                   :new new-values})
 
-      #_(airtable/update-in-base airtable-base
-                                 ["bios-devons-test-2" (:id profile)]
-                                 {:fields new-values}))
+      (airtable/update-in-base airtable-base
+                               ["bios-devons-test-2" (:id profile)]
+                               {:fields new-values}))
 ;
     )
 
