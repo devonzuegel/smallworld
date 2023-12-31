@@ -1,5 +1,6 @@
 (ns meetcute.util
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.walk :refer [keywordize-keys]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; phone utils
@@ -37,10 +38,15 @@
     ))
 
 (defn included-bios [profile cuties]
-  (let [matches-preferences? (fn [cutie]
-                               (and (= (get-field cutie "Include in gallery?")  "include in gallery")         ; don't include bios that have been explicitly excluded
-                                    (not   (= (:id cutie "id")                  (get-field profile "id")))    ; check the cutie is not themself
-                                    (some #(= (:Gender cutie) %)                (get-gender-filter profile))  ; only show the gender that the user is interested in dating
-                                    (some #(= (:Gender profile) %)              (get-gender-filter cutie)     ; only show someone if they're interested in dating someone of the gender of the current user:
-                                          )))]
+  (let [profile (keywordize-keys profile)
+        cuties (keywordize-keys cuties)
+        matches-preferences? (fn [cutie]
+                              ;;  (println)
+                              ;;  (println (get-field cutie "Include in gallery?"))
+                              ;;  (println (:id cutie) " ------- " (:id profile))
+                               (and (= (get-field cutie "Include in gallery?")  "include in gallery")  ; don't include bios that have been explicitly excluded
+                                    (not   (= (:id cutie)          (:id profile)))               ; check the cutie is not themself
+                                    (some #(= (:Gender cutie) %)   (get-gender-filter profile))  ; only show the gender that the user is interested in dating
+                                    (some #(= (:Gender profile) %) (get-gender-filter cutie))    ; only show someone if they're interested in dating someone of the gender of the current user:
+                                    ))]
     (filter matches-preferences? cuties)))
