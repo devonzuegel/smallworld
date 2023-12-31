@@ -1,11 +1,12 @@
 (ns smallworld.matchmaking
-  (:require [cheshire.core :refer [generate-string]]
+  (:require [cheshire.core        :refer [generate-string]]
+            [clojure.walk         :refer [keywordize-keys]]
             [clojure.core.memoize :as memoize]
-            [clojure.data.json :as json]
+            [clojure.data.json    :as json]
             [clojure.pprint       :as pp]
-            [clojure.set :as set]
-            [clojure.walk :refer [keywordize-keys]]
-            [meetcute.util :as mc.util]
+            [clojure.set          :as set]
+            [smallworld.email     :as email]
+            [meetcute.util        :as mc.util]
             [smallworld.airtable  :as airtable]
             [smallworld.util      :as util]))
 
@@ -21,7 +22,7 @@
   (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios []
   (let [all-bios-raw  (fetch-all-bios-memoized)
@@ -132,11 +133,12 @@
     (let [index (index-of item list)]
       (concat (take index list) (drop (inc index) list) [item]))))
 
-(defn update-todays-cutie [profile bios]
+(defn refresh-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
         unseen-ids      (:unseen-cuties profile)
         todays-cutie-id (first (:todays-cutie profile))
+        todays-cutie-profile (first (filter #(= (:id %) todays-cutie-id) included-bios))
         todays-cutie-unseen? (some #(= todays-cutie-id %) unseen-ids)]
 
     ; if todays-cutie-id is still in unseen-ids, then move it to the end of the list:
@@ -153,7 +155,10 @@
           unseen-ids-updated  (move-to-end todays-cutie-id
                                            unseen-ids-combined)
           new-values          {:unseen-cuties unseen-ids-updated
-                               :todays-cutie  [(first unseen-ids-updated)]}]
+                               :todays-cutie  [(first unseen-ids-updated)]}
+          new-todays-cutie-id      (first unseen-ids-updated)
+          new-todays-cutie-profile (first (filter #(= (:id %) new-todays-cutie-id)
+                                                  included-bios))]
 
       (println (count fresh-unseen-ids) "fresh-unseen-ids added to unseen-ids")
 
@@ -173,17 +178,32 @@
 
       (airtable/update-in-base airtable-base
                                ["bios-devons-test-2" (:id profile)]
-                               {:fields new-values}))
-;
-    )
+                               {:fields new-values})
 
-  #_(airtable/update-in-base airtable-base
-                             ["bios-devons-test-2" (:id bio)]
-                             {:fields fields-to-change})
+      (let [email-config {:to      "avery.sara.james@gmail.com"
+                           ;; :to   (:Email profile)
+                           ;; :type "text/plain"
+                          :subject (str "Fresh cutie! 🍊")
+                          :body    (str "Would you like to meet <b>" (mc.util/get-field new-todays-cutie-profile "First name") "</b>?"
+                                        "<br>"
+                                        "<br>"
+                                        "If so, go to <a href='https://smallworld.kiwi/meetcute'>smallworld.kiwi/meetcute</a> "
+                                        "and let us know so we can connect you!")
+                                          ;
+                          }]
 
-  #_(pp/pprint {:0-included        included-bios
-                :1-unseen           unseen-ids
-                :2-todays-cutie-id todays-cutie-id
-                :2-todays-cutie    todays-cutie
-                :3-selected        selected-ids
-                :4-rejected        rejected-ids}))
+        (println "preparing to send email....... ======================")
+        (pp/pprint email-config)
+        (println)
+        (email/send-email email-config))
+      ;
+      )))
+
+(defn req->parsed-jwt [req]
+  (:auth/parsed-jwt req))
+
+(defn refresh-todays-cutie-route [req]
+  (let [phone   (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)]
+    (refresh-todays-cutie (my-profile phone)
+                          (get-all-bios))
+    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))

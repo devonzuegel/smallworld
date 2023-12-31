@@ -203,16 +203,22 @@ https://mc.sendgrid.com/dynamic-templates
    - "you're one in a melon!"
 
 ## TODO before launch
+**features:**
 - [x] add an orange favicon
 - [x] implement the "today's cutie" screen
-- [ ] implement the matchmaking algorithm + cron job in the backend
-- [ ] implement the daily email
-- [ ] get Twilio account unsuspended
+- [x] get Twilio account unsuspended
+- [x] implement the matchmaking algorithm
+  - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why...
+- [x] implement the email that gets sent to the user when their `todays-cutie` is refreshed
+- [ ] implement the cron job in the backend
+
+**last-minute admin:**
 - [ ] change the Airtable DB to the real one, instead of fake data
 - [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues
 
-nice-to-haves, but not necessary for launch:
+*nice-to-haves, but not necessary for launch:*
+- [ ] consider adding a `seen-but-not-decided-cuties` list, to distinguish between `unseen` and `not-decided`
 - [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
 - [ ] rename `matchmaking` to `meetcute` throughout the codebase
