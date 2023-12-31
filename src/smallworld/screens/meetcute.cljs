@@ -571,7 +571,7 @@
 ;; TODO: better loading page
 (defn loading-profile []
   [:div
-   [:p "Loading profile"]])
+   [:div#loading-spinner.spinner {:style {:display "block"}}]])
 
 (defn error-screen [error]
   [:div
@@ -587,12 +587,15 @@
     :reagent-render (fn []
                       (cond
                         ;; TODO: profile could be nil because of some access problem
-                        (some? @profile-error) (error-screen @profile-error)
+                        (some? @profile-error) (if (not= "/meetcute/signin" (.-pathname js/location))
+                                                 (js/location.assign "/meetcute/signin")
+                                                 (error-screen @profile-error))
+
                         (nil? @profile) (loading-profile)
-                        :else
-                        [:div
-                         [nav-btns]
-                         (case @current-tab
-                           :profile (profile-tab)
-                           :home (home-tab)
-                           (home-tab))]))}))
+
+                        :else [:div
+                               [nav-btns]
+                               (case @current-tab
+                                 :profile (profile-tab)
+                                 :home (home-tab)
+                                 (home-tab))]))}))
