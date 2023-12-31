@@ -70,14 +70,14 @@ li {
 }
 
 .spinner {
-  width: 20px;
-  height: 20px;
+  width: 80px;
+  height: 80px;
   margin: auto;
   margin-top: 180px;
-  border: 6px solid rgba(0, 0, 0, 0.1);
-  border-top-color: white;
   border-radius: 50%;
-  animation: spin 1s ease-in-out infinite;
+  animation: spin 1.5s ease-in-out infinite;
+  background-image: url('/orange-favicon.png');
+  background-size: contain;
 }
 
 @keyframes spin {
