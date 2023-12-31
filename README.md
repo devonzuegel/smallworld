@@ -207,8 +207,11 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] implement the matchmaking algorithm + cron job in the backend
 - [ ] implement the daily email
 - [ ] get Twilio account unsuspended
-- [ ] add a button for the user to make their account public/private
 - [ ] change the Airtable DB to the real one, instead of fake data
 - [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
 
+nice-to-haves, but not necessary for launch:
+- [ ] add a button for the user to make their account public/private
+- [ ] rename `bios` to `cuties` throughout the codebase
+- [ ] rename `matchmaking` to `meetcute` throughout the codebase
 
