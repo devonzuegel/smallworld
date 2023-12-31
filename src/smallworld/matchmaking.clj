@@ -1,12 +1,13 @@
 (ns smallworld.matchmaking
-  (:require [clojure.core.memoize :as memoize]
-            [clojure.pprint       :as pp]
-            [clojure.walk :refer [keywordize-keys]]
-            [smallworld.airtable  :as airtable]
-            [smallworld.util      :as util]
-            [cheshire.core :refer [generate-string]]
+  (:require [cheshire.core :refer [generate-string]]
+            [clojure.core.memoize :as memoize]
             [clojure.data.json :as json]
-            [meetcute.util :as mc.util]))
+            [clojure.pprint       :as pp]
+            [clojure.set :as set]
+            [clojure.walk :refer [keywordize-keys]]
+            [meetcute.util :as mc.util]
+            [smallworld.airtable  :as airtable]
+            [smallworld.util      :as util]))
 
 (def airtable-base {:api-key (util/get-env-var "AIRTABLE_BASE_API_KEY")
                     :base-id "appF2K8ThWvtrC6Hs"})
@@ -15,11 +16,12 @@
 (defn minutes [n] (* n 60 (seconds 1)))
 
 (defn fetch-all-bios! []
-  (println "⚠️ fetching all bios from Airtable... (avoid this if possible! airtable will get grumpy if we hit the api too often)")
+  (println "⚠️ Fetching all bios from Airtable...")
+  (println "  (Avoid if possible!  Airtable will get grumpy if we hit the API too often)")
   (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold 10 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios []
   (let [all-bios-raw  (fetch-all-bios-memoized)
@@ -124,36 +126,55 @@
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
                                                 %1) coll)))
 
-(defn move-to-end [item lst]
-  (let [idx (index-of item lst)]
-    (concat (take idx lst) (drop (inc idx) lst) [item])))
+(defn move-to-end [item list]
+  (if (nil? (index-of item list))
+    list
+    (let [index (index-of item list)]
+      (concat (take index list) (drop (inc index) list) [item]))))
 
 (defn update-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
         unseen-ids      (:unseen-cuties profile)
         todays-cutie-id (first (:todays-cutie profile))
-        todays-cutie    (first (filter #(= (:id %) todays-cutie-id)
-                                       included-bios))
-        selected-ids    (:selected-cuties profile)
-        rejected-ids    (:rejected-cuties profile)
-
-        todays-cutie-unseen?   (some #(= todays-cutie-id %) unseen-ids)
-        todays-cutie-selected? (some #(= todays-cutie-id %) selected-ids)
-        todays-cutie-rejected? (some #(= todays-cutie-id %) rejected-ids)]
+        todays-cutie-unseen? (some #(= todays-cutie-id %) unseen-ids)]
 
     ; if todays-cutie-id is still in unseen-ids, then move it to the end of the list:
     (when todays-cutie-unseen?
-      (println "todays-cutie-id is still in unseen-ids, so moving it to the end of the list:")
-      (println "before: " unseen-ids)
-      (println " after: "  (move-to-end todays-cutie-id unseen-ids)))
+      (println "todays-cutie-id is still in unseen-ids (i.e. the user didn't respond), so moving it to the end of the list..."))
 
-    (when todays-cutie-selected?
-      (println "todays-cutie-id was selected!"))
+    (let [included-ids        (map :id included-bios)
+          fresh-unseen-ids    (set/difference (set included-ids) ; this is to include any bios that have been newly added since the last time this function was run
+                                              (set (:selected-cuties profile))
+                                              (set (:rejected-cuties profile))
+                                              (set (:unseen-cuties profile)))
+          unseen-ids-combined (vec (set/union (set unseen-ids)
+                                              fresh-unseen-ids))
+          unseen-ids-updated  (move-to-end todays-cutie-id
+                                           unseen-ids-combined)
+          new-values          {:unseen-cuties unseen-ids-updated
+                               :todays-cutie  (first unseen-ids-updated)}]
 
-    (when todays-cutie-rejected?
-      (println "todays-cutie-id was rejected........"))
-     ;
+      (println (count fresh-unseen-ids) "fresh-unseen-ids added to unseen-ids")
+
+      (when (= unseen-ids-updated [])                 ; TODO: handle this case more gracefully
+        (println "🟡 there are 0 unseen cuties! we should not send the user an email today, since there are no cuties to show them!"))
+
+      (when (= unseen-ids-updated [todays-cutie-id])  ; TODO: handle this case more gracefully
+        (println "🟡 todays-cutie was the only unseen-cutie, so we should not send the user emails every day, since it'll be the same cutie every day!"))
+
+      (println "included-bios:" (count included-bios))
+
+      (pp/pprint {:id (:id profile)
+                  :old {:unseen-cuties unseen-ids
+                        :todays-cutie  todays-cutie-id}
+                  :fresh-unseen-ids    fresh-unseen-ids ; this will often be zero, especially when we don't have many signups
+                  :new new-values})
+
+      #_(airtable/update-in-base airtable-base
+                                 ["bios-devons-test-2" (:id profile)]
+                                 {:fields new-values}))
+;
     )
 
   #_(airtable/update-in-base airtable-base

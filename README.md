@@ -184,6 +184,7 @@ https://mc.sendgrid.com/dynamic-templates
 ## branding ideas
 
 - "cuties"
+- "we'll have a fresh cutie for you tomorrow!"
 - orange favicon
 - "media naranja" (spanish for "half orange", their word for "soulmate")
 - for valentine's day, we can do corny citrus puns like:
@@ -209,6 +210,7 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] get Twilio account unsuspended
 - [ ] change the Airtable DB to the real one, instead of fake data
 - [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
+- [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues
 
 nice-to-haves, but not necessary for launch:
 - [ ] add a button for the user to make their account public/private
