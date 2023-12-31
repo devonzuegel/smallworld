@@ -36,9 +36,6 @@
         all-phones (get-all-phones)]
     (contains? all-phones phone)))
 
-(defn get-field [bio field]
-  (get-in bio [(keyword field)]))
-
 (defn my-profile [phone]
   (let [all-bios (get-all-bios)
         bio (first (filter (fn [bio]
@@ -51,8 +48,8 @@
   (pp/pprint req)
   (let [parsed-body (:params req)
         all-bios (get-all-bios)
-        bio-id (get-field parsed-body "id")
-        phone (get-field parsed-body "Phone")]
+        bio-id (mc.util/get-field parsed-body "id")
+        phone (mc.util/get-field parsed-body "Phone")]
     (println "")
     (println "      phone : " phone)
     (println "parsed-body : ")
@@ -61,7 +58,7 @@
 
     (let [bio (first (filter (fn [this-bio]
                                (or (= bio-id
-                                      (get-field this-bio "id"))
+                                      (mc.util/get-field this-bio "id"))
                                    (= (mc.util/clean-phone phone)
                                       (mc.util/clean-phone (get-in this-bio ["Phone"])))))
                              all-bios))
@@ -77,7 +74,7 @@
           (println "  " bio-id)
           (println "")
           (println "Anything else you'd like your potential matches to know?")
-          (println "  " (get-field parsed-body "Anything else you'd like your potential matches to know?"))
+          (println "  " (mc.util/get-field parsed-body "Anything else you'd like your potential matches to know?"))
           (pp/pprint "fields-to-change:")
           (pp/pprint fields-to-change)
 
@@ -100,10 +97,3 @@
 ;   3. make it a nightly job to update the cuties
 ;   4. send a daily email to each user with their todays-cutie
 ;   5. add a button for admin to force update todays-cutie for a single user, including sending the email
-
-
-
-
-
-
-

@@ -3,6 +3,8 @@
             [reagent.core    :as r]
             [smallworld.util :as util]
             [markdown.core :as md]
+            ; require smalldown/meetcute/util.cljc:
+            [meetcute.util :as mc.util]
             [cljs.pprint :as pp]))
 
 (defonce debug? (r/atom false))
@@ -21,9 +23,6 @@
 (defn md->hiccup [md-string]
   [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}
          :style {:line-height "1.4"}}])
-
-(defn get-field [bio field]
-  (get-in bio [(keyword field)]))
 
 (def fields-changeable-by-user [; Phone is intentionally not included because it's used as the key to find the record to update, so we don't want to overwrite it
                                 "Anything else you'd like your potential matches to know?"
@@ -139,7 +138,7 @@
                                                    currently-selected-ids
                                                    (conj currently-selected-ids bio-id))
                                                  (remove (fn [v] (= bio-id v))
-                                                         (get-field @profile "selected-cuties")))]
+                                                         (mc.util/get-field @profile "selected-cuties")))]
                               (reset! profile (assoc @profile
                                                      (keyword "selected-cuties")
                                                      now-selected))
@@ -147,7 +146,7 @@
                                 (reset! profile (assoc @profile
                                                        (keyword "rejected-cuties")
                                                        (remove (fn [v] (= bio-id v))
-                                                               (get-field @profile "rejected-cuties")))))
+                                                               (mc.util/get-field @profile "rejected-cuties")))))
                               (update-selected-cuties))))}]
     [:label {:for (str bio-id "-select")
              :className "select-reject-btn"
@@ -185,7 +184,7 @@
                                                    currently-rejected-ids
                                                    (conj currently-rejected-ids bio-id))
                                                  (remove (fn [v] (= bio-id v))
-                                                         (get-field @profile "rejected-cuties")))]
+                                                         (mc.util/get-field @profile "rejected-cuties")))]
                               (println "now-rejected: " now-rejected)
                               (reset! profile (assoc @profile
                                                      (keyword "rejected-cuties")
@@ -194,7 +193,7 @@
                                 (reset! profile (assoc @profile
                                                        (keyword "selected-cuties")
                                                        (remove (fn [v] (= bio-id v))
-                                                               (get-field @profile "selected-cuties")))))
+                                                               (mc.util/get-field @profile "selected-cuties")))))
                               (update-selected-cuties))))}]
     [:label {:for (str bio-id "-reject")
              :className "select-reject-btn"
@@ -276,7 +275,7 @@
 
 (defn editable-input [field-name]
   [:input {:type "text"
-           :value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
+           :value (or (mc.util/get-field @profile field-name) "") #_(trim-trailing-whitespace (or (mc.util/get-field @profile field-name) ""))
            :on-change (change-profile-field field-name)
            :style {:background "white"
                    :border "3px solid rgb(188, 181, 175, .3)"
@@ -289,7 +288,7 @@
                    :max-width "380px"}}])
 
 (defn editable-textbox [field-name]
-  [:textarea {:value (or (get-field @profile field-name) "") #_(trim-trailing-whitespace (or (get-field @profile field-name) ""))
+  [:textarea {:value (or (mc.util/get-field @profile field-name) "") #_(trim-trailing-whitespace (or (mc.util/get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)
               :style {:background "white"
                       :border "3px solid rgb(188, 181, 175, .3)"
@@ -346,12 +345,12 @@
     (let [key-values [["First name"                       (editable-input "First name")]
                       ["Last name"                        (editable-input "Last name")]
                       ["My gender" (radio-btns-component ["Man" "Woman"]
-                                                         (get-field @profile "Gender")
+                                                         (mc.util/get-field @profile "Gender")
                                                          (fn [foobar]
                                                            (reset! profile (assoc @profile (keyword "Gender") foobar))
                                                            (update-profile-debounced!)))]
                       ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                    (get-field @profile "I'm interested in...")
+                                                                    (mc.util/get-field @profile "I'm interested in...")
                                                                     (fn [foobar]
                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
                                                                       (update-profile-debounced!)))]
@@ -364,8 +363,8 @@
                                                                           :margin-right "4px"
                                                                           :width "95%"
                                                                           :max-width "380px"}}
-                                                            ;; (format-phone (get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                            (get-field @profile "Phone")]
+                                                            ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
+                                                            (mc.util/get-field @profile "Phone")]
                                                            [small-text [:span "If you'd like to change your phone number, email "
                                                                         [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]]]
                       ["Email"                            [:div {:style {:max-width "380px"}}
@@ -390,7 +389,7 @@
                                    [small-text [:span "Here are the pictures you added when you signed up. If you'd like to add or remove pictures, email "
                                                 [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]
                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
-                                                (get-field @profile "Pictures"))]]]]
+                                                (mc.util/get-field @profile "Pictures"))]]]]
       (map-indexed bio-row key-values))]
 
    [:br]])
@@ -433,7 +432,7 @@
                  :border "3px solid rgba(188, 181, 175, .3)"}}
 
    [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
-    (get-field bio "First name")]
+    (mc.util/get-field bio "First name")]
 
    [:style ".profile-item:first-of-type { margin-top: 0 !important}"] ; if first child of profile-section, 0 margin on top
 
@@ -445,24 +444,24 @@
       ;;                    [profile-item "Gender" "Woman"]
       ;;                    [profile-item "Looking for" "Man"]]]    
 
-    (when (get-field bio "Anything else you'd like your potential matches to know?")
-      [profile-item (str "About " (get-field bio "First name"))  (md->hiccup (get-field bio "Anything else you'd like your potential matches to know?"))])
+    (when (mc.util/get-field bio "Anything else you'd like your potential matches to know?")
+      [profile-item (str "About " (mc.util/get-field bio "First name"))  (md->hiccup (mc.util/get-field bio "Anything else you'd like your potential matches to know?"))])
 
-    [profile-item "Home base"                                    (get-field bio "Home base city")]
+    [profile-item "Home base"                                    (mc.util/get-field bio "Home base city")]
 
-    (when (get-field bio "Other cities where you spend time")
-      [profile-item "Frequently visits"                           (get-field bio "Other cities where you spend time")])
+    (when (mc.util/get-field bio "Other cities where you spend time")
+      [profile-item "Frequently visits"                           (mc.util/get-field bio "Other cities where you spend time")])
 
-    (when (get-field bio "Social media links")
-      [profile-item "Social media"                               (md->hiccup (get-field bio "Social media links"))])
+    (when (mc.util/get-field bio "Social media links")
+      [profile-item "Social media"                               (md->hiccup (mc.util/get-field bio "Social media links"))])
 
-    (when (get-field bio "What makes this person awesome?")
-      [profile-item "Vouch from a friend"                        (md->hiccup (get-field bio "What makes this person awesome?"))])
+    (when (mc.util/get-field bio "What makes this person awesome?")
+      [profile-item "Vouch from a friend"                        (md->hiccup (mc.util/get-field bio "What makes this person awesome?"))])
 
-    [profile-item "Pictures" (if (empty? (get-field bio "Pictures"))
+    [profile-item "Pictures" (if (empty? (mc.util/get-field bio "Pictures"))
                                [:p "No pictures yet :)"]
                                (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "150px" :margin "8px 8px 0 0" :border-radius "4px"}}])
-                                            (get-field bio "Pictures")))]]])
+                                            (mc.util/get-field bio "Pictures")))]]])
 
 (defn how-it-works []
   [:div {:style {:margin-top "24px" :font-style "italic"}}
@@ -490,77 +489,54 @@
    [:style "@media screen and (min-width: 805px) { .btns-column { max-width: 250px; } }"]
    [:div {:style {:flex 1} :className "btns-column"}
     [select-reject-btns
-     (get-field bio "id")
-     (get-field @profile "selected-cuties")
-     (get-field @profile "rejected-cuties")]]])
+     (mc.util/get-field bio "id")
+     (mc.util/get-field @profile "selected-cuties")
+     (mc.util/get-field @profile "rejected-cuties")]]])
 
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
 (def reviewed-bios-expanded? (r/atom false))
 (defn home-tab []
-  (let [interested-in (get-field @profile "I'm interested in...")
-        gender-filter (case interested-in
-                        [] []
-                        ["Women"] ["Woman"]
-                        ["Men"] ["Man"]
-                        ["Woman" "Man"] ; default
-                        )
-        included-bios (filter (fn [bio]
-                                (let [bio-gender-filter (case (get-field bio "I'm interested in...")
-                                                          [] []
-                                                          ["Women"] ["Woman"]
-                                                          ["Men"] ["Man"]
-                                                          ["Woman" "Man"] ; default
-                                                          )]
-                                  (and (= (get-field bio "Include in gallery?") "include in gallery") ; don't include bios that have been explicitly excluded
-                                       (not (= (get-field bio "id") (get-field @profile "id"))) ; check it's not self
-                                       (some #(= (get-field bio "Gender") %) gender-filter) ; only show the gender that the user is interested in dating
-                                       (some #(= (get-field @profile "Gender") %) bio-gender-filter ; only show someone if they're interested in dating someone of the gender of the current user:
-                                             ))))
-
-                              @bios)]
+  (let [included-bios (mc.util/included-bios @profile @bios)]
     (when @profile
       [:div {:style {:padding "12px" :padding-top "0"}}
        (if (nil? included-bios)
          [:p "Loading..."]
          [:div
-          (let [currently-selected-ids (get-field @profile "selected-cuties")
-                currently-rejected-ids (get-field @profile "rejected-cuties")
-                new-bios      (filter #(let [bio-id (get-field % "id")] (not (or (in? currently-selected-ids bio-id)
-                                                                                 (in? currently-rejected-ids bio-id))))
+          (let [currently-selected-ids (mc.util/get-field @profile "selected-cuties")
+                currently-rejected-ids (mc.util/get-field @profile "rejected-cuties")
+                ;; new-bios      (filter #(let [bio-id (mc.util/get-field % "id")] (not (or (in? currently-selected-ids bio-id)
+                ;;                                                                          (in? currently-rejected-ids bio-id))))
+                ;;                       included-bios)
+                reviewed-bios (filter #(let [bio-id (mc.util/get-field % "id")] (or (in? currently-selected-ids bio-id)
+                                                                                    (in? currently-rejected-ids bio-id)))
                                       included-bios)
-                reviewed-bios (filter #(let [bio-id (get-field % "id")] (or (in? currently-selected-ids bio-id)
-                                                                            (in? currently-rejected-ids bio-id)))
-                                      included-bios)
-                todays-cutie-id (first (get-field @profile "todays-cutie"))
-                todays-cutie (first (filter #(= (get-field % "id")
+                todays-cutie-id (first (mc.util/get-field @profile "todays-cutie"))
+                todays-cutie (first (filter #(= (mc.util/get-field % "id")
                                                 todays-cutie-id)
                                             included-bios))]
-
-             ; problem context:
-             ; i have a list of bios, and i want to show the first one that hasn't been reviewed yet
-             ; once it has been reviewed, i still want it to show up as "today's bio" until tomorrow, when the next bio is shown
 
             [:div {:style {:width "95%" :margin "auto"}}
              [how-it-works]
 
-             #_[:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                [:b "       new-bios: "] (count new-bios) "\n"
-                [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
-                [:b "  included-bios: "] (count included-bios) "\n\n"]
+             #_(when @debug?
+                 [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                  ;; [:b "       new-bios: "] (count new-bios) "\n"
+                  [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
+                  [:b "  included-bios: "] (count included-bios) "\n\n"]
 
-             #_[:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                "included-bios: " (render-obj (map :id included-bios))]
+                 [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                  "included-bios: " (render-obj (map :id included-bios))]
 
-             #_[:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                (render-obj (select-keys @profile [:unseen-cuties
-                                                   :todays-cutie
-                                                   :selected-cuties
-                                                   :rejected-cuties])) "\n\n"
-                [:b "todays-cutie-id: "] todays-cutie-id "\n\n"
-                [:b "   todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
-                                                                                :Phone
-                                                                                :id]))]
+                 [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                  (render-obj (select-keys @profile [:unseen-cuties
+                                                     :todays-cutie
+                                                     :selected-cuties
+                                                     :rejected-cuties])) "\n\n"
+                  [:b "todays-cutie-id: "] todays-cutie-id "\n\n"
+                  [:b "   todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
+                                                                                  :Phone
+                                                                                  :id]))])
 
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
 
