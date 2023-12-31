@@ -42,8 +42,9 @@
 
 (defn format-phone [phone]
   (assert phone)
-  (let [digits-only (str/replace phone #"[^0-9]" "")]
-    (str "(" (subs digits-only 0 3) ") " (subs digits-only 3 6) "-" (subs digits-only 6 10))))
+  phone
+  #_(let [digits-only (str/replace phone #"[^0-9]" "")]
+      (str "(" (subs digits-only 0 3) ") " (subs digits-only 3 6) "-" (subs digits-only 6 10))))
 
 (defn in? [list str] (some #(= str %) list))
 
