@@ -10,7 +10,8 @@
             [meetcute.env :as env]
             [meetcute.screens.styles :as mc.styles]
             [smallworld.matchmaking :as matchmaking]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [cljs.pprint :as pp]))
 
 ;; Adding authentication to some of the pages
 ;; She wants everything to be stateless if possible
@@ -246,8 +247,7 @@
 ;; ====================================================================== 
 ;; Sign In
 
-(defn signin-screen
-  [{:keys [phone phone-input-error code-error started?]}]
+(defn signin-screen [{:keys [phone phone-input-error code-error started?]}]
   [:form {:method "post" :action (if started?
                                    "/meetcute/verify"
                                    "/meetcute/signin")}

@@ -3,7 +3,6 @@
             [reagent.core    :as r]
             [smallworld.util :as util]
             [markdown.core :as md]
-            ; require smalldown/meetcute/util.cljc:
             [meetcute.util :as mc.util]
             [cljs.pprint :as pp]))
 
