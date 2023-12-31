@@ -40,7 +40,7 @@
   (POST "/signin" req (mc.auth/start-signin-route req))
   (POST "/verify" req (mc.auth/verify-route req))
   (POST "/logout" req (mc.auth/logout-route req))
-  (GET  "/todays-cutie" req (mc.auth/todays-cutie req)))
+  #_(GET  "/todays-cutie" req (mc.auth/todays-cutie req)))
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
