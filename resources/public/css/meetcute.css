@@ -71,13 +71,15 @@ li {
   padding-left: 4px;
 }
 
-.spinner {
+.loading-container {
+  position: fixed;
+  left: calc(50% - 60px);
+  top: calc(40%);
+}
+.loading-container .spinner {
   width: 120px;
   height: 120px;
   margin: auto;
-  position: fixed;
-  left: calc(50% - 60px);
-  top: calc(45% - 60px);
   animation: spin 1.7s ease-in-out infinite;
   background-image: url('/orange-favicon.png');
   background-size: contain;

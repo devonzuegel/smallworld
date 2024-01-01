@@ -53,9 +53,10 @@
     {:status 401
      :headers {"Content-Type" "text/html"}
      :body (str (hiccup/html [:p {:style {:font-family "monospace"
-                                          :max-width "200px"
+                                          :max-width "300px"
                                           :text-align "center"
-                                          :margin "48px auto"
+                                          :margin "100px auto"
+                                          :font-size "1.5em"
                                           :line-height "1.5em"}}
                               "Oops! You need to " [:a {:href "/meetcute/signin"} "sign in"]
                               " or " [:a {:href "/meetcute/signup"} "sign up"] " first."]))}))
