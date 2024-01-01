@@ -178,30 +178,46 @@
                                ["bios-devons-test-2" (:id profile)]
                                {:fields new-values})
 
-      #_(let [email-config {:to      "avery.sara.james@gmail.com"
+      (let [email-config {:to      "avery.sara.james@gmail.com"
                            ;; :to   (:Email profile)
-                            :from-name "MeetCute"
-                            :subject (str "Fresh cutie! 🍊")
-                            :body    (str "<div style='line-height: 1.6em'>"
-                                          "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
-                                          "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
-                                          "How MeetCute works:"
-                                          "<ol style='padding-inline-start: 16px'>"
-                                          "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
-                                          "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
-                                          "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
-                                          "</ol>"
-                                          "</div>"
-                                          "</div>")
+                          :from-name "MeetCute"
+                          :subject (str "Fresh cutie! 🍊")
+                          :body    (str "<div style='line-height: 1.6em'>"
+                                        "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
+                                        "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
+                                        "How MeetCute works:"
+                                        "<ol style='padding-inline-start: 16px'>"
+                                        "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
+                                        "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
+                                        "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
+                                        "</ol>"
+                                        "</div>"
+                                        "</div>")
                                           ;
-                            }]
+                          }]
 
-          (println "preparing to send email....... ======================")
-          (pp/pprint email-config)
-          (println)
-          (email/send-email email-config))
+        (println "preparing to send email....... ======================")
+        (pp/pprint email-config)
+        (println)
+        (email/send-email email-config))
       ;
       )))
+
+(defn refresh-todays-cutie-TEST []
+  (let [-my-profile {:id                              "me"
+                     :Gender                          "Woman"
+                     :unseen-cuties                   ["A" "B"]
+                     :todays-cutie                    ["A"]
+                     :selected-cuties                 []
+                     :rejected-cuties                 []
+                     (keyword "I'm interested in...") ["Men"]}
+        -matching-criteria {:Gender                          "Man"
+                            (keyword "I'm interested in...") ["Women"]
+                            (keyword "Include in gallery?")  "include in gallery"}
+        -bios [(merge {:id "A"} -matching-criteria)
+               (merge {:id "B"} -matching-criteria)
+               (merge {:id "C"} -matching-criteria)]]
+    (refresh-todays-cutie -my-profile -bios)))
 
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
