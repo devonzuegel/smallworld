@@ -211,8 +211,12 @@
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
 
-(defn refresh-todays-cutie-route [req]
+(defn refresh-todays-cutie-route-mine [req]
   (let [phone   (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)]
     (refresh-todays-cutie (my-profile phone)
                           (get-all-bios))
     (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
+
+(defn refresh-todays-cutie-route-all [req]
+  ; TODO: only the admin should be able to hit this route
+  (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"}))

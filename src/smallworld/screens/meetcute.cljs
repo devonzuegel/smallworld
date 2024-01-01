@@ -492,14 +492,25 @@
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "You let us know if you're interested in meeting them"]
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, we'll introduce you!"]]])
 
-(defn refresh-todays-cutie-btn []
+(defn refresh-todays-cutie-btns []
   [:div {:style {:width "100%" :text-align "right" :margin "48px 36px"}}
    [:a {:href "#"
         :style {:padding "12px" :border "4x solid green" :border-radius "8px"}
-        :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie"
+        :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
                                           {}
                                           #(js/location.reload true)))}
-    "Refresh todays-cutie [this is for debug only!]"]])
+    "Refresh todays-cutie for just me"]
+   [:br]
+   [:br]
+   [:a {:href "#"
+        :style {:padding "12px" :border "4x solid green" :border-radius "8px"}
+        :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
+                                          {}))}
+    "Refresh todays-cutie for EVERYONE"]
+   ;; list the ids/names of all bios that have both selected each other:
+
+   ;
+   ])
 
 (defn profile-with-buttons [i bio]
 
@@ -579,10 +590,6 @@
                     [:p {:style {:padding "6px 16px"}} "Are you interested to meet this cutie?"]))
                 (profile-with-buttons 0 todays-cutie)])
 
-             [refresh-todays-cutie-btn]
-             [refresh-todays-cutie-btn]
-             [refresh-todays-cutie-btn]
-
              #_(if (= 0 (count new-bios))
                  [:<>
                   [:p {:style {:padding "6px 16px"}} "No profiles to review right now"]
@@ -618,19 +625,33 @@
                     [:p {:style {:margin-left "8px"}} "You haven't reviewed any profiles yet :)"])])
              [:br] [:br]])])])))
 
+(defn admin-tab []
+  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
+   [:h1 "Admin"]
+   [refresh-todays-cutie-btns]
+   [:pre "(:admin? @profile) -> " (str (:admin? @profile))]])
+
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
-   [:button {:on-click #(reset! current-tab :home)
-             :className (if (= @current-tab :home)    "btn primary" "btn")}
-    "Home"]
-   [:button {:on-click #(reset! current-tab :profile)
-             :className (if (= @current-tab :profile) "btn primary" "btn")}
-    "Profile"]
-   #_(when (= (mc.util/clean-phone (mc.util/get-field @profile "Phone"))
-              (mc.util/clean-phone "+1-650-906-7099"))
-       [:button {:on-click #(reset! current-tab :admin)
-                 :className (if (= @current-tab :admin) "btn primary" "btn")}
-        "Admin"])
+   [:a {:href "/meetcute"
+        :className (if (= "/meetcute" (.-pathname js/location))
+                     "btn primary"
+                     "btn")}
+    [:i {:className "fas fa-heart"}] " Home"]
+   [:a {:href "/meetcute/settings"
+        ; if current url is /meetcute/settings, then set className to "btn primary", otherwise set it to "btn":
+        :className (if (= "/meetcute/settings" (.-pathname js/location))
+                     "btn primary"
+                     "btn")}
+    [:i {:className "fas fa-user"}] " Profile"]
+
+   (when (:admin? @profile)
+     [:a {:href "/meetcute/admin"
+          :className (if (= "/meetcute/admin" (.-pathname js/location))
+                       "btn primary"
+                       "btn")}
+      [:i {:className "fas fa-cog"}] " Admin"])
+
    ;; TODO(sebas): make this a post request to clear the cookie
    [:form {:action "/meetcute/logout" :method "post"
            :style {:float "right"}}
@@ -652,24 +673,24 @@
    [:a {:href "/meetcute/signin"}
     "Sign in"]])
 
-(defn screen []
-  (r/create-class
-   {:component-did-mount (fn []
-                           (fetch-my-profile!)
-                           (fetch-bios))
-    :reagent-render (fn []
-                      (cond
+(defn screen [tab-name]
+  (fn [] (r/create-class
+          {:component-did-mount (fn []
+                                  (fetch-my-profile!)
+                                  (fetch-bios))
+           :reagent-render (fn []
+                             (cond
                         ;; TODO: profile could be nil because of some access problem
-                        (some? @profile-error) (if (not= "/meetcute/signin" (.-pathname js/location))
-                                                 (js/location.assign "/meetcute/signin")
-                                                 (error-screen @profile-error))
+                               (some? @profile-error) (if (not= "/meetcute/signin" (.-pathname js/location))
+                                                        (js/location.assign "/meetcute/signin")
+                                                        (error-screen @profile-error))
 
-                        (nil? @profile) (loading-profile)
+                               (nil? @profile) (loading-profile)
 
-                        :else [:div
-                               [nav-btns]
-                               (case @current-tab
-                                 :profile (profile-tab)
-                                ;;  :admin   (admin-tab)
-                                 :home    (home-tab)
-                                 (home-tab))]))})) ""
+                               :else [:div
+                                      [nav-btns]
+                                      (case tab-name
+                                        :profile (profile-tab)
+                                        :admin   (admin-tab)
+                                        :home    (home-tab)
+                                        (home-tab))]))}))) ""
