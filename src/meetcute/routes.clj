@@ -35,13 +35,14 @@
                (add-mime-type resource-path options))))))
 
 (defroutes open-routes
-  (ANY  "/" []        (io/resource "public/meetcute.html"))
-  (ANY  "/admin" []   (io/resource "public/meetcute.html"))
-  (GET  "/signup" req (mc.auth/signup-route req))
-  (GET  "/signin" req (mc.auth/signin-route req))
-  (POST "/signin" req (mc.auth/start-signin-route req))
-  (POST "/verify" req (mc.auth/verify-route req))
-  (POST "/logout" req (mc.auth/logout-route req)))
+  (ANY  "/"         []  (io/resource "public/meetcute.html"))
+  (ANY  "/admin"    []  (io/resource "public/meetcute.html"))
+  (ANY  "/settings" []  (io/resource "public/meetcute.html"))
+  (GET  "/signup"   req (mc.auth/signup-route req))
+  (GET  "/signin"   req (mc.auth/signin-route req))
+  (POST "/signin"   req (mc.auth/start-signin-route req))
+  (POST "/verify"   req (mc.auth/verify-route req))
+  (POST "/logout"   req (mc.auth/logout-route req)))
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
@@ -53,7 +54,8 @@
                                                            mc.util/clean-phone)]
                                          (assert phone)
                                          (generate-string {:fields (matchmaking/my-profile phone)})))
-  (POST "/api/refresh-todays-cutie" req (matchmaking/refresh-todays-cutie-route req)))
+  (POST "/api/refresh-todays-cutie/mine" req (matchmaking/refresh-todays-cutie-route-mine req))
+  (POST "/api/refresh-todays-cutie/all"  req (matchmaking/refresh-todays-cutie-route-all req)))
 
 (defn wrap-body-string [handler]
   (fn [request]

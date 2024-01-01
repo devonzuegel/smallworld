@@ -128,8 +128,9 @@
   (rf/router
    ["/"
     ; authentication for meetcute is handled by the server in `meetcute/routes.clj`
-    ["meetcute/admin" {:name ::meetcute-admin   :view meetcute/screen}]
-    ["meetcute"       {:name ::meetcute         :view meetcute/screen}]
+    ["meetcute/admin"    {:name ::meetcute-admin   :view (meetcute/screen :admin)}]
+    ["meetcute/settings" {:name ::meetcute-me      :view (meetcute/screen :profile)}]
+    ["meetcute"          {:name ::meetcute         :view (meetcute/screen :home)}]
 
     ; authentication for smallworld is handled by the frontend via the controllers:
     [""                {:name ::home             :view home-page              :controllers require-session}]
