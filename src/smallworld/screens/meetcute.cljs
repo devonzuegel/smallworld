@@ -493,24 +493,27 @@
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, we'll introduce you!"]]])
 
 (defn refresh-todays-cutie-btns []
-  [:div {:style {:width "100%" :text-align "right" :margin "48px 36px"}}
-   [:a {:href "#"
-        :style {:padding "12px" :border "4x solid green" :border-radius "8px"}
-        :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
-                                          {}
-                                          #(js/location.reload true)))}
-    "Refresh todays-cutie for just me"]
-   [:br]
-   [:br]
-   [:a {:href "#"
-        :style {:padding "12px" :border "4x solid green" :border-radius "8px"}
-        :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
-                                          {}))}
-    "Refresh todays-cutie for EVERYONE"]
-   ;; list the ids/names of all bios that have both selected each other:
+  [:div {:style {:margin "48px 0" :border "3px solid #eee" :border-radius "8px" :padding "6px 24px"}}
+   [:div {:style {:margin "24px 0"}}
+    [:p {:style {:margin "16px 0"}} "This is the manual override for the action that we'll run nightly with a cron job."]
+    [:p {:style {:margin "16px 0"}} "Usually, we should not touch these buttons, but if you have a reason you need to refresh the todays-cutie for yourself or for everyone, you can do it here."]]
+   [:div {:style {:margin "24px 0"}}
+    [:a {:href "#"
+         :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
+                                           {}
+                                           #(js/location.reload true)))}
+     "Refresh todays-cutie for JUST ME →"]]
+   [:div {:style {:margin "24px 0"}}
+    [:a {:href "#"
+         :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
+                                           {}))}
+     "Refresh todays-cutie for EVERYONE →"]]])
 
-   ;
-   ])
+(defn list-mutual-selections []
+   ;; TODO list the ids/names of all bios that have both selected each other (i.e. they have each other's ids in their respective selected-cuties list):
+  [:div {:style {:margin "48px 0" :border "3px solid #eee" :border-radius "8px" :padding "24px"}}
+   "TODO: list-mutual-selections"])
+
 
 (defn profile-with-buttons [i bio]
 
@@ -626,10 +629,17 @@
              [:br] [:br]])])])))
 
 (defn admin-tab []
-  [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
-   [:h1 "Admin"]
-   [refresh-todays-cutie-btns]
-   [:pre "(:admin? @profile) -> " (str (:admin? @profile))]])
+  [:div {:style {:border-radius "8px" :padding "36px 12px" :margin "auto" :width "90%" :max-width "850px"}}
+   [:h1 {:style {:font-size "3em" :line-height "3em"}} "Admin page "]
+
+   [:p [:span {:style {:padding "4px 12px" :border-radius "8px" :color "white" :background (if (:admin? @profile) "green" "red")}}
+        (if (:admin? @profile)
+          "You are an admin"
+          "You are not an admin")]]
+
+   [list-mutual-selections]
+
+   [refresh-todays-cutie-btns]])
 
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
