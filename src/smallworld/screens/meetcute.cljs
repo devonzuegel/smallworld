@@ -483,7 +483,7 @@
                                             (mc.util/get-field bio "Pictures")))]]])
 
 (defn how-it-works []
-  [:div {:style {:margin-top "24px" :font-style "italic"}}
+  [:div {:style {:margin-top "24px" :font-style "italic" :background "#eee" :border-radius "8px" :padding "16px 16px 16px 8px"}}
    [:p {:style {:padding "2px 16px"}} "How MeetCute works:"]
    [:ul {:padding "0 16px"}
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "Every day, we'll send you an email with one new person"]
