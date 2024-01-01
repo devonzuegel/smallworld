@@ -11,6 +11,7 @@
   (util/log (str name ": " data)))
 
 (defn- send-with-content [{to-email :to
+                           from-name :from-name
                            subject :subject
                            type :type
                            body :body}]
@@ -21,7 +22,7 @@
     :form-params {:personalizations [{:to [{:email to-email}]
                                       :subject subject}]
                   :from {:email FROM_EMAIL
-                         :name  FROM_NAME}
+                         :name  (or from-name FROM_NAME)}
                   :content [{:type (or type "text/html") :value body}]}}))
 
 (defn- send-with-template [{to-email :to
