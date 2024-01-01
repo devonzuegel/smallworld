@@ -209,16 +209,18 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] get Twilio account unsuspended
 - [x] implement the matchmaking algorithm
   - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why... probably something to do with (a) memoization or (b) not fetching the profile frequently enough
+  - [ ] `refresh-todays-cutie` is still buggy... sometimes people end up in 2 lists, when they should only ever be in 1... consider adding assertions to check this
 - [x] implement the email that gets sent to the user when their `todays-cutie` is refreshed
 - [x] opengraph image
-- [ ] admin page: add button to refresh everyone's `todays-cutie` list
+- [x] admin page: add button to refresh everyone's `todays-cutie` list
 
-**last-minute admin:**
+**last-minute admin before it's usable:**
 - [ ] change the Airtable DB to the real one, instead of fake data
-- [ ] change the Signup form to the correct link (real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
-- [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues
+- [ ] change the signup iframe to the correct link (so that it points to the real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
+- [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
+- [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
 - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
 - [ ] matches screen for admin to save Erik a time-consuming manual process
 - [ ] implement the cron job in the backend to refresh the `todays-cutie` list every night
