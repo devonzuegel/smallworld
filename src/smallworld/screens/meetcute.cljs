@@ -580,6 +580,8 @@
                 (profile-with-buttons 0 todays-cutie)])
 
              [refresh-todays-cutie-btn]
+             [refresh-todays-cutie-btn]
+             [refresh-todays-cutie-btn]
 
              #_(if (= 0 (count new-bios))
                  [:<>
@@ -624,7 +626,11 @@
    [:button {:on-click #(reset! current-tab :profile)
              :className (if (= @current-tab :profile) "btn primary" "btn")}
     "Profile"]
-
+   #_(when (= (mc.util/clean-phone (mc.util/get-field @profile "Phone"))
+              (mc.util/clean-phone "+1-650-906-7099"))
+       [:button {:on-click #(reset! current-tab :admin)
+                 :className (if (= @current-tab :admin) "btn primary" "btn")}
+        "Admin"])
    ;; TODO(sebas): make this a post request to clear the cookie
    [:form {:action "/meetcute/logout" :method "post"
            :style {:float "right"}}
@@ -664,5 +670,6 @@
                                [nav-btns]
                                (case @current-tab
                                  :profile (profile-tab)
-                                 :home (home-tab)
+                                ;;  :admin   (admin-tab)
+                                 :home    (home-tab)
                                  (home-tab))]))})) ""

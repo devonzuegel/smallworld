@@ -734,7 +734,7 @@
                                                (refresh-friends-from-twitter settings nil nil))) ; TODO: keep refactoring
   (GET "/api/v1/worker" req (worker-endpoint req))
 
-  ;; meetcute
+  ;; meetcute routes:
   (compo/context "/meetcute" []
     mc.routes/app)
 

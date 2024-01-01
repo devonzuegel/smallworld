@@ -210,9 +210,10 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] implement the matchmaking algorithm
   - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why... probably something to do with (a) memoization or (b) not fetching the profile frequently enough
 - [x] implement the email that gets sent to the user when their `todays-cutie` is refreshed
-- [ ] sign up page needs to work – maybe without auth
 - [ ] implement the cron job in the backend
+- [x] opengraph image
 - [ ] matches screen for admin to save Erik a time-consuming manual process
+- [ ] sign up page needs to work – maybe without auth
 
 **last-minute admin:**
 - [ ] change the Airtable DB to the real one, instead of fake data

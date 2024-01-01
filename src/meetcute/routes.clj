@@ -28,13 +28,15 @@
    (resources path {}))
   ([path options]
    (GET (add-wildcard path) {{resource-path :*} :route-params}
-     (let [resource-path (str/replace resource-path "/meetcute/" "")
+     (let [resource-path (str/replace resource-path (re-pattern "^/meetcute/") ; only the first occurrence, anchored to the beginning of the string
+                                      "")
            root "public"]
        (some-> (resp/resource-response (str root "/" resource-path))
                (add-mime-type resource-path options))))))
 
 (defroutes open-routes
   (ANY  "/" []        (io/resource "public/meetcute.html"))
+  (ANY  "/admin" []   (io/resource "public/meetcute.html"))
   (GET  "/signup" req (mc.auth/signup-route req))
   (GET  "/signin" req (mc.auth/signin-route req))
   (POST "/signin" req (mc.auth/start-signin-route req))
@@ -43,7 +45,7 @@
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
-  (GET  "/api/matchmaking/bios"    _ (json/generate-string (matchmaking/get-all-bios)))
+  (GET  "/api/matchmaking/bios"    _   (json/generate-string (matchmaking/get-all-bios)))
   (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
   (POST "/api/matchmaking/me"      req (let [phone (some-> (mc.auth/req->parsed-jwt req)
