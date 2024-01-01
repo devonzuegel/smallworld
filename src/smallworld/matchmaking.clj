@@ -141,7 +141,6 @@
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
         unseen-ids      (:unseen-cuties profile)
         todays-cutie-id (first (:todays-cutie profile))
-        todays-cutie-profile (first (filter #(= (:id %) todays-cutie-id) included-bios))
         todays-cutie-unseen? (some #(= todays-cutie-id %) unseen-ids)]
 
     ; if todays-cutie-id is still in unseen-ids, then move it to the end of the list:
@@ -149,19 +148,15 @@
       (println "todays-cutie-id is still in unseen-ids (i.e. the user didn't respond), so moving it to the end of the list..."))
 
     (let [included-ids        (map :id included-bios)
-          fresh-unseen-ids    (set/difference (set included-ids) ; this is to include any bios that have been newly added since the last time this function was run
-                                              (set (:selected-cuties profile))
-                                              (set (:rejected-cuties profile))
-                                              (set (:unseen-cuties profile)))
-          unseen-ids-combined (vec (set/union (set unseen-ids)
-                                              fresh-unseen-ids))
-          unseen-ids-updated  (move-to-end todays-cutie-id
-                                           unseen-ids-combined)
+          fresh-unseen-ids    (filter #(not-any? (set (concat (:selected-cuties profile)
+                                                              (:rejected-cuties profile)
+                                                              (:unseen-cuties   profile))) %)
+                                      included-ids)
+          unseen-ids-combined (vec (distinct (concat unseen-ids fresh-unseen-ids)))
+          unseen-ids-updated  (move-to-end todays-cutie-id unseen-ids-combined)
+          new-todays-cutie-id (first unseen-ids-updated)
           new-values          {:unseen-cuties unseen-ids-updated
-                               :todays-cutie  [(first unseen-ids-updated)]}
-          new-todays-cutie-id      (first unseen-ids-updated)
-          new-todays-cutie-profile (first (filter #(= (:id %) new-todays-cutie-id)
-                                                  included-bios))]
+                               :todays-cutie  [new-todays-cutie-id]}]
 
       (println (count fresh-unseen-ids) "fresh-unseen-ids added to unseen-ids")
 
@@ -183,28 +178,28 @@
                                ["bios-devons-test-2" (:id profile)]
                                {:fields new-values})
 
-      (let [email-config {:to      "avery.sara.james@gmail.com"
+      #_(let [email-config {:to      "avery.sara.james@gmail.com"
                            ;; :to   (:Email profile)
-                          :from-name "MeetCute"
-                          :subject (str "Fresh cutie! 🍊")
-                          :body    (str "<div style='line-height: 1.6em'>"
-                                        "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
-                                        "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
-                                        "How MeetCute works:"
-                                        "<ol style='padding-inline-start: 16px'>"
-                                        "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
-                                        "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
-                                        "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
-                                        "</ol>"
-                                        "</div>"
-                                        "</div>")
+                            :from-name "MeetCute"
+                            :subject (str "Fresh cutie! 🍊")
+                            :body    (str "<div style='line-height: 1.6em'>"
+                                          "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
+                                          "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
+                                          "How MeetCute works:"
+                                          "<ol style='padding-inline-start: 16px'>"
+                                          "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
+                                          "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
+                                          "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
+                                          "</ol>"
+                                          "</div>"
+                                          "</div>")
                                           ;
-                          }]
+                            }]
 
-        (println "preparing to send email....... ======================")
-        (pp/pprint email-config)
-        (println)
-        (email/send-email email-config))
+          (println "preparing to send email....... ======================")
+          (pp/pprint email-config)
+          (println)
+          (email/send-email email-config))
       ;
       )))
 

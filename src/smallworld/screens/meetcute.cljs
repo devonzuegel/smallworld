@@ -91,7 +91,6 @@
    (when @debug? [:pre "Selected Value: " (str selected-value)])])
 
 (defn update-selected-cuties! []
-  (println "updating selected-cuties")
   (util/fetch-post "/meetcute/api/matchmaking/profile"
                    (select-keys @profile (map #(keyword %)
                                               (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
@@ -254,7 +253,6 @@
     (reset! phone-input-error (:error result))
     (do (reset! profile (merge (:fields result)
                                {:id (:id result)}))
-        (println "finished updating profile with result!")
         ;; (pp/pprint "profile keys: ")
         ;; (pp/pprint (keys @profile))
         ;; (redirect! "/meetcute")
@@ -263,7 +261,6 @@
 (def profile-error (r/atom nil))
 
 (defn fetch-my-profile! []
-  (println "\nfetching my profile...")
   (util/fetch-post
    "/meetcute/api/matchmaking/me"
    {}
@@ -550,6 +547,11 @@
 
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
+(defn find-cutie [cutie-id bios]
+  (first (filter #(= (mc.util/get-field % "id")
+                     cutie-id)
+                 bios)))
+
 (def reviewed-bios-expanded? (r/atom false))
 (defn home-tab []
   (let [included-bios (mc.util/included-bios @profile @bios)]
@@ -564,32 +566,37 @@
                                                                                     (in? currently-rejected-ids bio-id)))
                                       included-bios)
                 todays-cutie-id (first (mc.util/get-field @profile "todays-cutie"))
-                todays-cutie (first (filter #(= (mc.util/get-field % "id")
-                                                todays-cutie-id)
-                                            included-bios))]
+                todays-cutie (find-cutie todays-cutie-id included-bios)]
 
             [:div {:style {:width "95%" :margin "auto"}}
 
              [how-it-works]
 
-             #_(when true #_@debug?
-                     [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                  ;; [:b "       new-bios: "] (count new-bios) "\n"
-                      [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
-                      [:b "  included-bios: "] (count included-bios) "\n\n"]
+             #_[:<>
+                [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                                  ;; [:b "       new-bios: "] (count new-bios) "\n"
+                 [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
+                 [:b "  included-bios: "] (count included-bios) "\n\n"]
 
-                     [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                      "included-bios: " (render-obj (map :id included-bios))]
+                [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+                 "included-bios: " (render-obj (map :id included-bios))]
 
-                     [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                      (render-obj (select-keys @profile [:unseen-cuties
-                                                         :todays-cutie
-                                                         :selected-cuties
-                                                         :rejected-cuties])) "\n\n"
-                      #_[:b "todays-cutie-id: "] #_todays-cutie-id #_"\n\n"
-                      #_[:b "   todays-cutie: "] #_(render-obj (select-keys todays-cutie [(keyword "First name")
-                                                                                          :Phone
-                                                                                          :id]))])
+                [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px" :line-height "1.4em"}}
+                 (render-obj {:unseen   (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:unseen-cuties @profile))
+                              :today    (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:todays-cutie @profile))
+                              :selected (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:selected-cuties @profile))
+                              :rejected (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:rejected-cuties @profile))
+                                            ;;  :unseen   (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:unseen-cuties @profile))
+                                            ;;  :today    (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:todays-cutie @profile))
+                                            ;;  :selected (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:selected-cuties @profile))
+                                            ;;  :rejected (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:rejected-cuties @profile))
+                                             ;
+                              })
+                 "\n\n"
+                 [:b "todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
+                                                                              :Phone
+                                                                              :id]))]
+                [refresh-todays-cutie-btns]]
 
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
 
