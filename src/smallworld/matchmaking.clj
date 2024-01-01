@@ -152,8 +152,12 @@
                                                               (:rejected-cuties profile)
                                                               (:unseen-cuties   profile))) %)
                                       included-ids)
+          todays-cutie-in-selected-or-rejected? (some #(= todays-cutie-id %) (concat (:selected-cuties profile)
+                                                                                     (:rejected-cuties profile)))
           unseen-ids-combined (vec (distinct (concat unseen-ids fresh-unseen-ids)))
-          unseen-ids-updated  (move-to-end todays-cutie-id unseen-ids-combined)
+          unseen-ids-updated  (if todays-cutie-in-selected-or-rejected? ; if todays-cutie was selected or rejected, then they are no longer unseen
+                                (filter #(not= todays-cutie-id %) unseen-ids-combined)
+                                (move-to-end todays-cutie-id unseen-ids-combined))
           new-todays-cutie-id (first unseen-ids-updated)
           new-todays-cutie-profile (first (filter #(= (:id %) new-todays-cutie-id) included-bios))
           new-values          {:unseen-cuties unseen-ids-updated
