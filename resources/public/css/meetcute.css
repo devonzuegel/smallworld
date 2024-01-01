@@ -70,13 +70,13 @@ li {
 }
 
 .spinner {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   margin: auto;
-  margin-top: 180px;
-  margin-bottom: -180px;
-  border-radius: 50%;
-  animation: spin 1.5s ease-in-out infinite;
+  position: fixed;
+  left: calc(50% - 60px);
+  top: calc(45% - 60px);
+  animation: spin 1.7s ease-in-out infinite;
   background-image: url('/orange-favicon.png');
   background-size: contain;
 }
