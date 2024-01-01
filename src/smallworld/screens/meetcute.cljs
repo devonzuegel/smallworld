@@ -493,7 +493,7 @@
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, we'll introduce you!"]]])
 
 (defn refresh-todays-cutie-btns []
-  [:div {:style {:margin "48px 0" :border "3px solid #eee" :border-radius "8px" :padding "6px 24px"}}
+  [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "6px 24px"}}
    [:div {:style {:margin "24px 0"}}
     [:p {:style {:margin "16px 0"}} "This is the manual override for the action that we'll run nightly with a cron job."]
     [:p {:style {:margin "16px 0"}} "Usually, we should not touch these buttons, but if you have a reason you need to refresh the todays-cutie for yourself or for everyone, you can do it here."]]
@@ -511,7 +511,7 @@
 
 (defn list-mutual-selections []
    ;; TODO list the ids/names of all bios that have both selected each other (i.e. they have each other's ids in their respective selected-cuties list):
-  [:div {:style {:margin "48px 0" :border "3px solid #eee" :border-radius "8px" :padding "24px"}}
+  [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "24px"}}
    "TODO: list-mutual-selections"])
 
 
