@@ -88,6 +88,7 @@
   (.replace (.-location js/window) path))
 
 (defn current-page [] ; TODO: handle logged out state
+  ;; (js/console.log "@match:" @match)
   (if (= :loading @session/*store)
     (decorations/loading-screen)
     (if (nil? @match)
@@ -110,13 +111,6 @@
                                   (redirect! "/signin")
                                   (session/update! %)))}])
 
-(def require-profile
-  [{:start #(do
-              ;; (pp/pprint "@meetcute/profile")
-              ;; (pp/pprint @meetcute/profile)
-              #_(when (empty? @meetcute/profile)
-                  (redirect! "meetcute-signin")))}])
-
 (def require-blank-profile
   [{:start #(do
               ;; (pp/pprint "@meetcute/profile")
@@ -133,8 +127,11 @@
 (def routes
   (rf/router
    ["/"
-    ;; ["meetcute/signup" {:name ::signup           :view meetcute/sign-up}]
-    ["meetcute"        {:name ::meetcute         :view meetcute/screen        :controllers require-profile}]
+    ; authentication for meetcute is handled by the server in `meetcute/routes.clj`
+    ["meetcute/admin" {:name ::meetcute-admin   :view meetcute/screen}]
+    ["meetcute"       {:name ::meetcute         :view meetcute/screen}]
+
+    ; authentication for smallworld is handled by the frontend via the controllers:
     [""                {:name ::home             :view home-page              :controllers require-session}]
     ["settings"        {:name ::settings         :view settings/screen        :controllers require-session}]
     ["admin"           {:name ::admin            :view admin/screen           :controllers require-admin}]]
@@ -152,7 +149,8 @@
      (swap! match (fn [old-match]
                     (when new-match
                       (assoc new-match :controllers (rfc/apply-controllers (:controllers old-match) new-match)))))
-     (util/fetch "/api/v1/session" session/update!))
+     (util/fetch "/api/v1/session" session/update!) ; TODO: this is only for small world; remove it for meetcute routes
+     )
    {:use-fragment false})
   (r/render [current-page] (.getElementById js/document "app")))
 
