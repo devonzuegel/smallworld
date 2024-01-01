@@ -219,4 +219,7 @@
 
 (defn refresh-todays-cutie-route-all [req]
   ; TODO: only the admin should be able to hit this route
+  (let [bios (get-all-bios)]
+    (println "all ids")
+    (pp/pprint (map :id bios)))
   (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"}))

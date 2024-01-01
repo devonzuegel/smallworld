@@ -7,6 +7,7 @@
             [cljs.pprint :as pp]))
 
 (defonce debug? (r/atom false))
+(defonce loading-message (r/atom nil))
 (defonce current-tab (r/atom :home))
 (def bios   (r/atom nil))
 (def profile (r/atom nil))
@@ -499,14 +500,24 @@
     [:p {:style {:margin "16px 0"}} "Usually, we should not touch these buttons, but if you have a reason you need to refresh the todays-cutie for yourself or for everyone, you can do it here."]]
    [:div {:style {:margin "24px 0"}}
     [:a {:href "#"
-         :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
-                                           {}
-                                           #(js/location.reload true)))}
+         :on-click (fn []
+                     (reset! loading-message "Refreshing todays-cutie for JUST ME...")
+                     (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
+                                      {}
+                                      #(do
+                                         (reset! loading-message false)
+                                         (js/location.reload true))))}
      "Refresh todays-cutie for JUST ME →"]]
    [:div {:style {:margin "24px 0"}}
     [:a {:href "#"
-         :on-click (fn [] (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
-                                           {}))}
+         :on-click (fn []
+                     (reset! loading-message "Refreshing todays-cutie for EVERYONE...")
+                     (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
+                                      {}
+                                      #(do
+                                         (println "done refreshing todays-cutie for everyone. result:")
+                                         (js/console.log %)
+                                         (reset! loading-message false))))}
      "Refresh todays-cutie for EVERYONE →"]]])
 
 (defn list-mutual-selections []
@@ -676,9 +687,12 @@
    [:br]])
 
 ;; TODO: better loading page
-(defn loading-profile []
-  [:div
-   [:div#loading-spinner.spinner {:style {:display "block"}}]])
+(defn loading-page [loading-message]
+  [:div.loading-container
+   [:div#loading-spinner.spinner {:style {:display "block"}}]
+   (when loading-message
+     [:p {:style {:margin-top "24px" :max-width "300px" :text-align "center"}}
+      loading-message])])
 
 (defn error-screen [error]
   [:div
@@ -698,7 +712,9 @@
                                                         (js/location.assign "/meetcute/signin")
                                                         (error-screen @profile-error))
 
-                               (nil? @profile) (loading-profile)
+                               (nil? @profile) (loading-page nil)
+
+                               @loading-message (loading-page @loading-message)
 
                                :else [:div
                                       [nav-btns]
