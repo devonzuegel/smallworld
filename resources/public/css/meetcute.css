@@ -74,6 +74,7 @@ li {
   height: 80px;
   margin: auto;
   margin-top: 180px;
+  margin-bottom: -180px;
   border-radius: 50%;
   animation: spin 1.5s ease-in-out infinite;
   background-image: url('/orange-favicon.png');

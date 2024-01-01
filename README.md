@@ -208,9 +208,11 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] implement the "today's cutie" screen
 - [x] get Twilio account unsuspended
 - [x] implement the matchmaking algorithm
-  - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why...
+  - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why... probably something to do with (a) memoization or (b) not fetching the profile frequently enough
 - [x] implement the email that gets sent to the user when their `todays-cutie` is refreshed
+- [ ] sign up page needs to work – maybe without auth
 - [ ] implement the cron job in the backend
+- [ ] matches screen for admin to save Erik a time-consuming manual process
 
 **last-minute admin:**
 - [ ] change the Airtable DB to the real one, instead of fake data
@@ -219,6 +221,7 @@ https://mc.sendgrid.com/dynamic-templates
 
 *nice-to-haves, but not necessary for launch:*
 - [ ] consider adding a `undecided-cuties` list, to distinguish between `unseen` and `not-decided`
+- [ ] in the email, link directly to the cutie's profile rather than the main page (maybe not necessary...?)
 - [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
 - [ ] rename `matchmaking` to `meetcute` throughout the codebase

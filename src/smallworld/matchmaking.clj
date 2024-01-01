@@ -133,6 +133,9 @@
     (let [index (index-of item list)]
       (concat (take index list) (drop (inc index) list) [item]))))
 
+(defn first-name-bold [cutie]
+  (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
+
 (defn refresh-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
@@ -182,13 +185,19 @@
 
       (let [email-config {:to      "avery.sara.james@gmail.com"
                            ;; :to   (:Email profile)
-                           ;; :type "text/plain"
+                          :from-name "MeetCute"
                           :subject (str "Fresh cutie! 🍊")
-                          :body    (str "Would you like to meet <b>" (mc.util/get-field new-todays-cutie-profile "First name") "</b>?"
-                                        "<br>"
-                                        "<br>"
-                                        "If so, go to <a href='https://smallworld.kiwi/meetcute'>smallworld.kiwi/meetcute</a> "
-                                        "and let us know so we can connect you!")
+                          :body    (str "<div style='line-height: 1.6em'>"
+                                        "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
+                                        "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
+                                        "How MeetCute works:"
+                                        "<ol style='padding-inline-start: 16px'>"
+                                        "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
+                                        "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
+                                        "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
+                                        "</ol>"
+                                        "</div>"
+                                        "</div>")
                                           ;
                           }]
 
