@@ -74,7 +74,12 @@
     [settings/welcome-flow-screen]))
 
 (defn not-found-404-page []
-  [:p {:style {:margin "30vh auto 0 auto" :text-align "center" :font-size "2em"}}
+  [:p {:style {:top "calc(30%)"
+               :position "fixed"
+               :text-align "center"
+               :width "20em"
+               :left "calc(50% - 10em)"
+               :font-size "2em"}}
    "404 not found"])
 
 (defonce match (r/atom nil))
