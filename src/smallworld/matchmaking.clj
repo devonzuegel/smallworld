@@ -155,6 +155,7 @@
           unseen-ids-combined (vec (distinct (concat unseen-ids fresh-unseen-ids)))
           unseen-ids-updated  (move-to-end todays-cutie-id unseen-ids-combined)
           new-todays-cutie-id (first unseen-ids-updated)
+          new-todays-cutie-profile (first (filter #(= (:id %) new-todays-cutie-id) included-bios))
           new-values          {:unseen-cuties unseen-ids-updated
                                :todays-cutie  [new-todays-cutie-id]}]
 
