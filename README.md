@@ -210,10 +210,8 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] implement the matchmaking algorithm
   - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why... probably something to do with (a) memoization or (b) not fetching the profile frequently enough
 - [x] implement the email that gets sent to the user when their `todays-cutie` is refreshed
-- [ ] implement the cron job in the backend
 - [x] opengraph image
-- [ ] matches screen for admin to save Erik a time-consuming manual process
-- [ ] sign up page needs to work – maybe without auth
+- [ ] admin page: add button to refresh everyone's `todays-cutie` list
 
 **last-minute admin:**
 - [ ] change the Airtable DB to the real one, instead of fake data
@@ -221,6 +219,9 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues
 
 *nice-to-haves, but not necessary for launch:*
+- [ ] sign up page with validation – replace the Airtable iframe form with a custom form
+- [ ] matches screen for admin to save Erik a time-consuming manual process
+- [ ] implement the cron job in the backend to refresh the `todays-cutie` list every night
 - [ ] consider adding a `undecided-cuties` list, to distinguish between `unseen` and `not-decided`
 - [ ] in the email, link directly to the cutie's profile rather than the main page (maybe not necessary...?)
 - [ ] add a button for the user to make their account public/private

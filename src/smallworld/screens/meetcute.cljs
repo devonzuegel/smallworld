@@ -647,20 +647,23 @@
         :className (if (= "/meetcute" (.-pathname js/location))
                      "btn primary"
                      "btn")}
-    [:i {:className "fas fa-heart"}] " Home"]
+    ;; [:i {:className "fas fa-heart"}] " Home"
+    "Home"]
    [:a {:href "/meetcute/settings"
         ; if current url is /meetcute/settings, then set className to "btn primary", otherwise set it to "btn":
         :className (if (= "/meetcute/settings" (.-pathname js/location))
                      "btn primary"
                      "btn")}
-    [:i {:className "fas fa-user"}] " Profile"]
+    ;; [:i {:className "fas fa-user"}] " Profile"
+    "Profile"]
 
    (when (:admin? @profile)
      [:a {:href "/meetcute/admin"
           :className (if (= "/meetcute/admin" (.-pathname js/location))
                        "btn primary"
                        "btn")}
-      [:i {:className "fas fa-cog"}] " Admin"])
+      ;; [:i {:className "fas fa-cog"}] " Admin"
+      "Admin"])
 
    ;; TODO(sebas): make this a post request to clear the cookie
    [:form {:action "/meetcute/logout" :method "post"
