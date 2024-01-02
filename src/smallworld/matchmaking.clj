@@ -165,18 +165,26 @@
     {:old {:unseen-cuties unseen-ids--old  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}
      :new {:unseen-cuties unseen-ids--new  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
 
+(defn find-cutie [cutie-id bios]
+  (first (filter #(= (mc.util/get-field % "id")
+                     cutie-id)
+                 bios)))
+
 (defn refresh-todays-cutie [profile bios]
   (let [computed (compute-todays-cutie profile bios)
+        get-cuties-name #(get-in (find-cutie % bios) [(keyword "First name")])
         new-values (:new computed)]
 
     (pp/pprint "computed: ===========================")
-    (pp/pprint computed)
+    (pp/pprint {:todays-cutie    (map get-cuties-name (:todays-cutie    new-values))
+                :unseen-cuties   (map get-cuties-name (:unseen-cuties   new-values))
+                :selected-cuties (map get-cuties-name (:selected-cuties new-values))
+                :rejected-cuties (map get-cuties-name (:rejected-cuties new-values))})
     (pp/pprint "=====================================")
 
     (airtable/update-in-base airtable-base
                              ["bios-devons-test-2" (:id profile)]
-                             {:fields {:unseen-cuties (:unseen-cuties new-values)
-                                       :todays-cutie  (:todays-cutie  new-values)}}) ; don't need to send :selected-cuties or :rejected-cuties to AirTable, since they don't change
+                             {:fields new-values})
 
     ;; (let [email-config {:to      "avery.sara.james@gmail.com"
     ;;                          ;; :to   (:Email profile)

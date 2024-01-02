@@ -1,10 +1,10 @@
 (ns smallworld.screens.meetcute
-  (:require [clojure.string :as str]
-            [reagent.core    :as r]
-            [smallworld.util :as util]
+  (:require [clojure.set :as set]
+            [clojure.string :as str]
             [markdown.core :as md]
             [meetcute.util :as mc.util]
-            [cljs.pprint :as pp]))
+            [reagent.core    :as r]
+            [smallworld.util :as util]))
 
 (defonce debug? (r/atom false))
 (defonce loading-message (r/atom nil))
@@ -553,6 +553,7 @@
                  bios)))
 
 (def reviewed-bios-expanded? (r/atom false))
+
 (defn home-tab []
   (let [included-bios (mc.util/included-bios @profile @bios)]
     (when @profile
@@ -562,41 +563,55 @@
          [:div
           (let [currently-selected-ids (mc.util/get-field @profile "selected-cuties")
                 currently-rejected-ids (mc.util/get-field @profile "rejected-cuties")
+                get-cuties-name #(get-in (find-cutie % included-bios) [(keyword "First name")])
                 reviewed-bios (filter #(let [bio-id (mc.util/get-field % "id")] (or (in? currently-selected-ids bio-id)
                                                                                     (in? currently-rejected-ids bio-id)))
                                       included-bios)
                 todays-cutie-id (first (mc.util/get-field @profile "todays-cutie"))
-                todays-cutie (find-cutie todays-cutie-id included-bios)]
+                todays-cutie (find-cutie todays-cutie-id included-bios)
+                union-of-lists (set/union (set (:unseen-cuties   @profile))
+                                          (set (:todays-cutie    @profile))
+                                          (set (:selected-cuties @profile))
+                                          (set (:rejected-cuties @profile)))]
 
             [:div {:style {:width "95%" :margin "auto"}}
 
              [how-it-works]
 
-             #_[:<>
-                [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                                  ;; [:b "       new-bios: "] (count new-bios) "\n"
-                 [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
-                 [:b "  included-bios: "] (count included-bios) "\n\n"]
+             [:<>
+              ;; [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+              ;;                     ;; [:b "       new-bios: "] (count new-bios) "\n"
+              ;;  [:b "  reviewed-bios: "] (count reviewed-bios) "\n\n"
+              ;;  [:b "  included-bios: "] (count included-bios) "\n\n"]
 
-                [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
-                 "included-bios: " (render-obj (map :id included-bios))]
+              ;; [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
+              ;;  "included-bios: " (render-obj (map :id included-bios))]
 
-                [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px" :line-height "1.4em"}}
-                 (render-obj {:unseen   (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:unseen-cuties @profile))
-                              :today    (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:todays-cutie @profile))
-                              :selected (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:selected-cuties @profile))
-                              :rejected (map #(get-in (find-cutie % included-bios) [(keyword "First name")]) (:rejected-cuties @profile))
+              [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px" :line-height "1.4em"}}
+               (render-obj {:assert {:count-distinct (count union-of-lists)
+                                     :constant-count (if (= (count union-of-lists) 7)                                                "✅" "🔴")
+                                     :unseen-selected-no-overlap (if (empty? (set/intersection (set (:unseen-cuties   @profile))
+                                                                                               (set (:selected-cuties @profile))))   "✅" "🔴")
+                                     :unseen-rejected-no-overlap (if (empty? (set/intersection (set (:unseen-cuties   @profile))
+                                                                                               (set (:rejected-cuties @profile))))   "✅" "🔴")
+                                     :selected-rejected-no-overlap (if (empty? (set/intersection (set (:selected-cuties @profile))
+                                                                                                 (set (:rejected-cuties @profile)))) "✅" "🔴")}
+                            :lists {:unseen   (map get-cuties-name (:unseen-cuties   @profile))
+                                    :today    (map get-cuties-name (:todays-cutie    @profile))
+                                    :selected (map get-cuties-name (:selected-cuties @profile))
+                                    :rejected (map get-cuties-name (:rejected-cuties @profile))
                                             ;;  :unseen   (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:unseen-cuties @profile))
                                             ;;  :today    (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:todays-cutie @profile))
                                             ;;  :selected (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:selected-cuties @profile))
                                             ;;  :rejected (map #(select-keys (find-cutie % included-bios) [(keyword "First name") :id]) (:rejected-cuties @profile))
                                              ;
-                              })
-                 "\n\n"
-                 [:b "todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
-                                                                              :Phone
-                                                                              :id]))]
-                [refresh-todays-cutie-btns]]
+                                    }})
+              ;;  "\n\n"
+              ;;  [:b "todays-cutie: "] (render-obj (select-keys todays-cutie [(keyword "First name")
+              ;;                                                               :Phone
+              ;;                                                               :id]))
+               ]
+              [refresh-todays-cutie-btns]]
 
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
 
