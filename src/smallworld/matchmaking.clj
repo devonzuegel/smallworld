@@ -173,6 +173,7 @@
 (defn refresh-todays-cutie [profile bios]
   (let [computed (compute-todays-cutie profile bios)
         get-cuties-name #(get-in (find-cutie % bios) [(keyword "First name")])
+        new-todays-cutie-profile (find-cutie (first (:todays-cutie (:new computed))) bios)
         new-values (:new computed)]
 
     (pp/pprint "computed: ===========================")
@@ -186,30 +187,26 @@
                              ["bios-devons-test-2" (:id profile)]
                              {:fields new-values})
 
-    ;; (let [email-config {:to      "avery.sara.james@gmail.com"
-    ;;                          ;; :to   (:Email profile)
-    ;;                     :from-name "MeetCute"
-    ;;                     :subject (str "Fresh cutie! 🍊")
-    ;;                     :body    (str "<div style='line-height: 1.6em'>"
-    ;;                                   "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
-    ;;                                   "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
-    ;;                                   "How MeetCute works:"
-    ;;                                   "<ol style='padding-inline-start: 16px'>"
-    ;;                                   "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
-    ;;                                   "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
-    ;;                                   "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
-    ;;                                   "</ol>"
-    ;;                                   "</div>"
-    ;;                                   "</div>")
-    ;;                                         ;
-    ;;                     }]
+    (let [email-config {:to      "avery.sara.james@gmail.com"
+                             ;; :to   (:Email profile)
+                        :from-name "MeetCute"
+                        :subject (str "Fresh cutie! 🍊")
+                        :body    (str "<div style='line-height: 1.6em'>"
+                                      "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
+                                      "<div style='background: #aaaaaa33;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
+                                      "How MeetCute works:"
+                                      "<ol style='padding-inline-start: 16px'>"
+                                      "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
+                                      "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
+                                      "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
+                                      "</ol>"
+                                      "</div>"
+                                      "</div>")}]
 
-    ;;   (println "preparing to send email....... ======================")
-    ;;   (pp/pprint email-config)
-    ;;   (println)
-    ;;   (email/send-email email-config)
-      ;
-    ))
+      (println "preparing to send email with the following config: ===========================================")
+      (pp/pprint email-config)
+      (email/send-email email-config)
+      (println "=============================================================================================="))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -265,7 +262,7 @@
           {:todays-cutie [1]  :unseen-cuties [2 3]      :selected-cuties [1]  :rejected-cuties []  :all-cuties [1 2 3 4 5]})
          {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []})))
 
-(clojure.test/run-tests)
+;; (clojure.test/run-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
