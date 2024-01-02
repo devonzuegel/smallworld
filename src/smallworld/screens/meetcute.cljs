@@ -486,7 +486,14 @@
                                             (mc.util/get-field bio "Pictures")))]]])
 
 (defn how-it-works []
-  [:div {:style {:margin-top "24px" :font-style "italic" :background "#aaaaaa33" :border-radius "8px" :padding "16px 16px 16px 8px"}}
+  [:div {:style {:margin-top "24px"
+                 :font-style "italic"
+                 :background "rgba(170, 170, 170, 0.15)"
+                 :color "#777"
+                 :border-radius "8px"
+                 :padding "16px 16px 16px 8px"
+                 :font-size "0.9em"
+                 :line-height "1.4em"}}
    [:p {:style {:padding "2px 16px"}} "How MeetCute works:"]
    [:ul {:padding "0 16px"}
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "Every day, we'll send you an email with one new person"]
@@ -579,9 +586,6 @@
                 ]
 
             [:div {:style {:width "95%" :margin "auto"}}
-
-             [how-it-works]
-
              #_[:<>
               ;; [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
               ;;                     ;; [:b "       new-bios: "] (count new-bios) "\n"
@@ -617,18 +621,22 @@
                  ]
                 [refresh-todays-cutie-btns]]
 
+
+             [how-it-works]
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
+             [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
+
+             (if (in? currently-selected-ids todays-cutie-id)
+               [:p {:style {:padding "6px 16px"}} "You've selected this person! We'll let you know if they select you too :)"]
+               (if (in? currently-rejected-ids todays-cutie-id)
+                 [:p {:style {:padding "6px 16px"}} "Sounds like this cutie is not your main squeeze. No worries, we'll send you another cutie soon!"]
+                 [:p {:style {:padding "6px 16px"}} "Are you interested to meet this cutie?"]))
+
 
              (if (nil? todays-cutie)
                [:p {:style {:padding "6px 16px"}} "No profiles to review right now. We'll email you with more people to meet soon!"]
 
-               [:<>
-                (if (in? currently-selected-ids todays-cutie-id)
-                  [:p {:style {:padding "6px 16px"}} "You've selected this person! We'll let you know if they select you too :)"]
-                  (if (in? currently-rejected-ids todays-cutie-id)
-                    [:p {:style {:padding "6px 16px"}} "Sounds like this cutie is not your main squeeze. No worries, we'll send you another cutie soon!"]
-                    [:p {:style {:padding "6px 16px"}} "Are you interested to meet this cutie?"]))
-                (profile-with-buttons 0 todays-cutie)])
+               (profile-with-buttons 0 todays-cutie))
 
              #_(if (= 0 (count new-bios))
                  [:<>
