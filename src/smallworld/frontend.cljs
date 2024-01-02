@@ -88,9 +88,15 @@
   (.replace (.-location js/window) path))
 
 (defn current-page [] ; TODO: handle logged out state
-  ;; (js/console.log "@match:" @match)
+
   (if (= :loading @session/*store)
-    (decorations/loading-screen)
+
+    ; TODO: this is really hacky, but at some point we'll separate smallworld and meetcute
+    (if (some? (re-find #"meetcute" (.-pathname (.-location js/window))))
+      [meetcute/loading-page] ; TODO: meetcute doesn't even need the @session/*store, so we simply not even wait for it to load in the future; but for now, we'll just use the loading screen rather than ripping out the session stuff
+      (decorations/loading-screen) ; smallworld
+      )
+
     (if (nil? @match)
       not-found-404-page
       (let [view (:view (:data @match))]
