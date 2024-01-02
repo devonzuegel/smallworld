@@ -196,8 +196,8 @@
         (println "no new cutie for " my-first-name " [" my-airtable-id "]"))
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
             email-config {:new-todays-cutie-profile new-todays-cutie-profile
-                          :to      "avery.sara.james@gmail.com"
-                          ;; :to  (:Email profile)
+                          ;; :to  "avery.sara.james@gmail.com"
+                          :to  (:Email profile)
                           :from-name "MeetCute"
                           :subject (str "Fresh cutie! 🍊")
                           :body    (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
