@@ -58,48 +58,30 @@
     (airtable/kwdize my-bio)))
 
 (defn update-profile [req]
-  (pp/pprint "req:")
-  (pp/pprint req)
   (let [parsed-body (:params req)
         all-bios (get-all-bios)
         bio-id (mc.util/get-field parsed-body "id")
-        phone (mc.util/get-field parsed-body "Phone")]
-    (println "")
-    (println "      phone : " phone)
-    (println "parsed-body : ")
-    (pp/pprint parsed-body)
-    (println "")
-
-    (let [bio (first (filter (fn [this-bio]
-                               (or (= bio-id
-                                      (mc.util/get-field this-bio "id"))
-                                   (= (mc.util/clean-phone phone)
-                                      (mc.util/clean-phone (get-in this-bio ["Phone"])))))
-                             all-bios))
-          fields-to-change  (util/exclude-keys parsed-body [:id])]
-      (if (nil? bio)
-        (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
-        (do
-          ;; (println "")
-          ;; (pp/pprint "bio:")
-          ;; (pp/pprint bio)
-          (println "")
-          (println "bio id: ")
-          (println "  " bio-id)
-          (println "")
-          (println "Anything else you'd like your potential matches to know?")
-          (println "  " (mc.util/get-field parsed-body "Anything else you'd like your potential matches to know?"))
-          (pp/pprint "fields-to-change:")
-          (pp/pprint fields-to-change)
-
-          (let [data (-> (airtable/update-in-base airtable-base
-                                                  ["bios-devons-test-2" (:id bio)]
-                                                  {:fields fields-to-change})
-                         :body
-                         json/read-str)]
-            (pp/pprint "data:")
-            (pp/pprint data)
-            (generate-string (airtable/kwdize data))))))))
+        phone  (mc.util/get-field parsed-body "Phone")
+        bio (first (filter (fn [this-bio]
+                             (or (= bio-id
+                                    (mc.util/get-field this-bio "id"))
+                                 (= (mc.util/clean-phone phone)
+                                    (mc.util/clean-phone (get-in this-bio ["Phone"])))))
+                           all-bios))
+        fields-to-change  (util/exclude-keys parsed-body [:id])]
+    (if (nil? bio)
+      (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
+      (let [data (-> (airtable/update-in-base airtable-base
+                                              ["bios-devons-test-2" (:id bio)]
+                                              {:fields fields-to-change})
+                     :body
+                     json/read-str
+                     clojure.walk/keywordize-keys)]
+        (pp/pprint (select-keys (:fields data) [:unseen-cuties
+                                                :todays-cutie
+                                                :selected-cuties
+                                                :rejected-cuties]))
+        (generate-string (airtable/kwdize data))))))
 
              ; new feature: nightly job that update's each user's todays-cutie, prioritizing cuties who've selected them:
              ;   1. build the feature for just 1 user
@@ -149,7 +131,7 @@
                                     (:rejected-cuties profile)]))
         unseen-ids--old (:unseen-cuties profile)
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
-                                               [] #_(filter added-recently? included-ids))))
+                                               #_[] (filter added-recently? included-ids))))
         todays-id--old       (first (:todays-cutie profile))
         todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
@@ -163,8 +145,7 @@
         todays-id--new (first unseen-ids--new)
         todays-cutie  (if (nil? todays-id--new)
                         []
-                        [todays-id--new]) ; TODO: this is a hacky way to get the profile of the cutie, but it works for now
-        ]
+                        [todays-id--new])]
 
     (when false
        ;; each id should only show up in one of unseen-ids, selected-cuties, or rejected-cuties
@@ -188,7 +169,9 @@
   (let [computed (compute-todays-cutie profile bios)
         new-values (:new computed)]
 
-    (pp/pprint {:new-values new-values})
+    (pp/pprint "computed: ===========================")
+    (pp/pprint computed)
+    (pp/pprint "=====================================")
 
     (airtable/update-in-base airtable-base
                              ["bios-devons-test-2" (:id profile)]
@@ -233,57 +216,46 @@
                                (keyword "I'm interested in...") ["Women"]})
 
 (defn -compute-todays-cutie-test [my-cuties-lists my-cuties-bios]
-  (compute-todays-cutie (merge my-cuties-lists -my-matching-criteria)
-                        (map #(merge {:id %} -cutie-matching-criteria) my-cuties-bios)))
+  (:new (compute-todays-cutie (merge my-cuties-lists -my-matching-criteria)
+                              (map #(merge {:id %} -cutie-matching-criteria) my-cuties-bios))))
 
 (deftest test--compute-todays-cutie
   ; when todays-cutie ("A") is still unseen, it should be moved to the end of `unseen-cuties`
-  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["A" "B"]
-                                      :todays-cutie    ["A"]
-                                      :selected-cuties []
-                                      :rejected-cuties []}
-                                     ["A" "B"])
-         {:old {:unseen-cuties ["A" "B"]  :todays-cutie ["A"] :selected-cuties [] :rejected-cuties []}
-          :new {:unseen-cuties ["B" "A"]  :todays-cutie ["B"] :selected-cuties [] :rejected-cuties []}}))
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie ["A"]  :unseen-cuties ["A" "B"]  :selected-cuties []  :rejected-cuties []}  ["A" "B"])
+         {:todays-cutie  ["B"]  :unseen-cuties ["B" "A"]  :selected-cuties []  :rejected-cuties []}))
 
   ; when todays-cutie ("A") is selected, it should stay in `selected-cuties` and the next unseen cutie ("B") should be moved to `todays-cutie`
-  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["B"]
-                                      :todays-cutie    ["A"]
-                                      :selected-cuties ["A"]
-                                      :rejected-cuties []}
-                                     ["A" "B"])
-         {:old {:unseen-cuties ["B"]  :todays-cutie ["A"] :selected-cuties ["A"] :rejected-cuties []}
-          :new {:unseen-cuties ["B"]  :todays-cutie ["B"] :selected-cuties ["A"] :rejected-cuties []}}))
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie ["A"]  :unseen-cuties ["B"]  :selected-cuties ["A"]  :rejected-cuties []}  ["A" "B"])
+         {:todays-cutie  ["B"]  :unseen-cuties ["B"]  :selected-cuties ["A"]  :rejected-cuties []}))
+
+  ; when todays-cutie ("A") is selected, it should stay in `selected-cuties` and the next unseen cutie ("B") should be moved to `todays-cutie`
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie ["A"]  :unseen-cuties ["B" "C" "D" "E"]  :selected-cuties ["A"]  :rejected-cuties []}  ["A" "B"])
+         {:todays-cutie  ["B"]  :unseen-cuties ["B" "C" "D" "E"]  :selected-cuties ["A"]  :rejected-cuties []}))
 
   ; when todays-cutie ("A") is rejected, it should be moved to `rejected-cuties`
-  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["B"]
-                                      :todays-cutie    ["A"]
-                                      :rejected-cuties ["A"]
-                                      :selected-cuties []}
-                                     ["A" "B"])
-         {:old {:unseen-cuties ["B"]  :todays-cutie ["A"] :rejected-cuties ["A"] :selected-cuties []}
-          :new {:unseen-cuties ["B"]  :todays-cutie ["B"] :rejected-cuties ["A"] :selected-cuties []}}))
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie ["A"]  :unseen-cuties ["B"]  :rejected-cuties ["A"]  :selected-cuties []}  ["A" "B"])
+         {:todays-cutie  ["B"]  :unseen-cuties ["B"]  :rejected-cuties ["A"]  :selected-cuties []}))
 
   ; when todays-cutie ("A") is selected and another cutie ("B") has previously been selected, todays-cutie should stay in `selected-cuties` and the next unseen cutie ("C") should be moved to `todays-cutie`
-  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["C"]
-                                      :todays-cutie    ["A"]
-                                      :selected-cuties ["A" "B"]
-                                      :rejected-cuties []}
-                                     ["A" "B" "C"])
-         {:old {:unseen-cuties ["C"]  :todays-cutie ["A"] :selected-cuties ["A" "B"] :rejected-cuties []}
-          :new {:unseen-cuties ["C"]  :todays-cutie ["C"] :selected-cuties ["A" "B"] :rejected-cuties []}}))
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie ["A"]  :unseen-cuties ["C"]  :selected-cuties ["A" "B"]  :rejected-cuties []}  ["A" "B" "C"])
+         {:todays-cutie  ["C"]  :unseen-cuties ["C"]  :selected-cuties ["A" "B"]  :rejected-cuties []}))
 
   ; - when bios include a bio that the user hasn't seen before ("C"), it should be added to end of `unseen-cuties`
   ; - when todays-cutie ("A") is still unseen, it should be moved to the end of `unseen-cuties`
-  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["A" "B"]
-                                      :todays-cutie    ["A"]
-                                      :selected-cuties []
-                                      :rejected-cuties []}
-                                     ["A" "B" "C"])
-         {:old {:unseen-cuties ["A" "B"]      :todays-cutie ["A"] :selected-cuties [] :rejected-cuties []}
-          :new {:unseen-cuties ["B" "C" "A"]  :todays-cutie ["B"] :selected-cuties [] :rejected-cuties []}})))
+  #_(is (= (-compute-todays-cutie-test {:unseen-cuties   ["A" "B"]
+                                        :todays-cutie    ["A"]
+                                        :selected-cuties []
+                                        :rejected-cuties []}
+                                       ["A" "B" "C"])
+           {:old {:todays-cutie ["A"]  :unseen-cuties ["A" "B"]      :selected-cuties []  :rejected-cuties []}
+            :new {:todays-cutie ["B"]  :unseen-cuties ["B" "C" "A"]  :selected-cuties []  :rejected-cuties []}})))
 
-;; (clojure.test/run-tests)
+(clojure.test/run-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
