@@ -711,12 +711,11 @@
              :style {:float "right"}}]]
    [:br]])
 
-;; TODO: better loading page
 (defn loading-page [loading-message]
   [:div.loading-container
    [:div#loading-spinner.spinner {:style {:display "block"}}]
    (when loading-message
-     [:p {:style {:margin-top "24px" :max-width "300px" :text-align "center"}}
+     [:p {:style {:margin-top "24px" :max-width "200px" :text-align "center"}}
       loading-message])])
 
 (defn error-screen [error]
