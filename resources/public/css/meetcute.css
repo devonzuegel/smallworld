@@ -9,6 +9,8 @@
 html {
   color: #2b2017;
   background: #fcfcfc;
+  background: #2b2017;
+  color: #ccc;
   font-family: 'Roboto Mono', monospace;
 }
 button,
