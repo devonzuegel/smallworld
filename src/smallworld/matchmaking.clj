@@ -149,7 +149,7 @@
                                     (:rejected-cuties profile)]))
         unseen-ids--old (:unseen-cuties profile)
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
-                                               (filter added-recently? included-ids))))
+                                               [] #_(filter added-recently? included-ids))))
         todays-id--old       (first (:todays-cutie profile))
         todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
@@ -160,7 +160,11 @@
                            (move-to-end todays-id--old unseen-ids--tmp)
                            (filter #(not= todays-id--old %) unseen-ids--tmp))
 
-        todays-id--new (first unseen-ids--new)]
+        todays-id--new (first unseen-ids--new)
+        todays-cutie  (if (nil? todays-id--new)
+                        []
+                        [todays-id--new]) ; TODO: this is a hacky way to get the profile of the cutie, but it works for now
+        ]
 
     (when false
        ;; each id should only show up in one of unseen-ids, selected-cuties, or rejected-cuties
@@ -177,12 +181,14 @@
       (assert (every? (fn [x] (not (some (fn [y] (= x y)) rejected-ids))) unseen-ids--new)
               "Assertion failed: Some elements in 'unseen-ids--new' are also present in 'rejected-ids'"))
 
-    {:old {:unseen-cuties unseen-ids--old  :todays-cutie [todays-id--old]  :selected-cuties selected-ids  :rejected-cuties rejected-ids}
-     :new {:unseen-cuties unseen-ids--new  :todays-cutie [todays-id--new]  :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
+    {:old {:unseen-cuties unseen-ids--old  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}
+     :new {:unseen-cuties unseen-ids--new  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
 
 (defn refresh-todays-cutie [profile bios]
   (let [computed (compute-todays-cutie profile bios)
         new-values (:new computed)]
+
+    (pp/pprint {:new-values new-values})
 
     (airtable/update-in-base airtable-base
                              ["bios-devons-test-2" (:id profile)]
