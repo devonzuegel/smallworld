@@ -3,6 +3,7 @@
             [clojure.walk         :refer [keywordize-keys]]
             [clojure.core.memoize :as memoize]
             [clojure.data.json    :as json]
+            [clojure.test         :refer [deftest is]]
             [clojure.pprint       :as pp]
             [clojure.set          :as set]
             [smallworld.email     :as email]
@@ -100,16 +101,16 @@
             (pp/pprint data)
             (generate-string (airtable/kwdize data))))))))
 
-; new feature: nightly job that update's each user's todays-cutie, prioritizing cuties who've selected them:
-;   1. build the feature for just 1 user
-;      - pull `todays-cutie` + the lists of `unseen-cuties`, `selected-cuties`, and `rejected-cuties` from the user's profile in AirTable
-;      - if `todays-cutie` hasn't been selected yet, then put them at the *end* of the `unseen-cuties` list (TODO: check if sorting is possible/trustworthy in AirTable)
-;          - note: the old `todays-cutie` will always be in one of the lists, so we don't need to change which list it's in, we just need to change the sort order so that they aren't shown again until everyone else has been shown
-;      - take the first cutie from the `unseen-cuties` list and set them as `todays-cutie`
-;   2. iterate through all users
-;   3. make it a nightly job to update the cuties
-;   4. send a daily email to each user with their todays-cutie
-;   5. add a button for admin to force update todays-cutie for a single user, including sending the email
+             ; new feature: nightly job that update's each user's todays-cutie, prioritizing cuties who've selected them:
+             ;   1. build the feature for just 1 user
+             ;      - pull `todays-cutie` + the lists of `unseen-cuties`, `selected-cuties`, and `rejected-cuties` from the user's profile in AirTable
+             ;      - if `todays-cutie` hasn't been selected yet, then put them at the *end* of the `unseen-cuties` list (TODO: check if sorting is possible/trustworthy in AirTable)
+             ;          - note: the old `todays-cutie` will always be in one of the lists, so we don't need to change which list it's in, we just need to change the sort order so that they aren't shown again until everyone else has been shown
+             ;      - take the first cutie from the `unseen-cuties` list and set them as `todays-cutie`
+             ;   2. iterate through all users
+             ;   3. make it a nightly job to update the cuties
+             ;   4. send a daily email to each user with their todays-cutie
+             ;   5. add a button for admin to force update todays-cutie for a single user, including sending the email
 
 #_(defn html-response [hiccup-body] ; TODO: duplcate in auth.clj, move to util.clj
     {:status 200
@@ -136,93 +137,148 @@
 (defn first-name-bold [cutie]
   (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
 
-(defn refresh-todays-cutie [profile bios]
+
+(defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
-        unseen-ids      (:unseen-cuties profile)
-        todays-cutie-id (first (:todays-cutie profile))
-        todays-cutie-unseen? (some #(= todays-cutie-id %) unseen-ids)]
+        included-ids     (map :id included-bios)
+        added-recently?  (fn [id] ; returns true if the id is not in any of the lists, implying that it was added since those lists were last updated
+                           (every? (fn [list] (not (some #(= id %) list)))
+                                   [(:unseen-cuties profile)
+                                    (:selected-cuties profile)
+                                    (:rejected-cuties profile)]))
+        unseen-ids--old (:unseen-cuties profile)
+        unseen-ids--tmp (vec (distinct (concat unseen-ids--old
+                                               (filter added-recently? included-ids))))
+        todays-id--old       (first (:todays-cutie profile))
+        todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
-    ; if todays-cutie-id is still in unseen-ids, then move it to the end of the list:
-    (when todays-cutie-unseen?
-      (println "todays-cutie-id is still in unseen-ids (i.e. the user didn't respond), so moving it to the end of the list..."))
+        selected-ids (:selected-cuties profile) ; selected-ids don't change, so no need for -old & -new
+        rejected-ids (:rejected-cuties profile) ; rejected-ids don't change, so no need for -old & -new
 
-    (let [included-ids        (map :id included-bios)
-          fresh-unseen-ids    (filter #(not-any? (set (concat (:selected-cuties profile)
-                                                              (:rejected-cuties profile)
-                                                              (:unseen-cuties   profile))) %)
-                                      included-ids)
-          todays-cutie-in-selected-or-rejected? (some #(= todays-cutie-id %) (concat (:selected-cuties profile)
-                                                                                     (:rejected-cuties profile)))
-          unseen-ids-combined (vec (distinct (concat unseen-ids fresh-unseen-ids)))
-          unseen-ids-updated  (if todays-cutie-in-selected-or-rejected? ; if todays-cutie was selected or rejected, then they are no longer unseen
-                                (filter #(not= todays-cutie-id %) unseen-ids-combined)
-                                (move-to-end todays-cutie-id unseen-ids-combined))
-          new-todays-cutie-id (first unseen-ids-updated)
-          new-todays-cutie-profile (first (filter #(= (:id %) new-todays-cutie-id) included-bios))
-          new-values          {:unseen-cuties unseen-ids-updated
-                               :todays-cutie  [new-todays-cutie-id]}]
+        unseen-ids--new  (if todays-cutie-still-unseen? ; if todays-cutie was is still unseen, then move it to the end of the list so it isn't shown again until everyone else has been shown
+                           (move-to-end todays-id--old unseen-ids--tmp)
+                           (filter #(not= todays-id--old %) unseen-ids--tmp))
 
-      (println (count fresh-unseen-ids) "fresh-unseen-ids added to unseen-ids")
+        todays-id--new (first unseen-ids--new)]
 
-      (when (= unseen-ids-updated [])                 ; TODO: handle this case more gracefully
-        (println "🟡 there are 0 unseen cuties! we should not send the user an email today, since there are no cuties to show them!"))
+    ;; each id should only show up in one of unseen-ids, selected-cuties, or rejected-cuties
+    (assert (= (count (set (concat unseen-ids--new selected-ids rejected-ids)))
+               (+ (count unseen-ids--new)
+                  (count selected-ids)
+                  (count rejected-ids))))
 
-      (when (= unseen-ids-updated [todays-cutie-id])  ; TODO: handle this case more gracefully
-        (println "🟡 todays-cutie was the only unseen-cutie, so we should not send the user emails every day, since it'll be the same cutie every day!"))
+    ;; unseen-ids--new does not include any ids from selected-ids
+    (assert (every? (fn [x] (not (some (fn [y] (= x y)) selected-ids))) unseen-ids--new)
+            "Assertion failed: Some elements in 'unseen-ids--new' are also present in 'selected-ids'")
 
-      (println "included-bios:" (count included-bios))
+    ;; unseen-ids--new does not include any ids from selected-ids or rejected-ids
+    (assert (every? (fn [x] (not (some (fn [y] (= x y)) rejected-ids))) unseen-ids--new)
+            "Assertion failed: Some elements in 'unseen-ids--new' are also present in 'rejected-ids'")
 
-      (pp/pprint {:id (:id profile)
-                  :old {:unseen-cuties unseen-ids
-                        :todays-cutie  todays-cutie-id}
-                  :fresh-unseen-ids    fresh-unseen-ids ; this will often be zero, especially when we don't have many signups
-                  :new new-values})
+    {:old {:unseen-cuties unseen-ids--old  :todays-cutie [todays-id--old]  :selected-cuties selected-ids  :rejected-cuties rejected-ids}
+     :new {:unseen-cuties unseen-ids--new  :todays-cutie [todays-id--new]  :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
 
-      (airtable/update-in-base airtable-base
-                               ["bios-devons-test-2" (:id profile)]
-                               {:fields new-values})
+(defn refresh-todays-cutie [profile bios]
+  (let [computed (compute-todays-cutie profile bios)
+        new-todays-cutie-profile (:new (:diff computed))
+        new-values (:new computed)]
 
-      (let [email-config {:to      "avery.sara.james@gmail.com"
-                           ;; :to   (:Email profile)
-                          :from-name "MeetCute"
-                          :subject (str "Fresh cutie! 🍊")
-                          :body    (str "<div style='line-height: 1.6em'>"
-                                        "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
-                                        "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
-                                        "How MeetCute works:"
-                                        "<ol style='padding-inline-start: 16px'>"
-                                        "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
-                                        "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
-                                        "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
-                                        "</ol>"
-                                        "</div>"
-                                        "</div>")
-                                          ;
-                          }]
+    (airtable/update-in-base airtable-base
+                             ["bios-devons-test-2" (:id profile)]
+                             {:fields new-values})
 
-        (println "preparing to send email....... ======================")
-        (pp/pprint email-config)
-        (println)
-        (email/send-email email-config))
+    ;; (let [email-config {:to      "avery.sara.james@gmail.com"
+    ;;                          ;; :to   (:Email profile)
+    ;;                     :from-name "MeetCute"
+    ;;                     :subject (str "Fresh cutie! 🍊")
+    ;;                     :body    (str "<div style='line-height: 1.6em'>"
+    ;;                                   "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
+    ;;                                   "<div style='background: #eee;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
+    ;;                                   "How MeetCute works:"
+    ;;                                   "<ol style='padding-inline-start: 16px'>"
+    ;;                                   "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
+    ;;                                   "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
+    ;;                                   "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
+    ;;                                   "</ol>"
+    ;;                                   "</div>"
+    ;;                                   "</div>")
+    ;;                                         ;
+    ;;                     }]
+
+    ;;   (println "preparing to send email....... ======================")
+    ;;   (pp/pprint email-config)
+    ;;   (println)
+    ;;   (email/send-email email-config)
       ;
-      )))
+    ))
 
-(defn refresh-todays-cutie-TEST []
-  (let [-my-profile {:id                              "me"
-                     :Gender                          "Woman"
-                     :unseen-cuties                   ["A" "B"]
-                     :todays-cutie                    ["A"]
-                     :selected-cuties                 []
-                     :rejected-cuties                 []
-                     (keyword "I'm interested in...") ["Men"]}
-        -matching-criteria {:Gender                          "Man"
-                            (keyword "I'm interested in...") ["Women"]
-                            (keyword "Include in gallery?")  "include in gallery"}
-        -bios [(merge {:id "A"} -matching-criteria)
-               (merge {:id "B"} -matching-criteria)
-               (merge {:id "C"} -matching-criteria)]]
-    (refresh-todays-cutie -my-profile -bios)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; for testing purposes:
+
+(def -my-matching-criteria {:id                              "me"
+                            :Gender                          "Woman"
+                            (keyword "I'm interested in...") ["Men"]})
+
+(def -cutie-matching-criteria {(keyword "Gender")               "Man"
+                               (keyword "Include in gallery?")  "include in gallery"
+                               (keyword "I'm interested in...") ["Women"]})
+
+(defn -compute-todays-cutie-test [my-cuties-lists my-cuties-bios]
+  (compute-todays-cutie (merge my-cuties-lists -my-matching-criteria)
+                        (map #(merge {:id %} -cutie-matching-criteria) my-cuties-bios)))
+
+(deftest test--compute-todays-cutie
+  ; when todays-cutie ("A") is still unseen, it should be moved to the end of `unseen-cuties`
+  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["A" "B"]
+                                      :todays-cutie    ["A"]
+                                      :selected-cuties []
+                                      :rejected-cuties []}
+                                     ["A" "B"])
+         {:old {:unseen-cuties ["A" "B"]  :todays-cutie ["A"] :selected-cuties [] :rejected-cuties []}
+          :new {:unseen-cuties ["B" "A"]  :todays-cutie ["B"] :selected-cuties [] :rejected-cuties []}}))
+
+  ; when todays-cutie ("A") is selected, it should stay in `selected-cuties` and the next unseen cutie ("B") should be moved to `todays-cutie`
+  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["B"]
+                                      :todays-cutie    ["A"]
+                                      :selected-cuties ["A"]
+                                      :rejected-cuties []}
+                                     ["A" "B"])
+         {:old {:unseen-cuties ["B"]  :todays-cutie ["A"] :selected-cuties ["A"] :rejected-cuties []}
+          :new {:unseen-cuties ["B"]  :todays-cutie ["B"] :selected-cuties ["A"] :rejected-cuties []}}))
+
+  ; when todays-cutie ("A") is rejected, it should be moved to `rejected-cuties`
+  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["B"]
+                                      :todays-cutie    ["A"]
+                                      :rejected-cuties ["A"]
+                                      :selected-cuties []}
+                                     ["A" "B"])
+         {:old {:unseen-cuties ["B"]  :todays-cutie ["A"] :rejected-cuties ["A"] :selected-cuties []}
+          :new {:unseen-cuties ["B"]  :todays-cutie ["B"] :rejected-cuties ["A"] :selected-cuties []}}))
+
+  ; when todays-cutie ("A") is selected and another cutie ("B") has previously been selected, todays-cutie should stay in `selected-cuties` and the next unseen cutie ("C") should be moved to `todays-cutie`
+  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["C"]
+                                      :todays-cutie    ["A"]
+                                      :selected-cuties ["A" "B"]
+                                      :rejected-cuties []}
+                                     ["A" "B" "C"])
+         {:old {:unseen-cuties ["C"]  :todays-cutie ["A"] :selected-cuties ["A" "B"] :rejected-cuties []}
+          :new {:unseen-cuties ["C"]  :todays-cutie ["C"] :selected-cuties ["A" "B"] :rejected-cuties []}}))
+
+  ; - when bios include a bio that the user hasn't seen before ("C"), it should be added to end of `unseen-cuties`
+  ; - when todays-cutie ("A") is still unseen, it should be moved to the end of `unseen-cuties`
+  (is (= (-compute-todays-cutie-test {:unseen-cuties   ["A" "B"]
+                                      :todays-cutie    ["A"]
+                                      :selected-cuties []
+                                      :rejected-cuties []}
+                                     ["A" "B" "C"])
+         {:old {:unseen-cuties ["A" "B"]      :todays-cutie ["A"] :selected-cuties [] :rejected-cuties []}
+          :new {:unseen-cuties ["B" "C" "A"]  :todays-cutie ["B"] :selected-cuties [] :rejected-cuties []}})))
+
+(clojure.test/run-tests)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
