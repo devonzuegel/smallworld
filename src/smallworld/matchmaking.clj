@@ -171,42 +171,55 @@
                  bios)))
 
 (defn refresh-todays-cutie [profile bios]
-  (let [computed (compute-todays-cutie profile bios)
-        get-cuties-name #(get-in (find-cutie % bios) [(keyword "First name")])
-        new-todays-cutie-profile (find-cutie (first (:todays-cutie (:new computed))) bios)
-        new-values (:new computed)]
+  (let [bios                     (clojure.walk/keywordize-keys bios)
+        profile                  (clojure.walk/keywordize-keys profile)
+        computed                 (compute-todays-cutie profile bios)
+        get-cuties-name         #(get-in (find-cutie % bios) [(keyword "First name")])
+        new-todays-cutie-profile (clojure.walk/keywordize-keys (find-cutie (first (:todays-cutie (:new computed))) bios))
+        new-values               (clojure.walk/keywordize-keys (:new computed))]
 
-    (pp/pprint "computed: ===========================")
-    (pp/pprint {:todays-cutie    (map get-cuties-name (:todays-cutie    new-values))
+    (println "computed: ======================================================================================")
+    (pp/pprint {:profile         (select-keys profile [(keyword "First name")
+                                                       :todays-cutie
+                                                       :unseen-cuties
+                                                       :selected-cuties
+                                                       :rejected-cuties])
+                :todays-cutie    (map get-cuties-name (:todays-cutie    new-values))
                 :unseen-cuties   (map get-cuties-name (:unseen-cuties   new-values))
                 :selected-cuties (map get-cuties-name (:selected-cuties new-values))
                 :rejected-cuties (map get-cuties-name (:rejected-cuties new-values))})
-    (pp/pprint "=====================================")
+    (pp/pprint "==============================================================================================")
 
-    (airtable/update-in-base airtable-base
-                             ["bios-devons-test-2" (:id profile)]
-                             {:fields new-values})
+    (if (empty? (:todays-cutie (:new computed)))
+      (let [my-first-name  (get-in profile [(keyword "First name")])
+            my-airtable-id (get-in profile [(keyword "id")])]
+        (println "no new cutie for " my-first-name " [" my-airtable-id "]"))
+      (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
+            email-config {:new-todays-cutie-profile new-todays-cutie-profile
+                          :to      "avery.sara.james@gmail.com"
+                          ;; :to  (:Email profile)
+                          :from-name "MeetCute"
+                          :subject (str "Fresh cutie! 🍊")
+                          :body    (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
+                                        (if cutie-first-name
+                                          (str "Your cutie of the day is " cutie-first-name "! ")
+                                          (str "Your cutie of the day is ready! "))
+                                        "<br><br>"
+                                        "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>Let us know today!</a>"
+                                        "<div style='border: 3px solid #eee;  color: #888;  padding: 16px 16px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
+                                        "How MeetCute works:"
+                                        "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
+                                        "      <li style='padding-left: 4px !important; margin-left: 4px !important'>We'll send you a daily email with one new person</li>"
+                                        "      <li style='padding-left: 4px !important; margin-left: 4px !important'>You let us know if you're interested in meeting them</li>"
+                                        "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we'll introduce you!</li>"
+                                        "</ol>"
+                                        "</div>"
+                                        "</div>")}]
 
-    (let [email-config {:to      "avery.sara.james@gmail.com"
-                             ;; :to   (:Email profile)
-                        :from-name "MeetCute"
-                        :subject (str "Fresh cutie! 🍊")
-                        :body    (str "<div style='line-height: 1.6em'>"
-                                      "Your cutie of the day is " (first-name-bold new-todays-cutie-profile) "! Would you like to meet them? <a href='https://smallworld.kiwi/meetcute'>Let us know today!</a>"
-                                      "<div style='background: #aaaaaa33;  color: #444;  padding: 16px 16px 8px 16px;  margin: 24px 0;  border-radius: 12px'>"
-                                      "How MeetCute works:"
-                                      "<ol style='padding-inline-start: 16px'>"
-                                      "<li style='padding-left: 8px'>We'll send you a daily email with one new person</li>"
-                                      "<li style='padding-left: 8px'>You let us know if you're interested in meeting them</li>"
-                                      "<li style='padding-left: 8px'>If they're interested too, we'll introduce you!</li>"
-                                      "</ol>"
-                                      "</div>"
-                                      "</div>")}]
-
-      (println "preparing to send email with the following config: ===========================================")
-      (pp/pprint email-config)
-      (email/send-email email-config)
-      (println "=============================================================================================="))))
+        (println "preparing to send email with the following config: ===========================================")
+        (pp/pprint email-config)
+        (email/send-email email-config)
+        (println "==============================================================================================")))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
