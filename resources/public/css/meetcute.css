@@ -72,8 +72,9 @@ li {
 
 .loading-container {
   position: fixed;
-  left: calc(50% - 60px);
-  top: calc(40%);
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .loading-container .spinner {
   width: 120px;
