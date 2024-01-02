@@ -9,7 +9,6 @@
 html {
   color: #2b2017;
   background: #fcfcfc;
-  font-size: 15px;
   font-family: 'Roboto Mono', monospace;
 }
 button,
@@ -58,7 +57,7 @@ input:focus {
 /* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
 body {
   line-height: 1.3em;
-  font-size: 16px;
+  font-size: 14px;
 }
 input,
 select {
