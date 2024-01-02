@@ -132,6 +132,7 @@
                           (if (or (nil? event) (nil? (.-target event)))
                             (println "event: " event)
                             (let [selected-chosen? (.-checked (.-target event))
+                                  old-rejected-cuties (mc.util/get-field @profile "rejected-cuties")
                                   now-selected (if selected-chosen?
 
                                                  (if (in? currently-selected-ids bio-id) ; add to selected-cuties only if it's not already there
@@ -141,9 +142,9 @@
                                                  (remove (fn [v] (= bio-id v)) ; remove from selected-cuties selected-chosen?=false
                                                          (mc.util/get-field @profile "selected-cuties")))
 
-                                  now-rejected (when selected-chosen? ; make sure it's not in rejected-cuties if selected-chosen?=true
-                                                 (remove (fn [v] (= bio-id v))
-                                                         (mc.util/get-field @profile "rejected-cuties")))
+                                  now-rejected (if selected-chosen? ; make sure it's not in rejected-cuties if selected-chosen?=true
+                                                 (remove (fn [v] (= bio-id v)) old-rejected-cuties)
+                                                 old-rejected-cuties)
 
                                   now-unseen (if selected-chosen? ; make sure it's not in unseen-cuties if selected-chosen?=true
 
@@ -154,8 +155,8 @@
                                                  (mc.util/get-field @profile "unseen-cuties")
                                                  (conj (mc.util/get-field @profile "unseen-cuties") bio-id)))]
 
-                              (reset! profile (assoc @profile :selected-cuties now-selected))
                               (reset! profile (assoc @profile :unseen-cuties   now-unseen))
+                              (reset! profile (assoc @profile :selected-cuties now-selected))
                               (reset! profile (assoc @profile :rejected-cuties now-rejected))
 
                               (update-selected-cuties!))))}]
@@ -190,17 +191,19 @@
                           (if (or (nil? event) (nil? (.-target event)))
                             (println "event: " event)
                             (let [rejected-chosen? (.-checked (.-target event))
+                                  old-selected-cuties (mc.util/get-field @profile "selected-cuties")
                                   now-rejected (if rejected-chosen?
+
                                                  (if (in? currently-rejected-ids bio-id) ; add to selected-cuties only if it's not already there
                                                    currently-rejected-ids
                                                    (conj currently-rejected-ids bio-id))
 
-                                                 (remove (fn [v] (= bio-id v)) ; remove from selected-cuties rejected-chosen?=false
-                                                         (mc.util/get-field @profile "selected-cuties")))
-
-                                  now-selected (when rejected-chosen? ; make sure it's not in rejected-cuties if rejected-chosen?=true
-                                                 (remove (fn [v] (= bio-id v))
+                                                 (remove (fn [v] (= bio-id v)) ; remove from rejected-cuties rejected-chosen?=false
                                                          (mc.util/get-field @profile "rejected-cuties")))
+
+                                  now-selected (if rejected-chosen? ; make sure it's not in rejected-cuties if rejected-chosen?=true
+                                                 (remove (fn [v] (= bio-id v)) old-selected-cuties)
+                                                 old-selected-cuties)
 
                                   now-unseen (if rejected-chosen? ; make sure it's not in unseen-cuties if rejected-chosen?=true
 
@@ -211,8 +214,8 @@
                                                  (mc.util/get-field @profile "unseen-cuties")
                                                  (conj (mc.util/get-field @profile "unseen-cuties") bio-id)))]
 
-                              (reset! profile (assoc @profile :selected-cuties now-selected))
                               (reset! profile (assoc @profile :unseen-cuties   now-unseen))
+                              (reset! profile (assoc @profile :selected-cuties now-selected))
                               (reset! profile (assoc @profile :rejected-cuties now-rejected))
 
                               (update-selected-cuties!))))}]
