@@ -215,45 +215,47 @@
                                (keyword "Include in gallery?")  "include in gallery"
                                (keyword "I'm interested in...") ["Women"]})
 
-(defn -compute-todays-cutie-test [my-cuties-lists my-cuties-bios]
+(defn -compute-todays-cutie-test [my-cuties-lists]
   (:new (compute-todays-cutie (merge my-cuties-lists -my-matching-criteria)
-                              (map #(merge {:id %} -cutie-matching-criteria) my-cuties-bios))))
+                              (map #(merge {:id %} -cutie-matching-criteria) ; build a list of cuties with the matching criteria
+                                   (:all-cuties my-cuties-lists)))))
 
 (deftest test--compute-todays-cutie
-  ; when todays-cutie ("A") is still unseen, it should be moved to the end of `unseen-cuties`
+  ; when todays-cutie ("1") is still unseen, it should be moved to the end of `unseen-cuties`
   (is (= (-compute-todays-cutie-test
-          {:todays-cutie ["A"]  :unseen-cuties ["A" "B"]  :selected-cuties []  :rejected-cuties []}  ["A" "B"])
-         {:todays-cutie  ["B"]  :unseen-cuties ["B" "A"]  :selected-cuties []  :rejected-cuties []}))
+          {:todays-cutie [1]  :unseen-cuties [1 2]  :selected-cuties []  :rejected-cuties []       :all-cuties [1 2]})
+         {:todays-cutie  [2]  :unseen-cuties [2 1]  :selected-cuties []  :rejected-cuties []}))
 
-  ; when todays-cutie ("A") is selected, it should stay in `selected-cuties` and the next unseen cutie ("B") should be moved to `todays-cutie`
+  ; when todays-cutie (1) is selected, it should stay in `selected-cuties` and the next unseen cutie (2) should be moved to `todays-cutie`
   (is (= (-compute-todays-cutie-test
-          {:todays-cutie ["A"]  :unseen-cuties ["B"]  :selected-cuties ["A"]  :rejected-cuties []}  ["A" "B"])
-         {:todays-cutie  ["B"]  :unseen-cuties ["B"]  :selected-cuties ["A"]  :rejected-cuties []}))
+          {:todays-cutie [1]  :unseen-cuties [2]  :selected-cuties [1]  :rejected-cuties []        :all-cuties [1 2]})
+         {:todays-cutie  [2]  :unseen-cuties [2]  :selected-cuties [1]  :rejected-cuties []}))
 
-  ; when todays-cutie ("A") is selected, it should stay in `selected-cuties` and the next unseen cutie ("B") should be moved to `todays-cutie`
+  ; when todays-cutie (1) is selected, it should stay in `selected-cuties` and the next unseen cutie (2) should be moved to `todays-cutie`
   (is (= (-compute-todays-cutie-test
-          {:todays-cutie ["A"]  :unseen-cuties ["B" "C" "D" "E"]  :selected-cuties ["A"]  :rejected-cuties []}  ["A" "B"])
-         {:todays-cutie  ["B"]  :unseen-cuties ["B" "C" "D" "E"]  :selected-cuties ["A"]  :rejected-cuties []}))
+          {:todays-cutie [1]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []  :all-cuties [1 2 3 4 5]})
+         {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []}))
 
-  ; when todays-cutie ("A") is rejected, it should be moved to `rejected-cuties`
+  ; when todays-cutie (1) is rejected, it should be moved to `rejected-cuties` and the next unseen cutie (2) should be moved to `todays-cutie`
   (is (= (-compute-todays-cutie-test
-          {:todays-cutie ["A"]  :unseen-cuties ["B"]  :rejected-cuties ["A"]  :selected-cuties []}  ["A" "B"])
-         {:todays-cutie  ["B"]  :unseen-cuties ["B"]  :rejected-cuties ["A"]  :selected-cuties []}))
+          {:todays-cutie [1]  :unseen-cuties [2]  :rejected-cuties [1]  :selected-cuties []        :all-cuties [1 2]})
+         {:todays-cutie  [2]  :unseen-cuties [2]  :rejected-cuties [1]  :selected-cuties []}))
 
-  ; when todays-cutie ("A") is selected and another cutie ("B") has previously been selected, todays-cutie should stay in `selected-cuties` and the next unseen cutie ("C") should be moved to `todays-cutie`
+  ; when todays-cutie (1) is selected and another cutie (2) has previously been selected, todays-cutie should stay in `selected-cuties` and the next unseen cutie (3) should be moved to `todays-cutie`
   (is (= (-compute-todays-cutie-test
-          {:todays-cutie ["A"]  :unseen-cuties ["C"]  :selected-cuties ["A" "B"]  :rejected-cuties []}  ["A" "B" "C"])
-         {:todays-cutie  ["C"]  :unseen-cuties ["C"]  :selected-cuties ["A" "B"]  :rejected-cuties []}))
+          {:todays-cutie [1]  :unseen-cuties [3]  :selected-cuties [1 2]  :rejected-cuties []      :all-cuties [1 2 3]})
+         {:todays-cutie  [3]  :unseen-cuties [3]  :selected-cuties [1 2]  :rejected-cuties []}))
 
-  ; - when bios include a bio that the user hasn't seen before ("C"), it should be added to end of `unseen-cuties`
-  ; - when todays-cutie ("A") is still unseen, it should be moved to the end of `unseen-cuties`
-  #_(is (= (-compute-todays-cutie-test {:unseen-cuties   ["A" "B"]
-                                        :todays-cutie    ["A"]
-                                        :selected-cuties []
-                                        :rejected-cuties []}
-                                       ["A" "B" "C"])
-           {:old {:todays-cutie ["A"]  :unseen-cuties ["A" "B"]      :selected-cuties []  :rejected-cuties []}
-            :new {:todays-cutie ["B"]  :unseen-cuties ["B" "C" "A"]  :selected-cuties []  :rejected-cuties []}})))
+  ; when included-bios include a bio that the user hasn't seen before (3), it should be added to end of `unseen-cuties`;
+  ; when todays-cutie (1) is still unseen, it should be moved to the end of `unseen-cuties`
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie [1]  :unseen-cuties [1 2]    :selected-cuties []  :rejected-cuties []     :all-cuties [1 2 3]})
+         {:todays-cutie  [2]  :unseen-cuties [2 3 1]  :selected-cuties []  :rejected-cuties []}))
+
+  ; when included-bios include multiple bios that the user hasn't seen before (3), it should be added to end of `unseen-cuties`;
+  (is (= (-compute-todays-cutie-test
+          {:todays-cutie [1]  :unseen-cuties [2 3]      :selected-cuties [1]  :rejected-cuties []  :all-cuties [1 2 3 4 5]})
+         {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []})))
 
 (clojure.test/run-tests)
 
