@@ -408,8 +408,8 @@
                                                               {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                       ["Pictures" [:div
-                                   [small-text [:span "Here are the pictures you added when you signed up. If you'd like to add or remove pictures, email "
-                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]
+                                   [small-text [:span "If you'd like to add or remove pictures, email "
+                                                [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] ". (In the future, we'll add a way to do this yourself!)"]]
                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
                                                 (mc.util/get-field @profile "Pictures"))]]]]
       (map-indexed bio-row key-values))]
