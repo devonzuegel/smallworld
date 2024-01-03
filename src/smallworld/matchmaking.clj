@@ -195,26 +195,24 @@
             my-airtable-id (get-in profile [(keyword "id")])]
         (println "no new cutie for " my-first-name " [" my-airtable-id "]"))
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
-            email-config {:new-todays-cutie-profile new-todays-cutie-profile
-                          ;; :to  "avery.sara.james@gmail.com"
-                          :to  (:Email profile)
+            email-config {:to        (:Email profile)
                           :from-name "MeetCute"
-                          :subject (str "Fresh cutie! 🍊")
-                          :body    (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
-                                        (if cutie-first-name
-                                          (str "Your cutie of the day is " cutie-first-name "! ")
-                                          (str "Your cutie of the day is ready! "))
-                                        "<br><br>"
-                                        "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>Let us know today!</a>"
-                                        "<div style='border: 3px solid #eee;  color: #888;  padding: 16px 16px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
-                                        "How MeetCute works:"
-                                        "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
-                                        "      <li style='padding-left: 4px !important; margin-left: 4px !important'>We'll send you a daily email with one new person</li>"
-                                        "      <li style='padding-left: 4px !important; margin-left: 4px !important'>You let us know if you're interested in meeting them</li>"
-                                        "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we'll introduce you!</li>"
-                                        "</ol>"
-                                        "</div>"
-                                        "</div>")}]
+                          :subject   (str "Fresh cutie! 🍊")
+                          :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
+                                          (if cutie-first-name
+                                            (str "Your cutie of the day is " cutie-first-name "! ")
+                                            (str "Your cutie of the day is ready! "))
+                                          "<br><br>"
+                                          "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>Let us know today!</a>"
+                                          "<div style='border: 3px solid #eee;  color: #888;  padding: 16px 16px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
+                                          "How MeetCute works:"
+                                          "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
+                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>We'll send you a daily email with one new person</li>"
+                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>You let us know if you're interested in meeting them</li>"
+                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we'll introduce you!</li>"
+                                          "</ol>"
+                                          "</div>"
+                                          "</div>")}]
 
         (println "preparing to send email with the following config: ===========================================")
         (pp/pprint email-config)

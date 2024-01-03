@@ -45,12 +45,15 @@
 (defn send-email [options]
   (log-event "send-email" options)
 
-  ; only send emails to the dev email in dev mode
-  (let [to-email (:to options)
-        env      (util/get-env-var "ENVIRONMENT")]
-    (println "env: " env)
-    (when (not= env (:prod util/ENVIRONMENTS))
-      (assert (= to-email "avery.sara.james@gmail.com") "💌 should only send email to Avery in dev mode")))
+  (let [old-to-email (:to options)
+        env          (util/get-env-var "ENVIRONMENT")
+        options      (if (= env (:prod util/ENVIRONMENTS))
+                       options
+                       (assoc options :to "avery.sara.james@gmail.com"))]
+
+    (when (and (not= env (:prod util/ENVIRONMENTS))
+               (not= old-to-email "avery.sara.james@gmail.com"))
+      (println "Sending email to" (:to options) "instead of" old-to-email ", because we're not in prod and we don't want to spam our users :)")))
 
   (try (if (:template options)
          (send-with-template options)
