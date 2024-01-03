@@ -628,7 +628,8 @@
              [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
              (if (nil? todays-cutie)
-               [:p {:style {:padding "6px 16px"}} "No profiles to review right now. We'll email you with more people to meet soon!"]
+               [:p {:style {:padding "6px 16px" :text-align "center"}}
+                "No profiles to review right now. We'll email you with more people to meet soon!"]
 
 
                [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
