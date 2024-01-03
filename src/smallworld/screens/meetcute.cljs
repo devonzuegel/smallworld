@@ -641,7 +641,7 @@
 
                 [:div {:style {:flex 1 :display "flex" :align-items "center" :flex-direction "column" :text-align "center"}}
 
-                 [:div {:style {:margin      "32px 0 16px 0"
+                 [:div {:style {:margin      "16px 0 12px 0"
                                 :flex        1
                                 :line-height 1.6
                                 :min-height  "3.4em"
