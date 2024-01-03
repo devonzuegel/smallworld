@@ -135,7 +135,7 @@ li {
 }
 .signin-form-background {
   box-shadow: rgba(137 81 0 / 50%) 0px 5px 25px;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgb(252 252 252 / 98%);
   max-width: 270px;
   margin-left: auto;
   margin-right: auto;
