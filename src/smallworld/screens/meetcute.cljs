@@ -118,11 +118,11 @@
        [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
 
 (defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
-  [:div {:style {:display "flex" :flex-wrap "wrap" :flex-direction "column" :width "100%" :margin-right "8px"}}
-   [:style (str ".select-reject-btn { opacity: .8; }"
-                ".select-reject-btn:hover { opacity: 1; transition: opacity .3ms ease-in }"
+  [:div {:style {:display "flex" :flex-wrap "wrap" :flex-direction "row" #_"column" :width "100%" :margin-right "8px"}}
+   [:style (str ".select-reject-btn { opacity: .9; transition: opacity .3ms ease-in; cursor: pointer !important }"
+                ".select-reject-btn:hover { opacity: 1 }"
                 "@media screen and (min-width: 805px) { .select-reject-btn { min-width: 160px; max-width: 260px; } }")]
-   [:div {:style {:margin "6px"}}
+   [:div {:style {:margin "6px" :cursor "pointer"}}
     [:input {:type "checkbox"
              :id (str bio-id "-select")
              :value bio-id
@@ -162,26 +162,27 @@
                               (update-selected-cuties!))))}]
     [:label {:for (str bio-id "-select")
              :className "select-reject-btn"
-             :style {:padding "20px"
-                     :color "#42b72a"
-                     :font-size "1.1em"
-                     :line-height "1.3em"
-                     :font-weight "600"
-                     :cursor "pointer"
-                     :text-align "center"
-                     :display "block"
-                     :flex-grow 1
+             :style {:padding       "22px 28px"
+                     :background    "rgb(0 157 49)" #_"#42b72a22"
+                     :color         "white" #_"#42b72a"
+                     :font-size     "1.1em"
+                     :line-height   "1.3em"
+                     :font-weight   "600"
+                     :cursor        "pointer !important"
+                     :text-align    "center"
+                     :display       "block"
                      :border-radius "3000px"
-                     :background "#42b72a22"
+                     :flex-grow     1
+                     :border        (if   (in? currently-selected-ids bio-id) "8px solid rgb(0 157 49)" "8px solid white")
+                     :box-shadow    (when (in? currently-selected-ids bio-id) "0 0 0 4px white inset")
                     ;;  :background (if (in? currently-selected-ids bio-id) "#42b72a" "#42b72a22")
-                    ;;  :border "5px solid #42b72a"
-                     :border (if (in? currently-selected-ids bio-id) "5px solid #42b72a" "5px solid #42b72a0d")
+                    ;;  :border "8px solid #42b72a"
                      ;
                      }}
      "I'd like to" [:br]
      "meet this person!"]]
 
-   [:div {:style {:margin "6px"}}
+   [:div {:style {:margin "6px" :cursor "pointer"}}
     [:input {:type "checkbox"
              :id (str bio-id "-reject")
              :value bio-id
@@ -221,20 +222,22 @@
                               (update-selected-cuties!))))}]
     [:label {:for (str bio-id "-reject")
              :className "select-reject-btn"
-             :style {:padding "20px"
-                     :color "#aaaaaa"
-                     :font-size "1.1em"
-                     :line-height "1.3em"
-                     :font-weight "600"
-                     :cursor "pointer"
-                     :text-align "center"
-                     :display "block"
-                     :flex-grow 1
+             :style {:padding       "22px 28px"
+                     :color         "white"
+                     :background    "#aaa"
+                     :font-size     "1.1em"
+                     :line-height   "1.3em"
+                     :font-weight   "600"
+                     :cursor        "pointer !important"
+                     :text-align    "center"
+                     :display       "block"
                      :border-radius "3000px"
-                     :background "#aaaaaa22"
+                     :flex-grow      1
+                     :border        (if   (in? currently-rejected-ids bio-id) "8px solid #aaa" "8px solid white")
+                     :box-shadow    (when (in? currently-rejected-ids bio-id) "0 0 0 4px white inset")
+
                     ;;  :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
-                    ;;  :border "5px solid #aaaaaa"
-                     :border (if (in? currently-rejected-ids bio-id) "5px solid #aaaaaa" "5px solid #aaaaaa0d")
+                    ;;  :border "8px solid #aaaaaa"
                      ;
                      }}
      "Not interested," [:br] "but thanks"]]])
@@ -485,20 +488,38 @@
                                (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "150px" :margin "8px 8px 0 0" :border-radius "4px"}}])
                                             (mc.util/get-field bio "Pictures")))]]])
 
+(def how-it-works-dismissed? (r/atom false))
+
 (defn how-it-works []
-  [:div {:style {:margin-top "24px"
-                 :font-style "italic"
-                 :background "rgba(170, 170, 170, 0.15)"
-                 :color "#777"
+  [:div {:className (when @how-it-works-dismissed? "how-it-works-dismissed")
+         :style {:margin-top    "24px"
+                 :font-style    "italic"
+                 :transition    "opacity 0.2s, visibility 0.2s, max-height 0.2s"
+                 :opacity       1
+                 :background    "rgba(170, 170, 170, 0.15)"
+                 :visibility    "visible"
+                 :color         "#777"
                  :border-radius "8px"
-                 :padding "16px 16px 16px 8px"
-                 :font-size "0.9em"
-                 :line-height "1.4em"}}
+                 :padding       "16px 16px 16px 8px"
+                 :font-size     "0.9em"
+                 :line-height   "1.4em"}}
+
+   [:style ".how-it-works-dismissed { display: none; opacity: 0 !important; visibility: hidden !important; max-height: 0 }"]
+
+   [:div {:style {:float "right"
+                  :cursor "pointer"
+                  :padding "8px"
+                  :font-size "1.2em"}
+          :on-click #(do (js/console.log "clicked dismiss")
+                         (reset! how-it-works-dismissed? true)
+                         (js/event.preventDefault %))}
+    [:i {:className "fas fa-times"}]]
+
    [:p {:style {:padding "2px 16px"}} "How MeetCute works:"]
    [:ul {:padding "0 16px"}
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "Every day, we'll send you an email with one new person"]
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "You let us know if you're interested in meeting them"]
-    [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, we'll introduce you!"]]])
+    [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, Erik or Devon will personally introduce you!"]]])
 
 (defn refresh-todays-cutie-btns []
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "6px 24px"}}
@@ -531,29 +552,6 @@
    ;; TODO list the ids/names of all bios that have both selected each other (i.e. they have each other's ids in their respective selected-cuties list):
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "24px"}}
    "TODO: list-mutual-selections"])
-
-
-(defn profile-with-buttons [i bio]
-
-  [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
-                 :flex-direction "row"
-                 :flex-wrap "wrap"
-                 :width "100%"
-                 :margin "auto"}
-         :key i}
-
-   ; Left column takes all available space
-   [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
-   [:div {:style {:flex 1} :className "profile-column"}
-    [render-profile bio]]
-
-   ; Right column with fixed width
-   [:style "@media screen and (min-width: 805px) { .btns-column { max-width: 250px; } }"]
-   [:div {:style {:flex 1} :className "btns-column"}
-    [select-reject-btns
-     (mc.util/get-field bio "id")
-     (mc.util/get-field @profile "selected-cuties")
-     (mc.util/get-field @profile "rejected-cuties")]]])
 
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
@@ -626,17 +624,42 @@
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
              [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
-             (if (in? currently-selected-ids todays-cutie-id)
-               [:p {:style {:padding "6px 16px"}} "You've selected this person! We'll let you know if they select you too :)"]
-               (if (in? currently-rejected-ids todays-cutie-id)
-                 [:p {:style {:padding "6px 16px"}} "Sounds like this cutie is not your main squeeze. No worries, we'll send you another cutie soon!"]
-                 [:p {:style {:padding "6px 16px"}} "Are you interested to meet this cutie?"]))
-
-
              (if (nil? todays-cutie)
                [:p {:style {:padding "6px 16px"}} "No profiles to review right now. We'll email you with more people to meet soon!"]
 
-               (profile-with-buttons 0 todays-cutie))
+
+               [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
+                              :flex-direction "column" ; "row"
+                              :flex-wrap "wrap"
+                              :width "100%"
+                              :margin "auto"}}
+
+                ; Left column takes all available space
+                [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
+                [:div {:style {:flex 1} :className "profile-column"}
+                 [render-profile todays-cutie]]
+
+                [:div {:style {:flex 1 :display "flex" :align-items "center" :flex-direction "column" :text-align "center"}}
+
+                 [:div {:style {:margin      "32px 0 16px 0"
+                                :flex        1
+                                :line-height 1.6
+                                :min-height  "3.4em"
+                                :align-items "center"
+                                :display     "flex"}}
+                  (if (in? currently-selected-ids todays-cutie-id)
+                    [:p {:style {}} "You've selected this person!" [:br] "We'll let you know if they select you too :)"]
+                    (if (in? currently-rejected-ids todays-cutie-id)
+                      [:p {:style {}} "Sounds like this cutie is not your main squeeze." [:br] "No worries, we'll send you another cutie soon!"]
+                      [:p {:style {}} "So, are you interested in meeting this cutie?"]))]
+
+                 [:div {:style {:flex 1}}
+                  [select-reject-btns
+                   (mc.util/get-field todays-cutie "id")
+                   (mc.util/get-field @profile "selected-cuties")
+                   (mc.util/get-field @profile "rejected-cuties")]]]])
+
+
 
              #_(if (= 0 (count new-bios))
                  [:<>
