@@ -501,7 +501,7 @@
                  :visibility    "visible"
                  :color         "#777"
                  :max-width     "600px"
-                 :margin        "12px auto 0 auto"
+                 :margin        "8px auto 12px auto"
                  :border-radius "8px"
                  :padding       "16px 16px 16px 8px"
                  :font-size     "0.9em"
@@ -624,7 +624,7 @@
 
 
              [how-it-works]
-             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "24px 8px 8px 8px" :text-align "center"}} "Today's cutie"]
+             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "8px" :text-align "center"}} "Today's cutie"]
              [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
              (if (nil? todays-cutie)
