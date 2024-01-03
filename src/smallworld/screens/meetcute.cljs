@@ -118,10 +118,12 @@
        [:div {:style {:flex 1 :padding "12px" :padding-top "6px" :min-width "300px"}} value]]))
 
 (defn select-reject-btns [bio-id currently-selected-ids currently-rejected-ids]
-  [:div {:style {:display "flex" :flex-wrap "wrap" :flex-direction "row" #_"column" :width "100%" :margin-right "8px"}}
+  [:div {:style {:display "flex" :flex-wrap "wrap" :flex-direction "row" #_"column" :width "100%" :margin-right "8px" :justify-content "center"}}
+
    [:style (str ".select-reject-btn { opacity: .9; transition: opacity .3ms ease-in; cursor: pointer !important }"
                 ".select-reject-btn:hover { opacity: 1 }"
                 "@media screen and (min-width: 805px) { .select-reject-btn { min-width: 160px; max-width: 260px; } }")]
+
    [:div {:style {:margin "6px" :cursor "pointer"}}
     [:input {:type "checkbox"
              :id (str bio-id "-select")
@@ -492,13 +494,14 @@
 
 (defn how-it-works []
   [:div {:className (when @how-it-works-dismissed? "how-it-works-dismissed")
-         :style {:margin-top    "24px"
-                 :font-style    "italic"
+         :style {:font-style    "italic"
                  :transition    "opacity 0.2s, visibility 0.2s, max-height 0.2s"
                  :opacity       1
-                 :background    "rgba(170, 170, 170, 0.15)"
+                 :background    "rgba(170, 170, 170, 0.2)"
                  :visibility    "visible"
                  :color         "#777"
+                 :max-width     "600px"
+                 :margin        "12px auto 0 auto"
                  :border-radius "8px"
                  :padding       "16px 16px 16px 8px"
                  :font-size     "0.9em"
@@ -583,7 +586,7 @@
                 ;;                           (set (:rejected-cuties @profile)))
                 ]
 
-            [:div {:style {:width "95%" :margin "auto"}}
+            [:div {:style {:width "95%" :margin "auto" :max-width "900px"}}
              #_[:<>
               ;; [:pre {:style {:background "#ff00ff11" :margin "24px" :padding "24px"}}
               ;;                     ;; [:b "       new-bios: "] (count new-bios) "\n"
@@ -621,7 +624,7 @@
 
 
              [how-it-works]
-             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "32px 16px 16px 16px"}} "Today's cutie:"]
+             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "24px 8px 8px 8px" :text-align "center"}} "Today's cutie"]
              [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
              (if (nil? todays-cutie)
