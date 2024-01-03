@@ -190,6 +190,10 @@
                 :rejected-cuties (map get-cuties-name (:rejected-cuties new-values))})
     (pp/pprint "==============================================================================================")
 
+    (airtable/update-in-base airtable-base
+                             ["bios-devons-test-2" (:id profile)]
+                             {:fields new-values})
+
     (if (empty? (:todays-cutie (:new computed)))
       (let [my-first-name  (get-in profile [(keyword "First name")])
             my-airtable-id (get-in profile [(keyword "id")])]
