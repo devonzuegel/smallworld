@@ -249,72 +249,70 @@
 ;; Sign In
 
 (defn signin-screen [{:keys [phone phone-input-error code-error started?]}]
-  [:form {:method "post" :action (if started?
-                                   "/meetcute/verify"
-                                   "/meetcute/signin")}
-   [:div {:style {:margin-left "auto"
-                  :margin-right "auto"
-                  :width "90%"
-                  :padding-top "48px"
-                  :text-align "center"}}
+  [:div.oranges-wallpaper
+   [:form {:method "post" :action (if started?
+                                    "/meetcute/verify"
+                                    "/meetcute/signin")}
+    [:div.signin-form-background
     ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
-    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "18px"}} "Sign in"]
-    (when (or phone-input-error code-error)
-      [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-       (or phone-input-error code-error)])
-    [:label {:for "phone"}
-     [:p {:style {:font-weight "bold"
-                  :margin "24px 4px 4px 4px"
-                  :text-transform "uppercase"
-                  :font-style "italic"
-                  :color "#bcb5af"
-                  :font-size ".8em"}} "Your phone number:"]]
-    [:input {:id "phone"
-             :name "phone"
-             :value phone
-             :type "hidden"}]
-    [:input {:id "display-phone"
-             :type "tel"
-             :name "display-phone"
-             :value phone
-             :style {:background "#66666620"
-                     :border-radius "8px"
-                     :width "13em"
-                     :padding "6px 8px"
-                     :margin-right "4px"
-                     :padding-left "50px"}}]
-    (if-not started?
-      [:p {:style {:margin-top "8px"
-                   :color "#9e958d"
-                   :font-size ".8em"}}
-       "We will text you a code via SMS"]
-      [:div
-       [:label {:for "code"}
-        [:p {:style {:font-weight "bold"
-                     :margin "24px 4px 4px 4px"
-                     :text-transform "uppercase"
-                     :font-style "italic"
-                     :color "#bcb5af"
-                     :font-size ".8em"}} "SMS code:"]]
-       [:input {:type "text"
-                :autocomplete "one-time-code"
-                :name "code"
-                :style {:background "#66666620"
-                        :border-radius "8px"
-                        :padding "6px 8px"
-                        :margin-right "4px"}}]])
-    [:div {:style {:margin-bottom "12px"}}]
-    [:button {:class "btn primary"
-              :type "submit"}
-     "Sign in"]
-    [:p {:style {:font-size ".8em"
-                 :margin-top "24px"}}
-     "No account yet? " [:a {:href "/meetcute/signup"} "Sign up"]]
+     [:h2 {:style {:font-size "24px" :line-height "1.4em"}} "Sign in"]
+     (when (or phone-input-error code-error)
+       [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+        (or phone-input-error code-error)])
+     [:label {:for "phone"}
+      [:p {:style {:font-weight "bold"
+                   :margin "24px 4px 4px 4px"
+                   :text-transform "uppercase"
+                   :font-style "italic"
+                   :color "#bcb5af"
+                   :font-size ".8em"}} "Your phone number:"]]
+     [:input {:id "phone"
+              :name "phone"
+              :value phone
+              :type "hidden"}]
+     [:input {:id "display-phone"
+              :type "tel"
+              :name "display-phone"
+              :value phone
+              :style {:background "#66666620"
+                      :border-radius "8px"
+                      :width "13em"
+                      :padding "6px 8px"
+                      :margin-right "4px"
+                      :padding-left "50px"}}]
+     (if-not started?
+       [:p {:style {:margin-top "8px"
+                    :color "#9e958d"
+                    :font-size ".8em"}}
+        "We will text you a code via SMS"]
+       [:div
+        [:label {:for "code"}
+         [:p {:style {:font-weight "bold"
+                      :margin "24px 4px 4px 4px"
+                      :text-transform "uppercase"
+                      :font-style "italic"
+                      :color "#bcb5af"
+                      :font-size ".8em"}} "SMS code:"]]
+        [:input {:type "text"
+                 :autocomplete "one-time-code"
+                 :name "code"
+                 :style {:background "#66666620"
+                         :border-radius "8px"
+                         :padding "6px 8px"
+                         :margin-right "4px"}}]])
+     [:div {:style {:margin-bottom "12px"}}]
+     [:button {:class "btn primary"
+               :type "submit"}
+      "Sign in"]
+     [:p {:style {:font-size ".8em"
+                  :margin-top "24px"}}
+      "No account yet? " [:a {:href "/meetcute/signup"} "Sign up"]]
 
-    (when started?
-      [:div {:class "resend" :style {:margin-top "2rem"}}
-       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
-    (embed-js-script (io/resource "public/signin.js"))]])
+     (when started?
+       [:div {:class "resend" :style {:margin-top "2rem"}}
+        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]] ; TODO: have this resend the code, instead of starting over entirely
+        ])
+     (embed-js-script (io/resource "public/signin.js"))]]])
 
 (enlive/deftemplate base-index (io/resource "public/meetcute.html") #_"resources/public/meetcute.html"
   [body]
