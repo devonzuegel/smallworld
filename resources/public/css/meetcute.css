@@ -116,3 +116,31 @@ li {
   overflow-x: hidden;
   font-size: 0.8em;
 }
+.oranges-wallpaper {
+  background-color: #ffe2c0;
+  background-image: url('../oranges-tile-repeat.jpg');
+  background-position: 50% 0;
+  background-size: 420px;
+  height: calc(100vh - 15vh);
+
+  // make children centered vertically on page, but no more than 120px from the top
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 15vh;
+}
+.oranges-wallpaper form {
+  padding-top: 48px;
+}
+.signin-form-background {
+  box-shadow: rgba(137 81 0 / 50%) 0px 5px 25px;
+  background: rgba(255, 255, 255, 0.98);
+  max-width: 270px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 90%;
+  padding: 24px;
+  text-align: center;
+  border-radius: 12px;
+}
