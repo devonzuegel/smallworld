@@ -220,6 +220,7 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
+- [x] rename `matchmaking` to `meetcute` throughout the codebase
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
 - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
 - [ ] matches screen for admin to save Erik a time-consuming manual process
@@ -228,6 +229,5 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] in the email, link directly to the cutie's profile rather than the main page (maybe not necessary...?)
 - [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
-- [ ] rename `matchmaking` to `meetcute` throughout the codebase
 - [ ] verify email addresses with Twilio Verify
 
