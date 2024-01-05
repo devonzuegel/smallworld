@@ -6,12 +6,11 @@
             [reagent.core    :as r]
             [smallworld.util :as util]))
 
-(defonce debug? (r/atom false))
-(def mock-data? true)
+(def mock-data?          true)
+(defonce debug?          (r/atom false))
 (defonce loading-message (r/atom nil))
-(defonce current-tab (r/atom :home))
-(def bios   (r/atom nil))
-(def profile (r/atom nil))
+(def bios                (r/atom nil))
+(def profile             (r/atom nil))
 
 (defn small-text [str & [styles]]
   [:div {:style (merge {:padding-top "4px"
