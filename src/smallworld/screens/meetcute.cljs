@@ -7,6 +7,7 @@
             [smallworld.util :as util]))
 
 (defonce debug? (r/atom false))
+(def mock-data? true)
 (defonce loading-message (r/atom nil))
 (defonce current-tab (r/atom :home))
 (def bios   (r/atom nil))
@@ -269,16 +270,18 @@
 (def profile-error (r/atom nil))
 
 (defn fetch-my-profile! []
-  (util/fetch-post
-   "/meetcute/api/matchmaking/me"
-   {}
-   (fn [result]
-     (if-let [error (:error result)]
-       (reset! profile-error error)
-       (do
-         (reset! profile (merge (:fields result)
-                                {:id (:id result)}))
-         (println "finished updating profile with result!"))))))
+  (if mock-data?
+    (reset! profile {:id "123123123"
+                     (keyword "First name") "Foobar"})
+    (util/fetch-post "/meetcute/api/matchmaking/me"
+                     {}
+                     (fn [result]
+                       (if-let [error (:error result)]
+                         (reset! profile-error error)
+                         (do
+                           (reset! profile (merge (:fields result)
+                                                  {:id (:id result)}))
+                           (println "finished updating profile with result!")))))))
 
 (defn update-profile! []
   (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
@@ -428,9 +431,12 @@
 
 (defn fetch-bios []
   (println "fetching bios")
-  (util/fetch "/meetcute/api/matchmaking/bios" (fn [result]
-                                                 ;; TODO: if success, then navigate to profile
-                                                 (swap! bios (fn [_] result)))))
+  (if mock-data?
+    (swap! bios (fn [_] [{:id "2"
+                          (keyword "First name") "Alice"}]))
+    (util/fetch "/meetcute/api/matchmaking/bios" (fn [result]
+                                                  ;; TODO: if success, then navigate to profile
+                                                   (swap! bios (fn [_] result))))))
 
 (defn profile-section [contents]
   [:div {:className "profile-section"
