@@ -144,3 +144,13 @@ li {
   text-align: center;
   border-radius: 12px;
 }
+
+//////////////////////////////////////////////////
+// Expandable component
+
+// this currently doesn't work, not sure why... maybe because on plane?
+details {
+  font-size: 1.4em;
+  color: red;
+  cursor: pointer;
+}
