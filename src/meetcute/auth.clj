@@ -9,7 +9,7 @@
             [meetcute.util :as mc.util]
             [meetcute.env :as env]
             [meetcute.screens.styles :as mc.styles]
-            [smallworld.matchmaking :as matchmaking]
+            [meetcute.logic :as logic]
             [clojure.java.io :as io]
             [cljs.pprint :as pp]))
 
