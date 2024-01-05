@@ -102,9 +102,9 @@
 #_(defn todays-cutie [req]
     (let [my-profile (keywordize-keys (my-profile "+1 (650) 906-7099"))]
       (println "todays-cutie:" (get-in my-profile ["todays-cutie"]))
-    ;; (println "about to run:      (matchmaking/update-todays-cutie @profile @bios)")
-    ;; (matchmaking/update-todays-cutie @profile @bios)
-    ;; (println "finished running:  (matchmaking/update-todays-cutie @profile @bios)")
+    ;; (println "about to run:      (logic/update-todays-cutie @profile @bios)")
+    ;; (logic/update-todays-cutie @profile @bios)
+    ;; (println "finished running:  (logic/update-todays-cutie @profile @bios)")
       #_(html-response "TODO: refresh-cutie was just successfully run")))
 
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
