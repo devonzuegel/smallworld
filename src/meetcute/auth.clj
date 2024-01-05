@@ -345,7 +345,7 @@
        (signin-screen {:phone (or (:phone params) "")
                        :phone-input-error "Invalid phone number"}))
 
-      (if-not (matchmaking/existing-phone-number? phone)
+      (if-not (logic/existing-phone-number? phone)
         (html-response
          (signin-screen {:phone (or (:phone params) "")
                          :phone-input-error "No account associated to this phone number. Sign up first."}))
