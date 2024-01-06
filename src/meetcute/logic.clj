@@ -23,7 +23,7 @@
   (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios []
   (let [all-bios-raw  (fetch-all-bios-memoized)

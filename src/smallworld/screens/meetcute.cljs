@@ -363,6 +363,7 @@
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
    (let [key-values [["Basic details"
+                      {:open false}
                       [["First name"                       (editable-input "First name")]
                        ["Last name"                        (editable-input "Last name")]
                        ["My gender" (radio-btns-component ["Man" "Woman"]
@@ -391,10 +392,13 @@
                        ["Email"                            [:div {:style {:max-width "380px"}}
                                                             (editable-input "Email")
                                                             [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
-                     ["Other"
+                     ["Location"
+                      {:open true}
                       [["Home base city"                    (editable-input "Home base city")]
-                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
-                       ["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
+                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
+                     ["Other"
+                      {:open true}
+                      [["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
                        ["Social media links"                (editable-textbox "Social media links")]
                        ["What makes this person awesome?"   [:div
                                                              [:div {:style {:margin-bottom "4px"}}
@@ -412,18 +416,18 @@
                                                  [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] ". (In the future, we'll add a way to do this yourself!)"]]
                                     (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
                                                  (mc.util/get-field @profile "Pictures"))]]]]]]
-     (map-indexed (fn [i [title items]] [:details {:key i}
-                                         [:summary [:span.title title]]
-                                         [:div {:style {:margin "0"
-                                                        :border-radius "8px"
-                                                        :padding "6px"
-                                                        :vertical-align "top"
-                                                        :line-height "1.2em"
-                                                        :display "flex"
-                                                        :justify-content "space-between"
-                                                        :flex-wrap "wrap"
-                                                        :width "100%"}}
-                                          (map-indexed bio-row items)]])
+     (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
+                                                 [:summary [:span.title title]]
+                                                 [:div {:style {:margin "0"
+                                                                :border-radius "8px"
+                                                                :padding "6px"
+                                                                :vertical-align "top"
+                                                                :line-height "1.2em"
+                                                                :display "flex"
+                                                                :justify-content "space-between"
+                                                                :flex-wrap "wrap"
+                                                                :width "100%"}}
+                                                  (map-indexed bio-row items)]])
                   key-values))
 
    [:br]])
