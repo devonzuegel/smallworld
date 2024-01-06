@@ -6,7 +6,7 @@
             [reagent.core    :as r]
             [smallworld.util :as util]))
 
-(def mock-data?          true)
+(def mock-data?          false)
 (defonce debug?          (r/atom false))
 (defonce loading-message (r/atom nil))
 (def bios                (r/atom nil))
