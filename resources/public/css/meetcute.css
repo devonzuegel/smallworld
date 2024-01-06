@@ -154,3 +154,20 @@ details {
   color: red;
   cursor: pointer;
 }
+
+details > summary {
+  padding: 2px 6px;
+  width: 15em;
+  background-color: #ddd;
+  border: none;
+  box-shadow: 3px 3px 4px black;
+  cursor: pointer;
+}
+
+details[open] > summary::marker,
+details > summary::marker,
+details summary::-webkit-details-marker,
+details summary::marker {
+  background: red !important;
+  border: 3px solid green;
+}

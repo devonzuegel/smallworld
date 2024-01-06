@@ -46,16 +46,16 @@
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
-  (GET  "/api/matchmaking/bios"    _   (json/generate-string (matchmaking/get-all-bios)))
-  (POST "/api/matchmaking/profile" req (matchmaking/update-profile req))
+  (GET  "/api/matchmaking/bios"    _   (json/generate-string (logic/get-all-bios)))
+  (POST "/api/matchmaking/profile" req (logic/update-profile req))
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
   (POST "/api/matchmaking/me"      req (let [phone (some-> (mc.auth/req->parsed-jwt req)
                                                            :auth/phone
                                                            mc.util/clean-phone)]
                                          (assert phone)
-                                         (generate-string {:fields (matchmaking/my-profile phone)})))
-  (POST "/api/refresh-todays-cutie/mine" req (matchmaking/refresh-todays-cutie-route-mine req))
-  (POST "/api/refresh-todays-cutie/all"  req (matchmaking/refresh-todays-cutie-route-all req)))
+                                         (generate-string {:fields (logic/my-profile phone)})))
+  (POST "/api/refresh-todays-cutie/mine" req (logic/refresh-todays-cutie-route-mine req))
+  (POST "/api/refresh-todays-cutie/all"  req (logic/refresh-todays-cutie-route-all req)))
 
 (defn wrap-body-string [handler]
   (fn [request]
