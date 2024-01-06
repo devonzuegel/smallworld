@@ -1,4 +1,4 @@
-(ns smallworld.logic
+(ns meetcute.logic
   (:require [cheshire.core        :refer [generate-string]]
             [clojure.walk         :refer [keywordize-keys]]
             [clojure.core.memoize :as memoize]

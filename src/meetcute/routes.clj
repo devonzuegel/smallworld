@@ -3,7 +3,7 @@
             [compojure.route :as route]
             [clojure.java.io :as io]
             [cheshire.core :as json]
-            [smallworld.logic :as logic]
+            [meetcute.logic :as logic]
             [meetcute.auth :as mc.auth]
             [meetcute.util :as mc.util]
             [ring.util.mime-type :as mime]
