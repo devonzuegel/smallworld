@@ -139,9 +139,10 @@
     ["meetcute"          {:name ::meetcute         :view (meetcute/screen :home)}]
 
     ; authentication for smallworld is handled by the frontend via the controllers:
-    [""                {:name ::home             :view home-page              :controllers require-session}]
-    ["settings"        {:name ::settings         :view settings/screen        :controllers require-session}]
-    ["admin"           {:name ::admin            :view admin/screen           :controllers require-admin}]]
+    [""                {:name ::home      :view home-page        :controllers require-session}]
+    ["signin"          {:name ::signin    :view signin-page      :controllers require-blank-session}]
+    ["settings"        {:name ::settings  :view settings/screen  :controllers require-session}]
+    ["admin"           {:name ::admin     :view admin/screen     :controllers require-admin}]]
    {:data {:coercion rsc/coercion}}))
 
 (deftest test-routes ; note – this will not get run at the same time as the clj tests
