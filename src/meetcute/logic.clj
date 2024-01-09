@@ -18,15 +18,22 @@
 (defn minutes [n] (* n 60 (seconds 1)))
 
 (defn fetch-all-bios! []
-  (println "⚠️ Fetching all bios from Airtable...")
-  (println "  (Avoid if possible!  Airtable will get grumpy if we hit the API too often)")
+  (println)
+  (println "⚠️   Fetching all bios from Airtable...")
+  (println  "   (Avoid if possible!  Airtable will get grumpy if we hit the API too often)")
+  (println)
   (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
 
 (def fetch-all-bios-memoized
   (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
-(defn get-all-bios []
-  (let [all-bios-raw  (fetch-all-bios-memoized)
+(defn get-all-bios [& {:keys [force-refresh?] :or {force-refresh? false}}]
+  (println)
+  (println)
+  (println "force-refresh? -- " (str force-refresh?))
+  (println)
+  (println)
+  (let [all-bios-raw  (if force-refresh? (fetch-all-bios!) (fetch-all-bios-memoized))
         all-bios-flat (map (fn [bio] (merge (:fields bio)
                                             {:id (:id bio)}))
                            all-bios-raw)]
@@ -49,8 +56,8 @@
           ;; (println "looking at: " item) ; confirm that the function only checks items until it finds a match, and then stops
           (when (match-fn item) item)) items))
 
-(defn my-profile [phone]
-  (let [all-bios (get-all-bios)
+(defn my-profile [phone & {:keys [force-refresh?] :or {force-refresh? false}}]
+  (let [all-bios (get-all-bios :force-refresh? force-refresh?)
         my-bio (find-first-match (fn [bio]
                                    (= (mc.util/clean-phone phone)
                                       (mc.util/clean-phone (get-in bio ["Phone"]))))
@@ -193,11 +200,7 @@
                                           "</ol>"
                                           "</div>"
                                           "</div>")}]
-
-        (println "preparing to send email with the following config: ===========================================")
-        (pp/pprint email-config)
-        (email/send-email email-config)
-        (println "==============================================================================================")))))
+        (email/send-email email-config)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -262,13 +265,13 @@
 
 (defn refresh-todays-cutie-route-mine [req]
   (let [phone   (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)]
-    (refresh-todays-cutie (my-profile phone)
-                          (get-all-bios))
+    (refresh-todays-cutie (my-profile phone :force-refresh? true)
+                          (get-all-bios     :force-refresh? true))
     (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
 
 (defn refresh-todays-cutie-route-all [req]
   ; TODO: only an admin should be able to hit this route
-  (let [bios (get-all-bios)]
+  (let [bios (get-all-bios :force-refresh? true)]
     (println "all ids")
     (pp/pprint (map :id bios)))
   (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"}))
