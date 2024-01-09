@@ -233,4 +233,4 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
 - [ ] verify email addresses with Twilio Verify too
-
+- [ ] style the SMS verification page with 4 digits, similar to Apple's SMS verification page
