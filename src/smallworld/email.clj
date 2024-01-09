@@ -1,4 +1,5 @@
 (ns smallworld.email (:require [clj-http.client :as http]
+                               [clojure.pprint :as pp]
                                [smallworld.util :as util]))
 
 (def debug? true)
@@ -51,17 +52,26 @@
                        options
                        (assoc options :to "avery.sara.james@gmail.com"))]
 
+    (println)
+    (println "preparing to send email with the following config: ===========================================")
+    (pp/pprint options)
+
     (when (and (not= env (:prod util/ENVIRONMENTS))
                (not= old-to-email "avery.sara.james@gmail.com"))
-      (println "Sending email to" (:to options) "instead of" old-to-email ", because we're not in prod and we don't want to spam our users :)")))
+      (println)
+      (println "NOTE: Sending email to" (:to options) "instead of" old-to-email ", because we're not in prod and we don't want to spam our users :)")
+      (println))
 
-  (try (if (:template options)
-         (send-with-template options)
-         (send-with-content  options))
-       (catch Throwable e
-         (util/log "failed to send email (error below), continuing...")
-         (log-event "send-email-failed" {:error e})
-         (util/log e))))
+    (try (if (:template options)
+           (send-with-template options)
+           (send-with-content  options))
+         (catch Throwable e
+           (util/log "failed to send email (error below), continuing...")
+           (log-event "send-email-failed" {:error e})
+           (util/log e)))
+
+    (println "==============================================================================================")
+    (println)))
 
 (comment
   (send-email {:to      "devonzuegel@gmail.com"
