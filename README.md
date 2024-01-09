@@ -216,11 +216,14 @@ https://mc.sendgrid.com/dynamic-templates
 
 **last-minute admin before it's usable:**
 - [ ] change the Airtable DB to the real one, instead of fake data
-- [ ] change the signup iframe to the correct link (so that it points to the real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
+  - [ ] make sure that the column names match
+  - [ ] change the signup iframe to the correct link (so that it points to the real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
+  - [ ] run-through of the entire app to make sure it works
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
+- [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
 - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
 - [ ] matches screen for admin to save Erik a time-consuming manual process
