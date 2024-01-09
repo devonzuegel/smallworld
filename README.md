@@ -232,5 +232,5 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] in the email, link directly to the cutie's profile rather than the main page (maybe not necessary...?)
 - [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
-- [ ] verify email addresses with Twilio Verify
+- [ ] verify email addresses with Twilio Verify too
 
