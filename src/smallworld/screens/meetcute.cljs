@@ -100,7 +100,7 @@
 (defn bio-row [i [key-name value]]
   [:div {:key i :className "bio-row" :style {:width "fit-content"}}
    [:style "@media screen and (min-width: 600px) { .bio-row-value { min-width: 380px; }  }"]
-   [:div {:style {:padding "24px 12px 0 12px"
+   [:div {:style {:padding "6px 12px 0 12px"
                   :opacity ".75"
                   :font-weight "bold"
                   :text-transform "uppercase"
