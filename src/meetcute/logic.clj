@@ -104,7 +104,6 @@
 (defn first-name-bold [cutie]
   (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
 
-
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
@@ -186,7 +185,7 @@
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
             email-config {:to        (:Email profile)
                           :from-name "MeetCute"
-                          :subject   (str "Fresh cutie! 🍊 Meet " cutie-first-name)
+                          :subject   (str " 🍊 Fresh cutie! Meet " (mc.util/get-field new-todays-cutie-profile "First name"))
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
                                           (if cutie-first-name
                                             (str "Your cutie of the day is " cutie-first-name "! ")
@@ -273,7 +272,10 @@
 
 (defn refresh-todays-cutie-route-all [req]
   ; TODO: only an admin should be able to hit this route
-  (let [bios (get-all-bios :force-refresh? true)]
-    (println "all ids")
-    (pp/pprint (map :id bios)))
-  (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"}))
+  (let [bios (get-all-bios :force-refresh? true)
+        admins (filter #(get-in % ["admin?"]) bios)]
+    (println "all phone numbers:")
+    (pp/pprint (map #(get-in % ["Phone"]) bios))
+    (println "admin phone numbers:")
+    (pp/pprint (map #(get-in % ["Phone"]) admins))
+    (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"})))
