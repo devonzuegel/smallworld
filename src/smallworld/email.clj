@@ -44,8 +44,6 @@
                          :name FROM_NAME}}}))
 
 (defn send-email [options]
-  (log-event "send-email" options)
-
   (let [old-to-email (:to options)
         env          (util/get-env-var "ENVIRONMENT")
         options      (if (= env (:prod util/ENVIRONMENTS))
@@ -54,7 +52,7 @@
 
     (println)
     (println "preparing to send email with the following config: ===========================================")
-    (pp/pprint options)
+    (pp/pprint (assoc options :body "[REDACTED]"))
 
     (when (and (not= env (:prod util/ENVIRONMENTS))
                (not= old-to-email "avery.sara.james@gmail.com"))

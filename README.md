@@ -224,7 +224,8 @@ https://mc.sendgrid.com/dynamic-templates
     - https://stackoverflow.com/questions/62096868/how-to-get-more-than-100-rows-using-airtable-api-using-offest
 - [x] fix the header styles on the profile page
 - [ ] implement `/meetcute/api/refresh-todays-cutie/all`
-  - [ ] start with not sending any emails, just to make sure it works
+  - [x] start with not sending any emails, just to make sure it works
+  - [x] randomize the order of the cuties, so that different cuties get shown first to each user
   - [ ] then add the email sending
 - [ ] run-through of the entire app to make sure it works
   - [ ] test it with Erik to make sure it works
