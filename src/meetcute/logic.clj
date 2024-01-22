@@ -202,6 +202,8 @@
                                           "      <li style='padding-left: 4px !important; margin-left: 4px !important'>You let us know if you're interested in meeting them</li>"
                                           "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we'll introduce you!</li>"
                                           "</ol>"
+                                          "Make sure <a href='https://smallworld.kiwi/meetcute/settings'>your profile</a> is up-to-date!"
+                                          "<br><br>"
                                           "</div>"
                                           "</div>")}]
         (email/send-email email-config)))))

@@ -233,6 +233,8 @@ https://mc.sendgrid.com/dynamic-templates
 
 *nice-to-haves, but not necessary for launch:*
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
+- [ ] give users a way to make their profile public/private & turn off the daily emails
+- [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
 - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
