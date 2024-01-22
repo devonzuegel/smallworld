@@ -179,3 +179,21 @@ details > summary::marker,
 details summary::-webkit-details-marker,
 details summary::marker {
 }
+
+//////////////////////////////////////////////////
+/// table
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+th,
+td {
+  text-align: left;
+  padding: 4px;
+}
+.invisible {
+  opacity: 0;
+}
