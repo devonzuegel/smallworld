@@ -574,15 +574,29 @@
      "Refresh todays-cutie for EVERYONE →"]]])
 
 (defn list-mutual-selections []
-   ;; TODO list the ids/names of all bios that have both selected each other (i.e. they have each other's ids in their respective selected-cuties list):
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "24px"}}
    [:h2 {:style {:font-size "2em" :line-height "2em"}} "List of matches:"]
-   (let [my-id (:id @profile)
-         my-selected-cuties (mc.util/get-field @profile "selected-cuties") ; ids only
-         my-selected-cuties (filter #(in? my-selected-cuties (mc.util/get-field % "id")) @bios)
-         matches (filter #(in? (mc.util/get-field % "selected-cuties") my-id) my-selected-cuties)]
-     [:ol (map (fn [cutie] [:li (str (mc.util/get-field cutie "First name") ": " (mc.util/get-field cutie "Phone"))])
-               matches)])])
+   (let [mutual-selections (set (flatten
+                                 (map (fn [this-cutie] (let [my-id (:id this-cutie)
+                                                             my-selected-cuties (mc.util/get-field this-cutie "selected-cuties") ; ids only
+                                                             my-selected-cuties (filter #(in? my-selected-cuties (mc.util/get-field % "id")) @bios)
+                                                             matches (filter #(in? (mc.util/get-field % "selected-cuties") my-id) my-selected-cuties)
+                                                             matches-list (map #(set [% this-cutie]) matches)]
+                                                         matches-list))
+                                      @bios)))]
+     [:div
+      [:table {:style {:text-align "center"}}
+       (map-indexed (fn [index match]
+                      [:<>  ; the comma column is there to make it easier to copy/paste into a spreadsheet / iMessage / etc
+                       [:tr [:td {:colspan 3 :style {:text-align "left" :padding-top "32px" :font-size ".85em" :font-weight "bold" :border-bottom "2px solid #ddd"}} "match #" (+ 1 index)]]
+                       [:tr {:key index} [:td {:style {:text-align "right"}} (str (mc.util/get-field (first match) "First name") " " (mc.util/get-field (first match) "Last name"))] [:td.invisible ", "] [:td (str (mc.util/get-field (second match) "First name") " " (mc.util/get-field (second match) "Last name"))]]
+                       [:tr {:key index} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Phone")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Phone")]]
+                       [:tr {:key index} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Email")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Email")]]])
+                    mutual-selections)
+
+
+       ;
+       ]])])
 
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
