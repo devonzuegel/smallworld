@@ -186,7 +186,7 @@
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
             email-config {:to        (:Email profile)
                           :from-name "MeetCute"
-                          :subject   (str "Fresh cutie! 🍊 Meet" cutie-first-name)
+                          :subject   (str "Fresh cutie! 🍊 Meet " cutie-first-name)
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
                                           (if cutie-first-name
                                             (str "Your cutie of the day is " cutie-first-name "! ")
