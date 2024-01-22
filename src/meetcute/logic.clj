@@ -28,7 +28,7 @@
   (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios [& {:keys [force-refresh?] :or {force-refresh? false}}]
-  (println "force-refresh?  " (if (str force-refresh?) "🔴 " "🟢 ") (str force-refresh?))
+  ;; (println (str "force-refresh?  " (if force-refresh? "🔴 " "🟢 ") (str force-refresh?)))
   (let [all-bios-raw  (if force-refresh? (fetch-all-bios!) (fetch-all-bios-memoized))
         all-bios-flat (map (fn [bio] (merge (:fields bio)
                                             {:id (:id bio)}))
@@ -186,7 +186,7 @@
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
             email-config {:to        (:Email profile)
                           :from-name "MeetCute"
-                          :subject   (str "Fresh cutie! 🍊")
+                          :subject   (str "Fresh cutie! 🍊 Meet" cutie-first-name)
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
                                           (if cutie-first-name
                                             (str "Your cutie of the day is " cutie-first-name "! ")

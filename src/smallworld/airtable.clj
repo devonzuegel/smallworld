@@ -6,16 +6,32 @@
             [clojure.data.json :as json]
             [clojure.pprint :as pp]
             [clojure.set :as set]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.string :as str]))
 
 (def api-base "https://api.airtable.com/v0")
 
-(defn build-request-uri [base-id resource-path]
+(defn build-request-uri-old [base-id resource-path]
+  ;; (println)
+  ;; (println)
+  ;; (print "running `build-request-uri-old` with: ")
+  ;; (println "    base-id: " base-id)
+  ;; (println "    resource-path: " resource-path)
+  ;; (println)
+  ;; (println)
   (string/join "/" (concat [api-base (name base-id)] (map name resource-path))))
 
+(defn build-request-uri [base-id resource-path offset]
+  (let [base-id       (if (keyword? base-id) (str base-id) base-id)
+        resource-path (map (fn [x] (if (keyword? x) (str x) x)) resource-path)
+        resource-path (str/join "/" resource-path)
+        offset        (if offset (str "?offset=" offset) "")]
+    (str api-base "/" base-id "/" resource-path offset)))
+
 (defn get-in-base*
-  [{:keys [api-key base-id] :as base} resource-path]
-  (let [req-uri (build-request-uri base-id resource-path)]
+  [{:keys [api-key base-id] :as _base} resource-path & {:keys [offset]}]
+  (let [req-uri (build-request-uri base-id resource-path offset)]
+    ;; (println "    req-uri:   " req-uri)
     (client/get req-uri {:headers {"Authorization" (str "Bearer " api-key)}})))
 
 (defn kwdize [m]
@@ -23,7 +39,7 @@
                       "fields" :fields
                       "createdTime" :created-time}))
 
-(defn validate-base [{:keys [api-key base-id] :as base}]
+(defn validate-base [{:keys [api-key base-id] :as _base}]
   (assert api-key ":api-key must present in passed credentials")
   (assert base-id ":base-id must present in passed credentials"))
 
@@ -37,19 +53,28 @@
    `resource-path` must be a sequence containing the table name 
    and an optional record id.
    `:base-id` and elements in `resource-path` can be strings or keywords."
-  [base resource-path]
+  [base resource-path & {:keys [offset]}]
   (validate-base base)
   (validate-resource-path resource-path)
-  (let [data (-> (get-in-base* base resource-path) :body json/read-str)]
-    (if (= (count resource-path) 1)
-      (map kwdize (get data "records"))
-      (kwdize data))))
+
+
+  (let [data       (-> (get-in-base* base resource-path :offset offset) :body json/read-str)
+        records    (map kwdize (get data "records"))
+        new-offset (get data "offset")]
+    ;; (println)
+    ;; (println "running `get-in-base` with:")
+    ;; (println "    offset for this page: " offset)
+    ;; (println "    records in this page: " (count records))
+    ;; (println "    offset for next page: " new-offset)
+    (if new-offset
+      (concat records (get-in-base base resource-path :offset new-offset))
+      records)))
 
 ; only update the fields included in the request, do not overwrite any fields not provided
 (defn update-in-base [base resource-path record-id-or-records]
   (validate-base base)
   (validate-resource-path resource-path)
-  (let [req-uri (build-request-uri (:base-id base) resource-path)
+  (let [req-uri (build-request-uri-old (:base-id base) resource-path)
         req-body (json/write-str (if (sequential? record-id-or-records)
                                    {:records record-id-or-records}
                                    record-id-or-records))]
