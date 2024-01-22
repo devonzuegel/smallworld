@@ -219,15 +219,15 @@ https://mc.sendgrid.com/dynamic-templates
   - [x] make sure that the column names match
   - [x] fix everyone's phone numbers so that the have the +1 country code at the front
   - [x] change the signup iframe to the correct link (so that it points to the real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
-  - [ ] when I signed up with my personal phone number and then tried to log in, it said there was no account with that number...
+  - [x] when I signed up with my personal phone number and then tried to log in, it said there was no account with that number...
     - I figured out the issue: the airtable API has pagination, so my new account doesn't get returned in the first page of results, so the server thinks it doesn't exist
     - https://stackoverflow.com/questions/62096868/how-to-get-more-than-100-rows-using-airtable-api-using-offest
+- [x] fix the header styles on the profile page
 - [ ] implement `/meetcute/api/refresh-todays-cutie/all`
   - [ ] start with not sending any emails, just to make sure it works
   - [ ] then add the email sending
 - [ ] run-through of the entire app to make sure it works
   - [ ] test it with Erik to make sure it works
-- [ ] fix the header styles on the profile page
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
