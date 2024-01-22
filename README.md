@@ -208,17 +208,26 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] implement the "today's cutie" screen
 - [x] get Twilio account unsuspended
 - [x] implement the matchmaking algorithm
-  - [ ] debug: the `unseen-cuties` order gets  messed up, not sure why... probably something to do with (a) memoization or (b) not fetching the profile frequently enough
-  - [ ] `refresh-todays-cutie` is still buggy... sometimes people end up in 2 lists, when they should only ever be in 1... consider adding assertions to check this
+  - [x] debug: the `unseen-cuties` order gets  messed up, not sure why... probably something to do with (a) memoization or (b) not fetching the profile frequently enough
+  - [x] `refresh-todays-cutie` is still buggy... sometimes people end up in 2 lists, when they should only ever be in 1... consider adding assertions to check this
 - [x] implement the email that gets sent to the user when their `todays-cutie` is refreshed
 - [x] opengraph image
 - [x] admin page: add button to refresh everyone's `todays-cutie` list
 
 **last-minute admin before it's usable:**
-- [ ] change the Airtable DB to the real one, instead of fake data
-  - [ ] make sure that the column names match
-  - [ ] change the signup iframe to the correct link (so that it points to the real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
-  - [ ] run-through of the entire app to make sure it works
+- [x] change the Airtable DB to the real one, instead of fake data
+  - [x] make sure that the column names match
+  - [x] fix everyone's phone numbers so that the have the +1 country code at the front
+  - [x] change the signup iframe to the correct link (so that it points to the real data instead of fake data): https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8
+  - [ ] when I signed up with my personal phone number and then tried to log in, it said there was no account with that number...
+    - I figured out the issue: the airtable API has pagination, so my new account doesn't get returned in the first page of results, so the server thinks it doesn't exist
+    - https://stackoverflow.com/questions/62096868/how-to-get-more-than-100-rows-using-airtable-api-using-offest
+- [ ] implement `/meetcute/api/refresh-todays-cutie/all`
+  - [ ] start with not sending any emails, just to make sure it works
+  - [ ] then add the email sending
+- [ ] run-through of the entire app to make sure it works
+  - [ ] test it with Erik to make sure it works
+- [ ] fix the header styles on the profile page
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
@@ -234,3 +243,5 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] rename `bios` to `cuties` throughout the codebase
 - [ ] verify email addresses with Twilio Verify too
 - [ ] style the SMS verification page with 4 digits, similar to Apple's SMS verification page
+
+

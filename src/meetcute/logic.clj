@@ -22,17 +22,13 @@
   (println "⚠️   Fetching all bios from Airtable...")
   (println  "   (Avoid if possible!  Airtable will get grumpy if we hit the API too often)")
   (println)
-  (airtable/get-in-base airtable-base ["bios-devons-test-2"]))
+  (airtable/get-in-base airtable-base ["cuties-live-data"]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold (minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn get-all-bios [& {:keys [force-refresh?] :or {force-refresh? false}}]
-  (println)
-  (println)
-  (println "force-refresh? -- " (str force-refresh?))
-  (println)
-  (println)
+  (println "force-refresh?  " (if (str force-refresh?) "🔴 " "🟢 ") (str force-refresh?))
   (let [all-bios-raw  (if force-refresh? (fetch-all-bios!) (fetch-all-bios-memoized))
         all-bios-flat (map (fn [bio] (merge (:fields bio)
                                             {:id (:id bio)}))
@@ -40,15 +36,21 @@
     all-bios-flat))
 
 (defn get-all-phones []
-  (->> (get-all-bios)
-       (map (fn [bio]
-              (get-in bio ["Phone"])))
-       (map mc.util/clean-phone)
-       set))
+  (let [all-bios  (get-all-bios)]
+    (println "\n\ncount of all-bios: " (count all-bios) "\n\n")
+    (->> all-bios
+         (map (fn [bio]
+                (get-in bio ["Phone"])))
+         (map mc.util/clean-phone)
+         set)))
 
 (defn existing-phone-number? [phone]
   (let [phone (mc.util/clean-phone phone)
         all-phones (get-all-phones)]
+    (println)
+    (println "all-phones:")
+    (pp/pprint all-phones)
+    (println)
     (contains? all-phones phone)))
 
 (defn find-first-match [match-fn items]
@@ -79,7 +81,7 @@
     (if (nil? bio)
       (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
       (let [data (-> (airtable/update-in-base airtable-base
-                                              ["bios-devons-test-2" (:id bio)]
+                                              ["cuties-live-data" (:id bio)]
                                               {:fields fields-to-change})
                      :body
                      json/read-str
@@ -174,7 +176,7 @@
     (pp/pprint "==============================================================================================")
 
     (airtable/update-in-base airtable-base
-                             ["bios-devons-test-2" (:id profile)]
+                             ["cuties-live-data" (:id profile)]
                              {:fields new-values})
 
     (if (empty? (:todays-cutie (:new computed)))
