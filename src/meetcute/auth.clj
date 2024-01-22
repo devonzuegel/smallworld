@@ -169,7 +169,7 @@
    [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
     [:div#loading-spinner.spinner {:style {:display "block"}}]
     [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-    (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrdeJxeDgrYtcEe8")
+    (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrZJIaP3ZbuXmiW1")
     (embed-js-script (io/resource "public/signup.js"))]])
 
 #_(defn signup-screen [{:keys [phone phone-input-error code-error started?]}]
@@ -340,6 +340,10 @@
 (defn start-signin-route [req]
   (let [params (:params req)
         phone (some-> (:phone params) mc.util/clean-phone)]
+
+    (println)
+    (println "Attempting login with phone number: " phone)
+
     (if-not (mc.util/valid-phone? phone)
       (html-response
        (signin-screen {:phone (or (:phone params) "")
