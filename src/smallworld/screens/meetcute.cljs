@@ -2,6 +2,7 @@
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [markdown.core :as md]
+            [cljs.pprint :as pp]
             [meetcute.util :as mc.util]
             [reagent.core    :as r]
             [smallworld.util :as util]))
@@ -257,6 +258,9 @@
 (def show-toast (r/atom false))
 
 (defn update-profile-with-result [result]
+  (pp/pprint "result ===============================")
+  (pp/pprint result)
+  (pp/pprint "======================================")
   (if (:error result)
     (reset! phone-input-error (:error result))
     (do (reset! profile (merge (:fields result)
@@ -278,8 +282,10 @@
                        (if-let [error (:error result)]
                          (reset! profile-error error)
                          (do
-                           (reset! profile (merge (:fields result)
-                                                  {:id (:id result)}))
+                           (reset! profile (if (:id result)
+                                             (merge (:fields result)
+                                                    {:id (:id result)})
+                                             (:fields result)))
                            (println "finished updating profile with result!")))))))
 
 (defn update-profile! []
@@ -541,6 +547,7 @@
 
 (defn refresh-todays-cutie-btns []
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "6px 24px"}}
+   [:h2 {:style {:font-size "2em" :line-height "2em"}} "Manual override:"]
    [:div {:style {:margin "24px 0"}}
     [:p {:style {:margin "16px 0"}} "This is the manual override for the action that we'll run nightly with a cron job."]
     [:p {:style {:margin "16px 0"}} "Usually, we should not touch these buttons, but if you have a reason you need to refresh the todays-cutie for yourself or for everyone, you can do it here."]]
@@ -569,7 +576,13 @@
 (defn list-mutual-selections []
    ;; TODO list the ids/names of all bios that have both selected each other (i.e. they have each other's ids in their respective selected-cuties list):
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "24px"}}
-   "TODO: list-mutual-selections"])
+   [:h2 {:style {:font-size "2em" :line-height "2em"}} "List of matches:"]
+   (let [my-id (:id @profile)
+         my-selected-cuties (mc.util/get-field @profile "selected-cuties") ; ids only
+         my-selected-cuties (filter #(in? my-selected-cuties (mc.util/get-field % "id")) @bios)
+         matches (filter #(in? (mc.util/get-field % "selected-cuties") my-id) my-selected-cuties)]
+     [:ol (map (fn [cutie] [:li (str (mc.util/get-field cutie "First name") ": " (mc.util/get-field cutie "Phone"))])
+               matches)])])
 
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
@@ -716,17 +729,16 @@
              [:br] [:br]])])])))
 
 (defn admin-tab []
-  [:div {:style {:border-radius "8px" :padding "36px 12px" :margin "auto" :width "90%" :max-width "850px"}}
-   [:h1 {:style {:font-size "3em" :line-height "3em"}} "Admin page "]
-
-   [:p [:span {:style {:padding "4px 12px" :border-radius "8px" :color "white" :background (if (:admin? @profile) "green" "red")}}
-        (if (:admin? @profile)
-          "You are an admin"
-          "You are not an admin")]]
-
-   [list-mutual-selections]
-
-   [refresh-todays-cutie-btns]])
+  (if (:admin? @profile)
+    [:div {:style {:border-radius "8px" :padding "36px 12px" :margin "auto" :width "90%" :max-width "850px"}}
+     [:span {:style {:padding "4px 12px" :border-radius "8px" :color "white" :background (if (:admin? @profile) "green" "red") :float "right"}}
+      (if (:admin? @profile)
+        "You are an admin"
+        "You are not an admin")]
+     [refresh-todays-cutie-btns]
+     [list-mutual-selections]]
+    (js/location.assign "/meetcute") ; if not admin, redirect to home
+    ))
 
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}

@@ -14,6 +14,9 @@ html {
   // color: #ccc;
   font-family: 'Roboto Mono', monospace;
 }
+pre {
+  text-wrap: wrap;
+}
 button,
 a,
 textarea {
@@ -175,6 +178,4 @@ details[open] > summary::marker,
 details > summary::marker,
 details summary::-webkit-details-marker,
 details summary::marker {
-  background: red !important;
-  border: 3px solid green;
 }
