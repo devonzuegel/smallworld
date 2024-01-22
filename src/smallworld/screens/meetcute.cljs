@@ -475,7 +475,8 @@
    [:h2 {:style {:font-size "1.5em" :margin "12px 12px 24px 12px"}}
     (mc.util/get-field bio "First name")]
 
-   [:style ".profile-item:first-of-type { margin-top: 0 !important}"] ; if first child of profile-section, 0 margin on top
+   [:style (str ".profile-item:first-of-type { margin-top: 0 !important}" ; if first child of profile-section, 0 margin on top
+                ".profile-item {line-break: anywhere;}")]
 
    [:div  {:style {:column-count 2
                    :column-width "300px"

@@ -104,6 +104,7 @@
 (defn first-name-bold [cutie]
   (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
 
+
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
@@ -114,8 +115,9 @@
                                     (:selected-cuties profile)
                                     (:rejected-cuties profile)]))
         unseen-ids--old (:unseen-cuties profile)
+        unseen-ids--added-recently (shuffle (filter added-recently? included-ids)) ; the shuffle is so that each user gets a different order of cuties, so that the same cutie doesn't get shown to everyone on the same day
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
-                                               #_[] (filter added-recently? included-ids))))
+                                               unseen-ids--added-recently)))
         todays-id--old       (first (:todays-cutie profile))
         todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
@@ -187,9 +189,10 @@
                           :from-name "MeetCute"
                           :subject   (str " Fresh cutie! 🍊 Meet " (mc.util/get-field new-todays-cutie-profile "First name"))
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
+                                          "Hey " (mc.util/get-field profile "First name") ", "
                                           (if cutie-first-name
-                                            (str "Your cutie of the day is " cutie-first-name "! ")
-                                            (str "Your cutie of the day is ready! "))
+                                            (str "your cutie of the day is " cutie-first-name "! ")
+                                            (str "your cutie of the day is ready! "))
                                           "<br><br>"
                                           "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>Let us know today!</a>"
                                           "<div style='border: 3px solid #eee;  color: #888;  padding: 16px 16px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
@@ -273,9 +276,17 @@
 (defn refresh-todays-cutie-route-all [req]
   ; TODO: only an admin should be able to hit this route
   (let [bios (get-all-bios :force-refresh? true)
-        admins (filter #(get-in % ["admin?"]) bios)]
-    (println "all phone numbers:")
-    (pp/pprint (map #(get-in % ["Phone"]) bios))
-    (println "admin phone numbers:")
-    (pp/pprint (map #(get-in % ["Phone"]) admins))
+        admins (filter #(get-in % ["admin?"]) bios)
+        phones (map #(get-in % ["Phone"])
+                    #_(take 10 bios) ; TODO: put this back once debugging is done
+                    admins)]
+
+    (doseq [phone phones]
+      (println)
+      (println)
+      (println "refreshing todays-cutie for" phone)
+      (refresh-todays-cutie (my-profile phone :force-refresh? true)
+                            (get-all-bios     :force-refresh? true)))
+
+
     (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"})))
