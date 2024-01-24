@@ -58,6 +58,12 @@
           ;; (println "looking at: " item) ; confirm that the function only checks items until it finds a match, and then stops
           (when (match-fn item) item)) items))
 
+(defn find-profile [id & {:keys [force-refresh?] :or {force-refresh? false}}]
+  (let [all-bios (get-all-bios :force-refresh? force-refresh?)
+        my-bio (find-first-match (fn [bio] (= id (:id bio)))
+                                 all-bios)]
+    (airtable/kwdize my-bio)))
+
 (defn my-profile [phone & {:keys [force-refresh?] :or {force-refresh? false}}]
   (let [all-bios (get-all-bios :force-refresh? force-refresh?)
         my-bio (find-first-match (fn [bio]
@@ -268,6 +274,11 @@
 
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
+
+(defn refresh-todays-cutie-from-id [id]
+  (let [profile (find-profile id :force-refresh? true)]
+    (refresh-todays-cutie profile (get-all-bios :force-refresh? true))
+    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " id " (" (get-in profile ["First name"]) ")")})))
 
 (defn refresh-todays-cutie-route-mine [req]
   (let [phone   (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)]
