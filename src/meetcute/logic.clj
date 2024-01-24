@@ -110,18 +110,19 @@
 (defn first-name-bold [cutie]
   (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
 
+(defn remove-from-lists [a & lists]
+  (let [lists (map set lists)]
+    (filter (fn [x] (not (some #(% x) lists))) a)))
 
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
         included-ids     (map :id included-bios)
-        added-recently?  (fn [id] ; returns true if the id is not in any of the lists, implying that it was added since those lists were last updated
-                           (every? (fn [list] (not (some #(= id %) list)))
-                                   [(:unseen-cuties profile)
-                                    (:selected-cuties profile)
-                                    (:rejected-cuties profile)]))
         unseen-ids--old (:unseen-cuties profile)
-        unseen-ids--added-recently (shuffle (filter added-recently? included-ids)) ; the shuffle is so that each user gets a different order of cuties, so that the same cutie doesn't get shown to everyone on the same day
+        unseen-ids--added-recently (shuffle (remove-from-lists included-ids
+                                                               (:unseen-cuties  profile)
+                                                               (:selected-cuties profile)
+                                                               (:rejected-cuties profile))) ; the shuffle is so that each user gets a different order of cuties, so that the same cutie doesn't get shown to everyone on the same day
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
                                                unseen-ids--added-recently)))
         todays-id--old       (first (:todays-cutie profile))
