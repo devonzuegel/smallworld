@@ -545,33 +545,61 @@
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "You let us know if you're interested in meeting them"]
     [:li {:style {:padding "2px 8px" :margin-left "16px"}} "If they're interested too, Erik or Devon will personally introduce you!"]]])
 
+(defn truncate-string [s]
+  (if (> (count s) 20)
+    (str (subs s 0 20) "...")
+    s))
+
+(defn refresh-todays-cutie-link [i user]
+  (let [id (mc.util/get-field user "id")
+        full-name (str (mc.util/get-field user "First name") " " (mc.util/get-field user "Last name"))]
+    [:tr {:key i}
+     [:td {:style {:text-align "right"}}
+      (truncate-string full-name)]
+     [:td [:a {:href "#"
+               :on-click (fn []
+                           (reset! loading-message (str "Refreshing todays-cutie for " full-name "..."))
+                           (util/fetch-post "/meetcute/api/refresh-todays-cutie"
+                                            {:id id}
+                                            #(do
+                                               (reset! loading-message false)
+                                               #_(js/location.reload true))))}
+           "Refresh todays-cutie for just this person →"]]]))
+
 (defn refresh-todays-cutie-btns []
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "6px 24px"}}
    [:h2 {:style {:font-size "2em" :line-height "2em"}} "Manual override:"]
    [:div {:style {:margin "24px 0"}}
     [:p {:style {:margin "16px 0"}} "This is the manual override for the action that we'll run nightly with a cron job."]
     [:p {:style {:margin "16px 0"}} "Usually, we should not touch these buttons, but if you have a reason you need to refresh the todays-cutie for yourself or for everyone, you can do it here."]]
-   [:div {:style {:margin "24px 0"}}
-    [:a {:href "#"
-         :on-click (fn []
-                     (reset! loading-message "Refreshing todays-cutie for JUST ME...")
-                     (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
-                                      {}
-                                      #(do
-                                         (reset! loading-message false)
-                                         (js/location.reload true))))}
-     "Refresh todays-cutie for JUST ME →"]]
-   [:div {:style {:margin "24px 0"}}
-    [:a {:href "#"
-         :on-click (fn []
-                     (reset! loading-message "Refreshing todays-cutie for EVERYONE...")
-                     (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
-                                      {}
-                                      #(do
-                                         (println "done refreshing todays-cutie for everyone. result:")
-                                         (js/console.log %)
-                                         (reset! loading-message false))))}
-     "Refresh todays-cutie for EVERYONE →"]]])
+
+   #_[:div {:style {:margin "24px 0"}}
+      [:a {:href "#"
+           :on-click (fn []
+                       (reset! loading-message "Refreshing todays-cutie for JUST ME...")
+                       (util/fetch-post "/meetcute/api/refresh-todays-cutie/mine"
+                                        {}
+                                        #(do
+                                           (reset! loading-message false)
+                                           #_(js/location.reload true))))}
+       "Refresh todays-cutie for JUST ME →"]]
+
+   #_[:div {:style {:margin "24px 0"}}
+      [:a {:href "#"
+           :on-click (fn []
+                       (reset! loading-message "Refreshing todays-cutie for EVERYONE...")
+                       (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
+                                        {}
+                                        #(do
+                                           (println "done refreshing todays-cutie for everyone. result:")
+                                           (js/console.log %)
+                                           (reset! loading-message false))))}
+       "Refresh todays-cutie for EVERYONE →"]]
+
+   [:details
+    [:summary "Refresh todays-cutie for each user individually:"]
+    [:table (map-indexed refresh-todays-cutie-link @bios)]
+    [:div]]])
 
 (defn list-mutual-selections []
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "24px"}}
