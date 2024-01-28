@@ -223,11 +223,12 @@ https://mc.sendgrid.com/dynamic-templates
     - I figured out the issue: the airtable API has pagination, so my new account doesn't get returned in the first page of results, so the server thinks it doesn't exist
     - https://stackoverflow.com/questions/62096868/how-to-get-more-than-100-rows-using-airtable-api-using-offest
 - [x] fix the header styles on the profile page
+- [x] refresh-cuties on a per-person basis
 - [x] implement `/meetcute/api/refresh-todays-cutie/all`
   - [x] start with not sending any emails, just to make sure it works
   - [x] randomize the order of the cuties, so that different cuties get shown first to each user
   - [ ] then add the email sending
-- [ ] refresh-cuties on a per-person basis
+  - [ ] remove the admin filter
 - [ ] run-through of the entire app to make sure it works
   - [ ] test it with Erik to make sure it works
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
