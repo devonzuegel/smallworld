@@ -584,21 +584,32 @@
                                            #_(js/location.reload true))))}
        "Refresh todays-cutie for JUST ME →"]]
 
-   #_[:div {:style {:margin "24px 0"}}
-      [:a {:href "#"
-           :on-click (fn []
-                       (reset! loading-message "Refreshing todays-cutie for EVERYONE...")
-                       (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
-                                        {}
-                                        #(do
-                                           (println "done refreshing todays-cutie for everyone. result:")
-                                           (js/console.log %)
-                                           (reset! loading-message false))))}
-       "Refresh todays-cutie for EVERYONE →"]]
+
+
+   [:div {:style {:margin "24px 0"}}
+    [:a {:href "#"
+         :on-click (fn []
+                     (js/console.log "clicked refresh todays-cutie for everyone")
+                     (reset! loading-message "Refreshing todays-cutie for EVERYONE...")
+                     (util/fetch-post "/meetcute/api/refresh-todays-cutie/all"
+                                      {}
+                                      #(do
+                                         (println "done refreshing todays-cutie for everyone. result:")
+                                         (js/console.log %)
+                                         (reset! loading-message false)))
+                     ;
+                     )}
+     "Refresh todays-cutie for EVERYONE →"]]
+
+   ; list all bios where include-in-nightly-job-TMP = true:
+   (let [bios-with-include-in-nightly-job-TMP (filter #(mc.util/get-field % "include-in-nightly-job-TMP") @bios)]
+     [:div
+      [:h1 "Refresh todays-cutie for all users with include-in-nightly-job-TMP=true:"]
+      [:pre (count bios-with-include-in-nightly-job-TMP)]])
 
    [:details
     [:summary "Refresh todays-cutie for each user individually:"]
-    [:table (map-indexed refresh-todays-cutie-link @bios)]
+    [:table [:tbody (map-indexed refresh-todays-cutie-link @bios)]]
     [:div]]])
 
 (defn list-mutual-selections []
@@ -614,14 +625,14 @@
                                       @bios)))]
      [:div
       [:table {:style {:text-align "center"}}
-       (map-indexed (fn [index match]
-                      [:<>  ; the comma column is there to make it easier to copy/paste into a spreadsheet / iMessage / etc
-                       [:tr [:td {:colspan 3 :style {:text-align "left" :padding-top "32px" :font-size ".85em" :font-weight "bold" :border-bottom "2px solid #ddd"}} "match #" (+ 1 index)]]
-                       [:tr {:key index} [:td {:style {:text-align "right"}} (str (mc.util/get-field (first match) "First name") " " (mc.util/get-field (first match) "Last name"))] [:td.invisible ", "] [:td (str (mc.util/get-field (second match) "First name") " " (mc.util/get-field (second match) "Last name"))]]
-                       [:tr {:key index} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Phone")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Phone")]]
-                       [:tr {:key index} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Email")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Email")]]])
-                    mutual-selections)
-
+       [:tbody
+        (map-indexed (fn [index match]
+                       [:<> {:key index} ; the comma column is there to make it easier to copy/paste into a spreadsheet / iMessage / etc
+                        [:tr {:key (str index "-1")} [:td {:colspan 3 :style {:text-align "left" :padding-top "32px" :font-size ".85em" :font-weight "bold" :border-bottom "2px solid #ddd"}} "match #" (+ 1 index)]]
+                        [:tr {:key (str index "-2")} [:td {:style {:text-align "right"}} (str (mc.util/get-field (first match) "First name") " " (mc.util/get-field (first match) "Last name"))] [:td.invisible ", "] [:td (str (mc.util/get-field (second match) "First name") " " (mc.util/get-field (second match) "Last name"))]]
+                        [:tr {:key (str index "-3")} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Phone")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Phone")]]
+                        [:tr {:key (str index "-4")} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Email")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Email")]]])
+                     mutual-selections)]
 
        ;
        ]])])
