@@ -816,6 +816,7 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
+(def meetcute-job-id        (atom nil))
 (def email-update-worker-id (atom nil))
 (def garbage-collection-id  (atom nil))
 
@@ -843,7 +844,7 @@
 
     (db/create-table db/impersonation-table    db/impersonation-schema)
 
-  ; KETCHUP CLUB tables:
+    ; KETCHUP CLUB tables:
     (db/create-table db/users-table            db/users-schema))
 
   (let [port (Integer. (or port (util/get-env-var "PORT") 5000))
@@ -877,8 +878,17 @@
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
+
+
+  (let [id (timely/start-schedule
+            (timely/scheduled-item (timely/every 1 :minutes) #(util/log "🍊 MeetCute job runs every minute...")))]
+    (reset! meetcute-job-id id)
+    (println)
+    (println "🍊 started MeetCute job with id:" @meetcute-job-id))
+
+
   ;; (println "starting scheduler to run every 10 minutes")
-  (println "TEMPORARY: not starting scheduler for email-update-worker!"))
+  (println "🥝 Not starting email-update-worker, there's no point since the Twitter API was effectively shut down"))
 
 ; start the email-update worker that refreshes users' twitter info/friends
 (let [env (util/get-env-var "ENVIRONMENT")]
