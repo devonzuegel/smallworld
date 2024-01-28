@@ -212,6 +212,10 @@
                                           "Make sure <a href='https://smallworld.kiwi/meetcute/settings'>your profile</a> is up-to-date!"
                                           "<br><br>"
                                           "</div>"
+                                          "You're getting this email because you told Devon or Erik you were interested in this MeetCute matchmaking experiment."
+                                          "<br><br>"
+                                          "If you'd like to stop receiving these emails, you can <a href='https://smallworld.kiwi/meetcute/settings'>change your settings</a>."
+                                          "<br>"
                                           "</div>")}]
         (email/send-email email-config)))))
 
@@ -287,20 +291,27 @@
                           (get-all-bios     :force-refresh? true))
     (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
 
-(defn refresh-todays-cutie-route-all [req]
+(defn refresh-todays-cutie-route-all [_req]
   ; TODO: only an admin should be able to hit this route
   (let [bios (get-all-bios :force-refresh? true)
-        admins (filter #(get-in % ["admin?"]) bios)
-        phones (map #(get-in % ["Phone"])
-                    #_(take 10 bios) ; TODO: put this back once debugging is done
-                    admins)]
+        ;; all-cuties (filter #(mc.util/get-field % "include-in-nightly-job-TMP") bios) ; TODO: remove the filter once we're confident that this is working correctly
+        all-cuties (filter #(get-in % ["include-in-nightly-job-TMP"]) bios) ; TODO: remove the filter once we're confident that this is working correctly
+        ;; phones (map #(get-in % ["Phone"])
+        ;;             all-cuties)
+        ]
 
-    (doseq [phone phones]
+    (println)
+    (println "count of all-cuties: " (count all-cuties))
+    (doseq [cutie all-cuties]
       (println)
-      (println)
-      (println "refreshing todays-cutie for" phone)
-      (refresh-todays-cutie (my-profile phone :force-refresh? true)
-                            (get-all-bios     :force-refresh? true)))
+      (println "    refreshing todays-cutie for"
+               (get-in cutie ["Phone"])
+               " · "
+               (get-in cutie ["First name"])
+               (get-in cutie ["Last name"]))
+      (refresh-todays-cutie (my-profile (get-in cutie ["Phone"]) :force-refresh? true)
+                            (get-all-bios :force-refresh? true)))
 
+    (println)
 
-    (generate-string {:success true :message "TODO: need to implement /refresh-todays-cutie/all"})))
+    (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))

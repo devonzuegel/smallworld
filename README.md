@@ -227,15 +227,17 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] implement `/meetcute/api/refresh-todays-cutie/all`
   - [x] start with not sending any emails, just to make sure it works
   - [x] randomize the order of the cuties, so that different cuties get shown first to each user
-  - [ ] then add the email sending
-  - [ ] remove the admin filter
+  - [x] then add the email sending
+  - [x] replace the admin filter with the `include-in-nightly-job-TMP` filter (which I'll get rid of once I'm done testing)
 - [ ] run-through of the entire app to make sure it works
   - [ ] test it with Erik to make sure it works
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
-- [ ] give users a way to make their profile public/private & turn off the daily emails
+- [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
+- [ ] give users a way to make their profile public/private
+- [ ] give users a way to turn off the daily emails
 - [ ] add a way for admins to log in as any user
 - [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
