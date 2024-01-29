@@ -229,29 +229,34 @@ https://mc.sendgrid.com/dynamic-templates
   - [x] randomize the order of the cuties, so that different cuties get shown first to each user
   - [x] then add the email sending
   - [x] replace the admin filter with the `include-in-nightly-job-TMP` filter (which I'll get rid of once I'm done testing)
-- [ ] run-through of the entire app to make sure it works
-  - [ ] test it with Erik to make sure it works
+- [x] run-through of the entire app to make sure it works
+  - [x] test it with Erik to make sure it works
+- [x] matches screen for admin to save Erik a time-consuming manual process
+- [x] send the first emails to everybody MANUALLY
+- [ ] enable the cron job to refresh the `todays-cutie` list every night
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 *nice-to-haves, but not necessary for launch:*
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
+- [ ] profile page improvements:
+  - [ ] fix the profile editing feature – bug report with video in email on 2024.01.29
+  - [ ] give users a way to make their profile public/private
+  - [ ] give users a way to turn off the daily emails
+  - [ ] enable users to add/remove photos – then let Amit know that it's been updated
+- [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] test that Google Analytics is actually working: https://analytics.google.com/analytics/web/#/p305071962/reports/explorer?params=_u..nav%3Dmaui%26_u..insightCards%3D%5B%7B%22question%22:%22Top%20Page%20path%20%2B%20query%20string%20by%20unique%20Users%22%7D%5D&r=lifecycle-traffic-acquisition-v2&ruid=lifecycle-traffic-acquisition-v2,life-cycle,acquisition&collectionId=life-cycle
 - [ ] don't expose the /bios endpoint to the public
 - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
-- [ ] give users a way to make their profile public/private
-- [ ] give users a way to turn off the daily emails
+  - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
+- [ ] in the daily emails, add a "someone has picked you!" to encourage them to go to the site – probably need to design this with a bit more thought though
+
+*not that important:*
 - [ ] add a way for admins to log in as any user
-- [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
-- [ ] sign up page with validation – replace the Airtable iframe form with a custom form
-- [ ] matches screen for admin to save Erik a time-consuming manual process
-- [ ] implement the cron job in the backend to refresh the `todays-cutie` list every night
 - [ ] consider adding a `undecided-cuties` list, to distinguish between `unseen` and `not-decided`
 - [ ] in the email, link directly to the cutie's profile rather than the main page (maybe not necessary...?)
-- [ ] add a button for the user to make their account public/private
 - [ ] rename `bios` to `cuties` throughout the codebase
 - [ ] verify email addresses with Twilio Verify too
 - [ ] style the SMS verification page with 4 digits, similar to Apple's SMS verification page
-
 
