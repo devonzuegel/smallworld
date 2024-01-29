@@ -173,22 +173,22 @@
   (let [bios                     (clojure.walk/keywordize-keys bios)
         profile                  (clojure.walk/keywordize-keys profile)
         computed                 (compute-todays-cutie profile bios)
-        get-cuties-name         #(get-in (find-cutie % bios) [(keyword "First name")])
+        ;; get-cuties-name         #(get-in (find-cutie % bios) [(keyword "First name")])
         new-todays-cutie-profile (clojure.walk/keywordize-keys (find-cutie (first (:todays-cutie (:new computed))) bios))
         new-values               (clojure.walk/keywordize-keys (merge (:new computed)
                                                                       {:cuties-last-refreshed (current-timestamp-for-airtable)}))]
 
-    (println "computed: ======================================================================================")
-    (pp/pprint {:profile         (select-keys profile [(keyword "First name")
-                                                       :todays-cutie
-                                                       :unseen-cuties
-                                                       :selected-cuties
-                                                       :rejected-cuties])
-                :todays-cutie    (map get-cuties-name (:todays-cutie    new-values))
-                :unseen-cuties   (map get-cuties-name (:unseen-cuties   new-values))
-                :selected-cuties (map get-cuties-name (:selected-cuties new-values))
-                :rejected-cuties (map get-cuties-name (:rejected-cuties new-values))})
-    (pp/pprint "==============================================================================================")
+    ;; (println "computed: ======================================================================================")
+    ;; (pp/pprint {:profile         (select-keys profile [(keyword "First name")
+    ;;                                                    :todays-cutie
+    ;;                                                    :unseen-cuties
+    ;;                                                    :selected-cuties
+    ;;                                                    :rejected-cuties])
+    ;;             :todays-cutie    (map get-cuties-name (:todays-cutie    new-values))
+    ;;             :unseen-cuties   (map get-cuties-name (:unseen-cuties   new-values))
+    ;;             :selected-cuties (map get-cuties-name (:selected-cuties new-values))
+    ;;             :rejected-cuties (map get-cuties-name (:rejected-cuties new-values))})
+    ;; (pp/pprint "==============================================================================================")
 
     (airtable/update-in-base airtable-base
                              ["cuties-live-data" (:id profile)]
