@@ -327,11 +327,11 @@
           (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
 
         (when-not updated-recently?
-          (pp/pprint (select-keys cutie ["First name"
-                                         "Last name"
-                                         :id
-                                         "cuties-last-refreshed"
-                                         "include-in-nightly-job-TMP"]))
+          #_(pp/pprint (select-keys cutie ["First name"
+                                           "Last name"
+                                           :id
+                                           "cuties-last-refreshed"
+                                           "include-in-nightly-job-TMP"]))
           (refresh-todays-cutie (my-profile (get-in cutie ["Phone"]) :force-refresh? true)
                                 (get-all-bios :force-refresh? true)))))
     (println)
