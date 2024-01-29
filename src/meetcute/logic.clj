@@ -92,10 +92,10 @@
                      :body
                      json/read-str
                      clojure.walk/keywordize-keys)]
-        (pp/pprint (select-keys (:fields data) [:unseen-cuties
-                                                :todays-cutie
-                                                :selected-cuties
-                                                :rejected-cuties]))
+        #_(pp/pprint (select-keys (:fields data) [:unseen-cuties
+                                                  :todays-cutie
+                                                  :selected-cuties
+                                                  :rejected-cuties]))
         (generate-string (airtable/kwdize data))))))
 
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
