@@ -881,16 +881,19 @@
            (throw e))))
 
 
-  (let [mins 10
-        id (timely/start-schedule
-            (timely/scheduled-item (timely/every mins :minutes)
-                                   #(do
-                                      (util/log "🍊 Starting the MeetCute job: refresh-todays-cutie-route-all")
-                                      (util/log (str "     note: this job runs every " mins " minutes"))
-                                      (logic/refresh-todays-cutie-route-all nil))))]
-    (reset! meetcute-job-id id)
-    (println)
-    (println "🍊 started MeetCute job with id:" @meetcute-job-id))
+  ; TODO: put me back!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ; TODO: put me back!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ; TODO: put me back!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  #_(let [mins 10
+          id (timely/start-schedule
+              (timely/scheduled-item (timely/every mins :minutes)
+                                     #(do
+                                        (util/log "🍊 Starting the MeetCute job: refresh-todays-cutie-route-all")
+                                        (util/log (str "     note: this job runs every " mins " minutes"))
+                                        (logic/refresh-todays-cutie-route-all nil))))]
+      (reset! meetcute-job-id id)
+      (println)
+      (println "🍊 started MeetCute job with id:" @meetcute-job-id))
 
 
   ;; (println "starting scheduler to run every 10 minutes")
