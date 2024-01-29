@@ -797,12 +797,12 @@
            (throw e))))
 
 
-  (let [hours 1
+  (let [mins 10
         id (timely/start-schedule
-            (timely/scheduled-item (timely/every hours :hours)
+            (timely/scheduled-item (timely/every mins :minutes)
                                    #(do
                                       (util/log "🍊 Starting the MeetCute job: refresh-todays-cutie-route-all")
-                                      (util/log (str "     note: this job runs every " hours " hours"))
+                                      (util/log (str "     note: this job runs every " mins " minutes"))
                                       (logic/refresh-todays-cutie-route-all nil))))]
     (reset! meetcute-job-id id)
     (println)
