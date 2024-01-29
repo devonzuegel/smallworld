@@ -235,6 +235,8 @@ https://mc.sendgrid.com/dynamic-templates
 
 *nice-to-haves, but not necessary for launch:*
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
+- [ ] test that Google Analytics is actually working: https://analytics.google.com/analytics/web/#/p305071962/reports/explorer?params=_u..nav%3Dmaui%26_u..insightCards%3D%5B%7B%22question%22:%22Top%20Page%20path%20%2B%20query%20string%20by%20unique%20Users%22%7D%5D&r=lifecycle-traffic-acquisition-v2&ruid=lifecycle-traffic-acquisition-v2,life-cycle,acquisition&collectionId=life-cycle
+- [ ] don't expose the /bios endpoint to the public
 - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
 - [ ] give users a way to make their profile public/private
 - [ ] give users a way to turn off the daily emails
