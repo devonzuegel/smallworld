@@ -733,14 +733,34 @@
                   :store (cookie/cookie-store
                           {:key (util/get-env-var "COOKIE_STORE_SECRET_KEY")})}})))
 
-(def meetcute-job-id        (atom nil))
 (def email-update-worker-id (atom nil))
+(def meetcute-worker-id     (atom nil))
 (def garbage-collection-id  (atom nil))
 
 (defn end-schedule []
-  (println "ending email update worker schedule:" @email-update-worker-id)
-  (timely/end-schedule @email-update-worker-id)
-  (reset! email-update-worker-id nil))
+  (if @email-update-worker-id
+    (do
+      (println)
+      (println "🥝 ending SW email update worker schedule:" @email-update-worker-id)
+      (println)
+      (timely/end-schedule @email-update-worker-id)
+      (reset! email-update-worker-id nil))
+    (do
+      (println)
+      (println "🥝 email update worker id is nil, so nothing to stop")))
+
+  (if @meetcute-worker-id
+    (do
+      (println)
+      (println "🍊 ending MeetCute worker schedule:" @meetcute-worker-id)
+      (println)
+      (timely/end-schedule @meetcute-worker-id)
+      (reset! meetcute-worker-id nil))
+    (do
+      (println)
+      (println "🍊 MeetCute worker id is nil, so nothing to stop")))
+
+  (println))
 
 (defonce server* (atom nil))
 
@@ -797,19 +817,16 @@
            (throw e))))
 
 
-  ; TODO: put me back!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ; TODO: put me back!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ; TODO: put me back!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  #_(let [mins 10
-          id (timely/start-schedule
-              (timely/scheduled-item (timely/every mins :minutes)
-                                     #(do
-                                        (util/log "🍊 Starting the MeetCute job: refresh-todays-cutie-route-all")
-                                        (util/log (str "     note: this job runs every " mins " minutes"))
-                                        (logic/refresh-todays-cutie-route-all nil))))]
-      (reset! meetcute-job-id id)
-      (println)
-      (println "🍊 started MeetCute job with id:" @meetcute-job-id))
+  (let [mins 10
+        id (timely/start-schedule
+            (timely/scheduled-item (timely/every mins :minutes)
+                                   #(do
+                                      (util/log "🍊 Starting the MeetCute job: refresh-todays-cutie-route-all")
+                                      (util/log (str "🍊 note: this job runs every " mins " minutes"))
+                                      (logic/refresh-todays-cutie-route-all nil))))]
+    (reset! meetcute-worker-id id)
+    (println)
+    (println "🍊 started MeetCute job with id:" @meetcute-worker-id))
 
 
   ;; (println "starting scheduler to run every 10 minutes")
