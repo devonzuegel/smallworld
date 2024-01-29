@@ -47,10 +47,10 @@
 (defn existing-phone-number? [phone]
   (let [phone (mc.util/clean-phone phone)
         all-phones (get-all-phones)]
-    (println)
-    (println "all-phones:")
-    (pp/pprint all-phones)
-    (println)
+    ;; (println)
+    ;; (println "all-phones:")
+    ;; (pp/pprint all-phones)
+    ;; (println)
     (contains? all-phones phone)))
 
 (defn find-first-match [match-fn items]
