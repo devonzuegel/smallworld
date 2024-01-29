@@ -163,13 +163,20 @@
                      cutie-id)
                  bios)))
 
+(defn current-timestamp-for-airtable []
+  (let [utc (java.time.ZonedDateTime/ofInstant (java.time.Instant/now)
+                                               (java.time.ZoneId/of "UTC"))
+        formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")]
+    (.format utc formatter)))
+
 (defn refresh-todays-cutie [profile bios]
   (let [bios                     (clojure.walk/keywordize-keys bios)
         profile                  (clojure.walk/keywordize-keys profile)
         computed                 (compute-todays-cutie profile bios)
         get-cuties-name         #(get-in (find-cutie % bios) [(keyword "First name")])
         new-todays-cutie-profile (clojure.walk/keywordize-keys (find-cutie (first (:todays-cutie (:new computed))) bios))
-        new-values               (clojure.walk/keywordize-keys (:new computed))]
+        new-values               (clojure.walk/keywordize-keys (merge (:new computed)
+                                                                      {:cuties-last-refreshed (current-timestamp-for-airtable)}))]
 
     (println "computed: ======================================================================================")
     (pp/pprint {:profile         (select-keys profile [(keyword "First name")
@@ -291,27 +298,42 @@
                           (get-all-bios     :force-refresh? true))
     (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
 
+(defn updated-in-last-N-mins? [cutie N]
+  (let [last-updated (get-in cutie ["cuties-last-refreshed"])]
+    (if (empty? last-updated)
+      false
+      (let [last-updated (java.time.ZonedDateTime/parse last-updated)
+            now          (java.time.ZonedDateTime/now java.time.ZoneOffset/UTC)
+            mins-ago     (.toMinutes (java.time.Duration/between last-updated now))]
+        (< mins-ago N)))))
+
 (defn refresh-todays-cutie-route-all [_req]
   ; TODO: only an admin should be able to hit this route
   (let [bios (get-all-bios :force-refresh? true)
-        ;; all-cuties (filter #(mc.util/get-field % "include-in-nightly-job-TMP") bios) ; TODO: remove the filter once we're confident that this is working correctly
-        all-cuties (filter #(get-in % ["include-in-nightly-job-TMP"]) bios) ; TODO: remove the filter once we're confident that this is working correctly
-        ;; phones (map #(get-in % ["Phone"])
-        ;;             all-cuties)
-        ]
+        ; TODO: remove the filter once we're confident that this is working correctly
+        all-cuties (filter #(get-in % ["include-in-nightly-job-TMP"]) bios)]
 
     (println)
     (println "count of all-cuties: " (count all-cuties))
     (doseq [cutie all-cuties]
-      (println)
-      (println "    refreshing todays-cutie for"
-               (get-in cutie ["Phone"])
-               " · "
-               (get-in cutie ["First name"])
-               (get-in cutie ["Last name"]))
-      (refresh-todays-cutie (my-profile (get-in cutie ["Phone"]) :force-refresh? true)
-                            (get-all-bios :force-refresh? true)))
+      (let [updated-recently? (updated-in-last-N-mins? cutie (* 60 24))
+            phone             (get-in cutie ["Phone"])
+            first-name        (get-in cutie ["First name"])
+            last-name         (get-in cutie ["Last name"])
+            cutie-info-str    (str phone "  ·  " first-name " " last-name)]
+        (println)
+        (if updated-recently?
+          (println "    ❌  skipping todays-cutie refresh for" cutie-info-str)
+          (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
 
+        (when-not updated-recently?
+          (pp/pprint (select-keys cutie ["First name"
+                                         "Last name"
+                                         :id
+                                         "cuties-last-refreshed"
+                                         "include-in-nightly-job-TMP"]))
+          (refresh-todays-cutie (my-profile (get-in cutie ["Phone"]) :force-refresh? true)
+                                (get-all-bios :force-refresh? true)))))
     (println)
 
     (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))
