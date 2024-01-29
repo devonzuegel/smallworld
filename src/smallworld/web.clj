@@ -26,6 +26,7 @@
             [smallworld.session :as session]
             [smallworld.user-data :as user-data]
             [smallworld.util :as util]
+            [meetcute.logic :as logic]
             [timely.core :as timely]))
 
 (def debug? false)
@@ -796,8 +797,13 @@
            (throw e))))
 
 
-  (let [id (timely/start-schedule
-            (timely/scheduled-item (timely/every 1 :minutes) #(util/log "🍊 MeetCute job runs every minute...")))]
+  (let [hours 1
+        id (timely/start-schedule
+            (timely/scheduled-item (timely/every hours :hours)
+                                   #(do
+                                      (util/log "🍊 Starting the MeetCute job: refresh-todays-cutie-route-all")
+                                      (util/log (str "     note: this job runs every " hours " hours"))
+                                      (logic/refresh-todays-cutie-route-all nil))))]
     (reset! meetcute-job-id id)
     (println)
     (println "🍊 started MeetCute job with id:" @meetcute-job-id))
