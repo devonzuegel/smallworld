@@ -314,22 +314,24 @@
         all-cuties (filter #(get-in % ["include-in-nightly-job-TMP"]) bios)]
 
     (println)
-    (println "count of all-cuties: " (count all-cuties))
+    (println (str "------------------------------------------------------------\n"
+                  "preparing to refresh todays-cutie for " (count all-cuties) " cuties"))
     (doseq [cutie all-cuties]
-      (let [updated-recently? (updated-in-last-N-mins? cutie (* 60 24))
+      (let [updated-recently? (updated-in-last-N-mins? cutie (* 60 24)) ; only update the cutie if it hasn't been updated in the last 24 hours
             phone             (get-in cutie ["Phone"])
             first-name        (get-in cutie ["First name"])
             last-name         (get-in cutie ["Last name"])
             cutie-info-str    (str phone "  ·  " first-name " " last-name)]
         (when-not (empty? phone)
-          (println)
           (if updated-recently?
             (println "    ❌  skipping todays-cutie refresh for" cutie-info-str)
             (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
 
-          (when-not updated-recently?
-            (refresh-todays-cutie (my-profile phone :force-refresh? true)
-                                  (get-all-bios :force-refresh? true))))))
+          #_(when-not updated-recently?
+              (refresh-todays-cutie (my-profile phone :force-refresh? true)
+                                    (get-all-bios :force-refresh? true))))))
+    (println (str "finished refreshing todays-cutie for " (count all-cuties) " cuties\n"
+                  "------------------------------------------------------------"))
     (println)
 
     (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))
