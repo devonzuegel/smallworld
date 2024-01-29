@@ -202,27 +202,29 @@
             email-config {:to        (:Email profile)
                           :from-name "MeetCute"
                           :subject   (str " Fresh cutie! 🍊 Meet " (mc.util/get-field new-todays-cutie-profile "First name"))
-                          :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin-top: 24px'>"
+                          :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
                                           "Hey " (mc.util/get-field profile "First name") ", "
                                           (if cutie-first-name
                                             (str "your cutie of the day is " cutie-first-name "! ")
                                             (str "your cutie of the day is ready! "))
                                           "<br><br>"
                                           "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>Let us know today!</a>"
-                                          "<div style='border: 3px solid #eee;  color: #888;  padding: 16px 16px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
+                                          "<div style='border: 3px solid #eee;  color: #888; width: fit-content;  padding: 16px 24px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
                                           "How MeetCute works:"
                                           "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
-                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>We'll send you a daily email with one new person</li>"
+                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>We send you a daily email with one new person at a time</li>"
                                           "      <li style='padding-left: 4px !important; margin-left: 4px !important'>You let us know if you're interested in meeting them</li>"
-                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we'll introduce you!</li>"
+                                          "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we introduce you!</li>"
                                           "</ol>"
                                           "Make sure <a href='https://smallworld.kiwi/meetcute/settings'>your profile</a> is up-to-date!"
                                           "<br><br>"
                                           "</div>"
-                                          "You're getting this email because you told Devon or Erik you were interested in this MeetCute matchmaking experiment."
-                                          "<br><br>"
-                                          "If you'd like to stop receiving these emails, you can <a href='https://smallworld.kiwi/meetcute/settings'>change your settings</a>."
-                                          "<br>"
+                                          "<div style='font-size: .8em; line-height: 1.7em'>"
+                                          "MeetCute is a little project by <a href='https://devonzuegel.com'>Devon</a> & <a href='https://eriktorenberg.com/'>Erik</a> "
+                                          "meant as a gift to our friends. <br/>"
+                                          "We both have full-time jobs, so we might be slow to respond. <br/>"
+                                          "If you have questions or find bugs, email us at <a href='mailto:hello@smallworld.kiwi'>hello@smallworld.kiwi</a>. <br/>"
+                                          "</div>"
                                           "</div>")}]
         (email/send-email email-config)))))
 
