@@ -321,19 +321,15 @@
             first-name        (get-in cutie ["First name"])
             last-name         (get-in cutie ["Last name"])
             cutie-info-str    (str phone "  ·  " first-name " " last-name)]
-        (println)
-        (if updated-recently?
-          (println "    ❌  skipping todays-cutie refresh for" cutie-info-str)
-          (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
+        (when-not (empty? phone)
+          (println)
+          (if updated-recently?
+            (println "    ❌  skipping todays-cutie refresh for" cutie-info-str)
+            (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
 
-        (when-not updated-recently?
-          #_(pp/pprint (select-keys cutie ["First name"
-                                           "Last name"
-                                           :id
-                                           "cuties-last-refreshed"
-                                           "include-in-nightly-job-TMP"]))
-          (refresh-todays-cutie (my-profile (get-in cutie ["Phone"]) :force-refresh? true)
-                                (get-all-bios :force-refresh? true)))))
+          (when-not updated-recently?
+            (refresh-todays-cutie (my-profile phone :force-refresh? true)
+                                  (get-all-bios :force-refresh? true))))))
     (println)
 
     (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))
