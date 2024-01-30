@@ -809,13 +809,14 @@
     ;; [:i {:className "fas fa-user"}] " Profile"
     "Profile"]
 
-   (when (:admin? @profile)
-     [:a {:href "/meetcute/admin"
-          :className (if (= "/meetcute/admin" (.-pathname js/location))
-                       "btn primary"
-                       "btn")}
+   ; let's just not show the admin button for now to make sure no one has access to it when they shouldn't
+   #_(when (:admin? @profile)
+       [:a {:href "/meetcute/admin"
+            :className (if (= "/meetcute/admin" (.-pathname js/location))
+                         "btn primary"
+                         "btn")}
       ;; [:i {:className "fas fa-cog"}] " Admin"
-      "Admin"])
+        "Admin"])
 
    ;; TODO(sebas): make this a post request to clear the cookie
    [:form {:action "/meetcute/logout" :method "post"
