@@ -329,9 +329,9 @@
             (println "    ❌  skipping todays-cutie refresh for" cutie-info-str)
             (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
 
-          #_(when-not updated-recently?
-              (refresh-todays-cutie (my-profile phone :force-refresh? true)
-                                    (get-all-bios :force-refresh? true))))))
+          (when-not updated-recently?
+            (refresh-todays-cutie (my-profile phone :force-refresh? true)
+                                  (get-all-bios :force-refresh? true))))))
     (println (str "finished refreshing todays-cutie for " (count all-cuties) " cuties\n"
                   "------------------------------------------------------------"))
     (println)
