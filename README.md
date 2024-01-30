@@ -248,7 +248,9 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] test that Google Analytics is actually working: https://analytics.google.com/analytics/web/#/p305071962/reports/explorer?params=_u..nav%3Dmaui%26_u..insightCards%3D%5B%7B%22question%22:%22Top%20Page%20path%20%2B%20query%20string%20by%20unique%20Users%22%7D%5D&r=lifecycle-traffic-acquisition-v2&ruid=lifecycle-traffic-acquisition-v2,life-cycle,acquisition&collectionId=life-cycle
 - [ ] don't expose the /bios endpoint to the public
 - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
+  - [ ] validate that the phone number is unique
   - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
+- [ ] index user with the id, rather than the phone. indexing by the phone number is part of why Mariah's profile got out of whack, because she signed up for a second account with the same phone number and then the second one was never marked as updated
 - [ ] in the daily emails, add a "someone has picked you!" to encourage them to go to the site – probably need to design this with a bit more thought though
 
 *not that important:*
