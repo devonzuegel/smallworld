@@ -201,14 +201,15 @@
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
             email-config {:to        (:Email profile)
                           :from-name "MeetCute"
-                          :subject   (str " 🍊 Fresh cutie!")
+                          :subject   (str "Fresh cutie! 🍊 Meet " (mc.util/get-field new-todays-cutie-profile "First name"))
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
                                           "Hey " (mc.util/get-field profile "First name") ", "
                                           (if cutie-first-name
                                             (str "your cutie of the day is " cutie-first-name "! ")
                                             (str "your cutie of the day is ready! "))
                                           "<br><br>"
-                                          "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>Let us know today!</a>"
+                                          "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>"
+                                          "View " (mc.util/get-field new-todays-cutie-profile "First name") "'s profile and let us know today!</a>"
                                           "<div style='border: 3px solid #eee;  color: #888; width: fit-content;  padding: 16px 24px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
                                           "How MeetCute works:"
                                           "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
