@@ -238,7 +238,8 @@ https://mc.sendgrid.com/dynamic-templates
 
 *nice-to-haves, but not necessary for launch:*
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
-- [ ] track who has selected who and when, include in some sort of stats
+- [ ] only refresh-todays-cutie for people who are visible in the gallery
+- [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
 - [ ] profile page improvements:
   - [ ] fix the profile editing feature – bug report with video in email on 2024.01.29
   - [ ] give users a way to make their profile public/private
