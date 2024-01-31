@@ -312,9 +312,13 @@
 
 (defn refresh-todays-cutie-route-all [_req]
   ; TODO: only an admin should be able to hit this route
-  (let [bios (get-all-bios :force-refresh? true)
+  (let [actually-do-the-refresh true ; toggle me to turn off the refresh/email
+        bios (get-all-bios :force-refresh? true)
         ; TODO: remove the filter once we're confident that this is working correctly
-        all-cuties (filter #(get-in % ["include-in-nightly-job-TMP"]) bios)]
+        all-cuties (filter #(or (get-in % ["admin?"])
+                                (and (= (get-in % ["Include in gallery?"]) "include in gallery")
+                                     (= (get-in % ["include-in-nightly-job-TMP"]) true)))
+                           bios)]
 
     (println)
     (println (str "------------------------------------------------------------\n"
@@ -324,15 +328,23 @@
             phone             (get-in cutie ["Phone"])
             first-name        (get-in cutie ["First name"])
             last-name         (get-in cutie ["Last name"])
-            cutie-info-str    (str phone "  ·  " first-name " " last-name)]
+            reason-for-including (if (= (get-in cutie ["Include in gallery?"]) "include in gallery")
+                                   "include in gallery"
+                                   "          admin 🔔")
+            cutie-info-str    (str reason-for-including  "  ·  " phone "  ·  " first-name " " last-name)]
         (when-not (empty? phone)
           (if updated-recently?
-            (println "    ❌  skipping todays-cutie refresh for" cutie-info-str)
-            (println "    🔄 refreshing the todays-cutie for" cutie-info-str))
+            (println " 🔵 skipping refresh-todays-cutie for" cutie-info-str)
+            (println " 🟢 running  refresh-todays-cutie for" cutie-info-str))
 
-          #_(when-not updated-recently?
+          (when actually-do-the-refresh
+            (when-not updated-recently?
               (refresh-todays-cutie (my-profile phone :force-refresh? true)
-                                    (get-all-bios :force-refresh? true))))))
+                                    (get-all-bios :force-refresh? true)))))))
+    (when-not actually-do-the-refresh
+      (println)
+      (println "not actually refreshing todays-cutie for any cuties")
+      (println))
     (println (str "finished refreshing todays-cutie for " (count all-cuties) " cuties\n"
                   "------------------------------------------------------------"))
     (println)
