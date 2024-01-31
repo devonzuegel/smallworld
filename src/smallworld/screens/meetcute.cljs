@@ -32,6 +32,7 @@
                                 "First name"
                                 "Last name"
                                 "Phone"
+                                "include-in-gallery?"
                                 "Home base city"
                                 "Other cities where you spend time"
                                 "I'm interested in..."
@@ -554,17 +555,18 @@
   (let [id (mc.util/get-field user "id")
         full-name (str (mc.util/get-field user "First name") " " (mc.util/get-field user "Last name"))]
     [:tr {:key i}
-     [:td {:style {:text-align "right"}}
-      (truncate-string full-name)]
-     [:td [:a {:href "#"
-               :on-click (fn []
-                           (reset! loading-message (str "Refreshing todays-cutie for " full-name "..."))
-                           (util/fetch-post "/meetcute/api/refresh-todays-cutie"
-                                            {:id id}
-                                            #(do
-                                               (reset! loading-message false)
-                                               #_(js/location.reload true))))}
-           "Refresh todays-cutie for just this person →"]]]))
+     [:td {:style {:text-align "right" :padding "16px 4px"}}
+      (truncate-string full-name) ": "]
+     [:td {:style {:padding "16px 4px"}}
+      [:a {:href "#"
+           :on-click (fn []
+                       (reset! loading-message (str "Refreshing todays-cutie for " full-name "..."))
+                       (util/fetch-post "/meetcute/api/refresh-todays-cutie"
+                                        {:id id}
+                                        #(do
+                                           (reset! loading-message false)
+                                           #_(js/location.reload true))))}
+       " Refresh todays-cutie for just this person"]]]))
 
 (defn refresh-todays-cutie-btns []
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "6px 24px"}}
@@ -602,15 +604,13 @@
      "Refresh todays-cutie for EVERYONE →"]]
 
    ; list all bios where include-in-nightly-job-TMP = true:
-   (let [bios-with-include-in-nightly-job-TMP (filter #(mc.util/get-field % "include-in-nightly-job-TMP") @bios)]
-     [:div
-      [:h1 "Refresh todays-cutie for all users with include-in-nightly-job-TMP=true:"]
-      [:pre (count bios-with-include-in-nightly-job-TMP)]])
-
-   [:details
-    [:summary "Refresh todays-cutie for each user individually:"]
-    [:table [:tbody (map-indexed refresh-todays-cutie-link @bios)]]
-    [:div]]])
+   (let [refreshable-cuties (filter #(or (:admin? %)
+                                         (and (= (mc.util/get-field % "Include in gallery?") "include in gallery")
+                                              (= (mc.util/get-field % "include-in-nightly-job-TMP") true))) @bios)]
+     [:details {:open true}
+      [:summary " Refresh todays-cutie for each user individually: (" (count refreshable-cuties) " 'include in gallery' OR admins)"]
+      [:table [:tbody (map-indexed refresh-todays-cutie-link refreshable-cuties)]]
+      [:div]])])
 
 (defn list-mutual-selections []
   [:div {:style {:margin "48px 0" :background "#eee" :border-radius "8px" :padding "24px"}}
