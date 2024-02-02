@@ -136,10 +136,6 @@
                            (move-to-end todays-id--old unseen-ids--tmp)
                            (filter #(not= todays-id--old %) unseen-ids--tmp))
 
-        ; remove ids of bios that are not "include in gallery" = (get-field cutie "Include in gallery?"):
-        unseen-ids--new  (vec (distinct (map :id (filter #(= (mc.util/get-field % "Include in gallery?") "include in gallery")
-                                                         (map #(find-cutie % bios) unseen-ids--new)))))
-
         todays-id--new (first unseen-ids--new)
         todays-cutie  (if (nil? todays-id--new)
                         []
@@ -177,10 +173,9 @@
 
 ; TODO: move this to utils
 (defn utc-to-local [utc-string]
-  (println "utc-string: " utc-string)
   (if (empty? utc-string)
     nil
-    (let [utc-time (java.time.ZonedDateTime/parse utc-string)
+    (let [utc-time (java.time.ZonedDateTime/parse (utc-string))
           local-time-zone (java.time.ZoneId/systemDefault)
           local-time (-> utc-time
                          (.withZoneSameInstant local-time-zone))
