@@ -14,14 +14,21 @@
 (def airtable-base {:api-key (util/get-env-var "AIRTABLE_BASE_API_KEY")
                     :base-id "appF2K8ThWvtrC6Hs"})
 
+(def airtable-db-name (atom (if (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
+                              "cuties-live-data"
+                              "cuties-TEST-data")))
+(println)
+(println "🍊🍊🍊 airtable-db-name: " @airtable-db-name " 🍊🍊🍊")
+(println)
+
 (defn seconds [n] (* n 1000))
 (defn minutes [n] (* n 60 (seconds 1)))
 
 (defn fetch-all-bios! []
   (println)
-  (println "⚠️   Fetching all bios from Airtable... (Avoid if possible! Airtable will get grumpy if we hit the API too often)")
+  (println "⚠️   Fetching all bios from Airtable... (Airtable will get grumpy if we hit the API too often)")
   (println)
-  (airtable/get-in-base airtable-base ["cuties-live-data"]))
+  (airtable/get-in-base airtable-base [@airtable-db-name]))
 
 (def fetch-all-bios-memoized
   (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
@@ -81,7 +88,7 @@
     (if (nil? bio)
       (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
       (let [data (-> (airtable/update-in-base airtable-base
-                                              ["cuties-live-data" (:id bio)]
+                                              [@airtable-db-name (:id bio)]
                                               {:fields fields-to-change})
                      :body
                      json/read-str
@@ -195,7 +202,7 @@
     ;; (pp/pprint "==============================================================================================")
 
     (airtable/update-in-base airtable-base
-                             ["cuties-live-data" (:id profile)]
+                             [@airtable-db-name (:id profile)]
                              {:fields new-values})
 
     (if (empty? (:todays-cutie (:new computed)))
@@ -288,6 +295,38 @@
          {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []})))
 
 ;; (clojure.test/run-tests)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn get-airtable-db-name []
+  (println "get-airtable-db-name: " @airtable-db-name)
+  @airtable-db-name)
+
+; if current user is not an admin, return 401
+(defn update-airtable-db [req]
+  (let [parsed-jwt  (:auth/parsed-jwt req)
+        phone       (some-> parsed-jwt :auth/phone mc.util/clean-phone)
+        new-db-name (mc.util/get-field (:params req) "airtable-db-name")]
+    ;; (pp/pprint (my-profile phone))
+    (println "      phone: " phone)
+    (println "old-db-name: " @airtable-db-name)
+    (println "new-db-name: " new-db-name)
+
+    (when (not= @airtable-db-name new-db-name)
+      (get-all-bios :force-refresh? true) ; force a refresh of the bios now that the db name has changed
+      (reset! airtable-db-name new-db-name))
+    (generate-string {:success true
+                      :message (str "Successfully updated Airtable db to " @airtable-db-name)}))
+  #_(let [parsed-jwt (:auth/parsed-jwt req)
+          admin?     (get-in parsed-jwt ["auth" "admin?"])]
+      (if (not admin?)
+        (generate-string {:error "You are not authorized to update the Airtable db"})
+        (do
+          (println "old airtable-db-name: " @airtable-db-name)
+          (reset! airtable-db-name (mc.util/get-field (:params req) "airtable-db-name"))
+          (println "new airtable-db-name: " @airtable-db-name)
+          (generate-string {:success true :message (str "Successfully updated Airtable db to " @airtable-db-name)})))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
