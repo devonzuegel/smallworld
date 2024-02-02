@@ -146,9 +146,9 @@
 (defn get-settings [req screen-name]
   (let [settings (first (db/select-by-col db/settings-table :screen_name screen-name)) ; TODO: set in the session for faster access
         ip-address (or (get-in req [:headers "x-forwarded-for"]) (:remote-addr req))]
-    (log-event "get-settings" (if (nil? screen-name) {} {:screen-name screen-name
-                                                         :settings    settings
-                                                         :ip-address ip-address}))
+    #_(log-event "get-settings" (if (nil? screen-name) {} {:screen-name screen-name
+                                                           :settings    settings
+                                                           :ip-address ip-address}))
     settings))
 
 (defn update-settings [req]
@@ -809,14 +809,11 @@
   #_(log-event "garbage-collection" {}))
 
 (defn start-scheduled-workers []
-
   (try (timely/start-scheduler)
        (catch Exception e
          (if (= (:cause (Throwable->map e)) "Scheduler already started")
            (println "scheduler already started") ; it's fine, this isn't a real error, so just continue
            (throw e))))
-
-
   (let [mins (* 10)
         id (timely/start-schedule
             (timely/scheduled-item (timely/every mins :minutes)
@@ -849,7 +846,11 @@
   (println "\nstarted garbage collection worker with id:" @garbage-collection-id))
 
 (defn -main []
-  (start-scheduled-workers)
+  (let [curr-env (util/get-env-var "ENVIRONMENT")
+        prod-env (:prod util/ENVIRONMENTS)]
+    (if (= prod-env curr-env)
+      (start-scheduled-workers)
+      (println "⚠️  not starting scheduled workers because ENVIRONMENT is" curr-env "not" prod-env " ⚠️")))
 
   (println "\nstarting server...")
   (let [default-port 3001

@@ -88,7 +88,6 @@
   (.replace (.-location js/window) path))
 
 (defn current-page [] ; TODO: handle logged out state
-
   (if (= :loading @session/*store)
 
     ; TODO: this is really hacky, but at some point we'll separate smallworld and meetcute
