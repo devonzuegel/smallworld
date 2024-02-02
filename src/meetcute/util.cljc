@@ -1,8 +1,6 @@
 (ns meetcute.util
   (:require [clojure.string :as str]
-            [clojure.walk :refer [keywordize-keys]])
-  (:import [java.time ZonedDateTime ZoneId]
-           [java.time.format DateTimeFormatter]))
+            [clojure.walk :refer [keywordize-keys]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; phone utils
@@ -52,14 +50,3 @@
                                     (some #(= (:Gender profile) %) (get-gender-filter cutie))    ; only show someone if they're interested in dating someone of the gender of the current user:
                                     ))]
     (filter matches-preferences? cuties)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; date utils
-
-(defn utc-to-local [utc-string]
-  (let [utc-time (ZonedDateTime/parse utc-string)
-        local-time-zone (ZoneId/systemDefault)
-        local-time (-> utc-time
-                       (.withZoneSameInstant local-time-zone))
-        formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss zz")]
-    (.format local-time formatter)))

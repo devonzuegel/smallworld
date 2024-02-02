@@ -36,7 +36,6 @@
 
 (defn get-all-phones []
   (let [all-bios  (get-all-bios)]
-    (println "\n\ncount of all-bios: " (count all-bios) "\n\n")
     (->> all-bios
          (map (fn [bio]
                 (get-in bio ["Phone"])))
@@ -46,10 +45,6 @@
 (defn existing-phone-number? [phone]
   (let [phone (mc.util/clean-phone phone)
         all-phones (get-all-phones)]
-    ;; (println)
-    ;; (println "all-phones:")
-    ;; (pp/pprint all-phones)
-    ;; (println)
     (contains? all-phones phone)))
 
 (defn find-first-match [match-fn items]
@@ -162,11 +157,21 @@
                      cutie-id)
                  bios)))
 
+; TODO: move this to utils
 (defn current-timestamp-for-airtable []
   (let [utc (java.time.ZonedDateTime/ofInstant (java.time.Instant/now)
                                                (java.time.ZoneId/of "UTC"))
         formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")]
     (.format utc formatter)))
+
+; TODO: move this to utils
+(defn utc-to-local [utc-string]
+  (let [utc-time (java.time.ZonedDateTime/parse utc-string)
+        local-time-zone (java.time.ZoneId/systemDefault)
+        local-time (-> utc-time
+                       (.withZoneSameInstant local-time-zone))
+        formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss zz")]
+    (.format local-time formatter)))
 
 (defn refresh-todays-cutie [profile bios]
   (let [bios                     (clojure.walk/keywordize-keys bios)
@@ -303,7 +308,7 @@
 
 (defn refresh-todays-cutie-from-id [id]
   (let [cutie-profile (find-profile id :force-refresh? true)
-        last-refreshed (mc.util/utc-to-local (get-in cutie-profile ["cuties-last-refreshed"]))]
+        last-refreshed (utc-to-local (get-in cutie-profile ["cuties-last-refreshed"]))]
     (if (updated-in-last-24h? cutie-profile)
       (do
         (println (str "🔵 skipping refresh-todays-cutie for " id " because they were last updated at " last-refreshed))
