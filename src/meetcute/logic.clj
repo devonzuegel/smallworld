@@ -118,8 +118,8 @@
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
-        included-ids     (map :id included-bios)
-        unseen-ids--old (:unseen-cuties profile)
+        included-ids    (map :id included-bios)
+        unseen-ids--old (:unseen-cuties profile) ; TODO: it seems that somehow this has users that it shouldn't have in it (i.e. people who are not in the included-bios)
         unseen-ids--added-recently (shuffle (remove-from-lists included-ids
                                                                (:unseen-cuties  profile)
                                                                (:selected-cuties profile)
@@ -173,12 +173,14 @@
 
 ; TODO: move this to utils
 (defn utc-to-local [utc-string]
-  (let [utc-time (java.time.ZonedDateTime/parse utc-string)
-        local-time-zone (java.time.ZoneId/systemDefault)
-        local-time (-> utc-time
-                       (.withZoneSameInstant local-time-zone))
-        formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss zz")]
-    (.format local-time formatter)))
+  (if (empty? utc-string)
+    nil
+    (let [utc-time (java.time.ZonedDateTime/parse (utc-string))
+          local-time-zone (java.time.ZoneId/systemDefault)
+          local-time (-> utc-time
+                         (.withZoneSameInstant local-time-zone))
+          formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss zz")]
+      (.format local-time formatter))))
 
 (defn refresh-todays-cutie [profile bios]
   (let [bios                     (clojure.walk/keywordize-keys bios)
@@ -373,10 +375,8 @@
   ; TODO: only an admin should be able to hit this route
   (let [actually-do-the-refresh true ; toggle me to turn off the refresh/email
         bios (get-all-bios :force-refresh? true)
-        ; TODO: remove the filter once we're confident that this is working correctly
         all-cuties (filter #(or (get-in % ["admin?"])
-                                (and (= (get-in % ["Include in gallery?"]) "include in gallery")
-                                     (= (get-in % ["include-in-nightly-job-TMP"]) true)))
+                                (= (get-in % ["Include in gallery?"]) "include in gallery"))
                            bios)]
 
     (println)
