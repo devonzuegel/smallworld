@@ -19,8 +19,7 @@
 
 (defn fetch-all-bios! []
   (println)
-  (println "⚠️   Fetching all bios from Airtable...")
-  (println  "   (Avoid if possible!  Airtable will get grumpy if we hit the API too often)")
+  (println "⚠️   Fetching all bios from Airtable... (Avoid if possible! Airtable will get grumpy if we hit the API too often)")
   (println)
   (airtable/get-in-base airtable-base ["cuties-live-data"]))
 
@@ -290,17 +289,6 @@
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
 
-(defn refresh-todays-cutie-from-id [id]
-  (let [profile (find-profile id :force-refresh? true)]
-    (refresh-todays-cutie profile (get-all-bios :force-refresh? true))
-    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " id " (" (get-in profile ["First name"]) ")")})))
-
-(defn refresh-todays-cutie-route-mine [req]
-  (let [phone   (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)]
-    (refresh-todays-cutie (my-profile phone :force-refresh? true)
-                          (get-all-bios     :force-refresh? true))
-    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
-
 (defn updated-in-last-N-mins? [cutie N]
   (let [last-updated (get-in cutie ["cuties-last-refreshed"])]
     (if (empty? last-updated)
@@ -309,6 +297,33 @@
             now          (java.time.ZonedDateTime/now java.time.ZoneOffset/UTC)
             mins-ago     (.toMinutes (java.time.Duration/between last-updated now))]
         (< mins-ago N)))))
+
+(defn updated-in-last-24h? [cutie]
+  (updated-in-last-N-mins? cutie (* 60 24)))
+
+(defn refresh-todays-cutie-from-id [id]
+  (let [cutie-profile (find-profile id :force-refresh? true)
+        last-refreshed (mc.util/utc-to-local (get-in cutie-profile ["cuties-last-refreshed"]))]
+    (if (updated-in-last-24h? cutie-profile)
+      (do
+        (println (str "🔵 skipping refresh-todays-cutie for " id " because they were last updated at " last-refreshed))
+        (generate-string {:success true :message (str "Skipping refresh-todays-cutie for " id " (" (get-in cutie-profile ["First name"]) ")")}))
+      (do
+        (println (str "🟢 refresh-todays-cutie for "
+                      (get-in cutie-profile ["First name"]) " "
+                      (get-in cutie-profile ["Last name"]) ": "
+                      (get-in cutie-profile ["Phone"])))
+        (refresh-todays-cutie cutie-profile (get-all-bios :force-refresh? false)) ; don't need to refresh again because we just did it above
+        (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " id " (" (get-in cutie-profile ["First name"]) ")")})))))
+
+; TODO: remove this route
+(defn refresh-todays-cutie-route-mine [req]
+
+  (let [phone (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)
+        cutie (my-profile phone :force-refresh? true)]
+    (println "refresh-todays-cutie for JUST ME")
+    (refresh-todays-cutie cutie (get-all-bios :force-refresh? true))
+    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
 
 (defn refresh-todays-cutie-route-all [_req]
   ; TODO: only an admin should be able to hit this route
@@ -324,8 +339,7 @@
     (println (str "------------------------------------------------------------\n"
                   "preparing to refresh todays-cutie for " (count all-cuties) " cuties"))
     (doseq [cutie all-cuties]
-      (let [updated-recently? (updated-in-last-N-mins? cutie (* 60 24)) ; only update the cutie if it hasn't been updated in the last 24 hours
-            phone             (get-in cutie ["Phone"])
+      (let [phone             (get-in cutie ["Phone"])
             first-name        (get-in cutie ["First name"])
             last-name         (get-in cutie ["Last name"])
             reason-for-including (if (= (get-in cutie ["Include in gallery?"]) "include in gallery")
@@ -333,14 +347,14 @@
                                    "          admin 🔔")
             cutie-info-str    (str reason-for-including  "  ·  " phone "  ·  " first-name " " last-name)]
         (when-not (empty? phone)
-          (if updated-recently?
+          (if (updated-in-last-24h? cutie)
             (println " 🔵 skipping refresh-todays-cutie for" cutie-info-str)
             (println " 🟢 running  refresh-todays-cutie for" cutie-info-str))
 
           (when actually-do-the-refresh
-            (when-not updated-recently?
-              (refresh-todays-cutie (my-profile phone :force-refresh? true)
-                                    (get-all-bios :force-refresh? true)))))))
+            (when-not (updated-in-last-24h? cutie) ; don't need to refresh again because we just did it above
+              (refresh-todays-cutie (my-profile phone :force-refresh? false)
+                                    (get-all-bios :force-refresh? false)))))))
     (when-not actually-do-the-refresh
       (println)
       (println "not actually refreshing todays-cutie for any cuties")
