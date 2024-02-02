@@ -603,10 +603,9 @@
                      )}
      "Refresh todays-cutie for EVERYONE →"]]
 
-   ; list all bios where include-in-nightly-job-TMP = true:
    (let [refreshable-cuties (filter #(or (:admin? %)
-                                         (and (= (mc.util/get-field % "Include in gallery?") "include in gallery")
-                                              (= (mc.util/get-field % "include-in-nightly-job-TMP") true))) @bios)]
+                                         (= (mc.util/get-field % "Include in gallery?") "include in gallery"))
+                                    @bios)]
      [:details {:open true}
       [:summary " Refresh todays-cutie for each user individually: (" (count refreshable-cuties) " 'include in gallery' OR admins)"]
       [:table [:tbody (map-indexed refresh-todays-cutie-link refreshable-cuties)]]
