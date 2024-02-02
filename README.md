@@ -242,9 +242,8 @@ https://mc.sendgrid.com/dynamic-templates
 #### nice-to-haves, but not necessary for launch
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
 - [x] only refresh-todays-cutie for people who are visible in the gallery (i.e. who haven't opted out)
-- [ ] figure out why emails didn't send to Milan (and maybe not to others?)
-  - https://docs.google.com/spreadsheets/d/1DAw8TRVB3RX4IHAOc9TldllpW3f9vNfARUvu5oDzFFI
-  - https://mail.superhuman.com/devonzuegel@gmail.com/thread/18d58c5b609a8534#app
+- [x] figure out why emails didn't send to Milan (and maybe not to others?) – reason: I had set the "last-updated-at" field to Feb 1
+- [ ] fix the "no cuties for you to see" bug that several people reported on 2024.02.02
 - [ ] allow users to filter cuties by city
   - [ ] once this is done, update Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it

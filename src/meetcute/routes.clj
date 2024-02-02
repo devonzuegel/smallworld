@@ -54,11 +54,13 @@
                                                            mc.util/clean-phone)]
                                          (assert phone)
                                          (generate-string {:fields (logic/my-profile phone)})))
-  (POST "/api/refresh-todays-cutie"      req (let [parsed-body (:params req)
-                                                   id (:id parsed-body)]
-                                               (logic/refresh-todays-cutie-from-id id)))
-  (POST "/api/refresh-todays-cutie/mine" req (logic/refresh-todays-cutie-route-mine req))
-  (POST "/api/refresh-todays-cutie/all"  req (logic/refresh-todays-cutie-route-all req)))
+  (GET  "/api/get-airtable-db-name"        _  (json/generate-string (logic/get-airtable-db-name)))
+  (POST "/api/admin/update-airtable-db"   req (logic/update-airtable-db req))
+  (POST "/api/refresh-todays-cutie"       req (let [parsed-body (:params req)
+                                                    id (:id parsed-body)]
+                                                (logic/refresh-todays-cutie-from-id id)))
+  (POST "/api/refresh-todays-cutie/mine"  req (logic/refresh-todays-cutie-route-mine req))
+  (POST "/api/refresh-todays-cutie/all"   req (logic/refresh-todays-cutie-route-all req)))
 
 (defn wrap-body-string [handler]
   (fn [request]
