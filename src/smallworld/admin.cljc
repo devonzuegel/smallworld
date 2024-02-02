@@ -16,8 +16,8 @@
   (some #(= string %) array))
 
 (defn is-admin [user]
-  (println "checking if is-admin: " user)
-  (println "         screen-name: " (:screen-name user))
+  ;; (println "checking if is-admin: " user)
+  ;; (println "         screen-name: " (:screen-name user))
   (let [screen-name (:screen-name user)]
     (and
      (not-empty screen-name)
