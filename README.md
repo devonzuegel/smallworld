@@ -16,6 +16,10 @@ https://smallworld.kiwi
 - [how the matchmaking algorithm works](#how-the-matchmaking-algorithm-works)
 - [branding ideas](#branding-ideas)
 - [TODO before launch](#todo-before-launch)
+    - [features](#features)
+    - [last-minute admin before it's usable](#last-minute-admin-before-its-usable)
+    - [nice-to-haves, but not necessary for launch](#nice-to-haves-but-not-necessary-for-launch)
+    - [not that important](#not-that-important)
 
 ## run, build, & deploy
 ### local setup
@@ -203,7 +207,7 @@ https://mc.sendgrid.com/dynamic-templates
    - "you're one in a melon!"
 
 ## TODO before launch
-**features:**
+#### features
 - [x] add an orange favicon
 - [x] implement the "today's cutie" screen
 - [x] get Twilio account unsuspended
@@ -214,7 +218,7 @@ https://mc.sendgrid.com/dynamic-templates
 - [x] opengraph image
 - [x] admin page: add button to refresh everyone's `todays-cutie` list
 
-**last-minute admin before it's usable:**
+#### last-minute admin before it's usable
 - [x] change the Airtable DB to the real one, instead of fake data
   - [x] make sure that the column names match
   - [x] fix everyone's phone numbers so that the have the +1 country code at the front
@@ -233,12 +237,16 @@ https://mc.sendgrid.com/dynamic-templates
   - [x] test it with Erik to make sure it works
 - [x] matches screen for admin to save Erik a time-consuming manual process
 - [x] send the first emails to everybody MANUALLY
-- [ ] enable the cron job to refresh the `todays-cutie` list every night
-- [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
+- [x] enable the cron job to refresh the `todays-cutie` list every night
 
-*nice-to-haves, but not necessary for launch:*
+#### nice-to-haves, but not necessary for launch
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
-- [ ] only refresh-todays-cutie for people who are visible in the gallery
+- [x] only refresh-todays-cutie for people who are visible in the gallery (i.e. who haven't opted out)
+- [ ] figure out why emails didn't send to Milan (and maybe not to others?)
+  - https://docs.google.com/spreadsheets/d/1DAw8TRVB3RX4IHAOc9TldllpW3f9vNfARUvu5oDzFFI
+  - https://mail.superhuman.com/devonzuegel@gmail.com/thread/18d58c5b609a8534#app
+- [ ] allow users to filter cuties by city
+  - [ ] once this is done, update Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
 - [ ] profile page improvements:
   - [ ] fix the profile editing feature – bug report with video in email on 2024.01.29
@@ -253,8 +261,9 @@ https://mc.sendgrid.com/dynamic-templates
   - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
 - [ ] index user with the id, rather than the phone. indexing by the phone number is part of why Mariah's profile got out of whack, because she signed up for a second account with the same phone number and then the second one was never marked as updated
 - [ ] in the daily emails, add a "someone has picked you!" to encourage them to go to the site – probably need to design this with a bit more thought though
+- [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
-*not that important:*
+#### not that important
 - [ ] add a way for admins to log in as any user
 - [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
