@@ -817,7 +817,7 @@
            (throw e))))
 
 
-  (let [mins (* 60 3)
+  (let [mins (* 10)
         id (timely/start-schedule
             (timely/scheduled-item (timely/every mins :minutes)
                                    #(do
