@@ -628,7 +628,7 @@
        [:tbody
         (map-indexed (fn [index match]
                        [:<> {:key index} ; the comma column is there to make it easier to copy/paste into a spreadsheet / iMessage / etc
-                        [:tr {:key (str index "-1")} [:td {:colspan 3 :style {:text-align "left" :padding-top "32px" :font-size ".85em" :font-weight "bold" :border-bottom "2px solid #ddd"}} "match #" (+ 1 index)]]
+                        [:tr {:key (str index "-1")} [:td {:colSpan 3 :style {:text-align "left" :padding-top "32px" :font-size ".85em" :font-weight "bold" :border-bottom "2px solid #ddd"}} "match #" (+ 1 index)]]
                         [:tr {:key (str index "-2")} [:td {:style {:text-align "right"}} (str (mc.util/get-field (first match) "First name") " " (mc.util/get-field (first match) "Last name"))] [:td.invisible ", "] [:td (str (mc.util/get-field (second match) "First name") " " (mc.util/get-field (second match) "Last name"))]]
                         [:tr {:key (str index "-3")} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Phone")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Phone")]]
                         [:tr {:key (str index "-4")} [:td {:style {:text-align "right"}} (mc.util/get-field (first match) "Email")]                                                              [:td.invisible ", "] [:td (mc.util/get-field (second match) "Email")]]])
@@ -781,17 +781,47 @@
                     [:p {:style {:margin-left "8px"}} "You haven't reviewed any profiles yet :)"])])
              [:br] [:br]])])])))
 
+(defonce airtable-db-name (r/atom nil))
+(def airtable-db-name-options ["cuties-live-data"
+                               "cuties-TEST-data"])
 (defn admin-tab []
-  (if (:admin? @profile)
-    [:div {:style {:border-radius "8px" :padding "36px 12px" :margin "auto" :width "90%" :max-width "850px"}}
-     [:span {:style {:padding "4px 12px" :border-radius "8px" :color "white" :background (if (:admin? @profile) "green" "red") :float "right"}}
-      (if (:admin? @profile)
-        "You are an admin"
-        "You are not an admin")]
-     [refresh-todays-cutie-btns]
-     [list-mutual-selections]]
-    (js/location.assign "/meetcute") ; if not admin, redirect to home
-    ))
+  (r/create-class
+   {:component-did-mount #(util/fetch "/meetcute/api/get-airtable-db-name"
+                                      (fn [result] (reset! airtable-db-name result)))
+    :reagent-render
+    (fn [] (if-not (:admin? @profile)
+             (js/location.assign "/meetcute") ; if not admin, redirect to home
+
+             [:div {:style {:border-radius "8px" :padding "36px 12px" :margin "auto" :width "90%" :max-width "850px"}}
+              [saved-toast]
+              [:span {:style {:padding "4px 12px" :border-radius "8px" :color "white" :background (if (:admin? @profile) "green" "red") :float "right"}}
+               (if (:admin? @profile)
+                 "You are an admin"
+                 "You are not an admin")]
+
+              (when (re-find #"localhost" (.-hostname js/location)) ; only show this input field on localhost; we should not be able to update which airtable db we're using in production!
+                [:div {:style {:margin-top "64px"}}
+                 [:p "Current Airtable db: " @airtable-db-name]
+                 [:b "Update the Airtable db: (ONLY AVAILABLE IN LOCALHOST!)"]
+                 [:select {:style {:padding "6px 8px"
+                                   :margin "12px"
+                                   :border-radius "8px"
+                                   :border "3px solid rgb(188, 181, 175, .3)"
+                                   :width "100%"
+                                   :max-width "175px"}
+                           :on-change (fn [event]
+                                        (let [new-value (-> event .-target .-value)]
+                                          (reset! loading-message (str "Updating Airtable db name to: " new-value))
+                                          (reset! airtable-db-name new-value)
+                                          (util/fetch-post "/meetcute/api/admin/update-airtable-db"
+                                                           {:airtable-db-name new-value}
+                                                           (fn [] (js/location.reload true)))))
+                           :value (or @airtable-db-name "NOT-YET-DEFINED")} ; value cannot be nil, so we use "NOT-YET-DEFINED" instead
+                  (map-indexed (fn [i option] [:option {:key i :value option} option])
+                               airtable-db-name-options)]])
+
+              [refresh-todays-cutie-btns]
+              [list-mutual-selections]]))}))
 
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
@@ -860,7 +890,7 @@
                                :else [:div
                                       [nav-btns]
                                       (case tab-name
-                                        :profile (profile-tab)
-                                        :admin   (admin-tab)
-                                        :home    (home-tab)
+                                        :profile [profile-tab]
+                                        :admin   [admin-tab]
+                                        :home    [home-tab]
                                         (home-tab))]))}))) ""
