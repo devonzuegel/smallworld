@@ -115,6 +115,11 @@
   (let [lists (map set lists)]
     (filter (fn [x] (not (some #(% x) lists))) a)))
 
+(defn find-cutie [cutie-id bios]
+  (first (filter #(= (mc.util/get-field % "id")
+                     cutie-id)
+                 bios)))
+
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
@@ -135,6 +140,16 @@
         unseen-ids--new  (if todays-cutie-still-unseen? ; if todays-cutie was is still unseen, then move it to the end of the list so it isn't shown again until everyone else has been shown
                            (move-to-end todays-id--old unseen-ids--tmp)
                            (filter #(not= todays-id--old %) unseen-ids--tmp))
+
+        ; next, remove ids of bios that are not (= "include in gallery"
+        ;                                          (get-field cutie "Include in gallery?"))
+        ; this is necessary in part because cuties' status can change. they might have been included in the past, but were removed
+        ; for some reason (either by the cutie themself or by an admin)
+        unseen-ids--new (->> unseen-ids--new
+                             (map #(find-cutie % bios))
+                             (mc.util/included-bios profile)
+                             (map :id)
+                             vec)
 
         todays-id--new (first unseen-ids--new)
         todays-cutie  (if (nil? todays-id--new)
@@ -159,11 +174,6 @@
     {:old {:unseen-cuties unseen-ids--old  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}
      :new {:unseen-cuties unseen-ids--new  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
 
-(defn find-cutie [cutie-id bios]
-  (first (filter #(= (mc.util/get-field % "id")
-                     cutie-id)
-                 bios)))
-
 ; TODO: move this to utils
 (defn current-timestamp-for-airtable []
   (let [utc (java.time.ZonedDateTime/ofInstant (java.time.Instant/now)
@@ -173,9 +183,10 @@
 
 ; TODO: move this to utils
 (defn utc-to-local [utc-string]
+  (println "utc-string: " utc-string)
   (if (empty? utc-string)
     nil
-    (let [utc-time (java.time.ZonedDateTime/parse (utc-string))
+    (let [utc-time (java.time.ZonedDateTime/parse utc-string)
           local-time-zone (java.time.ZoneId/systemDefault)
           local-time (-> utc-time
                          (.withZoneSameInstant local-time-zone))
@@ -187,9 +198,14 @@
         profile                  (clojure.walk/keywordize-keys profile)
         computed                 (compute-todays-cutie profile bios)
         ;; get-cuties-name         #(get-in (find-cutie % bios) [(keyword "First name")])
+        old-todays-cutie-id     (first (:todays-cutie (:old computed)))
+        new-todays-cutie-id     (first (:todays-cutie (:new computed)))
         new-todays-cutie-profile (clojure.walk/keywordize-keys (find-cutie (first (:todays-cutie (:new computed))) bios))
         new-values               (clojure.walk/keywordize-keys (merge (:new computed)
-                                                                      {:cuties-last-refreshed (current-timestamp-for-airtable)}))]
+                                                                      {:cuties-last-refreshed (current-timestamp-for-airtable)}))
+        my-first-name  (get-in profile [(keyword "First name")])
+        my-last-name   (get-in profile [(keyword "Last name")])
+        my-airtable-id (get-in profile [(keyword "id")])]
 
     ;; (println "computed: ======================================================================================")
     ;; (pp/pprint {:profile         (select-keys profile [(keyword "First name")
@@ -207,10 +223,11 @@
                              [@airtable-db-name (:id profile)]
                              {:fields new-values})
 
-    (if (empty? (:todays-cutie (:new computed)))
-      (let [my-first-name  (get-in profile [(keyword "First name")])
-            my-airtable-id (get-in profile [(keyword "id")])]
-        (println "no new cutie for " my-first-name " [" my-airtable-id "]"))
+    (if (or (empty? (:todays-cutie (:new computed)))
+            (= old-todays-cutie-id new-todays-cutie-id))
+      (do (println (str "no new cutie for " my-first-name " " my-last-name " [id: " my-airtable-id "]"))
+          (println (str "   old-todays-cutie-id: " (or old-todays-cutie-id "nil")))
+          (println (str "   new-todays-cutie-id: " (or new-todays-cutie-id "nil"))))
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
             email-config {:to        (:Email profile)
                           :from-name "MeetCute"
@@ -296,12 +313,12 @@
           {:todays-cutie [1]  :unseen-cuties [2 3]      :selected-cuties [1]  :rejected-cuties []  :all-cuties [1 2 3 4 5]})
          {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []})))
 
+; TODO: add tests that check that cuties are not included if "Include in gallery?" is not "include in gallery"
 ;; (clojure.test/run-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-airtable-db-name []
-  (println "get-airtable-db-name: " @airtable-db-name)
   @airtable-db-name)
 
 ; if current user is not an admin, return 401
