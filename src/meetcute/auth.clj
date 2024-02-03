@@ -256,16 +256,18 @@
     [:div.signin-form-background
     ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
      [:h2 {:style {:font-size "24px" :line-height "1.4em"}} "Sign in"]
+     [:p {:style {:margin "32px 0 20px 0"}}      "Hello from Devon & Erik!"]
+     [:p {:style {:margin "40px 0   0  0"}} "We're running a little experiment to introduce amazing single friends to each other"]
      (when (or phone-input-error code-error)
        [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
         (or phone-input-error code-error)])
-     [:label {:for "phone"}
-      [:p {:style {:font-weight "bold"
-                   :margin "24px 4px 4px 4px"
-                   :text-transform "uppercase"
-                   :font-style "italic"
-                   :color "#bcb5af"
-                   :font-size ".8em"}} "Your phone number:"]]
+     #_[:label {:for "phone"}
+        [:p {:style {:font-weight "bold"
+                     :margin "24px 4px 4px 4px"
+                     :text-transform "uppercase"
+                     :font-style "italic"
+                     :color "#bcb5af"
+                     :font-size ".8em"}} "Your phone number:"]]
      [:input {:id "phone"
               :name "phone"
               :value phone
@@ -301,12 +303,11 @@
                          :padding "6px 8px"
                          :margin-right "4px"}}]])
      [:div {:style {:margin-bottom "12px"}}]
-     [:button {:class "btn primary"
-               :type "submit"}
-      "Sign in"]
+     [:button.btn.primary.green {:type "submit"}
+      "Sign in →"]
      [:p {:style {:font-size ".8em"
                   :margin-top "24px"}}
-      "No account yet? " [:a {:href "/meetcute/signup"} "Sign up"]]
+      "No account yet? " [:a {:href "/meetcute/signup"} "Sign up →"]]
 
      (when started?
        [:div {:class "resend" :style {:margin-top "2rem"}}

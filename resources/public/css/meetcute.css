@@ -17,6 +17,21 @@ html {
 pre {
   text-wrap: wrap;
 }
+a {
+  color: rgb(42, 98, 59);
+  font-weight: 700;
+  text-decoration: none;
+  // background: rgb(42, 98, 59, 0.1);
+  // padding: 2px 4px;
+  border-bottom: 2px solid rgb(42, 98, 59, 0.2);
+  border-bottom: 2px solid transparent;
+  transition: border-bottom 0.1s ease-in-out;
+}
+a:hover {
+  // text-decoration: underline;
+  border-bottom: 2px solid rgb(42, 98, 59, 0.3);
+  transition: border-bottom 0.1s ease-in-out;
+}
 button,
 a,
 textarea {
@@ -26,7 +41,7 @@ textarea {
   color: rgb(188, 181, 175, 1);
   border: 3px solid rgb(188, 181, 175, 0);
   transition: border 0.2s ease-in-out;
-  padding: 12px;
+  padding: 12px 14px;
   border-radius: 8px;
   cursor: pointer;
   margin: 6px;
@@ -43,6 +58,18 @@ textarea {
 }
 .btn.primary:hover {
   border: 3px solid rgb(188, 181, 175, 0.7);
+}
+.btn.primary.green {
+  background: rgb(42, 98, 59, 0.08);
+  border: 3px solid rgb(42, 98, 59, 0.8);
+  color: rgb(42, 98, 59, 0.8);
+  transition: all 0.1s ease-in-out;
+}
+.btn.primary.green:hover {
+  background: rgb(42, 98, 59, 0.1);
+  border: 3px solid rgb(42, 98, 59, 0.9);
+  color: rgb(42, 98, 59, 1);
+  transition: all 0.1s ease-in-out;
 }
 body {
   margin: 0;
