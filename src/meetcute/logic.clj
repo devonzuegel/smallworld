@@ -171,8 +171,8 @@
       (assert (every? (fn [x] (not (some (fn [y] (= x y)) rejected-ids))) unseen-ids--new)
               "Assertion failed: Some elements in 'unseen-ids--new' are also present in 'rejected-ids'"))
 
-    {:old {:unseen-cuties unseen-ids--old  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}
-     :new {:unseen-cuties unseen-ids--new  :todays-cutie todays-cutie  :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
+    {:old {:unseen-cuties unseen-ids--old  :todays-cutie todays-id--old :selected-cuties selected-ids  :rejected-cuties rejected-ids}
+     :new {:unseen-cuties unseen-ids--new  :todays-cutie todays-cutie   :selected-cuties selected-ids  :rejected-cuties rejected-ids}}))
 
 ; TODO: move this to utils
 (defn current-timestamp-for-airtable []
@@ -314,7 +314,7 @@
          {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []})))
 
 ; TODO: add tests that check that cuties are not included if "Include in gallery?" is not "include in gallery"
-;; (clojure.test/run-tests)
+(clojure.test/run-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
