@@ -41,16 +41,16 @@
   (let [profile (keywordize-keys profile)
         cuties (keywordize-keys cuties)
         matches-preferences? (fn [cutie]
-                               (println)
-                               (println (get-field profile "First name") " gets to meet " (get-field cutie "First name"))
-                               (println "Include in gallery? " (get-field cutie "Include in gallery?"))
-                               (println "                    " (= (get-field cutie "Include in gallery?") "include in gallery"))
+                              ;;  (println)
+                              ;;  (println (get-field profile "First name") " gets to meet " (get-field cutie "First name"))
+                              ;;  (println "Include in gallery? " (get-field cutie "Include in gallery?"))
+                              ;;  (println "                    " (= (get-field cutie "Include in gallery?") "include in gallery"))
 
-                               (println "passes the filter?  " (and (= (get-field cutie "Include in gallery?") "include in gallery")  ; don't include bios that have been explicitly excluded
-                                                                    (not   (= (:id cutie)          (:id profile)))               ; check the cutie is not themself
-                                                                    (some #(= (:Gender cutie) %)   (get-gender-filter profile))  ; only show the gender that the user is interested in dating
-                                                                    (some #(= (:Gender profile) %) (get-gender-filter cutie))    ; only show someone if they're interested in dating someone of the gender of the current user:
-                                                                    ))
+                              ;;  (println "passes the filter?  " (and (= (get-field cutie "Include in gallery?") "include in gallery")  ; don't include bios that have been explicitly excluded
+                              ;;                                       (not   (= (:id cutie)          (:id profile)))               ; check the cutie is not themself
+                              ;;                                       (some #(= (:Gender cutie) %)   (get-gender-filter profile))  ; only show the gender that the user is interested in dating
+                              ;;                                       (some #(= (:Gender profile) %) (get-gender-filter cutie))    ; only show someone if they're interested in dating someone of the gender of the current user:
+                              ;;                                       ))
 
                                (and (= (get-field cutie "Include in gallery?") "include in gallery")  ; don't include bios that have been explicitly excluded
                                     (not   (= (:id cutie)          (:id profile)))               ; check the cutie is not themself
