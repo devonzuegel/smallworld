@@ -256,8 +256,8 @@
     [:div.signin-form-background
     ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
      [:h2 {:style {:font-size "24px" :line-height "1.4em"}} "Sign in"]
-     [:p {:style {:margin "32px 0 20px 0"}}      "Hello from Devon & Erik!"]
-     [:p {:style {:margin "40px 0   0  0"}} "We're running a little experiment to introduce amazing single friends to each other"]
+     [:p {:style {:margin "28px 0 12px 0" :font-size ".88em"}} "Hello from " [:a {:href "https://twitter.com/devonzuegel"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg"} "Erik"] "!"]
+     [:p {:style {:margin "0    0 32px 0" :font-size ".88em"}} "This is our a little experiment to introduce single friends to each other, & we're excited you're part of it"]
      (when (or phone-input-error code-error)
        [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
         (or phone-input-error code-error)])
