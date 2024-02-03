@@ -800,12 +800,12 @@
 
               (when (re-find #"localhost" (.-hostname js/location)) ; only show this input field on localhost; we should not be able to update which airtable db we're using in production!
                 [:div {:style {:margin-top "64px"}}
-                 [:p "Current Airtable db: " @airtable-db-name]
                  [:b "Update the Airtable db: (ONLY AVAILABLE IN LOCALHOST!)"]
                  [:select {:style {:padding "6px 8px"
+                                   :background "#ffeb3b"
                                    :margin "12px"
                                    :border-radius "8px"
-                                   :border "3px solid rgb(188, 181, 175, .3)"
+                                   :border "3px solid rgb(245 220 0)"
                                    :width "100%"
                                    :max-width "175px"}
                            :on-change (fn [event]
