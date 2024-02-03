@@ -932,9 +932,9 @@
 (defn -main []
   (let [curr-env (util/get-env-var "ENVIRONMENT")
         prod-env (:prod util/ENVIRONMENTS)]
-    (if (= prod-env curr-env)
-      ;; (start-scheduled-workers)
-      (println "⚠️  not starting scheduled workers because ENVIRONMENT is" curr-env "not" prod-env " ⚠️")))
+    #_(if (= prod-env curr-env)
+        (start-scheduled-workers)
+        (println "⚠️  not starting scheduled workers because ENVIRONMENT is" curr-env "not" prod-env " ⚠️")))
 
   (println "\nstarting server...")
   (let [default-port 3001
