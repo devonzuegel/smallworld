@@ -314,7 +314,7 @@
          {:todays-cutie  [2]  :unseen-cuties [2 3 4 5]  :selected-cuties [1]  :rejected-cuties []})))
 
 ; TODO: add tests that check that cuties are not included if "Include in gallery?" is not "include in gallery"
-(clojure.test/run-tests)
+;; (clojure.test/run-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
