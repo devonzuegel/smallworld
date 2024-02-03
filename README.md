@@ -263,7 +263,11 @@ https://mc.sendgrid.com/dynamic-templates
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
 
 #### not that important
-- [ ] add a way for admins to log in as any user
+- [ ] put admin? into the session so we don't have to hit the db every time we want to check if someone is an admin
+      1. create an auth token that has a big string in it
+      2. use ring to put it in a "session", which is backed by a cookie in our case (which is limited; doesn't require db so can't fit much data, line 817)
+      3. when i parse the verify token, merge these default values in – only erik and i should have admin?=true anyways, so if someone doesn't have admin?=true, that's equivalent to admin?=false
+- [ ] add a way for admins to log in as any user for debugging purposes
 - [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
 - [ ] consider adding a `undecided-cuties` list, to distinguish between `unseen` and `not-decided`
