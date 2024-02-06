@@ -395,7 +395,7 @@
                                                               ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
                                                              (mc.util/get-field @profile "Phone")]
                                                             [small-text [:span "If you'd like to change your phone number, email "
-                                                                         [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] "."]]]]
+                                                                         [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
                        ["Email"                            [:div {:style {:max-width "380px"}}
                                                             (editable-input "Email")
                                                             [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
@@ -420,7 +420,7 @@
 
                        ["Pictures" [:div
                                     [small-text [:span "If you'd like to add or remove pictures, email "
-                                                 [:a {:href "mailto:lei@turpentine.co"} "lei@turpentine.co"] ". (In the future, we'll add a way to do this yourself!)"]]
+                                                 [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
                                     (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
                                                  (mc.util/get-field @profile "Pictures"))]]]]]]
      (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
@@ -701,7 +701,6 @@
               ;;                                                               :id]))
                  ]
                 [refresh-todays-cutie-btns]]
-
 
              [how-it-works]
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "8px" :text-align "center"}} "Today's cutie"]
