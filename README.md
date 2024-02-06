@@ -250,6 +250,7 @@ We use:
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
 - [x] only refresh-todays-cutie for people who are visible in the gallery (i.e. who haven't opted out)
 - [x] figure out why emails didn't send to Milan (and maybe not to others?) – reason: I had set the "last-updated-at" field to Feb 1
+- [x] test that Google Analytics is actually working: https://analytics.google.com/analytics/web/#/p305071962/reports/explorer?params=_u..nav%3Dmaui%26_u..insightCards%3D%5B%7B%22question%22:%22Top%20Page%20path%20%2B%20query%20string%20by%20unique%20Users%22%7D%5D&r=lifecycle-traffic-acquisition-v2&ruid=lifecycle-traffic-acquisition-v2,life-cycle,acquisition&collectionId=life-cycle
 - [x] fix the "no cuties for you to see" bug that several people reported on 2024.02.02
   - [ ] I thought I fixed it, but on 2024.02.05 Haley reported she's still seeing it
 - [ ] allow users to filter cuties by city
@@ -261,7 +262,6 @@ We use:
   - [ ] give users a way to turn off the daily emails
   - [ ] enable users to add/remove photos – then let Amit know that it's been updated
 - [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
-- [ ] test that Google Analytics is actually working: https://analytics.google.com/analytics/web/#/p305071962/reports/explorer?params=_u..nav%3Dmaui%26_u..insightCards%3D%5B%7B%22question%22:%22Top%20Page%20path%20%2B%20query%20string%20by%20unique%20Users%22%7D%5D&r=lifecycle-traffic-acquisition-v2&ruid=lifecycle-traffic-acquisition-v2,life-cycle,acquisition&collectionId=life-cycle
 - [ ] don't expose the /bios endpoint to the public
 - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
   - [ ] validate that the phone number is unique
