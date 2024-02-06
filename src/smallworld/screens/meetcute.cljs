@@ -296,8 +296,7 @@
     (reset! show-toast true)
     (js/setTimeout #(reset! show-toast false) 2000)
     (util/fetch-post "/meetcute/api/matchmaking/profile"
-                     profile-editable-fields-only
-                     update-profile-with-result)))
+                     profile-editable-fields-only)))
 
 (def update-profile-debounced! (util/debounce update-profile! 500))
 
