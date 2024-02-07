@@ -21,6 +21,7 @@ https://smallworld.kiwi
     - [last-minute admin before it's usable](#last-minute-admin-before-its-usable)
     - [nice-to-haves, but not necessary for launch](#nice-to-haves-but-not-necessary-for-launch)
     - [not that important](#not-that-important)
+- [key design decisions:](#key-design-decisions)
 
 ## run, build, & deploy
 ### local setup
@@ -253,11 +254,22 @@ We use:
 - [x] test that Google Analytics is actually working: https://analytics.google.com/analytics/web/#/p305071962/reports/explorer?params=_u..nav%3Dmaui%26_u..insightCards%3D%5B%7B%22question%22:%22Top%20Page%20path%20%2B%20query%20string%20by%20unique%20Users%22%7D%5D&r=lifecycle-traffic-acquisition-v2&ruid=lifecycle-traffic-acquisition-v2,life-cycle,acquisition&collectionId=life-cycle
 - [x] fix the "no cuties for you to see" bug that several people reported on 2024.02.02
   - [ ] I thought I fixed it, but on 2024.02.05 Haley reported she's still seeing it
+- [x] Willy reported he hasn't been getting the emails
+  - [x] appears to be because we don't trim trailing whitespace from the email address before sending. just fixed this
+  - [ ] tomorrow, check if he got the email (first by checking SendGrid, then by asking him directly)
+- [ ] make sure we're only sending the daily email to people who were not asked to be removed from the list. they probably don't want to get emails
 - [ ] allow users to filter cuties by city
-  - [ ] once this is done, update Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
+  - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
+  - [ ] once this is done, update these people:
+    - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
+    - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
+    - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
+    - [ ] send an email to everyone to let them know about the new feature!
+- [ ] consider adding a way for users to include info about religion, politics, age, what they're looking for, etc
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
+  - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
 - [ ] profile page improvements:
-  - [ ] fix the profile editing feature – bug report with video in email on 2024.01.29
+  - [x] fix the profile editing feature – bug report with video in email on 2024.01.29
   - [ ] give users a way to make their profile public/private
   - [ ] give users a way to turn off the daily emails
   - [ ] enable users to add/remove photos – then let Amit know that it's been updated
@@ -275,6 +287,7 @@ We use:
       1. create an auth token that has a big string in it
       2. use ring to put it in a "session", which is backed by a cookie in our case (which is limited; doesn't require db so can't fit much data, line 817)
       3. when i parse the verify token, merge these default values in – only erik and i should have admin?=true anyways, so if someone doesn't have admin?=true, that's equivalent to admin?=false
+- [ ] create webhook that stores all SendGrid events in db to (a) make it easier to query and (b) make us more resilient to SendGrid's data retention policy: https://docs.sendgrid.com/for-developers/tracking-events/getting-started-event-webhook
 - [ ] add a way for admins to log in as any user for debugging purposes
 - [ ] add a test to make sure the basic routes all work and do not 404 (especially the 2 signup pages!)
 - [ ] make sure it looks nice on mobile (currently it does not look great, though it's funcitonal)
@@ -284,3 +297,11 @@ We use:
 - [ ] verify email addresses with Twilio Verify too
 - [ ] style the SMS verification page with 4 digits, similar to Apple's SMS verification page
 
+## key design decisions:
+- not including age
+- 1 cutie per day – compared to dating apps, which implicitly commodify people
+Now
+- friends' vouches
+- friends of friends
+- dinners
+- small photos
