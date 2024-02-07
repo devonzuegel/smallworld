@@ -13,41 +13,41 @@
         user (db/find-or-insert-user! {:phone phone})]
     (assert user)
     (if (= smsCode (env/get-env-var "SMS_CODE"))
-      (generate-string {:success true
-                        :message "Login success!"
-                        :authToken (auth/create-auth-token (:id user))})
-      (generate-string {:success false
-                        :message "Oops, looks like you don't have the right code!"}))))
+      {:success true
+       :message "Login success!"
+       :authToken (auth/create-auth-token (:id user))}
+      {:success false
+       :message "Oops, looks like you don't have the right code!"})))
 
 (defroutes open-routes
-  (POST "/api/v2/login" req (login-v3 req)))
+  (POST "/api/v2/login" req
+    (resp/response (generate-string (login-v3 req)))))
 
-(defn ping [{:keys [params auth/parsed-jwt] :as req}]
+(defn ping [{:keys [params auth/parsed-jwt] :as _req}]
   (let [user-id (:user-id parsed-jwt)
         status (:status params)]
     (cond
-      (nil? status)                   (resp/response (generate-string {:success false :message "status not provided"}))
+      (nil? status)                   {:success false :message "status not provided"}
       (not (or (= status "online")
-               (= status "offline"))) (resp/response (generate-string {:success false :message "status must be either 'online' or 'offline'"}))
+               (= status "offline"))) {:success false
+                                       :message "status must be either 'online' or 'offline'"}
       :else (try
               (let [result (db/update-user-last-ping! user-id status)]
                 (println "just pinged by" user-id " · " (str (java.time.Instant/now)))
                 (println "updated" (count result) "users \n")
-                (resp/response
-                 (generate-string
-                  {:success true
-                   :status status
-                   :message "Ping received"})))
+                {:success true
+                 :status status
+                 :message "Ping received"})
               (catch Exception e
                 (println "caught exception when pinging:" e)
-                (resp/response {:success false :message "Unknown error"}))))))
+                {:success false :message "Unknown error"})))))
 
 (defn protected-endpoint [{:keys [auth/parsed-jwt] :as _req}]
   (if parsed-jwt
-    (generate-string {:success true
-                      :message "Success!"
-                      :user (:user-id parsed-jwt)})
-    (generate-string {:success false :message "Auth token invalid or expired"})))
+    {:success true
+     :message "Success!"
+     :user (:user-id parsed-jwt)}
+    {:success false :message "Auth token invalid or expired"}))
 
 (defn select-user-fields [user]
   (select-keys user [:created_at
@@ -66,9 +66,12 @@
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
-  (GET "/api/v2/protected" req (protected-endpoint req))
-  (GET "/api/v2/users" _ (generate-string (get-all-users)))
-  (POST "/api/v2/ping" req (ping req)))
+  (GET "/api/v2/protected" req
+    (resp/response (generate-string (protected-endpoint req))))
+  (GET "/api/v2/users" _
+    (resp/response (generate-string (get-all-users))))
+  (POST "/api/v2/ping" req
+    (resp/response (generate-string (ping req)))))
 
 (defn wrap-body-string [handler]
   (fn [request]
