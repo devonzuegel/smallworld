@@ -9,6 +9,7 @@ create table if not exists users (
   name                varchar(255),
   email_address       varchar(255),
   email_notifications varchar(255),
+  push_token          varchar(255),
   created_at          timestamp not null default current_timestamp,
   updated_at          timestamp not null default current_timestamp
 );

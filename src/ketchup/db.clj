@@ -66,12 +66,29 @@
 
 (def users-table :users)   ;; stores screen_name of the user who the admin is impersonating (for debug only)
 
-(defn find-or-insert-user! [data]
-  (let [user-data (merge {:screen_name (:phone data)} ; if they didn't provide a screen_name, use their phone number
-                         data)]
-    (find-or-insert! users-table :phone user-data)))
+(defn user-by-id [id]
+  (first
+   (sql/query @pool ["select * from users where id = ?" id])))
+
+(defn user-by-phone [phone]
+  (first
+   (sql/query @pool ["select * from users where phone = ?" phone])))
+
+(defn set-push-token! [id token]
+  {:pre [(string? token)]}
+  (sql/execute! @pool ["update users set push_token = ? where id = ?" token id]))
+
+(defn find-or-insert-user! [{:keys [phone]}]
+  (if-let [user (user-by-phone phone)]
+    user
+    (let [user-data {:phone phone :screen_name phone}]
+      (sql/insert! @pool users-table user-data)
+      (user-by-phone phone))))
 
 (defn update-user-last-ping! [id status]
   (println "updating user last ping for id" id "to" status)
   (sql/db-do-commands @pool (str "update users set last_ping = now(), status = '" status "' "
                                  "where id = '" id "';")))
+
+(defn get-all-users []
+  (select-all users-table))
