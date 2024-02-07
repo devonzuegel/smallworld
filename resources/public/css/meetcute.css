@@ -227,3 +227,28 @@ td {
 .invisible {
   opacity: 0;
 }
+
+.location-field:focus-within,
+.email-options:focus-within,
+.email-options:focus /* the radio btns field is different */
+.email-address:focus,
+.email-address:focus-within {
+  border: 1px solid #ffffff55;
+}
+.you-signed-in-as .friend {
+  width: fit-content;
+}
+.you-signed-in-as {
+  display: inline-flex;
+}
+.field .edit-icon {
+  fill: white;
+  height: 13px;
+  margin-left: -36px;
+  margin-top: 15px;
+  position: absolute;
+  opacity: 0.5;
+}
+.field {
+  font-size: 0.95em;
+}

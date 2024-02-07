@@ -1,10 +1,11 @@
 (ns smallworld.screens.meetcute
-  (:require [clojure.set :as set]
+  (:require [cljs.pprint :as pp]
             [clojure.string :as str]
             [markdown.core :as md]
-            [cljs.pprint :as pp]
             [meetcute.util :as mc.util]
             [reagent.core    :as r]
+            [smallworld.decorations :as decorations]
+            [smallworld.mapbox :as mapbox]
             [smallworld.util :as util]))
 
 (def mock-data?          false)
@@ -339,6 +340,73 @@
    [fa-icon "check-circle" :style {:min-width "auto" :margin-right "12px"}]
    "Saved!"])
 
+(defonce *minimaps       (r/atom {}))
+
+(defn minimap [minimap-id location-name coords]
+  (r/create-class {:component-did-mount
+                   (fn [] ; this should be called just once when the component is mounted
+                     (swap! *minimaps assoc minimap-id
+                            (new js/mapboxgl.Map
+                                 #js{:container minimap-id
+                                     :key    (get-in mapbox/config [mapbox/style :access-token])
+                                     :style  (get-in mapbox/config [mapbox/style :style])
+                                     :center (or (mapbox/coords-to-mapbox-array coords)
+                                                 (clj->js mapbox/Miami))
+                                     :interactive false ; makes the map not zoomable or draggable
+                                     :attributionControl false ; removes the Mapbox copyright symbol
+                                     :zoom 3
+                                     :maxZoom 8
+                                     :minZoom 0}))
+                     ; zoom out if they haven't provided a location
+                     (when (clojure.string/blank? location-name)
+                       (.setZoom (get @*minimaps minimap-id) 0)))
+                   :reagent-render (fn [] [:div {:id minimap-id}])}))
+
+(defn location-field [{index         :index
+                       auto-focus    :auto-focus
+                       label         :label
+                       placeholder   :placeholder
+                       not-provided? :not-provided?
+                       from-twitter? :from-twitter?
+                       value         :value
+                       coords        :coords
+                       update!       :update!}]
+  (let [id         (str "location-" index)
+        minimap-id (str "minimap--" id)]
+    [:div.field.location-field {:id id :key id}
+     [:div.delete-location-btn {:title "delete this location"
+                                :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back any time")
+                                             (js/console.log "TODO: delete location" index)
+                                             #_(reset! *locations-new (util/rm-from-list @*locations-new index)))}
+      (decorations/cancel-icon)]
+     [:label label]
+     (when-not (and not-provided? from-twitter?)
+       [:<> [:div
+             [:input.location-input
+              {:type "text"
+               :tab-index "0"
+               :auto-focus auto-focus
+               :id   (str id "-input")
+               :key  (str id "-input")
+               :name (str id "-input")
+               :value value
+               :autoComplete "off"
+               :auto-complete "off"
+               :on-change #(js/console.log "TODO: update location" index)
+              ;;  :on-change #(let [new-value  (-> % .-target .-value)
+              ;;                    _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
+              ;;                (update! new-value))
+               :placeholder placeholder}]
+             (decorations/edit-icon)]
+        (when from-twitter? ; only the first two locations
+          [:div.small-info-text {:style {:margin-bottom "12px"}}
+           "don't worry, this won't update your Twitter profile :)"])
+        [:div.mapbox-container
+         [minimap minimap-id value coords]
+         (when-not (clojure.string/blank? value)
+           [:div.center-point])]
+        [:br]])]))
+
 (defn profile-tab []
   [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
 
@@ -347,15 +415,34 @@
    [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
+   (try
+     [:pre (with-out-str (pp/pprint (js/JSON.parse (:locations-json @profile))))]
+     (catch js/Error e
+       (println "Caught an exception:" (ex-message e))
+       [:p "error occurred"])
+     (finally
+       (println "This will always execute, regardless of exceptions.")
+       [:p "finally block"]))
+
+  ;;  [:pre (with-out-str (pp/pprint (dissoc @profile :unseen-cuties)))]
+   [location-field {:index         0
+                    :auto-focus    true
+                    :label         "Home base city"
+                    :placeholder   "Where do you live?"
+                    :not-provided? (clojure.string/blank? (mc.util/get-field @profile "Home base city"))
+                    :from-twitter? false
+                    :value         "Miami Beach"
+                    :coords        [-25.7907 -80.1300]
+                    :update!       (fn [new-value] (reset! profile (assoc @profile (keyword "Home base city") new-value)))}]
    (let [key-values [["Basic details"
-                      {:open false}
-                      [["First name"                       (editable-input "First name")]
-                       ["Last name"                        (editable-input "Last name")]
-                       ["My gender" (radio-btns-component ["Man" "Woman"]
-                                                          (mc.util/get-field @profile "Gender")
-                                                          (fn [foobar]
-                                                            (reset! profile (assoc @profile (keyword "Gender") foobar))
-                                                            (update-profile-debounced!)))]
+                      {:open true}
+                      [["First name"     (editable-input "First name")]
+                       ["Last name"      (editable-input "Last name")]
+                       ["My gender"      (radio-btns-component ["Man" "Woman"]
+                                                               (mc.util/get-field @profile "Gender")
+                                                               (fn [foobar]
+                                                                 (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                                 (update-profile-debounced!)))]
                        ["I'm interested in..." (checkboxes-component ["Men" "Women"]
                                                                      (mc.util/get-field @profile "I'm interested in...")
                                                                      (fn [foobar]
@@ -380,7 +467,8 @@
                      ["Location"
                       {:open true}
                       [["Home base city"                    (editable-input "Home base city")]
-                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
+                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
+                       ["locations-json" (editable-textbox "locations-json")]]]
                      ["Other"
                       {:open true}
                       [["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
