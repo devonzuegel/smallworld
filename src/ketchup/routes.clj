@@ -4,14 +4,17 @@
             [ketchup.auth :as auth]
             [ketchup.db :as db]
             [ketchup.env :as env]
+            [ketchup.notify :as notify]
+            [ring.middleware.cors :refer [wrap-cors]]
             [ring.util.request]
             [ring.util.response :as resp]))
 
-(defn login-v3 [{:keys [query-params] :as _req}]
+(defn login-or-signup! [{:keys [query-params] :as _req}]
   (let [phone (get-in query-params ["phone"])
         smsCode (get-in query-params ["smsCode"])
         user (db/find-or-insert-user! {:phone phone})]
     (assert user)
+    (assert (:id user) (pr-str user))
     (if (= smsCode (env/get-env-var "SMS_CODE"))
       {:success true
        :message "Login success!"
@@ -21,11 +24,12 @@
 
 (defroutes open-routes
   (POST "/api/v2/login" req
-    (resp/response (generate-string (login-v3 req)))))
+    (resp/response (generate-string (login-or-signup! req)))))
 
 (defn ping [{:keys [params auth/parsed-jwt] :as _req}]
   (let [user-id (:user-id parsed-jwt)
-        status (:status params)]
+        status (:status params)
+        user (db/user-by-id user-id)]
     (cond
       (nil? status)                   {:success false :message "status not provided"}
       (not (or (= status "online")
@@ -35,6 +39,10 @@
               (let [result (db/update-user-last-ping! user-id status)]
                 (println "just pinged by" user-id " · " (str (java.time.Instant/now)))
                 (println "updated" (count result) "users \n")
+                ;; only send notification if status has changed
+                (when-not (= status (:status user))
+                  (future
+                    (notify/status-change! user-id status)))
                 {:success true
                  :status status
                  :message "Ping received"})
@@ -62,7 +70,16 @@
                      :updated_at]))
 
 (defn get-all-users []
-  (mapv select-user-fields (db/select-all db/users-table)))
+  (mapv select-user-fields (db/get-all-users)))
+
+(defn set-push-token! [{:keys [params auth/parsed-jwt] :as _req}]
+  (let [user-id (:user-id parsed-jwt)
+        push_token (:push_token params)]
+    (if (empty? push_token)
+      {:success false :message "push token not provided"}
+      (do
+        (db/set-push-token! user-id push_token)
+        {:success true :message "push token set"}))))
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
@@ -71,7 +88,9 @@
   (GET "/api/v2/users" _
     (resp/response (generate-string (get-all-users))))
   (POST "/api/v2/ping" req
-    (resp/response (generate-string (ping req)))))
+    (resp/response (generate-string (ping req))))
+  (POST "/api/v2/push" req
+    (resp/response (generate-string (set-push-token! req)))))
 
 (defn wrap-body-string [handler]
   (fn [request]
@@ -90,5 +109,7 @@
 (def app
   (-> (compo/routes open-routes
                     (auth/wrap-authenticated authenticated-routes))
+      (wrap-cors :access-control-allow-origin [#".*"]
+                 :access-control-allow-methods [:get :put :post :delete])
       (wrap-json-params)
       (wrap-body-string)))
