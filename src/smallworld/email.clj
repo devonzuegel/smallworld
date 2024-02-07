@@ -48,7 +48,7 @@
         env          (util/get-env-var "ENVIRONMENT")
         options      (if (= env (:prod util/ENVIRONMENTS))
                        options
-                       (assoc options :to "avery.sara.james@gmail.com"))]
+                       (assoc options :to "hello@smallworld.kiwi"))]
 
     (println)
     (println "preparing to send email with the following config: ===========================================")

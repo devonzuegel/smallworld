@@ -257,7 +257,8 @@ We use:
 - [x] Willy reported he hasn't been getting the emails
   - [x] appears to be because we don't trim trailing whitespace from the email address before sending. just fixed this
   - [ ] tomorrow, check if he got the email (first by checking SendGrid, then by asking him directly)
-- [ ] make sure we're only sending the daily email to people who were not asked to be removed from the list. they probably don't want to get emails
+- [x] make sure we're only sending the daily email to people who were not asked to be removed from the list. they probably don't want to get emails
+- [ ] add logging for whenever a user selects or rejects a cutie so we can see how much people are using the app
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] once this is done, update these people:
