@@ -106,17 +106,23 @@
             name (str (mc.util/get-field old-bio-printable "First name") " "
                       (mc.util/get-field old-bio-printable "Last name"))
             [old new no-change] (data/diff old-bio-printable new-data-printable)
-            changed-keys (keys (merge old new))]
-        (util/log (str name " has updated these fields in their profile: " changed-keys))
-        (email/send-email {:to "hello@smallworld.kiwi"
+            changed-keys (keys (merge old new))
+            log-message (if (and (some #{:selected-cuties :rejected-cuties :unseen-cuties} changed-keys)
+                                         ; at least one of them is not nil or an empty list:
+                                 (some (fn [key] (not (empty? (get new-data key))))
+                                       [:selected-cuties :rejected-cuties :unseen-cuties]))
+                          (str name " has updated their selections/rejections")
+                          (str name " has updated these fields in their profile"))]
+        (util/log (str log-message ": " changed-keys))
+        (email/send-email {:to        "hello@smallworld.kiwi"
                            :from-name "MeetCute logs"
-                           :subject (str name " has updated their profile")
-                           :body (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
-                                      "<b>Here's what's changed:</b><br><br>"
-                                      "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
-                                      "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
-                                      "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
-                                      "</div>")})
+                           :subject   log-message
+                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                           "<b>Here's what's changed:</b><br><br>"
+                                           "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
+                                           "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
+                                           "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
+                                           "</div>")})
         (generate-string (airtable/kwdize new-bio))))))
 
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
