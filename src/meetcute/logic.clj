@@ -1,23 +1,24 @@
 (ns meetcute.logic
   (:require [cheshire.core        :refer [generate-string]]
-            [clojure.walk         :refer [keywordize-keys]]
             [clojure.core.memoize :as memoize]
+            [clojure.data         :as data]
             [clojure.data.json    :as json]
-            [clojure.test         :refer [deftest is]]
-            [clojure.string       :as str]
             [clojure.pprint       :as pp]
-            [clojure.set          :as set]
-            [smallworld.email     :as email]
+            [clojure.string       :as str]
+            [clojure.test         :refer [deftest is]]
+            [clojure.walk         :refer [keywordize-keys]]
             [meetcute.util        :as mc.util]
             [smallworld.airtable  :as airtable]
+            [smallworld.email     :as email]
             [smallworld.util      :as util]))
 
 (def airtable-base {:api-key (util/get-env-var "AIRTABLE_BASE_API_KEY")
                     :base-id "appF2K8ThWvtrC6Hs"})
 
-(def airtable-db-name (atom (if (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
-                              "cuties-live-data"
-                              "cuties-TEST-data")))
+(def airtable-db-name (atom "cuties-live-data"
+                            #_(if (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
+                                "cuties-live-data"
+                                "cuties-TEST-data")))
 (println)
 (println "🍊🍊🍊 airtable-db-name: " @airtable-db-name " 🍊🍊🍊")
 (println)
@@ -75,30 +76,48 @@
     (airtable/kwdize my-bio)))
 
 (defn update-profile [req]
-  (let [parsed-body (:params req)
+  (let [new-data (:params req)
         all-bios (get-all-bios)
-        bio-id (mc.util/get-field parsed-body "id")
-        phone  (mc.util/get-field parsed-body "Phone")
-        bio (first (filter (fn [this-bio]
-                             (or (= bio-id
-                                    (mc.util/get-field this-bio "id"))
-                                 (= (mc.util/clean-phone phone)
-                                    (mc.util/clean-phone (get-in this-bio ["Phone"])))))
-                           all-bios))
-        fields-to-change  (util/exclude-keys parsed-body [:id])]
-    (if (nil? bio)
+        bio-id (mc.util/get-field new-data "id")
+        phone  (mc.util/get-field new-data "Phone")
+        old-bio (first (filter (fn [this-bio]
+                                 (or (= bio-id
+                                        (mc.util/get-field this-bio "id"))
+                                     (= (mc.util/clean-phone phone)
+                                        (mc.util/clean-phone (get-in this-bio ["Phone"])))))
+                               all-bios))
+        fields-to-change  (util/exclude-keys new-data [:id])]
+    (if (nil? old-bio)
       (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
-      (let [data (-> (airtable/update-in-base airtable-base
-                                              [@airtable-db-name (:id bio)]
-                                              {:fields fields-to-change})
-                     :body
-                     json/read-str
-                     clojure.walk/keywordize-keys)]
-        #_(pp/pprint (select-keys (:fields data) [:unseen-cuties
-                                                  :todays-cutie
-                                                  :selected-cuties
-                                                  :rejected-cuties]))
-        (generate-string (airtable/kwdize data))))))
+      (let [new-bio (-> (airtable/update-in-base airtable-base
+                                                 [@airtable-db-name (:id old-bio)]
+                                                 {:fields fields-to-change})
+                        :body
+                        json/read-str
+                        clojure.walk/keywordize-keys)
+            new-data-printable (merge (select-keys new-data
+                                                   (map #(keyword %)
+                                                        mc.util/fields-changeable-by-user))
+                                      {:unseen-cuties "[REDACTED FOR BREVITY]"})
+            old-bio-printable (merge (select-keys (clojure.walk/keywordize-keys old-bio)
+                                                  (map #(keyword %)
+                                                       mc.util/fields-changeable-by-user))
+                                     {:unseen-cuties "[REDACTED FOR BREVITY]"})
+            name (str (mc.util/get-field old-bio-printable "First name") " "
+                      (mc.util/get-field old-bio-printable "Last name"))
+            [old new no-change] (data/diff old-bio-printable new-data-printable)
+            changed-keys (keys (merge old new))]
+        (util/log (str name " has updated these fields in their profile: " changed-keys))
+        (email/send-email {:to "hello@smallworld.kiwi"
+                           :from-name "MeetCute logs"
+                           :subject (str name " has updated their profile")
+                           :body (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                      "<b>Here's what's changed:</b><br><br>"
+                                      "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
+                                      "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
+                                      "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
+                                      "</div>")})
+        (generate-string (airtable/kwdize new-bio))))))
 
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
                                                 %1) coll)))
