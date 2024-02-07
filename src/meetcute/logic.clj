@@ -4,6 +4,7 @@
             [clojure.core.memoize :as memoize]
             [clojure.data.json    :as json]
             [clojure.test         :refer [deftest is]]
+            [clojure.string       :as str]
             [clojure.pprint       :as pp]
             [clojure.set          :as set]
             [smallworld.email     :as email]
@@ -229,7 +230,7 @@
           (println (str "   old-todays-cutie-id: " (or old-todays-cutie-id "nil")))
           (println (str "   new-todays-cutie-id: " (or new-todays-cutie-id "nil"))))
       (let [cutie-first-name (first-name-bold new-todays-cutie-profile)
-            email-config {:to        (:Email profile)
+            email-config {:to        (str/trim (:Email profile))
                           :from-name "MeetCute"
                           :subject   (str "Fresh cutie! 🍊 Meet " (mc.util/get-field new-todays-cutie-profile "First name"))
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
