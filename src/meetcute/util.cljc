@@ -69,6 +69,7 @@
                                 "include-in-gallery?"
                                 "Home base city"
                                 "Other cities where you spend time"
+                                "locations-json"
                                 "I'm interested in..."
                                 "unseen-cuties"
                                 "todays-cutie"
