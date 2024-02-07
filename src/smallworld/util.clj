@@ -1,6 +1,7 @@
-(ns smallworld.util (:require [clojure.pprint  :as pp]
-                              [clojure.data.json :as json]
-                              [clojure.java.io :as io]))
+(ns smallworld.util
+  (:require [clojure.pprint  :as pp]
+            [clojure.data.json :as json]
+            [clojure.java.io :as io]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn store-to-file [filename data]

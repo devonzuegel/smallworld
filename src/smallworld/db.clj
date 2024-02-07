@@ -1,11 +1,12 @@
-(ns smallworld.db (:require [clojure.java.io :as io]
-                            [clojure.java.jdbc :as sql] ; https://clojure.github.io/java.jdbc
-                            [clojure.pprint :as pp]
-                            [clojure.string :as str]
-                            [clojure.walk :as walk]
-                            [jdbc.pool.c3p0 :as pool]
-                            [smallworld.clj-postgresql.types] ; this enables the :json type
-                            [smallworld.util :as util]))
+(ns smallworld.db
+  (:require [clojure.java.io :as io]
+            [clojure.java.jdbc :as sql] ; https://clojure.github.io/java.jdbc
+            [clojure.pprint :as pp]
+            [clojure.string :as str]
+            [clojure.walk :as walk]
+            [jdbc.pool.c3p0 :as pool]
+            [smallworld.clj-postgresql.types] ; this enables the :json type
+            [smallworld.util :as util]))
 
 (def debug? false)
 (def db-uri (java.net.URI. (util/get-env-var "DATABASE_URL")))
@@ -30,9 +31,6 @@
 (def coordinates-table      :coordinates)      ; memoized storage: map of city/country names to coordinates
 (def access_tokens-table    :access_tokens)    ; memoized storage: Twitter access tokens
 (def impersonation-table    :impersonation)    ; stores screen_name of the user who the admin is impersonating (for debug only)
-
-; Ketchup Club table names
-(def users-table :users)            ; stores screen_name of the user who the admin is impersonating (for debug only)
 
 (def twitter-profiles-schema (slurp (io/resource "sql/schema-twitter-profiles.sql")))
 (def settings-schema         (slurp (io/resource "sql/schema-settings.sql")))
@@ -111,17 +109,6 @@
     (pp/pprint data))
   (sql/insert! @pool table-name data))
 
-(defn find-or-insert! [table-name col-name data]
-  (let [found-in-db (select-by-col table-name col-name (get-in data [col-name]))]
-    (if (empty? found-in-db)
-      (insert! table-name data)
-      (first found-in-db))))
-
-(defn find-or-insert-user! [data]
-  (let [user-data (merge {:screen_name (:phone data)} ; if they didn't provide a screen_name, use their phone number
-                         data)]
-    (find-or-insert! users-table :phone user-data)))
-
 ; TODO: this was meant to simplify the code, but it's best to just replace it
 ; everywhere with sql/update! probably
 (defn update! [table-name col-name col-value new-json]
@@ -170,11 +157,6 @@
   (sql/db-do-commands @pool (str "update settings "
                                  "set twitter_last_fetched = now() "
                                  "where screen_name = '" screen-name "';")))
-
-(defn update-user-last-ping! [phone-num status]
-  (println "updating user last ping for phone number" phone-num "to" status)
-  (sql/db-do-commands @pool (str "update users set last_ping = now(), status = '" status "' "
-                                 "where phone = '" phone-num "';")))
 
 (comment
   (do
