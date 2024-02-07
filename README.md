@@ -258,7 +258,7 @@ We use:
   - [x] appears to be because we don't trim trailing whitespace from the email address before sending. just fixed this
   - [ ] tomorrow, check if he got the email (first by checking SendGrid, then by asking him directly)
 - [x] make sure we're only sending the daily email to people who were not asked to be removed from the list. they probably don't want to get emails
-- [ ] add logging for whenever a user selects or rejects a cutie so we can see how much people are using the app
+- [x] add logging for whenever a user selects or rejects a cutie so we can see how much people are using the app
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] once this is done, update these people:
@@ -266,6 +266,8 @@ We use:
     - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
     - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
     - [ ] send an email to everyone to let them know about the new feature!
+- [ ] show past cuties that the user has missed
+  - [ ] update Gillian when this is done (via SMS)
 - [ ] consider adding a way for users to include info about religion, politics, age, what they're looking for, etc
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
   - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
