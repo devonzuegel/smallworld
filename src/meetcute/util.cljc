@@ -58,3 +58,22 @@
                                     (some #(= (:Gender profile) %) (get-gender-filter cutie))    ; only show someone if they're interested in dating someone of the gender of the current user:
                                     ))]
     (filter matches-preferences? cuties)))
+
+(def fields-changeable-by-user [; Phone is intentionally not included because it's used as the key to find the record to update, so we don't want to overwrite it
+                                "Anything else you'd like your potential matches to know?"
+                                "Social media links"
+                                "Email"
+                                "First name"
+                                "Last name"
+                                "Phone"
+                                "include-in-gallery?"
+                                "Home base city"
+                                "Other cities where you spend time"
+                                "I'm interested in..."
+                                "unseen-cuties"
+                                "todays-cutie"
+                                "selected-cuties"
+                                "rejected-cuties"
+                                "What makes this person awesome?"
+                                "Pictures"
+                                "Gender"])

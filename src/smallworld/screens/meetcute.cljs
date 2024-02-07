@@ -25,25 +25,6 @@
   [:div {:dangerouslySetInnerHTML {:__html (md/md->html md-string)}
          :style {:line-height "1.4"}}])
 
-(def fields-changeable-by-user [; Phone is intentionally not included because it's used as the key to find the record to update, so we don't want to overwrite it
-                                "Anything else you'd like your potential matches to know?"
-                                "Social media links"
-                                "Email"
-                                "First name"
-                                "Last name"
-                                "Phone"
-                                "include-in-gallery?"
-                                "Home base city"
-                                "Other cities where you spend time"
-                                "I'm interested in..."
-                                "unseen-cuties"
-                                "todays-cutie"
-                                "selected-cuties"
-                                "rejected-cuties"
-                                "What makes this person awesome?"
-                                "Pictures"
-                                "Gender"])
-
 (defn format-phone [phone]
   (assert phone)
   phone
@@ -95,7 +76,7 @@
 (defn update-selected-cuties! []
   (util/fetch-post "/meetcute/api/matchmaking/profile"
                    (select-keys @profile (map #(keyword %)
-                                              (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                              (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                       ["Phone"])))
                    #(println "Done updating selected-cuties")))
 
@@ -291,7 +272,7 @@
 
 (defn update-profile! []
   (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
-                                                                (concat fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                                         ["Phone"])))]
     (reset! show-toast true)
     (js/setTimeout #(reset! show-toast false) 2000)
@@ -605,7 +586,7 @@
    (let [refreshable-cuties (filter #(or (:admin? %)
                                          (= (mc.util/get-field % "Include in gallery?") "include in gallery"))
                                     @bios)]
-     [:details {:open true}
+     [:details {:open false}
       [:summary " Refresh todays-cutie for each user individually: (" (count refreshable-cuties) " 'include in gallery' OR admins)"]
       [:table [:tbody (map-indexed refresh-todays-cutie-link refreshable-cuties)]]
       [:div]])])
