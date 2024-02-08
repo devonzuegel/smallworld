@@ -16,6 +16,7 @@ export TWILIO_SID=get from twilio.com
 export TWILIO_AUTH_TOKEN=get from twilio.com
 export TWILIO_PHONE_NUMBER=+16502295016
 export TWILIO_VERIFY_SERVICE=VAc2b8caa89134e9b10b31e67d4468a637
+export EXPO_PUSH_TOKEN=
 
 # when you add a new environment variable to to this file, make
 # sure to also add it to `bin/set-env-variables.sh`

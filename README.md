@@ -284,6 +284,7 @@ We use:
 - [ ] index user with the id, rather than the phone. indexing by the phone number is part of why Mariah's profile got out of whack, because she signed up for a second account with the same phone number and then the second one was never marked as updated
 - [ ] in the daily emails, add a "someone has picked you!" to encourage them to go to the site – probably need to design this with a bit more thought though
 - [ ] go through all `TODO:`s in the codebase and make sure they're all moved to issues / not critical before launch
+- [ ] Idea: one of the questions for your data profile is a mood board with a few prompts like "what is your ideal morning?" or "how would you design your dream vacation?". Basic idea being that it might capture more about your aesthetic, vibe, and preferences than if you just try to describe it in words
 
 #### not that important
 - [ ] put admin? into the session so we don't have to hit the db every time we want to check if someone is an admin
