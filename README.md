@@ -106,7 +106,7 @@ We use:
 
 ## sql cheatsheet
 
-- open Heroku Postgres instance in terminal:
+- open Heroku Postgres instance in terminal (or you can view the data in a GUI with Postbird):
 
    ```bash
    bin/postgres-heroku.sh

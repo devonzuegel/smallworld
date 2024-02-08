@@ -75,7 +75,8 @@
    (sql/query @pool ["select * from users where phone = ?" phone])))
 
 (defn set-push-token! [id token]
-  {:pre [(string? token)]}
+  {:pre [(or (string? token)
+             (nil? token))]}
   (sql/execute! @pool ["update users set push_token = ? where id = ?" token id]))
 
 (defn find-or-insert-user! [{:keys [phone]}]

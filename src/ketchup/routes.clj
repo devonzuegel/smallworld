@@ -37,12 +37,12 @@
                                        :message "status must be either 'online' or 'offline'"}
       :else (try
               (let [result (db/update-user-last-ping! user-id status)]
-                (println "just pinged by" user-id " · " (str (java.time.Instant/now)))
-                (println "updated" (count result) "users \n")
+                (println "👾 just pinged by" user-id " · " (str (java.time.Instant/now)))
+                (println "👾 updated" (count result) "users \n")
                 ;; only send notification if status has changed
                 (when-not (= status (:status user))
                   (future
-                    (notify/status-change! user-id status)))
+                    (notify/status-change!! user-id status)))
                 {:success true
                  :status status
                  :message "Ping received"})
@@ -75,11 +75,12 @@
 (defn set-push-token! [{:keys [params auth/parsed-jwt] :as _req}]
   (let [user-id (:user-id parsed-jwt)
         push_token (:push_token params)]
+    {:success false :message "push token not provided"}
+    (db/set-push-token! user-id push_token)
     (if (empty? push_token)
-      {:success false :message "push token not provided"}
-      (do
-        (db/set-push-token! user-id push_token)
-        {:success true :message "push token set"}))))
+      (println "push token CLEARED for user" user-id)
+      (println "push token was SET for user" user-id "to" push_token))
+    {:success true :message "push token updated"}))
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
