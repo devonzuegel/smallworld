@@ -1,1 +1,1 @@
-heroku pg:psql postgresql-rigid-43177 --app small-world-friends
+heroku pg:psql postgresql-fluffy-56995 --app small-world-friends
