@@ -1,7 +1,6 @@
 (ns smallworld.web
   (:gen-class)
-  (:require [buddy.sign.jwt :as jwt]
-            [cheshire.core :refer [generate-stream generate-string]]
+  (:require [cheshire.core :refer [generate-stream generate-string]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
@@ -17,6 +16,7 @@
             [ring.util.request :as ring-request]
             [ring.util.response :as ring-response]
             [meetcute.routes :as mc.routes]
+            [ketchup.routes]
             [smallworld.admin :as admin]
             [smallworld.coordinates :as coordinates]
             [smallworld.db :as db]
@@ -605,99 +605,12 @@
     (email-update-worker)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Ketchup Club authentication ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn create-auth-token [user-id]
-  (jwt/sign {:user-id user-id} (util/get-env-var "JWT_SECRET_KEY")))
-
-(defn verify-auth-token [auth-token]
-  (try
-    (jwt/unsign auth-token (util/get-env-var "JWT_SECRET_KEY"))
-    (catch Exception _e
-      :could-not-verify)))
-
-; pull username and password from the user's request, and check if they're valid
-; if valid, set the session & return a successful result. Otherwise return a 401
-#_(defn valid-user? [_phone _password]
-    true ; TODO: implement this
-    #_(and (= username (util/get-env-var "USERNAME"))
-           (= password (util/get-env-var "PASSWORD"))))
-
-#_(defn login-v2 [req]
-    (let [phone (get-in req [:query-params "phone"])
-          password (get-in req [:query-params "password"])]
-      (pp/pprint (:query-params req))
-      (if (valid-user? phone password)
-        (ring-response/response (generate-string {:success true}))
-        (ring-response/response (generate-string {:success false})))))
-
-(defn parse-credentials [req]
-  (let [query-params (get-in req [:query-params])
-        phone (get-in query-params ["phone"])
-        smsCode (get-in query-params ["smsCode"])]
-    {:phone phone :smsCode smsCode}))
-
-(defn login-v3 [req]
-  (let [query-params (get-in req [:query-params])
-        phone (get-in query-params ["phone"])
-        smsCode (get-in query-params ["smsCode"])
-        user (db/find-or-insert-user! {:phone phone})]
-
-    (if (= smsCode (util/get-env-var "SMS_CODE"))
-      (generate-string {:success true
-                        :message "Login success!"
-                        :authToken (create-auth-token (:screen_name user))})
-      (generate-string {:success false
-                        :message "Oops, looks like you don't have the right code!"}))))
-
-(defn get-authorization-token [req]
-  (-> (get-in req [:headers "authorization"])
-      (str/split #"\s+")
-      (second)))
-
-(defn ping [req]
-  (let [phone (get-in req [:params :phone])
-        status (get-in req [:params :status])]
-    (cond (nil? phone)                    (ring-response/response (generate-string {:success false :message "phone number not provided"}))
-          (nil? status)                   (ring-response/response (generate-string {:success false :message "status not provided"}))
-          (not (or (= status "online")
-                   (= status "offline"))) (ring-response/response (generate-string {:success false :message "status must be either 'online' or 'offline'"}))
-          ; TODO: handle case where the phone number is not a user in the database
-          :else (try
-                  (let [result (db/update-user-last-ping! phone status)]
-                    (println "just pinged by" phone " · " (str (java.time.Instant/now)))
-                    (println "updated" (count result) "users \n")
-                    (ring-response/response (generate-string {:success true :message (str "Ping received from " phone)})))
-                  (catch Exception e
-                    (println "caught exception when pinging:" e))))))
-
-(defn protected-endpoint [req]
-  (let [auth-token (get-authorization-token req)
-        payload (verify-auth-token auth-token)]
-    (println "==================================")
-    (println "auth-token: " auth-token)
-    (println "   payload: " payload)
-    (if (= payload :could-not-verify)
-      (do
-        (println "invalid auth token")
-        (generate-string {:success false :message "Auth token invalid or expired"}))
-      (do
-        (println "valid auth token")
-        (generate-string {:success true :message "Success!"})))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; TODO: prepend data endpoints with /api/v1/
 ;; app is function that takes a request, and returns a response
 (defroutes smallworld-routes ; order matters in this function!
-  (POST "/api/v2/login" req (login-v3 req))
-  (GET "/api/v2/protected" req (protected-endpoint req))
-  (GET "/api/v2/users" _ (generate-string (map select-user-fields (db/select-all db/users-table))))
-  (POST "/api/v2/ping" req (ping req))
 
   ;; oauth & session endpoints
   (GET "/login"      _   (start-oauth-flow))
@@ -734,6 +647,9 @@
                                                    settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
                                                (refresh-friends-from-twitter settings nil nil))) ; TODO: keep refactoring
   (GET "/api/v1/worker" req (worker-endpoint req))
+
+  (compo/context "/ketchup" []
+    ketchup.routes/app)
 
   ;; meetcute routes:
   (compo/context "/meetcute" []
