@@ -259,13 +259,15 @@
                           :from-name "MeetCute"
                           :subject   (str "Fresh cutie! 🍊 Meet " (mc.util/get-field new-todays-cutie-profile "First name"))
                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
-                                          "Hey " (mc.util/get-field profile "First name") ", "
-                                          (if cutie-first-name
-                                            (str "your cutie of the day is " cutie-first-name "! ")
-                                            (str "your cutie of the day is ready! "))
+                                          "Hey " (mc.util/get-field profile "First name") ", " (if cutie-first-name
+                                                                                                 (str "your cutie of the day is " cutie-first-name "! ")
+                                                                                                 (str "your cutie of the day is ready! "))
                                           "<br><br>"
-                                          "Would you like to meet them? <a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>"
-                                          "View " (mc.util/get-field new-todays-cutie-profile "First name") "'s profile and let us know today!</a>"
+                                          "<a href='https://smallworld.kiwi/meetcute' style='; font-family: Roboto Mono, monospace !important'>"
+                                          "View " (mc.util/get-field new-todays-cutie-profile "First name") "'s profile & let us know if you'd like to meet them!"
+                                          "</a>"
+                                          "<br><br>"
+                                          "(Don't worry — if you miss them today, they'll come back around as your cutie of the day later!)"
                                           "<div style='border: 3px solid #eee;  color: #888; width: fit-content;  padding: 16px 24px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
                                           "How MeetCute works:"
                                           "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
@@ -280,7 +282,7 @@
                                           "MeetCute is a little project by <a href='https://devonzuegel.com'>Devon</a> & <a href='https://eriktorenberg.com/'>Erik</a> "
                                           "meant as a gift to our friends. <br/>"
                                           "We both have full-time jobs, so we might be slow to respond. <br/>"
-                                          "If you have questions or find bugs, email us at <a href='mailto:hello@smallworld.kiwi'>hello@smallworld.kiwi</a>. <br/>"
+                                          "If you have questions/feedback or find bugs, email us at <a href='mailto:hello@smallworld.kiwi'>hello@smallworld.kiwi</a>. <br/>"
                                           "</div>"
                                           "</div>")}]
         (email/send-email email-config)))))
