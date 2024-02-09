@@ -279,7 +279,7 @@
     (util/fetch-post "/meetcute/api/matchmaking/profile"
                      profile-editable-fields-only)))
 
-(def update-profile-debounced! (util/debounce update-profile! 500))
+(def update-profile-debounced! (util/debounce update-profile! 1500))
 
 (defn change-profile-field [field-name]
   (fn [event]
