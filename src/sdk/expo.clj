@@ -1,5 +1,6 @@
 (ns sdk.expo
   (:require [clj-http.client :as http]
+            [clojure.pprint :as pp]
             [clojure.data.json :as json]))
 
 (def base-url "https://exp.host/--")
@@ -63,6 +64,14 @@
                 :body (json/write-str notifications)
                 :headers {"Content-Type" "application/json"
                           "Authorization" (str "Bearer " expo-push-token)}}))]
+    (println)
+    (println "push-many! ================================================")
+    (println)
+    (pp/pprint r)
+    (println)
+    (println r)
+    (println)
+    (println "===========================================================")
     (if (= 200 (:status r))
       (:data (:body r))
       (throw (ex-info "Failed to send push notification"
