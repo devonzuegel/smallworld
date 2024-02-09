@@ -266,6 +266,8 @@ We use:
     - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
     - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
     - [ ] send an email to everyone to let them know about the new feature!
+- [ ] sort the cuties so that the ones who have selected you are at the front, to increase the likelihood of a match quicker
+  - [ ] in the short term, we'll just have Lei do this manually
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
 - [ ] consider adding a way for users to include info about religion, politics, age, what they're looking for, etc
