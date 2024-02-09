@@ -23,6 +23,7 @@
                  [ring/ring-ssl "0.3.0"]
                  [yesql "0.5.3"]
                  [factual/timely "0.0.3"]
+                 [ring-cors "0.1.13"]
                  [markdown-clj "1.11.7"]
                  [org.clojure/data.json "2.4.0"]
                  [org.clojure/core.memoize "1.0.257"]
