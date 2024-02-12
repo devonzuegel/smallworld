@@ -157,6 +157,19 @@
                                                                (:rejected-cuties profile))) ; the shuffle is so that each user gets a different order of cuties, so that the same cutie doesn't get shown to everyone on the same day
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
                                                unseen-ids--added-recently)))
+        ; sort unseen-ids--tmp so that:
+        ;  - if a cutie has this user in their selected-cuties, they will be shown earlier
+        ;  - if a cutie has this user in their rejected-cuties, they will be shown later
+        unseen-ids--tmp (sort-by (fn [id]
+                                   (let [cutie (find-cutie id bios)]
+                                     (if (some #(= (mc.util/get-field profile "id") %)
+                                               (:selected-cuties cutie))
+                                       0
+                                       (if (some #(= (mc.util/get-field profile "id") %)
+                                                 (:rejected-cuties cutie))
+                                         2
+                                         1))))
+                                 unseen-ids--tmp)
         todays-id--old       (first (:todays-cutie profile))
         todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
