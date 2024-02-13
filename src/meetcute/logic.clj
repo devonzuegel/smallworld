@@ -406,14 +406,14 @@
                                                     ])))
        "</pre>"))
 
-(defn send-match-profile-email [recipient-email cutie]
+(defn send-match-profile-email [recipient-email recipient-first-name cutie]
   (println "================== would have sent the email to " recipient-email ", but for now we're sending to hello@smallworld.kiwi to be safe ==================")
   (let [cutie (keywordize-keys cutie)
         email-config {:to        "hello@smallworld.kiwi" ;(str/trim recipient-email)
                       :from-name "MeetCute"
                       :subject   (str "You got a match! 🍊🍊 Meet " (mc.util/get-field cutie "First name"))
                       :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
-                                      "You matched with " (mc.util/get-field cutie "First name") "!"
+                                      "Hey " recipient-first-name ", you matched with " (mc.util/get-field cutie "First name") "!"
                                       "<br><br>"
                                       "And here's their contact info so you can reach out to them directly:<br><br>"
                                       "<b><u>Phone:</u></b> " (mc.util/get-field cutie "Phone") "<br><br>"
@@ -483,8 +483,8 @@
           (println "🔵 match already in airtable: " cutie-1-name " + " cutie-2-name)
           (do
             (println "🟢 add new match to airtable: " cutie-1-name " + " cutie-2-name)
-            (send-match-profile-email (get-in cutie-1 ["Email"]) cutie-2)
-            (send-match-profile-email (get-in cutie-2 ["Email"]) cutie-1)
+            (send-match-profile-email (get-in cutie-1 ["Email"]) (get-in cutie-1 ["First name"]) cutie-2)
+            (send-match-profile-email (get-in cutie-2 ["Email"]) (get-in cutie-1 ["First name"]) cutie-1)
             (email/send-email {:to "hello@smallworld.kiwi"
                                :from-name "MeetCute"
                                :subject (str "New match 🍊🍊 " cutie-1-name " + " cutie-2-name)
