@@ -419,6 +419,7 @@
                                       "<b><u>Phone:</u></b> " (mc.util/get-field cutie "Phone") "<br><br>"
                                       "<b><u>Email:</u></b> " (mc.util/get-field cutie "Email") "<br><br>"
                                       "<b><u>A bit about them:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "Anything else you'd like your potential matches to know?")) "<br><br>"
+                                      "<b><u>Vouch from a friend:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "What makes this person awesome?")) "<br><br>"
                                       "<b><u>Home base city:</u></b><br>" (mc.util/get-field cutie "Home base city") "<br><br>"
                                       "<b><u>Frequently visits:</u></b><br>" (mc.util/get-field cutie "Other cities where you spend time") "<br><br>"
                                       "<b><u>Social media links:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "Social media links")) "<br><br>"
