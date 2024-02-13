@@ -256,13 +256,17 @@ We use:
   - [ ] I thought I fixed it, but on 2024.02.05 Haley reported she's still seeing it
 - [x] Willy reported he hasn't been getting the emails
   - [x] appears to be because we don't trim trailing whitespace from the email address before sending. just fixed this
-  - [ ] tomorrow, check if he got the email (first by checking SendGrid, then by asking him directly)
+  - [x] tomorrow, check if he got the email (first by checking SendGrid, then by asking him directly)
 - [x] make sure we're only sending the daily email to people who were not asked to be removed from the list. they probably don't want to get emails
 - [x] add logging for whenever a user selects or rejects a cutie so we can see how much people are using the app
 - [x] sort the cuties so that the ones who have selected you are at the front, to increase the likelihood of a match quicker
   - [x] in the short term, we'll just have Lei do this manually
 - [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
-- [ ] send an email when two cuties have selected each other — send each cutie an email with the bio of the other cutie, including contact info
+- [ ] send an email when two cuties have selected each other
+  - [x] design the email
+    - subject: Someone thinks you're cute! 🍊
+    - body: "You and [cutie's name] both selected each other! Here's a refresher on their bio: [cutie's bio] And here's their contact info: [cutie's contact info] Don't forget to reach out soon!"
+  - [ ] send each cutie an email with the bio of the other cutie, including contact info
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] once this is done, update these people:
