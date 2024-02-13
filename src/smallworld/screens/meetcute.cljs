@@ -619,16 +619,16 @@
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
 (defn find-cutie [cutie-id bios]
-  (let [todays-cutie (first (filter #(= (mc.util/get-field % "id")
-                                        cutie-id)
-                                    bios))]
-    (reset! loading-message nil)
-    todays-cutie))
+  (let [result (first (filter #(= (mc.util/get-field % "id")
+                                  cutie-id)
+                              bios))]
+    (if (nil? result)
+      :no-cutie
+      result)))
 
 (def reviewed-bios-expanded? (r/atom false))
 
 (defn home-tab []
-  (reset! loading-message "Loading...")
   (let [included-bios (mc.util/included-bios @profile @bios)]
     (when @profile
       [:div {:style {:padding "12px" :padding-top "0"}}
@@ -689,41 +689,41 @@
              [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "8px" :text-align "center"}} "Today's cutie"]
              [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
-             (if (nil? todays-cutie)
+             (if (= :no-cutie todays-cutie)
                [:p {:style {:padding "6px 16px" :text-align "center"}}
                 "No profiles to review right now. We'll email you with more people to meet soon!"]
-
-
-               [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
-                              :flex-direction "column" ; "row"
-                              :flex-wrap "wrap"
-                              :width "100%"
-                              :margin "auto"}}
+               (if (nil? todays-cutie)
+                 [:p "Loading..."]
+                 [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
+                                :flex-direction "column" ; "row"
+                                :flex-wrap "wrap"
+                                :width "100%"
+                                :margin "auto"}}
 
                 ; Left column takes all available space
-                [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
-                [:div {:style {:flex 1} :className "profile-column"}
-                 [render-profile todays-cutie]]
+                  [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
+                  [:div {:style {:flex 1} :className "profile-column"}
+                   [render-profile todays-cutie]]
 
-                [:div {:style {:flex 1 :display "flex" :align-items "center" :flex-direction "column" :text-align "center"}}
+                  [:div {:style {:flex 1 :display "flex" :align-items "center" :flex-direction "column" :text-align "center"}}
 
-                 [:div {:style {:margin      "16px 0 12px 0"
-                                :flex        1
-                                :line-height 1.6
-                                :min-height  "3.4em"
-                                :align-items "center"
-                                :display     "flex"}}
-                  (if (in? currently-selected-ids todays-cutie-id)
-                    [:p {:style {}} "You've selected this person!" [:br] "We'll let you know if they select you too :)"]
-                    (if (in? currently-rejected-ids todays-cutie-id)
-                      [:p {:style {}} "Sounds like this cutie is not your main squeeze." [:br] "No worries, we'll send you another cutie soon!"]
-                      [:p {:style {}} "So, are you interested in meeting this cutie?"]))]
+                   [:div {:style {:margin      "16px 0 12px 0"
+                                  :flex        1
+                                  :line-height 1.6
+                                  :min-height  "3.4em"
+                                  :align-items "center"
+                                  :display     "flex"}}
+                    (if (in? currently-selected-ids todays-cutie-id)
+                      [:p {:style {}} "You've selected this person!" [:br] "We'll let you know if they select you too :)"]
+                      (if (in? currently-rejected-ids todays-cutie-id)
+                        [:p {:style {}} "Sounds like this cutie is not your main squeeze." [:br] "No worries, we'll send you another cutie soon!"]
+                        [:p {:style {}} "So, are you interested in meeting this cutie?"]))]
 
-                 [:div {:style {:flex 1}}
-                  [select-reject-btns
-                   (mc.util/get-field todays-cutie "id")
-                   (mc.util/get-field @profile "selected-cuties")
-                   (mc.util/get-field @profile "rejected-cuties")]]]])
+                   [:div {:style {:flex 1}}
+                    [select-reject-btns
+                     (mc.util/get-field todays-cutie "id")
+                     (mc.util/get-field @profile "selected-cuties")
+                     (mc.util/get-field @profile "rejected-cuties")]]]]))
 
 
 
