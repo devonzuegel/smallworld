@@ -88,3 +88,14 @@
     (client/patch req-uri {:headers {"Authorization" (str "Bearer " (:api-key base))
                                      "Content-Type" "application/json"}
                            :body req-body})))
+
+(defn create-in-base [base resource-path record-or-records]
+  (validate-base base)
+  (validate-resource-path resource-path)
+  (let [req-uri (build-request-uri-old (:base-id base) resource-path)
+        req-body (json/write-str (if (sequential? record-or-records)
+                                   {:records record-or-records}
+                                   record-or-records))]
+    (client/post req-uri {:headers {"Authorization" (str "Bearer " (:api-key base))
+                                    "Content-Type" "application/json"}
+                          :body req-body})))
