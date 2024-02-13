@@ -392,9 +392,22 @@
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
 
+(defn cutie-profile-rendered-for-email [cutie]
+  (str "<pre>"
+       (with-out-str (pp/pprint (select-keys cutie ["What makes this person awesome?"
+                                                    "Home base city"
+                                                    "Other cities where you spend time"
+                                                    "Phone"
+                                                    "Email"
+                                                    "Social media links"
+                                                    "Anything else you'd like your potential matches to know?"
+                                                 ;; "Pictures"
+                                                    ])))
+       "</pre>"))
+
 (defn update-matches-in-airtable []
   ; list all cuties that both picked each other, i.e. where cutie-1's id is in the selected-cuties of cutie-2 AND cutie-2's id is in the selected-cuties of cutie-1
-  (let [matches-in-airtable (airtable/get-in-base airtable-base [@airtable-matches-db-name])
+  (let [matches-already-in-airtable (airtable/get-in-base airtable-base [@airtable-matches-db-name])
         all-cuties (get-all-bios :force-refresh? false)
         matches-recomputed (->> (map (fn [cutie-1]
                                        (let [cutie-1-id (:id cutie-1)
@@ -410,28 +423,38 @@
                                               cutie-1-selections))) all-cuties)
                                 (mapcat identity)
                                 (remove nil?)
-                                ; remove any where the length of the match is not 2
-                                (remove #(not= 2 (count %)))
+                                (remove #(not= 2 (count %))) ; remove if length of the match is not 2 (this shouldn't happen but sometimes does so let's remove them just to be careful)
                                 (set))]
 
     ; for each match, check if they're already in the matches-in-airtable; if not, add them
     (doseq [match matches-recomputed]
-      (let [match-in-airtable? (some (fn [match-in-airtable]
-                                       (let [cutie-1 (first (get-in match-in-airtable [:fields "cutie-1"]))
-                                             cutie-2 (first (get-in match-in-airtable [:fields "cutie-2"]))]
-                                         (pp/pprint (set [cutie-1 cutie-2]))
-                                         (= (set match)
-                                            (set [cutie-1 cutie-2]))))
-                                     matches-in-airtable)
+      (let [cutie-1 (find-cutie (first match) all-cuties)
+            cutie-2 (find-cutie (second match) all-cuties)
+            cutie-1-name (str (get-in cutie-1 ["First name"]) " " (get-in cutie-1 ["Last name"]))
+            cutie-2-name (str (get-in cutie-2 ["First name"]) " " (get-in cutie-2 ["Last name"]))
+            match-in-airtable? (some (fn [match-in-airtable]
+                                       (= (set match)
+                                          (set [(first (get-in match-in-airtable [:fields "cutie-1"]))
+                                                (first (get-in match-in-airtable [:fields "cutie-2"]))])))
+                                     matches-already-in-airtable)
             match-to-add-to-airtable {"cutie-1" [(first match)]
                                       "cutie-2" [(second match)]
                                       "status" (if match-in-airtable? "intro sent" "intro not yet sent")
                                       "created" (current-timestamp-for-airtable)}]
         (if match-in-airtable?
-          (println "🔵 skipping match because it's already in airtable: " match)
-          (airtable/create-in-base airtable-base
-                                   [@airtable-matches-db-name]
-                                   {:fields match-to-add-to-airtable}))))))
+          (println "🔵 match already in airtable: " cutie-1-name " + " cutie-2-name)
+          (do
+            (println "🟢 add new match to airtable: " cutie-1-name " + " cutie-2-name)
+            (email/send-email {:to "hello@smallworld.kiwi"
+                               :from-name "MeetCute"
+                               :subject (str "New match: " cutie-1-name " + " cutie-2-name)
+                               :body (str "<b>cutie-1:</b>"
+                                          "<br>" (cutie-profile-rendered-for-email cutie-1) "<br><br>"
+                                          "<b>cutie-2:</b>"
+                                          "<br>" (cutie-profile-rendered-for-email cutie-2))})
+            (airtable/create-in-base airtable-base
+                                     [@airtable-matches-db-name]
+                                     {:fields match-to-add-to-airtable})))))))
 
 (defn updated-in-last-N-mins? [cutie N]
   (let [last-updated (get-in cutie ["cuties-last-refreshed"])]
