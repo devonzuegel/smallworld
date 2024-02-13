@@ -4,6 +4,7 @@
             [clojure.data         :as data]
             [clojure.data.json    :as json]
             [clojure.pprint       :as pp]
+            [markdown.core        :as md]
             [clojure.string       :as str]
             [clojure.test         :refer [deftest is]]
             [clojure.walk         :refer [keywordize-keys]]
@@ -117,7 +118,7 @@
                            :from-name "MeetCute logs"
                            :subject   log-message
                            :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
-                                           "<b>Here's what's changed:</b><br><br>"
+                                           "<b><u>Here's what's changed:</u></b><br><br>"
                                            "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
                                            "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
                                            "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
@@ -134,7 +135,7 @@
       (concat (take index list) (drop (inc index) list) [item]))))
 
 (defn first-name-bold [cutie]
-  (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
+  (str "<b><u>" (mc.util/get-field cutie "First name") "</b>"))
 
 (defn remove-from-lists [a & lists]
   (let [lists (map set lists)]
@@ -405,6 +406,42 @@
                                                     ])))
        "</pre>"))
 
+(defn send-match-profile-email [recipient-email cutie]
+  (println "================== would have sent the email to " recipient-email ", but for now we're sending to hello@smallworld.kiwi to be safe ==================")
+  (let [cutie (keywordize-keys cutie)
+        email-config {:to        "hello@smallworld.kiwi" ;(str/trim recipient-email)
+                      :from-name "MeetCute"
+                      :subject   (str "You got a match! 🍊🍊 Meet " (mc.util/get-field cutie "First name"))
+                      :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                      "You matched with " (mc.util/get-field cutie "First name") "!"
+                                      "<br><br>"
+                                      "And here's their contact info so you can reach out to them directly:<br><br>"
+                                      "<b><u>Phone:</u></b> " (mc.util/get-field cutie "Phone") "<br><br>"
+                                      "<b><u>Email:</u></b> " (mc.util/get-field cutie "Email") "<br><br>"
+                                      "<b><u>A bit about them:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "Anything else you'd like your potential matches to know?")) "<br><br>"
+                                      "<b><u>Home base city:</u></b><br>" (mc.util/get-field cutie "Home base city") "<br><br>"
+                                      "<b><u>Frequently visits:</u></b><br>" (mc.util/get-field cutie "Other cities where you spend time") "<br><br>"
+                                      "<b><u>Social media links:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "Social media links")) "<br><br>"
+                                      "<div style='border: 3px solid #eee;  color: #888; width: fit-content;  padding: 16px 24px 8px 20px;  margin: 24px 0;  border-radius: 12px; font-family: Roboto Mono, monospace !important'>"
+                                      "How MeetCute works:"
+                                      "<ol style='padding-inline-start: 12px !important; padding-left: 32px !important; font-family: Roboto Mono, monospace !important'>"
+                                      "      <li style='padding-left: 4px !important; margin-left: 4px !important'>We send you a daily email with one new person at a time</li>"
+                                      "      <li style='padding-left: 4px !important; margin-left: 4px !important'>You let us know if you're interested in meeting them</li>"
+                                      "      <li style='padding-left: 4px !important; margin-left: 4px !important'>If they're interested too, we introduce you!</li>"
+                                      "</ol>"
+                                      "Make sure <a href='https://smallworld.kiwi/meetcute/settings'>your profile</a> is up-to-date!"
+                                      "<br><br>"
+                                      "</div>"
+                                      "<div style='font-size: .8em; line-height: 1.7em'>"
+                                      "MeetCute is a little project by <a href='https://devonzuegel.com'>Devon</a> & <a href='https://eriktorenberg.com/'>Erik</a> "
+                                      "meant as a gift to our friends. <br/>"
+                                      "We both have full-time jobs, so we might be slow to respond. <br/>"
+                                      "If you have questions/feedback or find bugs, email us at <a href='mailto:hello@smallworld.kiwi'>hello@smallworld.kiwi</a>. <br/>"
+                                      "</div>"
+                                      "</div>")}]
+    (email/send-email email-config)))
+
+
 (defn update-matches-in-airtable []
   ; list all cuties that both picked each other, i.e. where cutie-1's id is in the selected-cuties of cutie-2 AND cutie-2's id is in the selected-cuties of cutie-1
   (let [matches-already-in-airtable (airtable/get-in-base airtable-base [@airtable-matches-db-name])
@@ -445,12 +482,14 @@
           (println "🔵 match already in airtable: " cutie-1-name " + " cutie-2-name)
           (do
             (println "🟢 add new match to airtable: " cutie-1-name " + " cutie-2-name)
+            (send-match-profile-email (get-in cutie-1 ["Email"]) cutie-2)
+            (send-match-profile-email (get-in cutie-2 ["Email"]) cutie-1)
             (email/send-email {:to "hello@smallworld.kiwi"
                                :from-name "MeetCute"
-                               :subject (str "New match: " cutie-1-name " + " cutie-2-name)
-                               :body (str "<b>cutie-1:</b>"
+                               :subject (str "New match 🍊🍊 " cutie-1-name " + " cutie-2-name)
+                               :body (str "<b><u>cutie-1:</b>"
                                           "<br>" (cutie-profile-rendered-for-email cutie-1) "<br><br>"
-                                          "<b>cutie-2:</b>"
+                                          "<b><u>cutie-2:</b>"
                                           "<br>" (cutie-profile-rendered-for-email cutie-2))})
             (airtable/create-in-base airtable-base
                                      [@airtable-matches-db-name]
