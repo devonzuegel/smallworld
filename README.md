@@ -261,6 +261,8 @@ We use:
 - [x] add logging for whenever a user selects or rejects a cutie so we can see how much people are using the app
 - [x] sort the cuties so that the ones who have selected you are at the front, to increase the likelihood of a match quicker
   - [x] in the short term, we'll just have Lei do this manually
+- [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
+- [ ] send an email when two cuties have selected each other — send each cutie an email with the bio of the other cutie, including contact info
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] once this is done, update these people:

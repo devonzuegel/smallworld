@@ -619,13 +619,16 @@
 (defn render-obj [obj] (js/JSON.stringify (clj->js obj) nil 2))
 
 (defn find-cutie [cutie-id bios]
-  (first (filter #(= (mc.util/get-field % "id")
-                     cutie-id)
-                 bios)))
+  (let [todays-cutie (first (filter #(= (mc.util/get-field % "id")
+                                        cutie-id)
+                                    bios))]
+    (reset! loading-message nil)
+    todays-cutie))
 
 (def reviewed-bios-expanded? (r/atom false))
 
 (defn home-tab []
+  (reset! loading-message "Loading...")
   (let [included-bios (mc.util/included-bios @profile @bios)]
     (when @profile
       [:div {:style {:padding "12px" :padding-top "0"}}
