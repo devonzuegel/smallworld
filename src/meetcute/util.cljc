@@ -77,3 +77,5 @@
                                 "What makes this person awesome?"
                                 "Pictures"
                                 "Gender"])
+
+(defn in? [list str] (some #(= str %) list))

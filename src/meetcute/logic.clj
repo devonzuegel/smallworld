@@ -15,12 +15,11 @@
 (def airtable-base {:api-key (util/get-env-var "AIRTABLE_BASE_API_KEY")
                     :base-id "appF2K8ThWvtrC6Hs"})
 
-(def airtable-db-name (atom "cuties-live-data"
-                            #_(if (= (:prod util/ENVIRONMENTS) (util/get-env-var "ENVIRONMENT"))
-                                "cuties-live-data"
-                                "cuties-TEST-data")))
+(def airtable-cuties-db-name (atom "cuties-live-data"))
+(def airtable-matches-db-name (atom "matches-live-data"))
+
 (println)
-(println "🍊🍊🍊 airtable-db-name: " @airtable-db-name " 🍊🍊🍊")
+(println "🍊🍊🍊 airtable-db-name: " @airtable-cuties-db-name " 🍊🍊🍊")
 (println)
 
 (defn seconds [n] (* n 1000))
@@ -30,7 +29,7 @@
   (println)
   (println "⚠️   Fetching all bios from Airtable... (Airtable will get grumpy if we hit the API too often)")
   (println)
-  (airtable/get-in-base airtable-base [@airtable-db-name]))
+  (airtable/get-in-base airtable-base [@airtable-cuties-db-name]))
 
 (def fetch-all-bios-memoized
   (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
@@ -90,7 +89,7 @@
     (if (nil? old-bio)
       (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
       (let [new-bio (-> (airtable/update-in-base airtable-base
-                                                 [@airtable-db-name (:id old-bio)]
+                                                 [@airtable-cuties-db-name (:id old-bio)]
                                                  {:fields fields-to-change})
                         :body
                         json/read-str
@@ -259,7 +258,7 @@
     ;; (pp/pprint "==============================================================================================")
 
     (airtable/update-in-base airtable-base
-                             [@airtable-db-name (:id profile)]
+                             [@airtable-cuties-db-name (:id profile)]
                              {:fields new-values})
 
     (if (or (empty? (:todays-cutie (:new computed)))
@@ -360,7 +359,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-airtable-db-name []
-  @airtable-db-name)
+  @airtable-cuties-db-name)
 
 ; if current user is not an admin, return 401
 (defn update-airtable-db [req]
@@ -369,14 +368,14 @@
         new-db-name (mc.util/get-field (:params req) "airtable-db-name")]
     ;; (pp/pprint (my-profile phone))
     (println "      phone: " phone)
-    (println "old-db-name: " @airtable-db-name)
+    (println "old-db-name: " @airtable-cuties-db-name)
     (println "new-db-name: " new-db-name)
 
-    (when (not= @airtable-db-name new-db-name)
+    (when (not= @airtable-cuties-db-name new-db-name)
       (get-all-bios :force-refresh? true) ; force a refresh of the bios now that the db name has changed
-      (reset! airtable-db-name new-db-name))
+      (reset! airtable-cuties-db-name new-db-name))
     (generate-string {:success true
-                      :message (str "Successfully updated Airtable db to " @airtable-db-name)}))
+                      :message (str "Successfully updated Airtable db to " @airtable-cuties-db-name)}))
   #_(let [parsed-jwt (:auth/parsed-jwt req)
           admin?     (get-in parsed-jwt ["auth" "admin?"])]
       (if (not admin?)
@@ -392,6 +391,47 @@
 
 (defn req->parsed-jwt [req]
   (:auth/parsed-jwt req))
+
+(defn update-matches-in-airtable []
+  ; list all cuties that both picked each other, i.e. where cutie-1's id is in the selected-cuties of cutie-2 AND cutie-2's id is in the selected-cuties of cutie-1
+  (let [matches-in-airtable (airtable/get-in-base airtable-base [@airtable-matches-db-name])
+        all-cuties (get-all-bios :force-refresh? false)
+        matches-recomputed (->> (map (fn [cutie-1]
+                                       (let [cutie-1-id (:id cutie-1)
+                                             cutie-1-selections (get-in cutie-1 ["selected-cuties"])]
+                                         (map (fn [cutie-2-id]
+                                                (let [cutie-2 (find-cutie cutie-2-id all-cuties)
+                                                      cutie-2-selections (get-in cutie-2 ["selected-cuties"])]
+                                                  (if (and (some #(= cutie-1-id %) cutie-2-selections)
+                                                           (not (nil? cutie-1-id))
+                                                           (not (nil? cutie-2-id)))
+                                                    (set [cutie-1-id cutie-2-id])
+                                                    nil)))
+                                              cutie-1-selections))) all-cuties)
+                                (mapcat identity)
+                                (remove nil?)
+                                ; remove any where the length of the match is not 2
+                                (remove #(not= 2 (count %)))
+                                (set))]
+
+    ; for each match, check if they're already in the matches-in-airtable; if not, add them
+    (doseq [match matches-recomputed]
+      (let [match-in-airtable? (some (fn [match-in-airtable]
+                                       (let [cutie-1 (first (get-in match-in-airtable [:fields "cutie-1"]))
+                                             cutie-2 (first (get-in match-in-airtable [:fields "cutie-2"]))]
+                                         (pp/pprint (set [cutie-1 cutie-2]))
+                                         (= (set match)
+                                            (set [cutie-1 cutie-2]))))
+                                     matches-in-airtable)
+            match-to-add-to-airtable {"cutie-1" [(first match)]
+                                      "cutie-2" [(second match)]
+                                      "status" (if match-in-airtable? "intro sent" "intro not yet sent")
+                                      "created" (current-timestamp-for-airtable)}]
+        (if match-in-airtable?
+          (println "🔵 skipping match because it's already in airtable: " match)
+          (airtable/create-in-base airtable-base
+                                   [@airtable-matches-db-name]
+                                   {:fields match-to-add-to-airtable}))))))
 
 (defn updated-in-last-N-mins? [cutie N]
   (let [last-updated (get-in cutie ["cuties-last-refreshed"])]
@@ -464,5 +504,7 @@
     (println (str "finished refreshing todays-cutie for " (count all-cuties) " cuties\n"
                   "------------------------------------------------------------"))
     (println)
+
+    (update-matches-in-airtable)
 
     (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))

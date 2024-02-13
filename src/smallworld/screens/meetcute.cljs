@@ -31,10 +31,8 @@
   #_(let [digits-only (str/replace phone #"[^0-9]" "")]
       (str "(" (subs digits-only 0 3) ") " (subs digits-only 3 6) "-" (subs digits-only 6 10))))
 
-(defn in? [list str] (some #(= str %) list))
-
 (defn checkbox-component [value-name selected-values update-selected-values]
-  (let [checked? (boolean (in? selected-values value-name))]
+  (let [checked? (boolean (util/in? selected-values value-name))]
     [:span
      [:input {:type "checkbox"
               :value value-name
@@ -111,7 +109,7 @@
     [:input {:type "checkbox"
              :id (str bio-id "-select")
              :value bio-id
-             :checked (boolean (in? currently-selected-ids bio-id))
+             :checked (boolean (util/in? currently-selected-ids bio-id))
              :style {:display "none"}
              :on-change (fn [event] ; TODO: this is almost identical to the on-change fn for the reject button. refactor to share code
                           (if (or (nil? event) (nil? (.-target event)))
@@ -120,7 +118,7 @@
                                   old-rejected-cuties (mc.util/get-field @profile "rejected-cuties")
                                   now-selected (if selected-chosen?
 
-                                                 (if (in? currently-selected-ids bio-id) ; add to selected-cuties only if it's not already there
+                                                 (if (util/in? currently-selected-ids bio-id) ; add to selected-cuties only if it's not already there
                                                    currently-selected-ids
                                                    (conj currently-selected-ids bio-id))
 
@@ -136,7 +134,7 @@
                                                (remove (fn [v] (= bio-id v))
                                                        (mc.util/get-field @profile "unseen-cuties"))
 
-                                               (if (in? now-rejected bio-id) ; add it to unseen-cuties if it's neither selected nor rejected:
+                                               (if (util/in? now-rejected bio-id) ; add it to unseen-cuties if it's neither selected nor rejected:
                                                  (mc.util/get-field @profile "unseen-cuties")
                                                  (conj (mc.util/get-field @profile "unseen-cuties") bio-id)))]
 
@@ -158,9 +156,9 @@
                      :display       "block"
                      :border-radius "3000px"
                      :flex-grow     1
-                     :border        (if   (in? currently-selected-ids bio-id) "8px solid rgb(0 157 49)" "8px solid white")
-                     :box-shadow    (when (in? currently-selected-ids bio-id) "0 0 0 4px white inset")
-                    ;;  :background (if (in? currently-selected-ids bio-id) "#42b72a" "#42b72a22")
+                     :border        (if   (util/in? currently-selected-ids bio-id) "8px solid rgb(0 157 49)" "8px solid white")
+                     :box-shadow    (when (util/in? currently-selected-ids bio-id) "0 0 0 4px white inset")
+                    ;;  :background (if (util/in? currently-selected-ids bio-id) "#42b72a" "#42b72a22")
                     ;;  :border "8px solid #42b72a"
                      ;
                      }}
@@ -171,7 +169,7 @@
     [:input {:type "checkbox"
              :id (str bio-id "-reject")
              :value bio-id
-             :checked (boolean (in? currently-rejected-ids bio-id))
+             :checked (boolean (util/in? currently-rejected-ids bio-id))
              :style {:display "none"}
              :on-change (fn [event] ; TODO: this is almost identical to the on-change fn for the select button. refactor to share code
                           (if (or (nil? event) (nil? (.-target event)))
@@ -180,7 +178,7 @@
                                   old-selected-cuties (mc.util/get-field @profile "selected-cuties")
                                   now-rejected (if rejected-chosen?
 
-                                                 (if (in? currently-rejected-ids bio-id) ; add to selected-cuties only if it's not already there
+                                                 (if (util/in? currently-rejected-ids bio-id) ; add to selected-cuties only if it's not already there
                                                    currently-rejected-ids
                                                    (conj currently-rejected-ids bio-id))
 
@@ -196,7 +194,7 @@
                                                (remove (fn [v] (= bio-id v))
                                                        (mc.util/get-field @profile "unseen-cuties"))
 
-                                               (if (in? now-selected bio-id) ; add it to unseen-cuties if it's neither selected nor rejected:
+                                               (if (util/in? now-selected bio-id) ; add it to unseen-cuties if it's neither selected nor rejected:
                                                  (mc.util/get-field @profile "unseen-cuties")
                                                  (conj (mc.util/get-field @profile "unseen-cuties") bio-id)))]
 
@@ -218,10 +216,10 @@
                      :display       "block"
                      :border-radius "3000px"
                      :flex-grow      1
-                     :border        (if   (in? currently-rejected-ids bio-id) "8px solid #aaa" "8px solid white")
-                     :box-shadow    (when (in? currently-rejected-ids bio-id) "0 0 0 4px white inset")
+                     :border        (if   (util/in? currently-rejected-ids bio-id) "8px solid #aaa" "8px solid white")
+                     :box-shadow    (when (util/in? currently-rejected-ids bio-id) "0 0 0 4px white inset")
 
-                    ;;  :background (if (in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
+                    ;;  :background (if (util/in? currently-rejected-ids bio-id) "#aaaaaa" "#aaaaaa22")
                     ;;  :border "8px solid #aaaaaa"
                      ;
                      }}
@@ -597,8 +595,8 @@
    (let [mutual-selections (set (flatten
                                  (map (fn [this-cutie] (let [my-id (:id this-cutie)
                                                              my-selected-cuties (mc.util/get-field this-cutie "selected-cuties") ; ids only
-                                                             my-selected-cuties (filter #(in? my-selected-cuties (mc.util/get-field % "id")) @bios)
-                                                             matches (filter #(in? (mc.util/get-field % "selected-cuties") my-id) my-selected-cuties)
+                                                             my-selected-cuties (filter #(util/in? my-selected-cuties (mc.util/get-field % "id")) @bios)
+                                                             matches (filter #(util/in? (mc.util/get-field % "selected-cuties") my-id) my-selected-cuties)
                                                              matches-list (map #(set [% this-cutie]) matches)]
                                                          matches-list))
                                       @bios)))]
@@ -638,8 +636,8 @@
           (let [currently-selected-ids (mc.util/get-field @profile "selected-cuties")
                 currently-rejected-ids (mc.util/get-field @profile "rejected-cuties")
                 ;; get-cuties-name #(get-in (find-cutie % included-bios) [(keyword "First name")])
-                ;; reviewed-bios (filter #(let [bio-id (mc.util/get-field % "id")] (or (in? currently-selected-ids bio-id)
-                ;;                                                                     (in? currently-rejected-ids bio-id)))
+                ;; reviewed-bios (filter #(let [bio-id (mc.util/get-field % "id")] (or (util/in? currently-selected-ids bio-id)
+                ;;                                                                     (util/in? currently-rejected-ids bio-id)))
                 ;;                       included-bios)
                 todays-cutie-id (first (mc.util/get-field @profile "todays-cutie"))
                 todays-cutie (find-cutie todays-cutie-id included-bios)
@@ -713,9 +711,9 @@
                                   :min-height  "3.4em"
                                   :align-items "center"
                                   :display     "flex"}}
-                    (if (in? currently-selected-ids todays-cutie-id)
+                    (if (util/in? currently-selected-ids todays-cutie-id)
                       [:p {:style {}} "You've selected this person!" [:br] "We'll let you know if they select you too :)"]
-                      (if (in? currently-rejected-ids todays-cutie-id)
+                      (if (util/in? currently-rejected-ids todays-cutie-id)
                         [:p {:style {}} "Sounds like this cutie is not your main squeeze." [:br] "No worries, we'll send you another cutie soon!"]
                         [:p {:style {}} "So, are you interested in meeting this cutie?"]))]
 
