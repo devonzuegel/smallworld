@@ -267,6 +267,7 @@ We use:
     - subject: Someone thinks you're cute! 🍊
     - body: "You and [cutie's name] both selected each other! Here's a refresher on their bio: [cutie's bio] And here's their contact info: [cutie's contact info] Don't forget to reach out soon!"
   - [ ] send each cutie an email with the bio of the other cutie, including contact info
+  - [ ] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] once this is done, update these people:

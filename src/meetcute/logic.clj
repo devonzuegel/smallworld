@@ -135,7 +135,7 @@
       (concat (take index list) (drop (inc index) list) [item]))))
 
 (defn first-name-bold [cutie]
-  (str "<b><u>" (mc.util/get-field cutie "First name") "</b>"))
+  (str "<b>" (mc.util/get-field cutie "First name") "</b>"))
 
 (defn remove-from-lists [a & lists]
   (let [lists (map set lists)]
@@ -487,9 +487,9 @@
             (email/send-email {:to "hello@smallworld.kiwi"
                                :from-name "MeetCute"
                                :subject (str "New match 🍊🍊 " cutie-1-name " + " cutie-2-name)
-                               :body (str "<b><u>cutie-1:</b>"
+                               :body (str "<b>cutie-1:</b>"
                                           "<br>" (cutie-profile-rendered-for-email cutie-1) "<br><br>"
-                                          "<b><u>cutie-2:</b>"
+                                          "<b>cutie-2:</b>"
                                           "<br>" (cutie-profile-rendered-for-email cutie-2))})
             (airtable/create-in-base airtable-base
                                      [@airtable-matches-db-name]
