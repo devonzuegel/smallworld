@@ -417,7 +417,7 @@
                                       "Here's their contact info so you can reach out directly:<br><br>"
                                       "<b><u>Phone:</u></b> " (mc.util/get-field cutie "Phone") "<br><br>"
                                       "<b><u>Email:</u></b> " (mc.util/get-field cutie "Email") "<br><br>"
-                                      "<b><u>A bit about them:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "Anything else you'd like your potential matches to know?")) "<br><br>"
+                                      "<b><u>A bit about them:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "Anything else you'd like your potential matches to know?")) "<br>"
                                       "<b><u>Vouch from a friend:</u></b><br>" (md/md-to-html-string (mc.util/get-field cutie "What makes this person awesome?")) "<br><br>"
                                       "<b><u>Home base city:</u></b><br>" (mc.util/get-field cutie "Home base city") "<br><br>"
                                       "<b><u>Frequently visits:</u></b><br>" (mc.util/get-field cutie "Other cities where you spend time") "<br><br>"
@@ -439,7 +439,7 @@
                                       "If you have questions/feedback or find bugs, email us at <a href='mailto:hello@smallworld.kiwi'>hello@smallworld.kiwi</a>. <br/>"
                                       "</div>"
                                       "</div>")}]
-    (email/send-email (merge email-config {:to "hello@smallworld.kiwi"}))
+    (email/send-email (merge email-config {:to "hello@smallworld.kiwi"})) ; this is just for testing
     (email/send-email email-config)))
 
 
