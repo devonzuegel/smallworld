@@ -477,7 +477,7 @@
                                      matches-already-in-airtable)
             match-to-add-to-airtable {"cutie-1" [(first match)]
                                       "cutie-2" [(second match)]
-                                      "status" (if match-in-airtable? "intro sent" "intro not yet sent")
+                                      "status" "no 3rd person intro yet, but they have received an email with the cutie's profile"
                                       "created" (current-timestamp-for-airtable)}]
         (if match-in-airtable?
           (println "🔵 match already in airtable: " cutie-1-name " + " cutie-2-name)
