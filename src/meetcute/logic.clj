@@ -439,7 +439,6 @@
                                       "If you have questions/feedback or find bugs, email us at <a href='mailto:hello@smallworld.kiwi'>hello@smallworld.kiwi</a>. <br/>"
                                       "</div>"
                                       "</div>")}]
-    (email/send-email (merge email-config {:to "hello@smallworld.kiwi"})) ; this is just for testing
     (email/send-email email-config)))
 
 
