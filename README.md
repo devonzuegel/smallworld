@@ -19,7 +19,9 @@ https://smallworld.kiwi
 - [TODO before launch](#todo-before-launch)
     - [features](#features)
     - [last-minute admin before it's usable](#last-minute-admin-before-its-usable)
-    - [nice-to-haves, but not necessary for launch](#nice-to-haves-but-not-necessary-for-launch)
+    - [nice-to-haves, but not necessary for alpha launch to friends:](#nice-to-haves-but-not-necessary-for-alpha-launch-to-friends)
+    - [before we launch the public beta:](#before-we-launch-the-public-beta)
+    - [nice to have later on:](#nice-to-have-later-on)
     - [not that important](#not-that-important)
 - [key design decisions:](#key-design-decisions)
 
@@ -249,7 +251,7 @@ We use:
 - [x] send the first emails to everybody MANUALLY
 - [x] enable the cron job to refresh the `todays-cutie` list every night
 
-#### nice-to-haves, but not necessary for launch
+#### nice-to-haves, but not necessary for alpha launch to friends:
 - [x] rename `matchmaking` to `meetcute` throughout the codebase
 - [x] only refresh-todays-cutie for people who are visible in the gallery (i.e. who haven't opted out)
 - [x] figure out why emails didn't send to Milan (and maybe not to others?) – reason: I had set the "last-updated-at" field to Feb 1
@@ -268,8 +270,11 @@ We use:
     - subject: Someone thinks you're cute! 🍊
     - body: "You and [cutie's name] both selected each other! Here's a refresher on their bio: [cutie's bio] And here's their contact info: [cutie's contact info] Don't forget to reach out soon!"
   - [x] send each cutie an email with the bio of the other cutie, including contact info
-  - [ ] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
+  - [x] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
+
+#### before we launch the public beta:
 - [ ] security improvements
+- [ ] landing page
 - [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
@@ -282,6 +287,8 @@ We use:
   - [ ] update Gillian when this is done (via SMS)
   - [ ] update mariah when this is done
 - [ ] consider adding a way for users to include info about religion, politics, age, what they're looking for, etc
+
+#### nice to have later on:
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
   - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
 - [ ] profile page improvements:
