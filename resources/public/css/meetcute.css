@@ -149,8 +149,11 @@ li {
 .oranges-wallpaper {
   background-color: #ffe2c0;
   background-image: url('../oranges-tile-repeat.jpg');
-  background-position: 50% 0;
   background-size: 420px;
+  background-image: url('../oranges-tile-repeat-2.jpg');
+  background-size: min(700px, 90vw);
+  background-position: 50% 0;
+  background-position: 50% 0;
   height: calc(100vh - 15vh);
 
   // make children centered vertically on page, but no more than 120px from the top
