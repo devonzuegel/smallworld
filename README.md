@@ -200,6 +200,8 @@ We use:
 - orange favicon
 - "media naranja" (spanish for "half orange", their word for "soulmate")
 - for valentine's day, we can do corny citrus puns like:
+   - "squeeze the day!"
+   - "you're the zest"
    - "will you be my clementine?"
    - "you're a cutie"
    - "you're my main squeeze"
@@ -261,13 +263,14 @@ We use:
 - [x] add logging for whenever a user selects or rejects a cutie so we can see how much people are using the app
 - [x] sort the cuties so that the ones who have selected you are at the front, to increase the likelihood of a match quicker
   - [x] in the short term, we'll just have Lei do this manually
-- [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
-- [ ] send an email when two cuties have selected each other
+- [x] send an email when two cuties have selected each other
   - [x] design the email
     - subject: Someone thinks you're cute! 🍊
     - body: "You and [cutie's name] both selected each other! Here's a refresher on their bio: [cutie's bio] And here's their contact info: [cutie's contact info] Don't forget to reach out soon!"
-  - [ ] send each cutie an email with the bio of the other cutie, including contact info
+  - [x] send each cutie an email with the bio of the other cutie, including contact info
   - [ ] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
+- [ ] security improvements
+- [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] allow users to filter cuties by city
   - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] once this is done, update these people:
@@ -277,6 +280,7 @@ We use:
     - [ ] send an email to everyone to let them know about the new feature!
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
+  - [ ] update mariah when this is done
 - [ ] consider adding a way for users to include info about religion, politics, age, what they're looking for, etc
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
   - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
