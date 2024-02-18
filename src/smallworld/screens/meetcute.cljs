@@ -82,7 +82,7 @@
                    #(println "Done updating selected-cuties")))
 
 (defn bio-row [i [key-name value]]
-  [:div {:key i :className "bio-row" :style {:width "fit-content"}}
+  [:div.bio-row {:key i}
    [:style "@media screen and (min-width: 600px) { .bio-row-value { min-width: 380px; }  }"]
    [:div {:style {:padding "6px 12px 0 12px"
                   :opacity ".75"
@@ -406,12 +406,17 @@
   (let [id         (str "location-" index)
         minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id :key id}
-     [:div.mapbox-container.left-side
+     [:div.delete-location-btn {:title "Delete this location"
+                                :on-click #(do (reset! *locations-new (vec (util/rm-from-list @*locations-new index)))
+                                               (update-profile-debounced!))}
+      (decorations/cancel-icon)]
+
+     [:div.mapbox-container.location-field-top
       [minimap minimap-id value coords]
       (when-not (clojure.string/blank? value)
-        [:div.center-point])]
+        [:div.center-point "🍊"])]
 
-     [:div.left-side
+     [:div.location-field-bottom
       [:div
        [:input.location-input
         {:type "text"
@@ -448,12 +453,8 @@
                                 (swap! *locations-new update index assoc :location-type new-value)
                                 (update-profile-debounced!)))}]
         [:label {:for (str "location-type--" minimap-id "-visit-often")}
-         "This is a place I visit often"]]]]
+         "I visit here often"]]]]
 
-     [:div.delete-location-btn {:title "Delete this location"
-                                :on-click #(do (reset! *locations-new (vec (util/rm-from-list @*locations-new index)))
-                                               (update-profile-debounced!))}
-      (decorations/cancel-icon)]
 
      [:br]]))
 
@@ -530,11 +531,12 @@
                                                             (editable-input "Email")
                                                             [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
                      ["Locations"
-                      {:open true}
-                      [["Home base city"                    (editable-input "Home base city")]
-                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
-                       ["Where are you interested in meeting cuties? (ALPHA FEATURE)"
-                        [:div
+                      {:open true
+                       :className "bio-row-locations"}
+                      [#_["Home base city"                    (editable-input "Home base city")]
+                       #_["Other cities where you spend time" (editable-input "Other cities where you spend time")]
+                       ["We'll show you cuties who are in the locations you list below (ALPHA FEATURE)"
+                        [:<>
                          (if (= @*locations-new :loading)
                            [:p "Loading locations..."]
                            [:div.location-fields
@@ -544,31 +546,29 @@
                               (location-field {:index       index
                                                :auto-focus  (zero? index)
                                                :label       "" #_"Home base city"
-                                               :placeholder "Where do you live?"
+                                               :placeholder "Place"
                                                :value       (:name location)
                                                :location-type (:location-type location)
                                                :coords      (:coords location)
                                                :update!     (fn [new-value]
                                                               (swap! *locations-new update index assoc :name new-value)
                                                               (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
-                                                              (update-profile-debounced!))}))])
+                                                              (update-profile-debounced!))}))
+                            [:button.add-location-btn
+                             {:on-click (fn []
+                                          (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
+                                          (js/setTimeout (fn []
+                                                           (.scrollIntoView
+                                                            (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                                            #js{:behavior "smooth" :block "center" :inline "center"})
 
-                         [:button.add-location-btn
-                          {:title "Add a new location"
-                           :on-click (fn []
-                                       (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
-                                       (js/setTimeout (fn []
-                                                        (.scrollIntoView
-                                                         (last (array-seq (goog.dom/getElementsByClass "location-field")))
-                                                         #js{:behavior "smooth" :block "center" :inline "center"})
-
-                                                                                     ; focus on the input inside of that last location-field:
-                                                        (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
-                                                            (.querySelector "input.location-input")
-                                                            (.focus)))
-                                                      50))
-                           :style {:margin-top "12px"}}
-                          "+ Add a new location"]
+                                                                                                                 ; focus on the input inside of that last location-field:
+                                                           (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                                               (.querySelector "input.location-input")
+                                                               (.focus)))
+                                                         50))}
+                             [:span.inner
+                              "+ New location"]]])
 
                          #_(try
                              [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
@@ -618,12 +618,12 @@
    ; add a toggle for "ready for review" that is only clickable if all the required fields are completed. if not, share a little error message listing the issues that need to be resolved before it can be submitted for review
 
 
-   [:div {:style {:position "fixed" :background "red" :bottom 0 :padding "16px"}}
-    [:p "Ready for review? Once you're approved, you'll be able to see other cuties' profiles and start matching!"]
-    [:p "NOTE: only show this if the status is 'not yet reviewed'"]
+   [:div.ready-for-review
+    [:p "Ready for review? Once you're approved, you'll be able to see other cuties' profiles and start matching! NOTE: only show this if the status is 'not yet reviewed'"]
     [:button {:style {:margin-top "12px"
                       :padding "12px 24px"
                       :background "rgb(0 157 49)"
+                      :border-radius "12px"
                       :border "3px solid rgb(0 157 49)"}
               :on-click (fn []
                           (if (or (str/blank? (mc.util/get-field @profile "First name"))
