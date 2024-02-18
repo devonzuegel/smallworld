@@ -361,6 +361,10 @@
                                      #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
                                          :zoom 3
                                          :center (mapbox/coords-to-mapbox-array result)})
+                             (println)
+                             (println "              index: " index)
+                             (println "location-name-input: " location-name-input)
+                             (println)
                              (swap! *locations-new assoc index (merge (get @*locations-new index)
                                                                       {:coords result}))))))))
 
@@ -398,7 +402,8 @@
     [:div.field.location-field {:id id :key id}
      [:div.delete-location-btn {:title "delete this location"
                                 :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back any time")
-                                             (reset! *locations-new (util/rm-from-list @*locations-new index)))}
+                                             (reset! *locations-new (vec (util/rm-from-list @*locations-new index)))
+                                             (update-profile-debounced!))}
       (decorations/cancel-icon)]
      [:label label]
      [:div
