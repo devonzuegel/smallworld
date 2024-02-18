@@ -314,7 +314,7 @@ td {
 }
 .location-field .location-input {
   background: white;
-  margin: 4px 0;
+  margin: 4px 0 8px 0;
   padding: 4px 8px;
   border: 3px solid rgba(188, 181, 175, 0.3) !important;
   transition: all 0.2s ease-in-out;
@@ -326,8 +326,35 @@ td {
   border-radius: 8px;
 }
 .location-field .location-type-radio input {
-  margin: 4px;
+  margin: 6px;
+  cursor: pointer;
 }
 .location-field .location-type-radio label {
-  padding: 4px;
+  padding: 6px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s ease-in-out;
+}
+
+.location-field .location-type-radio label:hover,
+.location-field .location-type-radio input:hover + label {
+  color: black;
+  transition: color 0.2s ease-in-out;
+}
+.add-location-btn {
+  margin: 12px 0;
+  padding: 8px 16px;
+  background: rgb(42, 98, 59, 0.07);
+  border: 3px solid rgb(42, 98, 59, 0.9);
+  color: rgb(42, 98, 59, 0.9);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: bolder;
+}
+.add-location-btn:hover {
+  background: rgb(42, 98, 59, 0.1);
+  border: 3px solid rgb(42, 98, 59, 1);
+  color: rgb(42, 98, 59, 1);
+  transition: all 0.2s ease-in-out;
 }

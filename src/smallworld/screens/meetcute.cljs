@@ -428,36 +428,26 @@
          :placeholder placeholder}]]
 
       [:div
-       [:pre (str "location-type: " location-type)]
        [:div.location-type-radio
-        [:input {:type "radio" :name (str "location-type--" minimap-id) :value "home-base" :default-checked (= "home-base" location-type)}]
-        [:label "This is my home base"]]
+        [:input {:type "radio" :name (str "location-type--" minimap-id) :value "home-base" :default-checked (= "home-base" location-type)
+                 :id (str "location-type--" minimap-id "-home-base")
+                 :on-change (fn [event]
+                              (let [new-value (-> event .-target .-value)]
+                                (println "new-value: " new-value)
+                                (swap! *locations-new update index assoc :location-type new-value)
+                                (update-profile-debounced!)))}]
+        [:label {:for (str "location-type--" minimap-id "-home-base")}
+         "This is my home base"]]
        [:div.location-type-radio
-        [:input {:type "radio" :name (str "location-type--" minimap-id) :value "visit-often" :default-checked (= "visit-often" location-type)}]
-        [:label "This is a city I visit often"]]]
-
-      #_[radio-btns-component ["home-base" "visit-often"]
-         location-type
-         (fn [new-value]
-           (println "new-value: " new-value)
-           #_(swap! *locations-new update index assoc :location-type new-value)
-           #_(update-profile-debounced!))]
-
-     ; radio buttons to select whether this is your home base or just somewhere you visit often:
-      #_(let [location-type "visits-often"  #_(try (:location-type (get @*locations-new index))
-                                                   (catch js/Error e
-                                                     (println "error getting location-type: " e)
-                                                     "visits-often"))]
-
-
-          #_[:div
-             [:pre (str "location-type: " location-type)]
-             [:div.location-type-radio
-              [:input {:type "radio" :name (str "location-type--" minimap-id) :value "home-base" :default-checked (= "home-base" location-type)}]
-              [:label "This is my home base"]]
-             [:div.location-type-radio
-              [:input {:type "radio" :name (str "location-type--" minimap-id) :value "visit-often" :default-checked (= "visit-often" location-type)}]
-              [:label "This is a city I visit often"]]])]
+        [:input {:type "radio" :name (str "location-type--" minimap-id) :value "visit-often" :default-checked (= "visit-often" location-type)
+                 :id (str "location-type--" minimap-id "-visit-often")
+                 :on-change (fn [event]
+                              (let [new-value (-> event .-target .-value)]
+                                (println "new-value: " new-value)
+                                (swap! *locations-new update index assoc :location-type new-value)
+                                (update-profile-debounced!)))}]
+        [:label {:for (str "location-type--" minimap-id "-visit-often")}
+         "This is a place I visit often"]]]]
 
      [:div.delete-location-btn {:title "Delete this location"
                                 :on-click #(do (reset! *locations-new (vec (util/rm-from-list @*locations-new index)))
@@ -490,7 +480,7 @@
                                        (update-profile-debounced!))})))
 
    [:button.add-location-btn
-    {:title "+ Add a new location"
+    {:title "Add a new location"
      :on-click (fn []
                  (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
                  (js/setTimeout (fn []
@@ -504,18 +494,18 @@
                                       (.focus)))
                                 50))
      :style {:margin-top "12px"}}
-    "Add a new location"]
+    "+ Add a new location"]
 
-   (try
-     [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
-      "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
+   #_(try
+       [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
+        "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
 
-     (catch js/Error e
-       (println "Caught an exception:" (ex-message e))
-       [:p "error occurred"])
-     (finally
-       (println "This will always execute, regardless of exceptions.")
-       [:p "finally block"]))
+       (catch js/Error e
+         (println "Caught an exception:" (ex-message e))
+         [:p "error occurred"])
+       (finally
+         (println "This will always execute, regardless of exceptions.")
+         [:p "finally block"]))
 
    (let [key-values [#_["Basic details"
                         {:open true}

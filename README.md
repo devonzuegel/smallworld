@@ -273,16 +273,19 @@ We use:
   - [x] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
 
 #### before we launch the public beta:
-- [ ] security improvements
-- [ ] landing page
-- [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] allow users to filter cuties by city
-  - [ ] can use the `fetch-coordinates!` and Mapbox functions from Small World!
+  - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
+  - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
+    - [ ] add the custom location field input to the signup form
+  - [ ] add option to filter by locations
   - [ ] once this is done, update these people:
     - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
     - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
     - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
     - [ ] send an email to everyone to let them know about the new feature!
+- [ ] security improvements
+- [ ] landing page
+- [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
   - [ ] update mariah when this is done
@@ -298,7 +301,6 @@ We use:
   - [ ] enable users to add/remove photos – then let Amit know that it's been updated
 - [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] don't expose the /bios endpoint to the public
-- [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
   - [ ] validate that the phone number is unique
   - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
 - [ ] index user with the id, rather than the phone. indexing by the phone number is part of why Mariah's profile got out of whack, because she signed up for a second account with the same phone number and then the second one was never marked as updated
