@@ -464,84 +464,88 @@
    [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
-   (if (= @*locations-new :loading)
-     [:p "Loading locations..."]
-     (for [[index location] (map-indexed vector @*locations-new)]
-       (location-field {:index       index
-                        :auto-focus  (zero? index)
-                        :label       "" #_"Home base city"
-                        :placeholder "Where do you live?"
-                        :value       (:name location)
-                        :location-type (:location-type location)
-                        :coords      (:coords location)
-                        :update!     (fn [new-value]
-                                       (swap! *locations-new update index assoc :name new-value)
-                                       (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
-                                       (update-profile-debounced!))})))
-
-   [:button.add-location-btn
-    {:title "Add a new location"
-     :on-click (fn []
-                 (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
-                 (js/setTimeout (fn []
-                                  (.scrollIntoView
-                                   (last (array-seq (goog.dom/getElementsByClass "location-field")))
-                                   #js{:behavior "smooth" :block "center" :inline "center"})
-
-                                  ; focus on the input inside of that last location-field:
-                                  (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
-                                      (.querySelector "input.location-input")
-                                      (.focus)))
-                                50))
-     :style {:margin-top "12px"}}
-    "+ Add a new location"]
-
-   #_(try
-       [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
-        "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
-
-       (catch js/Error e
-         (println "Caught an exception:" (ex-message e))
-         [:p "error occurred"])
-       (finally
-         (println "This will always execute, regardless of exceptions.")
-         [:p "finally block"]))
-
-   (let [key-values [#_["Basic details"
-                        {:open true}
-                        [["First name"     (editable-input "First name")]
-                         ["Last name"      (editable-input "Last name")]
-                         ["My gender"      (radio-btns-component ["Man" "Woman"]
-                                                                 (mc.util/get-field @profile "Gender")
-                                                                 (fn [foobar]
-                                                                   (reset! profile (assoc @profile (keyword "Gender") foobar))
-                                                                   (update-profile-debounced!)))]
-                         ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                       (mc.util/get-field @profile "I'm interested in...")
-                                                                       (fn [foobar]
-                                                                         (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
-                                                                         (update-profile-debounced!)))]
-                         ["Phone"                            [:div {:style {:max-width "380px"}}
-                                                              [:div {:style {:background "rgb(188, 181, 175, .1)"
-                                                                             :border "3px solid rgb(188, 181, 175, .3)"
-                                                                             :cursor "not-allowed"
-                                                                             :border-radius "8px"
-                                                                             :padding "6px 8px"
-                                                                             :margin-right "4px"
-                                                                             :width "95%"
-                                                                             :max-width "380px"}}
+   (let [key-values [["Basic details"
+                      {:open false}
+                      [["First name"     (editable-input "First name")]
+                       ["Last name"      (editable-input "Last name")]
+                       ["My gender"      (radio-btns-component ["Man" "Woman"]
+                                                               (mc.util/get-field @profile "Gender")
+                                                               (fn [foobar]
+                                                                 (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                                 (update-profile-debounced!)))]
+                       ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                                                                     (mc.util/get-field @profile "I'm interested in...")
+                                                                     (fn [foobar]
+                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
+                                                                       (update-profile-debounced!)))]
+                       ["Phone"                            [:div {:style {:max-width "380px"}}
+                                                            [:div {:style {:background "rgb(188, 181, 175, .1)"
+                                                                           :border "3px solid rgb(188, 181, 175, .3)"
+                                                                           :cursor "not-allowed"
+                                                                           :border-radius "8px"
+                                                                           :padding "6px 8px"
+                                                                           :margin-right "4px"
+                                                                           :width "95%"
+                                                                           :max-width "380px"}}
                                                               ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                               (mc.util/get-field @profile "Phone")]
-                                                              [small-text [:span "If you'd like to change your phone number, email "
-                                                                           [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
-                         ["Email"                            [:div {:style {:max-width "380px"}}
-                                                              (editable-input "Email")
-                                                              [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
-                     ["Location"
+                                                             (mc.util/get-field @profile "Phone")]
+                                                            [small-text [:span "If you'd like to change your phone number, email "
+                                                                         [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
+                       ["Email"                            [:div {:style {:max-width "380px"}}
+                                                            (editable-input "Email")
+                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
+                     ["Locations"
                       {:open true}
-                      [;;  ["locations-json" (editable-textbox "locations-json")]
-                       ["Home base city"                    (editable-input "Home base city")]
-                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
+                      [["Home base city"                    (editable-input "Home base city")]
+                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
+                       ["Where are you interested in meeting cuties? (ALPHA FEATURE)"
+                        [:div
+                         (if (= @*locations-new :loading)
+                           [:p "Loading locations..."]
+                           [:div.location-fields
+                            (when (empty? @*locations-new)
+                              [:p "Add locations to increase your chances of finding a match!"])
+                            (for [[index location] (map-indexed vector @*locations-new)]
+                              (location-field {:index       index
+                                               :auto-focus  (zero? index)
+                                               :label       "" #_"Home base city"
+                                               :placeholder "Where do you live?"
+                                               :value       (:name location)
+                                               :location-type (:location-type location)
+                                               :coords      (:coords location)
+                                               :update!     (fn [new-value]
+                                                              (swap! *locations-new update index assoc :name new-value)
+                                                              (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
+                                                              (update-profile-debounced!))}))])
+
+                         [:button.add-location-btn
+                          {:title "Add a new location"
+                           :on-click (fn []
+                                       (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
+                                       (js/setTimeout (fn []
+                                                        (.scrollIntoView
+                                                         (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                                         #js{:behavior "smooth" :block "center" :inline "center"})
+
+                                                                                     ; focus on the input inside of that last location-field:
+                                                        (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                                            (.querySelector "input.location-input")
+                                                            (.focus)))
+                                                      50))
+                           :style {:margin-top "12px"}}
+                          "+ Add a new location"]
+
+                         #_(try
+                             [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
+                              "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
+
+                             (catch js/Error e
+                               (println "Caught an exception:" (ex-message e))
+                               [:p "error occurred"])
+                             (finally
+                               (println "This will always execute, regardless of exceptions.")
+                               [:p "finally block"]))]]]]
+
                      ["Other"
                       {:open true}
                       [["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
