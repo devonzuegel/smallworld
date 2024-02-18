@@ -275,6 +275,7 @@ We use:
 #### before we launch the public beta:
 - [ ] allow users to filter cuties by city
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
+  - [ ] backfill the locations for the people who signed up before this feature was added
   - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
     - [ ] add the custom location field input to the signup form
   - [ ] add option to filter by locations
