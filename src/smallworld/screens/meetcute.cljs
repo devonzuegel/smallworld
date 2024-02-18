@@ -269,10 +269,15 @@
                                              (:fields result)))
                            (println "finished updating profile with result!")))))))
 
+(def *locations-new  (r/atom [{:name "Miami Beach" :coords {:lat 25.7907 :lng -80.1300}}
+                              {:name "New York"    :coords {:lat 40.7128 :lng -74.0060}}]))
+
 (defn update-profile! []
-  (let [profile-editable-fields-only (select-keys @profile (map #(keyword %)
-                                                                (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
-                                                                        ["Phone"])))]
+  (let [profile-editable-fields-only (merge (select-keys @profile (map #(keyword %)
+                                                                       (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                               ["Phone"])))
+                                            {:locations-json (pr-str @*locations-new)} ; this is super hacky, but it's the easiest way to update the locations-json field rather than updating the field inside of @profile
+                                            )]
     (reset! show-toast true)
     (js/setTimeout #(reset! show-toast false) 2000)
     (util/fetch-post "/meetcute/api/matchmaking/profile"
@@ -340,9 +345,7 @@
    [fa-icon "check-circle" :style {:min-width "auto" :margin-right "12px"}]
    "Saved!"])
 
-(def *locations-new  (r/atom [{:name "Miami Beach" :coords {:lat 25.7907 :lng -80.1300}}
-                              {:name "New York"    :coords {:lat 40.7128 :lng -74.0060}}]))
-(def *minimaps       (r/atom {}))
+(def *minimaps  (r/atom {}))
 
 (defn fetch-coordinates! [minimap-id location-name-input index]
   (if (str/blank? location-name-input)
@@ -361,7 +364,7 @@
                              (swap! *locations-new assoc index (merge (get @*locations-new index)
                                                                       {:coords result}))))))))
 
-(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 1))
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
 (defn minimap [minimap-id location-name coords]
   (r/create-class {:component-did-mount
@@ -429,15 +432,15 @@
    [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
-   #_(try
-       [:pre "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
+   (try
+     [:pre "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
 
-       (catch js/Error e
-         (println "Caught an exception:" (ex-message e))
-         [:p "error occurred"])
-       (finally
-         (println "This will always execute, regardless of exceptions.")
-         [:p "finally block"]))
+     (catch js/Error e
+       (println "Caught an exception:" (ex-message e))
+       [:p "error occurred"])
+     (finally
+       (println "This will always execute, regardless of exceptions.")
+       [:p "finally block"]))
 
    (for [[index location] (map-indexed vector @*locations-new)]
      (location-field {:index       index
@@ -449,9 +452,18 @@
                       :update!     (fn [new-value]
                                      (swap! *locations-new update index assoc :name new-value)
                                      (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
-                                     (println @*locations-new)
-                                     (reset! profile (assoc @profile (keyword "locations-json") (pr-str @*locations-new)))
-                                     (update-profile-debounced!))}))
+                                    ;;  (println @*locations-new)
+                                     (update-profile-debounced!)
+
+                                     ; after a delay of 1 second, update the profile:
+                                     #_(js/setTimeout (do
+                                                        (reset! profile (assoc @profile (keyword "locations-json") (pr-str @*locations-new)))
+                                                        (js/setTimeout update-profile-debounced! 1000)) 1000))}))
+   #_[:button {:style {:margin-top "24px" :padding "12px 24px" :font-size "1.2em" :border-radius "3000px" :background "rgb(0 157 49)" :color "white" :cursor "pointer"}
+               :on-click (fn []
+                           (reset! profile (assoc @profile (keyword "locations-json") (pr-str @*locations-new)))
+                           (update-profile!))}
+      "Save profile to airtable"]
 
    (let [key-values [#_["Basic details"
                         {:open true}
@@ -485,7 +497,7 @@
                                                               [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
                      ["Location"
                       {:open true}
-                      [["locations-json" (editable-textbox "locations-json")]
+                      [;;  ["locations-json" (editable-textbox "locations-json")]
                        ["Home base city"                    (editable-input "Home base city")]
                        ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
                      ["Other"
