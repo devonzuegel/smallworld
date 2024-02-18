@@ -111,18 +111,20 @@
                                          ; at least one of them is not nil or an empty list:
                                  (some (fn [key] (not (empty? (get new-data key))))
                                        [:selected-cuties :rejected-cuties :unseen-cuties]))
-                          (str name " has updated their selections/rejections")
-                          (str name " has updated these fields in their profile"))]
+                          (str "🗳️ " name " has updated their selections/rejections")
+                          (str "📝 " name " has updated these fields in their profile"))]
         (util/log (str log-message ": " changed-keys))
-        (email/send-email {:to        "hello@smallworld.kiwi"
-                           :from-name "MeetCute logs"
-                           :subject   log-message
-                           :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
-                                           "<b><u>Here's what's changed:</u></b><br><br>"
-                                           "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
-                                           "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
-                                           "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
-                                           "</div>")})
+        (when (= (util/get-env-var "ENVIRONMENT")
+                 (:prod util/ENVIRONMENTS))
+          (email/send-email {:to        "hello@smallworld.kiwi"
+                             :from-name "MeetCute logs"
+                             :subject   log-message
+                             :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                             "<b><u>Here's what's changed:</u></b><br><br>"
+                                             "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
+                                             "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
+                                             "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
+                                             "</div>")}))
         (generate-string (airtable/kwdize new-bio))))))
 
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
