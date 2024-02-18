@@ -252,3 +252,22 @@ td {
 .field {
   font-size: 0.95em;
 }
+
+.mapbox-container {
+  margin: auto;
+  width: min(300px, calc(100% - 64px));
+  height: 140px;
+  margin: 0 auto;
+  margin-top: 10px;
+  background: #ffffff11;
+  overflow: hidden;
+  background: #9dc7d9;
+  border-radius: 100px;
+}
+.mapbox-container .mapboxgl-canvas-container,
+.mapbox-container .mapboxgl-canvas-container canvas {
+  border-radius: 100px;
+}
+.mapbox-container .mapboxgl-map {
+  height: 100% !important;
+}

@@ -340,7 +340,88 @@
    [fa-icon "check-circle" :style {:min-width "auto" :margin-right "12px"}]
    "Saved!"])
 
-(defonce *minimaps       (r/atom {}))
+;; (defonce *minimaps       (r/atom {}))
+
+;; (defn minimap [minimap-id location-name coords]
+;;   (r/create-class {:component-did-mount
+;;                    (fn [] ; this should be called just once when the component is mounted
+;;                      (swap! *minimaps assoc minimap-id
+;;                             (new js/mapboxgl.Map
+;;                                  #js{:container minimap-id
+;;                                      :key    (get-in mapbox/config [mapbox/style :access-token])
+;;                                      :style  (get-in mapbox/config [mapbox/style :style])
+;;                                      :center (or (mapbox/coords-to-mapbox-array coords)
+;;                                                  (clj->js mapbox/Miami))
+;;                                      :interactive false ; makes the map not zoomable or draggable
+;;                                      :attributionControl false ; removes the Mapbox copyright symbol
+;;                                      :zoom 3
+;;                                      :maxZoom 8
+;;                                      :minZoom 0}))
+;;                      ; zoom out if they haven't provided a location
+;;                      (when (clojure.string/blank? location-name)
+;;                        (.setZoom (get @*minimaps minimap-id) 0)))
+;;                    :reagent-render (fn [] [:div {:id minimap-id}])}))
+
+;; (defn location-field [{index         :index
+;;                        auto-focus    :auto-focus
+;;                        label         :label
+;;                        placeholder   :placeholder
+;;                        value         :value
+;;                        coords        :coords
+;;                        update!       :update!}]
+;;   (let [id         (str "location-" index)
+;;         minimap-id (str "minimap--" id)]
+;;     [:div.field.location-field {:id id :key id}
+;;      [:div.delete-location-btn {:title "delete this location"
+;;                                 :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back any time")
+;;                                              (js/console.log "TODO: delete location" index)
+;;                                              #_(reset! *locations-new (util/rm-from-list @*locations-new index)))}
+;;       (decorations/cancel-icon)]
+;;      [:label label]
+;;      [:<> [:div
+;;            [:input.location-input
+;;             {:type "text"
+;;              :tab-index "0"
+;;              :auto-focus auto-focus
+;;              :id   (str id "-input")
+;;              :key  (str id "-input")
+;;              :name (str id "-input")
+;;              :value value
+;;              :autoComplete "off"
+;;              :auto-complete "off"
+;;              :on-change #(do
+;;                            (js/console.log  "new value: " (-> % .-target .-value))
+;;                            (update! (-> % .-target .-value)))
+;;                    ;;  :on-change #(let [new-value  (-> % .-target .-value)
+;;                    ;;                    _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
+;;                    ;;                (update! new-value))
+;;              :placeholder placeholder}]
+;;            (decorations/edit-icon)]
+;;       [:div.mapbox-container
+;;        [minimap minimap-id value coords]
+;;        (when-not (clojure.string/blank? value)
+;;          [:div.center-point])]
+;;       [:br]]]))
+
+(def *locations-new  (r/atom [{:name "Miami Beach" :coords {:lat 25.7907 :lng -80.1300}}
+                              {:name "New York"    :coords {:lat 40.7128 :lng -74.0060}}]))
+(def *minimaps       (r/atom {}))
+
+(defn fetch-coordinates! [minimap-id location-name-input index]
+  (js/console.log "fetch-coordinates!" location-name-input index)
+  (if (str/blank? location-name-input)
+    (.flyTo (get @*minimaps minimap-id) #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
+                                            :zoom 0})
+    (util/fetch-post "/api/v1/coordinates" {:location-name location-name-input}
+                     (fn [result]
+                       (.flyTo (get @*minimaps minimap-id)
+                               #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
+                                   :zoom 3
+                                   :center (mapbox/coords-to-mapbox-array result)})
+                       (swap! *locations-new assoc index (merge (get @*locations-new index)
+                                                                {:coords result}))))))
+
+(def fetch-coordinates-debounced! (util/debounce fetch-coordinates! 300))
 
 (defn minimap [minimap-id location-name coords]
   (r/create-class {:component-did-mount
@@ -366,8 +447,6 @@
                        auto-focus    :auto-focus
                        label         :label
                        placeholder   :placeholder
-                       not-provided? :not-provided?
-                       from-twitter? :from-twitter?
                        value         :value
                        coords        :coords
                        update!       :update!}]
@@ -376,36 +455,31 @@
     [:div.field.location-field {:id id :key id}
      [:div.delete-location-btn {:title "delete this location"
                                 :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back any time")
-                                             (js/console.log "TODO: delete location" index)
-                                             #_(reset! *locations-new (util/rm-from-list @*locations-new index)))}
+                                             (reset! *locations-new (util/rm-from-list @*locations-new index)))}
       (decorations/cancel-icon)]
      [:label label]
-     (when-not (and not-provided? from-twitter?)
-       [:<> [:div
-             [:input.location-input
-              {:type "text"
-               :tab-index "0"
-               :auto-focus auto-focus
-               :id   (str id "-input")
-               :key  (str id "-input")
-               :name (str id "-input")
-               :value value
-               :autoComplete "off"
-               :auto-complete "off"
-               :on-change #(js/console.log "TODO: update location" index)
-              ;;  :on-change #(let [new-value  (-> % .-target .-value)
-              ;;                    _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
-              ;;                (update! new-value))
-               :placeholder placeholder}]
-             (decorations/edit-icon)]
-        (when from-twitter? ; only the first two locations
-          [:div.small-info-text {:style {:margin-bottom "12px"}}
-           "don't worry, this won't update your Twitter profile :)"])
-        [:div.mapbox-container
-         [minimap minimap-id value coords]
-         (when-not (clojure.string/blank? value)
-           [:div.center-point])]
-        [:br]])]))
+     [:div
+      [:input.location-input
+       {:type "text"
+        :tab-index "0"
+        :auto-focus auto-focus
+        :id   (str id "-input")
+        :key  (str id "-input")
+        :name (str id "-input")
+        :value value
+        :autoComplete "off"
+        :auto-complete "off"
+        :on-change #(let [new-value  (-> % .-target .-value)
+                          _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
+                      (update! new-value))
+        :placeholder placeholder}]
+      (decorations/edit-icon)]
+
+     [:div.mapbox-container
+      [minimap minimap-id value coords]
+      (when-not (clojure.string/blank? value)
+        [:div.center-point])]
+     [:br]]))
 
 (defn profile-tab []
   [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
@@ -415,93 +489,105 @@
    [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
-   (try
-     [:pre (with-out-str (pp/pprint (js/JSON.parse (:locations-json @profile))))]
-     (catch js/Error e
-       (println "Caught an exception:" (ex-message e))
-       [:p "error occurred"])
-     (finally
-       (println "This will always execute, regardless of exceptions.")
-       [:p "finally block"]))
+   #_(try
+       [:pre (with-out-str (js/JSON.stringify (js/JSON.parse (:locations-json @profile)) nil 2))]
+       (catch js/Error e
+         (println "Caught an exception:" (ex-message e))
+         [:p "error occurred"])
+       (finally
+         (println "This will always execute, regardless of exceptions.")
+         [:p "finally block"]))
 
-  ;;  [:pre (with-out-str (pp/pprint (dissoc @profile :unseen-cuties)))]
-   [location-field {:index         0
-                    :auto-focus    true
-                    :label         "Home base city"
-                    :placeholder   "Where do you live?"
-                    :not-provided? (clojure.string/blank? (mc.util/get-field @profile "Home base city"))
-                    :from-twitter? false
-                    :value         "Miami Beach"
-                    :coords        [-25.7907 -80.1300]
-                    :update!       (fn [new-value] (reset! profile (assoc @profile (keyword "Home base city") new-value)))}]
-   (let [key-values [["Basic details"
-                      {:open true}
-                      [["First name"     (editable-input "First name")]
-                       ["Last name"      (editable-input "Last name")]
-                       ["My gender"      (radio-btns-component ["Man" "Woman"]
-                                                               (mc.util/get-field @profile "Gender")
-                                                               (fn [foobar]
-                                                                 (reset! profile (assoc @profile (keyword "Gender") foobar))
-                                                                 (update-profile-debounced!)))]
-                       ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                     (mc.util/get-field @profile "I'm interested in...")
-                                                                     (fn [foobar]
-                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
-                                                                       (update-profile-debounced!)))]
-                       ["Phone"                            [:div {:style {:max-width "380px"}}
-                                                            [:div {:style {:background "rgb(188, 181, 175, .1)"
-                                                                           :border "3px solid rgb(188, 181, 175, .3)"
-                                                                           :cursor "not-allowed"
-                                                                           :border-radius "8px"
-                                                                           :padding "6px 8px"
-                                                                           :margin-right "4px"
-                                                                           :width "95%"
-                                                                           :max-width "380px"}}
+   #_(map-indexed (fn [i location]
+                    [location-field {:index       i
+                                     :auto-focus  (zero? i)
+                                     :label       "Location" #_"Home base city"
+                                     :placeholder "Where do you live?"
+                                     :value       (:name location)
+                                     :coords      (:coords location)
+                                     :update!     (fn [new-value]
+                                                    (js/console.log "TODO: update location!")
+                                                    (update-in @locations [i] assoc :name new-value))}]))
+   (for [[index location] (map-indexed vector @*locations-new)]
+     (location-field {:index       index
+                      :auto-focus  (zero? index)
+                      :label       "Location" #_"Home base city"
+                      :placeholder "Where do you live?"
+                      :value       (:name location)
+                      :coords      (:coords location)
+                      :update!     (fn [new-value]
+                                     (js/console.log "TODO: update location! —" new-value)
+                                     (swap! *locations-new update index assoc :name new-value))}))
+
+
+   #_(let [key-values [["Basic details"
+                        {:open true}
+                        [["First name"     (editable-input "First name")]
+                         ["Last name"      (editable-input "Last name")]
+                         ["My gender"      (radio-btns-component ["Man" "Woman"]
+                                                                 (mc.util/get-field @profile "Gender")
+                                                                 (fn [foobar]
+                                                                   (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                                   (update-profile-debounced!)))]
+                         ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                                                                       (mc.util/get-field @profile "I'm interested in...")
+                                                                       (fn [foobar]
+                                                                         (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
+                                                                         (update-profile-debounced!)))]
+                         ["Phone"                            [:div {:style {:max-width "380px"}}
+                                                              [:div {:style {:background "rgb(188, 181, 175, .1)"
+                                                                             :border "3px solid rgb(188, 181, 175, .3)"
+                                                                             :cursor "not-allowed"
+                                                                             :border-radius "8px"
+                                                                             :padding "6px 8px"
+                                                                             :margin-right "4px"
+                                                                             :width "95%"
+                                                                             :max-width "380px"}}
                                                               ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                             (mc.util/get-field @profile "Phone")]
-                                                            [small-text [:span "If you'd like to change your phone number, email "
-                                                                         [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
-                       ["Email"                            [:div {:style {:max-width "380px"}}
-                                                            (editable-input "Email")
-                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
-                     ["Location"
-                      {:open true}
-                      [["Home base city"                    (editable-input "Home base city")]
-                       ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
-                       ["locations-json" (editable-textbox "locations-json")]]]
-                     ["Other"
-                      {:open true}
-                      [["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
-                       ["Social media links"                (editable-textbox "Social media links")]
-                       ["What makes this person awesome?"   [:div
-                                                             [:div {:style {:margin-bottom "4px"}}
-                                                              [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
-                                                             (editable-textbox "What makes this person awesome?")
-                                                             [:div {:style {:margin-top "8px"}}] ; spacer
-                                                             [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
-                                                             [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
-                                                              [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
-                                                                                           "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
-                                                               {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
+                                                               (mc.util/get-field @profile "Phone")]
+                                                              [small-text [:span "If you'd like to change your phone number, email "
+                                                                           [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
+                         ["Email"                            [:div {:style {:max-width "380px"}}
+                                                              (editable-input "Email")
+                                                              [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
+                       ["Location"
+                        {:open true}
+                        [["Home base city"                    (editable-input "Home base city")]
+                         ["Other cities where you spend time" (editable-input "Other cities where you spend time")]
+                         #_["locations-json" (editable-textbox "locations-json")]]]
+                       ["Other"
+                        {:open true}
+                        [["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
+                         ["Social media links"                (editable-textbox "Social media links")]
+                         ["What makes this person awesome?"   [:div
+                                                               [:div {:style {:margin-bottom "4px"}}
+                                                                [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
+                                                               (editable-textbox "What makes this person awesome?")
+                                                               [:div {:style {:margin-top "8px"}}] ; spacer
+                                                               [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
+                                                               [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
+                                                                [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                             "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
+                                                                 {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
-                       ["Pictures" [:div
-                                    [small-text [:span "If you'd like to add or remove pictures, email "
-                                                 [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
-                                    (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
-                                                 (mc.util/get-field @profile "Pictures"))]]]]]]
-     (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
-                                                 [:summary [:span.title title]]
-                                                 [:div {:style {:margin "0"
-                                                                :border-radius "8px"
-                                                                :padding "6px"
-                                                                :vertical-align "top"
-                                                                :line-height "1.2em"
-                                                                :display "flex"
-                                                                :justify-content "space-between"
-                                                                :flex-wrap "wrap"
-                                                                :width "100%"}}
-                                                  (map-indexed bio-row items)]])
-                  key-values))
+                         ["Pictures" [:div
+                                      [small-text [:span "If you'd like to add or remove pictures, email "
+                                                   [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
+                                      (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
+                                                   (mc.util/get-field @profile "Pictures"))]]]]]]
+       (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
+                                                   [:summary [:span.title title]]
+                                                   [:div {:style {:margin "0"
+                                                                  :border-radius "8px"
+                                                                  :padding "6px"
+                                                                  :vertical-align "top"
+                                                                  :line-height "1.2em"
+                                                                  :display "flex"
+                                                                  :justify-content "space-between"
+                                                                  :flex-wrap "wrap"
+                                                                  :width "100%"}}
+                                                    (map-indexed bio-row items)]])
+                    key-values))
 
    [:br]])
 
