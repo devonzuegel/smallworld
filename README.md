@@ -276,9 +276,25 @@ We use:
 - [x] security improvements
 - [ ] allow users to filter cuties by city
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
+  - [ ] mobile styles for the profile editing page
   - [ ] backfill the locations for the people who signed up before this feature was added
   - [ ] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
     - [ ] add the custom location field input to the signup form
+    - [ ] add fields for all of the data collected in the original form: https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwiUzsTUarShMVDN?blocks=hide
+      - [x] first name
+      - [x] last name
+      - [ ] who invited you?
+      - [ ] if other, who invited you?
+      - [x] I'm interested in... [men/women]
+      - [x] my gender is... [man/woman]
+      - [x] social media links
+      - [ ] pictures – add a way to upload
+      - [x] home base city
+      - [x] other cities
+      - [ ] birthday
+      - [x] phone
+      - [x] email
+    - [ ] add a way to mark the profile as "ready for review", but only once they've completed all the required fields
   - [ ] add option to filter by locations
   - [ ] once this is done, update these people:
     - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app

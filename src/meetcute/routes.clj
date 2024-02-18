@@ -40,7 +40,9 @@
   (ANY  "/settings" []  (io/resource "public/meetcute.html"))
   (GET  "/signup"   req (mc.auth/signup-route req))
   (GET  "/signin"   req (mc.auth/signin-route req))
+  (POST "/signup"   req (mc.auth/start-signup-route req))
   (POST "/signin"   req (mc.auth/start-signin-route req))
+  (POST "/verify-signup" req (mc.auth/verify-signup-route req))
   (POST "/verify"   req (mc.auth/verify-route req))
   (POST "/logout"   req (mc.auth/logout-route req)))
 

@@ -257,6 +257,7 @@
 (def profile-error (r/atom nil))
 
 (defn fetch-my-profile! []
+  (println "made it to fetch-my-profile!!!!!!!!!!!!!!!!!!")
   (if mock-data?
     (reset! profile {:id "123123123"
                      (keyword "First name") "Foobar"})
@@ -464,8 +465,42 @@
    [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
+   ; if required fields are not filled out, show a message. required fields are:
+   ;  - first name
+   ;  - gender
+   ;  - interested in
+   ;  - phone
+   ;  - email
+   ;  - at least 1 location
+   ;  - about me
+   ;  - social media links
+   (when (or (str/blank? (mc.util/get-field @profile "First name"))
+             (str/blank? (mc.util/get-field @profile "Gender"))
+             (empty? (mc.util/get-field @profile "I'm interested in..."))
+             (str/blank? (mc.util/get-field @profile "Phone"))
+             (str/blank? (mc.util/get-field @profile "Email"))
+             (empty? @*locations-new)
+             (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")))
+     [:div {:style {:padding "12px 0 0 12px"}}
+      [:div {:style {:background "rgb(0 142 255 / 10%)"
+                     :line-height "1.7em"
+                     :border-radius "12px"
+                     :padding "22px"}}
+       [:p "Welcome to MeetCute, we're so excited to have you!"]
+       [:p "Once you add some info about yourself, you can submit your profile for review"]
+       #_[:ul
+          (when (str/blank? (mc.util/get-field @profile "First name"))       [:li "First name is missing"])
+          (when (str/blank? (mc.util/get-field @profile "Gender"))           [:li "Gender"])
+          (when (empty? (mc.util/get-field @profile "I'm interested in...")) [:li "I'm interested in..."])
+          (when (str/blank? (mc.util/get-field @profile "Phone"))            [:li "Phone"])
+          (when (str/blank? (mc.util/get-field @profile "Email"))            [:li "Email"])
+          (when (empty? @*locations-new)                                     [:li "At least 1 location"])
+          (when (str/blank?
+                 (mc.util/get-field @profile
+                                    "Anything else you'd like your potential matches to know?"))  [:li "About me"])]]])
+
    (let [key-values [["Basic details"
-                      {:open false}
+                      {:open true}
                       [["First name"     (editable-input "First name")]
                        ["Last name"      (editable-input "Last name")]
                        ["My gender"      (radio-btns-component ["Man" "Woman"]
@@ -579,6 +614,40 @@
                                                                 :width "100%"}}
                                                   (map-indexed bio-row items)]])
                   key-values))
+
+   ; add a toggle for "ready for review" that is only clickable if all the required fields are completed. if not, share a little error message listing the issues that need to be resolved before it can be submitted for review
+
+
+   [:div {:style {:position "fixed" :background "red" :bottom 0 :padding "16px"}}
+    [:p "Ready for review? Once you're approved, you'll be able to see other cuties' profiles and start matching!"]
+    [:p "NOTE: only show this if the status is 'not yet reviewed'"]
+    [:button {:style {:margin-top "12px"
+                      :padding "12px 24px"
+                      :background "rgb(0 157 49)"
+                      :border "3px solid rgb(0 157 49)"}
+              :on-click (fn []
+                          (if (or (str/blank? (mc.util/get-field @profile "First name"))
+                                  (str/blank? (mc.util/get-field @profile "Gender"))
+                                  (empty? (mc.util/get-field @profile "I'm interested in..."))
+                                  (str/blank? (mc.util/get-field @profile "Phone"))
+                                  (str/blank? (mc.util/get-field @profile "Email"))
+                                  (empty? @*locations-new)
+                                  (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")))
+                            (js/alert "Please fill out all required fields before submitting for review.")
+                            (println "on-click succeeded")))}
+     "Submit for review"]]
+
+   [:p "Errors:"]
+   [:ul
+    (when (str/blank? (mc.util/get-field @profile "First name"))       [:li "First name is blank"])
+    (when (str/blank? (mc.util/get-field @profile "Gender"))           [:li "Gender is blank"])
+    (when (empty? (mc.util/get-field @profile "I'm interested in...")) [:li "Sexual orientation is blank"])
+    (when (str/blank? (mc.util/get-field @profile "Phone"))            [:li "Phone is blank"])
+    (when (str/blank? (mc.util/get-field @profile "Email"))            [:li "Email is blank"])
+    (when (empty? @*locations-new)                                     [:li "You need to add at least 1 location"])
+    (when (str/blank?
+           (mc.util/get-field @profile
+                              "Anything else you'd like your potential matches to know?"))  [:li "About me is blank"])]
 
    [:br]])
 
