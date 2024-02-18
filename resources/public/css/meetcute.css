@@ -18,13 +18,13 @@ pre {
   text-wrap: wrap;
 }
 a {
-  color: rgb(42, 98, 59);
+  color: rgb(46, 103, 63);
   font-weight: 700;
   text-decoration: none;
   // background: rgb(42, 98, 59, 0.1);
   // padding: 2px 4px;
-  border-bottom: 2px solid rgb(42, 98, 59, 0.2);
   border-bottom: 2px solid transparent;
+  border-bottom: 2px solid rgb(42, 98, 59, 0.2);
   transition: border-bottom 0.1s ease-in-out;
 }
 a:hover {
@@ -167,8 +167,10 @@ li {
   padding-top: 48px;
 }
 .signin-form-background {
-  box-shadow: rgba(137 81 0 / 50%) 0px 5px 25px;
-  background: rgb(252 252 252 / 98%);
+  box-shadow: 0 0 2px 0 rgba(255, 255, 255, 1);
+  border: 4px solid rgb(42, 98, 59, 1);
+  color: rgb(7, 69, 25);
+  background: rgb(252 252 252 / 100%);
   max-width: 290px;
   margin-left: auto;
   margin-right: auto;
@@ -270,4 +272,20 @@ td {
 }
 .mapbox-container .mapboxgl-map {
   height: 100% !important;
+}
+
+.mapbox-container .center-point,
+.mapbox-container .center-point {
+  width: 10px;
+  height: 10px;
+  border: 1px solid white;
+  background-color: #013917;
+  border-radius: 100%;
+  position: relative;
+  left: calc(50%);
+  top: calc(-50%);
+  transform: translateX(-50%) translateY(-50%);
+  animation-name: pulsingGreenBkgd;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
 }
