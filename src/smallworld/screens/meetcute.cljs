@@ -397,6 +397,7 @@
 (defn location-field [{index         :index
                        auto-focus    :auto-focus
                        label         :label
+                       location-type :location-type
                        placeholder   :placeholder
                        value         :value
                        coords        :coords
@@ -404,33 +405,65 @@
   (let [id         (str "location-" index)
         minimap-id (str "minimap--" id)]
     [:div.field.location-field {:id id :key id}
-     [:div.delete-location-btn {:title "delete this location"
-                                :on-click #(when (js/confirm "are you sure that you want to delete this location?  don't worry, you can add it back any time")
-                                             (reset! *locations-new (vec (util/rm-from-list @*locations-new index)))
-                                             (update-profile-debounced!))}
-      (decorations/cancel-icon)]
-     [:label label]
-     [:div
-      [:input.location-input
-       {:type "text"
-        :tab-index "0"
-        :auto-focus auto-focus
-        :id   (str id "-input")
-        :key  (str id "-input")
-        :name (str id "-input")
-        :value value
-        :autoComplete "off"
-        :auto-complete "off"
-        :on-change #(let [new-value  (-> % .-target .-value)
-                          _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
-                      (update! new-value))
-        :placeholder placeholder}]
-      (decorations/edit-icon)]
-
-     [:div.mapbox-container
+     [:div.mapbox-container.left-side
       [minimap minimap-id value coords]
       (when-not (clojure.string/blank? value)
         [:div.center-point])]
+
+     [:div.left-side
+      [:div
+       [:input.location-input
+        {:type "text"
+         :tab-index "0"
+         :auto-focus auto-focus
+         :id   (str id "-input")
+         :key  (str id "-input")
+         :name (str id "-input")
+         :value value
+         :autoComplete "off"
+         :auto-complete "off"
+         :on-change #(let [new-value  (-> % .-target .-value)
+                           _tmp       (fetch-coordinates-debounced! minimap-id new-value index)]
+                       (update! new-value))
+         :placeholder placeholder}]]
+
+      [:div
+       [:pre (str "location-type: " location-type)]
+       [:div.location-type-radio
+        [:input {:type "radio" :name (str "location-type--" minimap-id) :value "home-base" :default-checked (= "home-base" location-type)}]
+        [:label "This is my home base"]]
+       [:div.location-type-radio
+        [:input {:type "radio" :name (str "location-type--" minimap-id) :value "visit-often" :default-checked (= "visit-often" location-type)}]
+        [:label "This is a city I visit often"]]]
+
+      #_[radio-btns-component ["home-base" "visit-often"]
+         location-type
+         (fn [new-value]
+           (println "new-value: " new-value)
+           #_(swap! *locations-new update index assoc :location-type new-value)
+           #_(update-profile-debounced!))]
+
+     ; radio buttons to select whether this is your home base or just somewhere you visit often:
+      #_(let [location-type "visits-often"  #_(try (:location-type (get @*locations-new index))
+                                                   (catch js/Error e
+                                                     (println "error getting location-type: " e)
+                                                     "visits-often"))]
+
+
+          #_[:div
+             [:pre (str "location-type: " location-type)]
+             [:div.location-type-radio
+              [:input {:type "radio" :name (str "location-type--" minimap-id) :value "home-base" :default-checked (= "home-base" location-type)}]
+              [:label "This is my home base"]]
+             [:div.location-type-radio
+              [:input {:type "radio" :name (str "location-type--" minimap-id) :value "visit-often" :default-checked (= "visit-often" location-type)}]
+              [:label "This is a city I visit often"]]])]
+
+     [:div.delete-location-btn {:title "Delete this location"
+                                :on-click #(do (reset! *locations-new (vec (util/rm-from-list @*locations-new index)))
+                                               (update-profile-debounced!))}
+      (decorations/cancel-icon)]
+
      [:br]]))
 
 (defn profile-tab []
@@ -441,17 +474,6 @@
    [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
-   (try
-     [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
-      "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
-
-     (catch js/Error e
-       (println "Caught an exception:" (ex-message e))
-       [:p "error occurred"])
-     (finally
-       (println "This will always execute, regardless of exceptions.")
-       [:p "finally block"]))
-
    (if (= @*locations-new :loading)
      [:p "Loading locations..."]
      (for [[index location] (map-indexed vector @*locations-new)]
@@ -460,18 +482,17 @@
                         :label       "" #_"Home base city"
                         :placeholder "Where do you live?"
                         :value       (:name location)
+                        :location-type (:location-type location)
                         :coords      (:coords location)
                         :update!     (fn [new-value]
                                        (swap! *locations-new update index assoc :name new-value)
                                        (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
-                                    ;;  (println @*locations-new)
                                        (update-profile-debounced!))})))
 
-   ; button to add a new location, and when clicked, it creates a new blank location field:
    [:button.add-location-btn
-    {:title "Add a new location"
+    {:title "+ Add a new location"
      :on-click (fn []
-                 (swap! *locations-new conj {})
+                 (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
                  (js/setTimeout (fn []
                                   (.scrollIntoView
                                    (last (array-seq (goog.dom/getElementsByClass "location-field")))
@@ -485,6 +506,16 @@
      :style {:margin-top "12px"}}
     "Add a new location"]
 
+   (try
+     [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
+      "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
+
+     (catch js/Error e
+       (println "Caught an exception:" (ex-message e))
+       [:p "error occurred"])
+     (finally
+       (println "This will always execute, regardless of exceptions.")
+       [:p "finally block"]))
 
    (let [key-values [#_["Basic details"
                         {:open true}

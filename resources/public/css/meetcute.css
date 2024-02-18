@@ -257,9 +257,9 @@ td {
 
 .mapbox-container {
   margin: auto;
-  width: min(300px, calc(100% - 64px));
+  width: 140px;
   height: 140px;
-  margin: 0 auto;
+  margin: 0;
   margin-top: 10px;
   background: #ffffff11;
   overflow: hidden;
@@ -288,4 +288,46 @@ td {
   animation-name: pulsingGreenBkgd;
   animation-duration: 3s;
   animation-iteration-count: infinite;
+}
+.location-field {
+  background: #f6f6f6;
+  border: 3px solid rgba(188, 181, 175, 0.15) !important;
+  border-radius: 8px;
+  margin: 12px 0;
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.location-field .delete-location-btn {
+  align-self: start;
+  margin: 4px;
+  fill: grey;
+  cursor: pointer;
+}
+
+.location-field .left-side {
+  margin: 12px 12px 12px 16px;
+}
+.location-field .location-input {
+  background: white;
+  margin: 4px 0;
+  padding: 4px 8px;
+  border: 3px solid rgba(188, 181, 175, 0.3) !important;
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+}
+.location-field .location-input:focus {
+  border: 3px solid rgba(188, 181, 175, 0.5) !important;
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+}
+.location-field .location-type-radio input {
+  margin: 4px;
+}
+.location-field .location-type-radio label {
+  padding: 4px;
 }
