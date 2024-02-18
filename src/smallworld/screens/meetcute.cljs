@@ -1,12 +1,13 @@
 (ns smallworld.screens.meetcute
-  (:require [cljs.pprint :as pp]
-            [clojure.string :as str]
-            [markdown.core :as md]
-            [meetcute.util :as mc.util]
-            [reagent.core    :as r]
+  (:require [cljs.pprint            :as pp]
+            [clojure.string         :as str]
+            [goog.dom               :as dom]
+            [markdown.core          :as md]
+            [meetcute.util          :as mc.util]
+            [reagent.core           :as r]
             [smallworld.decorations :as decorations]
-            [smallworld.mapbox :as mapbox]
-            [smallworld.util :as util]))
+            [smallworld.mapbox      :as mapbox]
+            [smallworld.util        :as util]))
 
 (def mock-data?          false)
 (defonce debug?          (r/atom false))
@@ -468,7 +469,18 @@
    ; button to add a new location, and when clicked, it creates a new blank location field:
    [:button.add-location-btn
     {:title "Add a new location"
-     :on-click #(swap! *locations-new conj {})
+     :on-click (fn []
+                 (swap! *locations-new conj {})
+                 (js/setTimeout (fn []
+                                  (.scrollIntoView
+                                   (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                   #js{:behavior "smooth" :block "center" :inline "center"})
+
+                                  ; focus on the input inside of that last location-field:
+                                  (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                      (.querySelector "input.location-input")
+                                      (.focus)))
+                                50))
      :style {:margin-top "12px"}}
     "Add a new location"]
 
