@@ -540,8 +540,6 @@
                          (if (= @*locations-new :loading)
                            [:p "Loading locations..."]
                            [:div.location-fields
-                            (when (empty? @*locations-new)
-                              [:p "Add locations to increase your chances of finding a match!"])
                             (for [[index location] (map-indexed vector @*locations-new)]
                               (location-field {:index       index
                                                :auto-focus  (zero? index)
