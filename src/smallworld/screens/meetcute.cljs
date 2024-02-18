@@ -230,6 +230,7 @@
 ;;;;;; PROFILE TAB ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def *locations-new  (r/atom :loading))
 
 (def phone-input-error (r/atom nil))
 
@@ -262,15 +263,20 @@
                      (fn [result]
                        (if-let [error (:error result)]
                          (reset! profile-error error)
-                         (do
-                           (reset! profile (if (:id result)
-                                             (merge (:fields result)
-                                                    {:id (:id result)})
-                                             (:fields result)))
+                         (let [profile-data (if (:id result)
+                                              (merge (:fields result)
+                                                     {:id (:id result)})
+                                              (:fields result))]
+                           (reset! profile profile-data)
+                           (reset! *locations-new (or (try (let [x (:locations-json profile-data)]
+                                                             (if (str/blank? x)
+                                                               []
+                                                               (js->clj (js/JSON.parse x))))
+                                                           (catch js/Error e
+                                                             (println "error parsing locations-json: " e)
+                                                             []))
+                                                      []))
                            (println "finished updating profile with result!")))))))
-
-(def *locations-new  (r/atom [{:name "Miami Beach" :coords {:lat 25.7907 :lng -80.1300}}
-                              {:name "New York"    :coords {:lat 40.7128 :lng -74.0060}}]))
 
 (defn update-profile! []
   (let [profile-editable-fields-only (merge (select-keys @profile (map #(keyword %)
@@ -361,10 +367,6 @@
                                      #js{:essential true ; this animation is essential with respect to prefers-reduced-motion
                                          :zoom 3
                                          :center (mapbox/coords-to-mapbox-array result)})
-                             (println)
-                             (println "              index: " index)
-                             (println "location-name-input: " location-name-input)
-                             (println)
                              (swap! *locations-new assoc index (merge (get @*locations-new index)
                                                                       {:coords result}))))))))
 
@@ -438,7 +440,8 @@
    [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
    (try
-     [:pre "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
+     [:pre {:style {:margin-top "12px" :margin-bottom "12px" :padding "12px" :border "3px solid rgb(188, 181, 175, .3)" :border-radius "8px" :background "rgb(188, 181, 175, .1)"}}
+      "@*locations-new: " (with-out-str (pp/pprint @*locations-new))]
 
      (catch js/Error e
        (println "Caught an exception:" (ex-message e))
@@ -447,28 +450,28 @@
        (println "This will always execute, regardless of exceptions.")
        [:p "finally block"]))
 
-   (for [[index location] (map-indexed vector @*locations-new)]
-     (location-field {:index       index
-                      :auto-focus  (zero? index)
-                      :label       "" #_"Home base city"
-                      :placeholder "Where do you live?"
-                      :value       (:name location)
-                      :coords      (:coords location)
-                      :update!     (fn [new-value]
-                                     (swap! *locations-new update index assoc :name new-value)
-                                     (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
+   (if (= @*locations-new :loading)
+     [:p "Loading locations..."]
+     (for [[index location] (map-indexed vector @*locations-new)]
+       (location-field {:index       index
+                        :auto-focus  (zero? index)
+                        :label       "" #_"Home base city"
+                        :placeholder "Where do you live?"
+                        :value       (:name location)
+                        :coords      (:coords location)
+                        :update!     (fn [new-value]
+                                       (swap! *locations-new update index assoc :name new-value)
+                                       (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
                                     ;;  (println @*locations-new)
-                                     (update-profile-debounced!)
+                                       (update-profile-debounced!))})))
 
-                                     ; after a delay of 1 second, update the profile:
-                                     #_(js/setTimeout (do
-                                                        (reset! profile (assoc @profile (keyword "locations-json") (pr-str @*locations-new)))
-                                                        (js/setTimeout update-profile-debounced! 1000)) 1000))}))
-   #_[:button {:style {:margin-top "24px" :padding "12px 24px" :font-size "1.2em" :border-radius "3000px" :background "rgb(0 157 49)" :color "white" :cursor "pointer"}
-               :on-click (fn []
-                           (reset! profile (assoc @profile (keyword "locations-json") (pr-str @*locations-new)))
-                           (update-profile!))}
-      "Save profile to airtable"]
+   ; button to add a new location, and when clicked, it creates a new blank location field:
+   [:button.add-location-btn
+    {:title "Add a new location"
+     :on-click #(swap! *locations-new conj {})
+     :style {:margin-top "12px"}}
+    "Add a new location"]
+
 
    (let [key-values [#_["Basic details"
                         {:open true}
