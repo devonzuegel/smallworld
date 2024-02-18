@@ -1,6 +1,7 @@
 (ns smallworld.screens.meetcute
   (:require [cljs.pprint            :as pp]
             [clojure.string         :as str]
+            [clojure.walk :as walk]
             [goog.dom               :as dom]
             [markdown.core          :as md]
             [meetcute.util          :as mc.util]
@@ -272,7 +273,7 @@
                            (reset! *locations-new (or (try (let [x (:locations-json profile-data)]
                                                              (if (str/blank? x)
                                                                []
-                                                               (js->clj (js/JSON.parse x))))
+                                                               (walk/keywordize-keys (js->clj (js/JSON.parse x)))))
                                                            (catch js/Error e
                                                              (println "error parsing locations-json: " e)
                                                              []))
@@ -283,7 +284,7 @@
   (let [profile-editable-fields-only (merge (select-keys @profile (map #(keyword %)
                                                                        (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                                                ["Phone"])))
-                                            {:locations-json (pr-str @*locations-new)} ; this is super hacky, but it's the easiest way to update the locations-json field rather than updating the field inside of @profile
+                                            {:locations-json (.stringify js/JSON (clj->js @*locations-new))} ; this is super hacky, but it's the easiest way to update the locations-json field rather than updating the field inside of @profile
                                             )]
     (reset! show-toast true)
     (js/setTimeout #(reset! show-toast false) 2000)
