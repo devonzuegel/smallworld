@@ -11,7 +11,8 @@
             [meetcute.screens.styles :as mc.styles]
             [meetcute.logic :as logic]
             [clojure.java.io :as io]
-            [cljs.pprint :as pp]))
+            [cljs.pprint :as pp]
+            [smallworld.airtable :as airtable]))
 
 ;; Adding authentication to some of the pages
 ;; She wants everything to be stateless if possible
@@ -149,101 +150,103 @@
                     :height "100%"
                     :width "100%"}}])
 
-(defn signup-screen []
-  [:div {:style {:display "flex"
-                 :flex-direction "column"
-                 :height "100vh"
-                 :font-size "1.2em"
-                 :line-height "1.6em"
-                 :text-align "center"
-                 :overflow "hidden"
-                 :padding "0 12px"
-                 :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
-                 }}
-   [:p {:style {:text-align "right"
-                :font-size ".8em"
-                :position "fixed"
-                :top "12px"
-                :right "48px"}}
-    "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
-   [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
-    [:div#loading-spinner.spinner {:style {:display "block"}}]
-    [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
-    (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrZJIaP3ZbuXmiW1")
-    (embed-js-script (io/resource "public/signup.js"))]])
+#_(defn signup-screen []
+    [:div {:style {:display "flex"
+                   :flex-direction "column"
+                   :height "100vh"
+                   :font-size "1.2em"
+                   :line-height "1.6em"
+                   :text-align "center"
+                   :overflow "hidden"
+                   :padding "0 12px"
+                   :vertical-align "top" ; vertically align flex items to the top, make them stick to the top even if they don't take the whole height
+                   }}
+     [:p {:style {:text-align "right"
+                  :font-size ".8em"
+                  :position "fixed"
+                  :top "12px"
+                  :right "48px"}}
+      "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+     [:div {:style {:width "100%" :flex 1}} ;; keep in sync with resources/public/signup and resources/public/css/meetcute.css
+      [:div#loading-spinner.spinner {:style {:display "block"}}]
+      [:script {:src "https://static.airtable.com/js/embed/embed_snippet_v1.js"}]
+      (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrZJIaP3ZbuXmiW1")
+      (embed-js-script (io/resource "public/signup.js"))]])
 
-#_(defn signup-screen [{:keys [phone phone-input-error code-error started?]}]
-    [:form {:method "post" :action (if started?
-                                     "/meetcute/verify"
-                                     "/meetcute/signup")}
-     [:div {:style {:margin-left "auto"
-                    :margin-right "auto"
-                    :width "90%"
-                    :padding-top "48px"
-                    :text-align "center"}}
+(defn signup-screen [{:keys [phone phone-input-error code-error started?]}]
+  [:form {:method "post" :action (if started?
+                                   "/meetcute/verify-signup"
+                                   "/meetcute/signup")}
+   [:div {:style {:margin-left "auto"
+                  :margin-right "auto"
+                  :width "90%"
+                  :padding-top "48px"
+                  :text-align "center"}}
     ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
-      [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "24px"}} "Sign up"]
-      (when (or phone-input-error code-error)
-        [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-         (or phone-input-error code-error)])
-      [:label {:for "phone"}
-       [:p {:style {:font-weight "bold"
-                    :margin "24px 4px 4px 4px"
-                    :text-transform "uppercase"
-                    :font-style "italic"
-                    :color "#bcb5af"
-                    :font-size ".8em"}} "Your phone number:"]]
-      [:input {:id "phone"
-               :name "phone"
-               :value phone
-               :type "hidden"}]
-      [:input {:id "display-phone"
-               :type "tel"
-               :name "display-phone"
-               :value phone
-               :style {:background "#66666620"
-                       :border-radius "8px"
-                       :width "13em"
-                       :padding "6px 8px"
-                       :margin-right "4px"
-                       :padding-left "50px"}}]
-      (if-not started?
-        [:p {:style {:margin-top "8px"
-                     :color "#9e958d"
-                     :font-size ".8em"}}
-         "We will text you a code via SMS"]
-        [:div
-         [:label {:for "code"}
-          [:p {:style {:font-weight "bold"
-                       :margin "24px 4px 4px 4px"
-                       :text-transform "uppercase"
-                       :font-style "italic"
-                       :color "#bcb5af"
-                       :font-size ".8em"}} "SMS code:"]]
-         [:input {:type "text"
-                  :autocomplete "one-time-code"
-                  :name "code"
-                  :style {:background "#66666620"
-                          :border-radius "8px"
-                          :padding "6px 8px"
-                          :margin-right "4px"}}]])
-      [:div {:style {:margin-bottom "12px"}}]
-      [:button {:class "btn primary"
-                :type "submit"}
-       "Sign up"]
-      [:p {:style {:font-size ".8em"
-                   :margin-top "24px"}}
-       "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
-      (when started?
-        [:div {:class "resend" :style {:margin-top "2rem"}}
-         [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
-      (embed-js-script (io/resource "public/signin.js"))]])
+    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "24px"}} "Sign up"]
+    (when (or phone-input-error code-error)
+      [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+       (or phone-input-error code-error)])
+    [:label {:for "phone"}
+     [:p {:style {:font-weight "bold"
+                  :margin "24px 4px 4px 4px"
+                  :text-transform "uppercase"
+                  :font-style "italic"
+                  :color "#bcb5af"
+                  :font-size ".8em"}} "Your phone number:"]]
+    [:input {:id "phone"
+             :name "phone"
+             :value phone
+             :type "hidden"}]
+    [:input {:id "display-phone"
+             :type "tel"
+             :name "display-phone"
+             :value phone
+             :style {:background "#66666620"
+                     :border-radius "8px"
+                     :width "13em"
+                     :padding "6px 8px"
+                     :margin-right "4px"
+                     :padding-left "50px"}}]
+    (if-not started?
+
+      [:p {:style {:margin-top "8px"
+                   :color "#9e958d"
+                   :font-size ".8em"}}
+       "We will text you a code via SMS"]
+
+      [:div
+       [:label {:for "code"}
+        [:p {:style {:font-weight "bold"
+                     :margin "24px 4px 4px 4px"
+                     :text-transform "uppercase"
+                     :font-style "italic"
+                     :color "#bcb5af"
+                     :font-size ".8em"}} "SMS code:"]]
+       [:input {:type "text"
+                :autocomplete "one-time-code"
+                :name "code"
+                :style {:background "#66666620"
+                        :border-radius "8px"
+                        :padding "6px 8px"
+                        :margin-right "4px"}}]])
+    [:div {:style {:margin-bottom "12px"}}]
+    [:button {:class "btn primary"
+              :type "submit"}
+     "Sign up"]
+    [:p {:style {:font-size ".8em"
+                 :margin-top "24px"}}
+     "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+    (when started?
+      [:div {:class "resend" :style {:margin-top "2rem"}}
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
+    (embed-js-script (io/resource "public/signin.js"))]])
 
 (defn signup-route [_]
   (html-response
-   (signup-screen #_{:phone ""
-                     :started? false
-                     :phone-input-error nil})))
+   (signup-screen {:phone ""
+                   :started? false
+                   :phone-input-error nil})))
 
 ;; ====================================================================== 
 ;; Sign In
@@ -370,7 +373,41 @@
              (signin-screen {:phone (or (:phone params) "")
                              :started? true}))))))))
 
+(defn start-signup-route [req]
+  (let [params (:params req)
+        phone (some-> (:phone params) mc.util/clean-phone)]
+
+    (println)
+    (println "Attempting signup with phone number: " phone)
+
+    (if-not (mc.util/valid-phone? phone)
+      (html-response
+       (signup-screen {:phone (or (:phone params) "")
+                       :phone-input-error "Invalid phone number"}))
+
+      (if (logic/existing-phone-number? phone)
+        (html-response
+         (signup-screen {:phone (or (:phone params) "")
+                         :phone-input-error "This phone number is already associated to an account. Sign in instead."}))
+
+        (let [verification-id
+              (if (= TEST_PHONE_NUMBER phone)
+                TEST_VERIFICATION_ID
+                (try
+                  (sms/start-verification! {:phone phone})
+                  (catch Exception _e
+                    :error)))]
+          (if (= :error verification-id)
+            (html-response
+             (signup-screen {:phone (or (:phone params) "")
+                             :phone-input-error "Error sending SMS. Try again later."}))
+            (html-response
+             (signup-screen {:phone (or (:phone params) "")
+                             :started? true}))))))))
+
 (defn verify-route [req]
+  (println "made it to verify-route!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  (println "params: " (:params req))
   (let [params (:params req)
         error-response (fn [msg]
                          (html-response
@@ -391,8 +428,38 @@
             ;; this session is now authenticated
             (-> (resp/redirect "/meetcute")
                 (assoc :session {:auth/jwt (create-auth-token {:phone phone})}))))
-        (error-response "Invalid code."))
-      (error-response "Invalid request. Missing phone."))))
+        (error-response "Missing code"))
+      (error-response "Missing phone"))))
+
+(defn verify-signup-route [req]
+  (let [params (:params req)
+        error-response (fn [msg]
+                         (html-response
+                          (signup-screen {:phone (:phone params)
+                                          :started? true
+                                          :code-error msg})))]
+    (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
+      (if-let [code (some-> (:code params) str/trim)]
+        (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
+                         (try
+                           (when-not (sms/check-code! {:phone phone :code code})
+                             {:error "Wrong code"})
+                           (catch Exception _e
+                             {:error "We encountered an error while trying to verify your code. Please try later"})))]
+          (if-let [error-msg (:error verify-r)]
+            (error-response error-msg)
+            ;; create the new user, then
+            ;; redirect to the home page with the cookie set
+            ;; this session is now authenticated
+            (do
+              (println "🐣 Creating new user in airtable with phone: " phone)
+              (airtable/create-in-base logic/airtable-base
+                                       [@logic/airtable-cuties-db-name]
+                                       {:fields {:Phone phone}})
+              (-> (resp/redirect "/meetcute/settings")
+                  (assoc :session {:auth/jwt (create-auth-token {:phone phone})})))))
+        (error-response "Missing code"))
+      (error-response "Missing phone"))))
 
 (defn logout-route [_req]
   (-> (resp/redirect "/meetcute/signin")
