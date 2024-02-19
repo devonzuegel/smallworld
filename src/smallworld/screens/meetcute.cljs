@@ -301,6 +301,20 @@
   [:textarea {:value (or (mc.util/get-field @profile field-name) "") #_(trim-trailing-whitespace (or (mc.util/get-field @profile field-name) ""))
               :on-change (change-profile-field field-name)}])
 
+(defn editable-date-input [field-name]
+  [:div {:style {:width "95%"}}
+   [:div.input-date-overlay (mc.util/get-field @profile field-name)]
+   [:input.editable-input.input-container
+    {:type "date"
+    ; TODO: format it so that it displays the date like February 14, 2021
+     :value (or (mc.util/get-field @profile field-name) "")
+     :on-change  (fn [event]
+                   (let [new-value (-> event .-target .-value)]
+                     (reset! profile (assoc @profile (keyword field-name) new-value))
+                     (if (str/blank? new-value)
+                       (println "not updating the date in airtable because it's blank")
+                       (update-profile-debounced!))))}]])
+
 (defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
   [:i {:className (str/join " " [(if outlined "far" "fas")
                                  (str "fa-" icon-name)])
@@ -488,7 +502,7 @@
                                    [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
                           {:required? true}]
                          ["Who invited you to MeetCute?" (editable-input "If 'Other', who invited you?") {:required? true}]
-                         ["Waht's your birthday? (We won't share this)" (editable-input "Birthday") {:required? true}]
+                         ["Waht's your birthday?" (editable-date-input "Birthday") {:required? true}]
 
                          (let [include-in-gallery-status? (mc.util/get-field @profile "Include in gallery?")]
                            (when (or (= include-in-gallery-status? "include in gallery")
