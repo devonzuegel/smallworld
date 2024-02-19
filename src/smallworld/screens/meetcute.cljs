@@ -81,7 +81,8 @@
                                                       ["Phone"])))
                    #(println "Done updating selected-cuties")))
 
-(defn bio-row [i [key-name value]]
+;; (defn bio-row [i [key-name value & [options]]]
+(defn bio-row [i [key-name value & [{:keys [required?] :as options}]]]
   [:div.bio-row {:key i}
    [:style "@media screen and (min-width: 600px) { .bio-row-value { min-width: 380px; }  }"]
    [:div {:style {:padding "6px 12px 0 12px"
@@ -91,7 +92,7 @@
                   :font-style "italic"
                   :color "#bcb5af"
                   :font-size ".8em"}}
-    key-name]
+    key-name " --- " (pr-str required?) " --- " (pr-str options)]
    [:div {:style {:padding "12px" :padding-top "6px"} :className "bio-row-value"}
     value]]
   #_(let [width "170px"]
@@ -502,40 +503,38 @@
 
    (let [key-values [["Basic details"
                       {:open true}
-                      [["First name"     (editable-input "First name")]
+                      [["First name ***" (editable-input "First name") {:required? true}]
                        ["Last name"      (editable-input "Last name")]
-                       ["My gender"      (radio-btns-component ["Man" "Woman"]
+                       ["My gender ***"  (radio-btns-component ["Man" "Woman"]
                                                                (mc.util/get-field @profile "Gender")
                                                                (fn [foobar]
                                                                  (reset! profile (assoc @profile (keyword "Gender") foobar))
                                                                  (update-profile-debounced!)))]
-                       ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                     (mc.util/get-field @profile "I'm interested in...")
-                                                                     (fn [foobar]
-                                                                       (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
-                                                                       (update-profile-debounced!)))]
-                       ["Phone"                            [:div {:style {:max-width "380px"}}
-                                                            [:div {:style {:background "rgb(188, 181, 175, .1)"
-                                                                           :border "3px solid rgb(188, 181, 175, .3)"
-                                                                           :cursor "not-allowed"
-                                                                           :border-radius "8px"
-                                                                           :padding "6px 8px"
-                                                                           :margin-right "4px"
-                                                                           :width "95%"
-                                                                           :max-width "380px"}}
+                       ["I'm interested in... ***" (checkboxes-component ["Men" "Women"]
+                                                                         (mc.util/get-field @profile "I'm interested in...")
+                                                                         (fn [foobar]
+                                                                           (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
+                                                                           (update-profile-debounced!)))]
+                       ["Phone ***" [:div {:style {:max-width "380px"}}
+                                     [:div {:style {:background "rgb(188, 181, 175, .1)"
+                                                    :border "3px solid rgb(188, 181, 175, .3)"
+                                                    :cursor "not-allowed"
+                                                    :border-radius "8px"
+                                                    :padding "6px 8px"
+                                                    :margin-right "4px"
+                                                    :width "95%"
+                                                    :max-width "380px"}}
                                                               ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                                             (mc.util/get-field @profile "Phone")]
-                                                            [small-text [:span "If you'd like to change your phone number, email "
-                                                                         [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
-                       ["Email"                            [:div {:style {:max-width "380px"}}
-                                                            (editable-input "Email")
-                                                            [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
-                     ["Locations"
+                                      (mc.util/get-field @profile "Phone")]
+                                     [small-text [:span "If you'd like to change your phone number, email "
+                                                  [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]]
+                       ["Email ***" [:div {:style {:max-width "380px"}}
+                                     (editable-input "Email")
+                                     [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]]]]
+                     ["Locations ***"
                       {:open true
                        :className "bio-row-locations"}
-                      [#_["Home base city"                    (editable-input "Home base city")]
-                       #_["Other cities where you spend time" (editable-input "Other cities where you spend time")]
-                       ["We'll show you cuties who are in the locations you list below (ALPHA FEATURE)"
+                      [["We'll show you cuties who are in the locations you list below (ALPHA FEATURE)"
                         [:<>
                          (if (= @*locations-new :loading)
                            [:p "Loading locations..."]
@@ -581,18 +580,18 @@
 
                      ["Other"
                       {:open true}
-                      [["About me"                          (editable-textbox "Anything else you'd like your potential matches to know?")]
-                       ["Social media links"                (editable-textbox "Social media links")]
-                       ["What makes this person awesome?"   [:div
-                                                             [:div {:style {:margin-bottom "4px"}}
-                                                              [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
-                                                             (editable-textbox "What makes this person awesome?")
-                                                             [:div {:style {:margin-top "8px"}}] ; spacer
-                                                             [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
-                                                             [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
-                                                              [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
-                                                                                           "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\"*"))
-                                                               {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
+                      [["About me ***"                      (editable-textbox "Anything else you'd like your potential matches to know?")]
+                       ["Social media links"              (editable-textbox "Social media links")]
+                       ["What makes this person awesome?" [:div
+                                                           [:div {:style {:margin-bottom "4px"}}
+                                                            [small-text (md->hiccup "Ask a friend to write a few sentences about you. [Here are some examples.](https://bit.ly/matchmaking-vouch-examples)")]]
+                                                           (editable-textbox "What makes this person awesome?")
+                                                           [:div {:style {:margin-top "8px"}}] ; spacer
+                                                           [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
+                                                           [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
+                                                            [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                         "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\" ***"))
+                                                             {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                        ["Pictures" [:div
                                     [small-text [:span "If you'd like to add or remove pictures, email "
@@ -615,38 +614,30 @@
 
    ; add a toggle for "ready for review" that is only clickable if all the required fields are completed. if not, share a little error message listing the issues that need to be resolved before it can be submitted for review
 
+   (let [errors (remove nil? [(when (str/blank? (mc.util/get-field @profile "First name"))                                               "First name")
+                              (when (str/blank? (mc.util/get-field @profile "Gender"))                                                   "Gender")
+                              (when (empty?     (mc.util/get-field @profile "I'm interested in..."))                                     "Sexual orientation")
+                              (when (str/blank? (mc.util/get-field @profile "Phone"))                                                    "Phone")
+                              (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
+                              (when (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")) "About me")
+                              (when (empty?     @*locations-new)                                                                         "At least 1 location")])]
+     [:div.ready-for-review
+      [:button {:className (if (empty? errors) "enabled" "disabled")
+                :on-click (fn []
+                            (when (empty? errors)
+                              (println "on-click succeeded")))}
+       "Submit for review"]
+    ;; NOTE: only show this if the status is 'not yet reviewed'
 
-   [:div.ready-for-review
-    [:p "Ready for review? Once you're approved, you'll be able to see other cuties' profiles and start matching! NOTE: only show this if the status is 'not yet reviewed'"]
-    [:button {:style {:margin-top "12px"
-                      :padding "12px 24px"
-                      :background "rgb(0 157 49)"
-                      :border-radius "12px"
-                      :border "3px solid rgb(0 157 49)"}
-              :on-click (fn []
-                          (if (or (str/blank? (mc.util/get-field @profile "First name"))
-                                  (str/blank? (mc.util/get-field @profile "Gender"))
-                                  (empty? (mc.util/get-field @profile "I'm interested in..."))
-                                  (str/blank? (mc.util/get-field @profile "Phone"))
-                                  (str/blank? (mc.util/get-field @profile "Email"))
-                                  (empty? @*locations-new)
-                                  (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")))
-                            (js/alert "Please fill out all required fields before submitting for review.")
-                            (println "on-click succeeded")))}
-     "Submit for review"]]
+      (if (seq errors)
+        [:div.errors-list
+         [:p "Once you fill out all the required fields, you can submit your profile for review"]
+        ;;  [:ul (for [error errors] [:li error])]
+         ]
+        [:p.errors-list "Once your profile is reviewed, we'll start sending you Cuties of the Day!"])])
 
-   [:p "Errors:"]
-   [:ul
-    (when (str/blank? (mc.util/get-field @profile "First name"))       [:li "First name is blank"])
-    (when (str/blank? (mc.util/get-field @profile "Gender"))           [:li "Gender is blank"])
-    (when (empty? (mc.util/get-field @profile "I'm interested in...")) [:li "Sexual orientation is blank"])
-    (when (str/blank? (mc.util/get-field @profile "Phone"))            [:li "Phone is blank"])
-    (when (str/blank? (mc.util/get-field @profile "Email"))            [:li "Email is blank"])
-    (when (empty? @*locations-new)                                     [:li "You need to add at least 1 location"])
-    (when (str/blank?
-           (mc.util/get-field @profile
-                              "Anything else you'd like your potential matches to know?"))  [:li "About me is blank"])]
 
+   [:br] [:br] [:br]
    [:br]])
 
 

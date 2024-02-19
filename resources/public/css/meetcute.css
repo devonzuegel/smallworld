@@ -130,6 +130,10 @@ li {
 .bio-row {
   width: fit-content;
 }
+.required {
+  background-color: pink;
+  border: 1px solid red;
+}
 .bio-row-locations .bio-row {
   width: 100%;
 }
@@ -443,13 +447,53 @@ td {
   transition: all 0.2s ease-in-out;
 }
 .ready-for-review {
-  opacity: 0.2;
   position: fixed;
   background: white;
-  bottom: 12px;
-  border: 3px solid rgba(188, 181, 175, 0.3);
-  border-radius: 8px;
-  width: 100%;
-  max-width: min(850px, 90vw);
+  border-top: 1px solid rgb(189, 171, 153);
+  background: rgb(235, 232, 229);
   padding: 16px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap-reverse;
+  gap: 24px;
+}
+.ready-for-review button {
+  color: white;
+  background: #013917e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: fit-content;
+  min-width: 200px;
+}
+.ready-for-review button:hover {
+  background: #013917;
+  transition: all 0.2s ease-in-out;
+}
+.ready-for-review button.disabled {
+  background: #ccc;
+  color: #888;
+  cursor: not-allowed;
+}
+.ready-for-review .errors-list {
+  width: 336px;
+  text-wrap: balance;
+  line-height: 1.3em;
+  font-size: 0.95em;
+  text-align: center;
+}
+@media (min-width: 570px) {
+  .ready-for-review .errors-list {
+    text-align: left;
+  }
+}
+.ready-for-review .errors-list ul {
+  margin-top: 6px;
 }
