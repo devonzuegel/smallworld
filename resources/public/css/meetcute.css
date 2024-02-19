@@ -8,7 +8,7 @@
 }
 html {
   color: #2b2017;
-  color: #013917;
+  // color: #013917;
   background: #fcfcfc;
   // for a hacky dark mode when coding at night:
   // background: #2b2017;
@@ -51,8 +51,9 @@ textarea {
   font-weight: bold;
 }
 .btn:hover {
-  color: rgb(157, 149, 143);
+  color: rgb(108, 98, 90);
   transition: all 0.1s ease-in-out;
+  border: 3px solid rgb(188, 181, 175, 0);
 }
 .btn.primary {
   border: 3px solid rgb(188, 181, 175, 0.4);
@@ -557,8 +558,8 @@ td {
 .ready-for-review .errors-list {
   // width: 336px;
   text-wrap: balance;
-  line-height: 1.6em;
-  font-size: 1em;
+  line-height: 1.5em;
+  font-size: 0.9em;
   text-align: center;
 }
 @media (min-width: 570px) {

@@ -574,8 +574,8 @@
           [:div.errors-list
            [:p
             (if (seq errors)
-              "Once you fill out all the required fields, you can submit your profile for review"
-              "Once your profile is reviewed, we'll start sending you Cuties of the Day!")]]
+              "Once you fill out all of the required fields, you can submit your profile for review"
+              "Now THAT'S a cute profile! We'll start sending you Cuties of the Day once we review it")]]
 
           #_(if (seq errors)
               [:div.errors-list
@@ -852,44 +852,51 @@
                 [refresh-todays-cutie-btns]]
 
              [how-it-works]
-             [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "8px" :text-align "center"}} "Today's cutie"]
-             [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
-             (if (= :no-cutie todays-cutie)
-               [:p {:style {:padding "6px 16px" :text-align "center"}}
-                "No profiles to review right now. We'll email you with more people to meet soon!"]
-               (if (nil? todays-cutie)
-                 [:p "Loading..."]
-                 [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
-                                :flex-direction "column" ; "row"
-                                :flex-wrap "wrap"
-                                :width "100%"
-                                :margin "auto"}}
+             (if (not= "include in gallery" (mc.util/get-field @profile "Include in gallery?"))
+               [:<>
+                [:p {:style {:padding "8px" :text-align "center" :font-size "1.2em" :text-wrap "balance" :max-width "700px" :margin "auto" :line-height "1.6em" :margin-top "36px"}}
+                 "Your profile isn't active, so we can't send you cuties yet"]
+                [:p {:style {:padding "8px" :text-align "center" :font-size "1.2em" :text-wrap "balance" :max-width "700px" :margin "auto" :line-height "1.6em" :margin-bottom "12px"}}
+                 "Go to your " [:a {:href "/meetcute/settings"} "settings"] " to activate your profile!"]]
+               [:<> [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "8px" :text-align "center"}} "Today's cutie"]
+                [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
+
+                (if (= :no-cutie todays-cutie)
+                  [:p {:style {:padding "6px 16px" :text-align "center"}}
+                   "No profiles to review right now. We'll email you with more people to meet soon!"]
+                  (if (nil? todays-cutie)
+                    [:p "Loading..."]
+                    [:div {:style {:display "flex" ;(if (= i 0) "flex" "none")
+                                   :flex-direction "column" ; "row"
+                                   :flex-wrap "wrap"
+                                   :width "100%"
+                                   :margin "auto"}}
 
                 ; Left column takes all available space
-                  [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
-                  [:div {:style {:flex 1} :className "profile-column"}
-                   [render-profile todays-cutie]]
+                     [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
+                     [:div {:style {:flex 1} :className "profile-column"}
+                      [render-profile todays-cutie]]
 
-                  [:div {:style {:flex 1 :display "flex" :align-items "center" :flex-direction "column" :text-align "center"}}
+                     [:div {:style {:flex 1 :display "flex" :align-items "center" :flex-direction "column" :text-align "center"}}
 
-                   [:div {:style {:margin      "16px 0 12px 0"
-                                  :flex        1
-                                  :line-height 1.6
-                                  :min-height  "3.4em"
-                                  :align-items "center"
-                                  :display     "flex"}}
-                    (if (mc.util/in? currently-selected-ids todays-cutie-id)
-                      [:p {:style {}} "You've selected this person!" [:br] "We'll let you know if they select you too :)"]
-                      (if (mc.util/in? currently-rejected-ids todays-cutie-id)
-                        [:p {:style {}} "Sounds like this cutie is not your main squeeze." [:br] "No worries, we'll send you another cutie soon!"]
-                        [:p {:style {}} "So, are you interested in meeting this cutie?"]))]
+                      [:div {:style {:margin      "16px 0 12px 0"
+                                     :flex        1
+                                     :line-height 1.6
+                                     :min-height  "3.4em"
+                                     :align-items "center"
+                                     :display     "flex"}}
+                       (if (mc.util/in? currently-selected-ids todays-cutie-id)
+                         [:p {:style {}} "You've selected this person!" [:br] "We'll let you know if they select you too :)"]
+                         (if (mc.util/in? currently-rejected-ids todays-cutie-id)
+                           [:p {:style {}} "Sounds like this cutie is not your main squeeze." [:br] "No worries, we'll send you another cutie soon!"]
+                           [:p {:style {}} "So, are you interested in meeting this cutie?"]))]
 
-                   [:div {:style {:flex 1}}
-                    [select-reject-btns
-                     (mc.util/get-field todays-cutie "id")
-                     (mc.util/get-field @profile "selected-cuties")
-                     (mc.util/get-field @profile "rejected-cuties")]]]]))
+                      [:div {:style {:flex 1}}
+                       [select-reject-btns
+                        (mc.util/get-field todays-cutie "id")
+                        (mc.util/get-field @profile "selected-cuties")
+                        (mc.util/get-field @profile "rejected-cuties")]]]]))])
 
             ;;  [:p "count of included-bios: " (count included-bios)]
 
@@ -972,12 +979,13 @@
 
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
-   [:a {:href "/meetcute"
-        :className (if (= "/meetcute" (.-pathname js/location))
-                     "btn primary"
-                     "btn")}
+   (when (= "include in gallery" (mc.util/get-field @profile "Include in gallery?"))
+     [:a {:href "/meetcute"
+          :className (if (= "/meetcute" (.-pathname js/location))
+                       "btn primary"
+                       "btn")}
     ;; [:i {:className "fas fa-heart"}] " Home"
-    "Home"]
+      "Home"])
    [:a {:href "/meetcute/settings"
         ; if current url is /meetcute/settings, then set className to "btn primary", otherwise set it to "btn":
         :className (if (= "/meetcute/settings" (.-pathname js/location))
