@@ -594,8 +594,8 @@
           [:div.errors-list
            [:p
             (if (seq errors)
-              "Once you fill out all required fields, you can submit your profile for review"
-              "Now THAT'S a cute profile! You can keep updating it while we review it")]]
+              "Hold up, we need a bit more info before you submit your profile for review"
+              "🍊 Now THAT'S a cute profile! Submit it & we'll start sending you cuties once we review it 🍊")]]
 
           #_(if (seq errors)
               [:div.errors-list
@@ -603,6 +603,7 @@
               [:p.errors-list "Once your profile is reviewed, we'll start sending you Cuties of the Day!"])]))
 
 
+     [:br] [:br] [:br]
      [:br] [:br] [:br]
      [:br]]))
 
