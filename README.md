@@ -283,8 +283,8 @@ We use:
     - [ ] add fields for all of the data collected in the original form: https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwiUzsTUarShMVDN?blocks=hide
       - [x] first name
       - [x] last name
-      - [ ] who invited you?
-      - [ ] if other, who invited you?
+      - [x] who invited you? (skipped for now, because the following question captures it, albeit in an unstructured way)
+      - [x] if other, who invited you?
       - [x] I'm interested in... [men/women]
       - [x] my gender is... [man/woman]
       - [x] social media links
@@ -295,6 +295,7 @@ We use:
       - [x] phone
       - [x] email
     - [ ] add a way to mark the profile as "ready for review", but only once they've completed all the required fields
+  - [x] give users a way to make their profile public/private
   - [ ] add option to filter by locations
   - [ ] once this is done, update these people:
     - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
@@ -314,7 +315,6 @@ We use:
   - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
 - [ ] profile page improvements:
   - [x] fix the profile editing feature – bug report with video in email on 2024.01.29
-  - [ ] give users a way to make their profile public/private
   - [ ] give users a way to turn off the daily emails
   - [ ] enable users to add/remove photos – then let Amit know that it's been updated
 - [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list

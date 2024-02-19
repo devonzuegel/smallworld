@@ -487,6 +487,8 @@
                                    (editable-input "Email")
                                    [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
                           {:required? true}]
+                         ["Who invited you to MeetCute?" (editable-input "If 'Other', who invited you?") {:required? true}]
+                         ["Waht's your birthday? (We won't share this)" (editable-input "Birthday") {:required? true}]
 
                          (let [include-in-gallery-status? (mc.util/get-field @profile "Include in gallery?")]
                            (when (or (= include-in-gallery-status? "include in gallery")
