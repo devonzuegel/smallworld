@@ -303,7 +303,12 @@
 
 (defn editable-date-input [field-name]
   [:div {:style {:width "95%"}}
-   [:div.input-date-overlay (mc.util/get-field @profile field-name)]
+   [:div.input-date-overlay
+    (let [date (mc.util/get-field @profile field-name)]
+      (if (str/blank? date)
+        "YYYY-MM-DD"
+        date))]
+
    [:input.editable-input.input-container
     {:type "date"
     ; TODO: format it so that it displays the date like February 14, 2021
