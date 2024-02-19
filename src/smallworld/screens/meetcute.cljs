@@ -302,7 +302,7 @@
               :on-change (change-profile-field field-name)}])
 
 (defn editable-date-input [field-name]
-  [:div {:style {:width "95%"}}
+  [:div.editable-input {:style {:width "95%"}}
    [:div.input-date-overlay
     (let [date (mc.util/get-field @profile field-name)]
       (if (str/blank? date)
@@ -507,7 +507,7 @@
                                    [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
                           {:required? true}]
                          ["Who invited you to MeetCute?" (editable-input "If 'Other', who invited you?") {:required? true}]
-                         ["Waht's your birthday?" (editable-date-input "Birthday") {:required? true}]
+                         ["What's your birthday?" (editable-date-input "Birthday") {:required? true}]
 
                          (let [include-in-gallery-status? (mc.util/get-field @profile "Include in gallery?")]
                            (when (or (= include-in-gallery-status? "include in gallery")
@@ -573,8 +573,8 @@
                                [:span.inner
                                 "+ New location"]]])]
                           {:required? true}]
-                         ["Home base" (editable-input "Home base city") {:required? true}]
-                         ["Other cities where you spend time" (editable-input "Other cities where you spend time") {:required? true}]]]
+                         ["Home base" (editable-input "Home base city")]
+                         ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
 
                        ["Other"
                         {:open true}
