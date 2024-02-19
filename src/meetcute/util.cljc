@@ -71,6 +71,8 @@
                                 "Other cities where you spend time"
                                 "locations-json"
                                 "I'm interested in..."
+                                "If 'Other', who invited you?"
+                                "Birthday"
                                 "unseen-cuties"
                                 "todays-cutie"
                                 "selected-cuties"
