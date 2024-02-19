@@ -125,13 +125,19 @@ input[type='date']::-webkit-calendar-picker-indicator {
   // visibility: hidden;
 }
 .input-date-overlay {
-  top: 0px;
-  z-index: 1;
-  padding: 8px 12px;
-  font-size: 16px;
   display: block;
   margin-bottom: -38px;
   margin-left: 36px;
+  top: 0px;
+  z-index: 1;
+  padding: 6px 0px;
+  font-size: 16px;
+  display: block;
+  margin-bottom: -28px;
+  margin-left: 36px;
+  position: relative;
+  z-index: 100000;
+  pointer-events: none;
 }
 /* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
 body {
@@ -222,15 +228,6 @@ li {
   }
 }
 .editable-input {
-  // :background "white"
-  //                  :border "3px solid rgb(188, 181, 175, .3)"
-  //                 ;;  :background "#66666620"
-  //                 ;;  :border "1px solid #66666622"
-  //                  :border-radius "8px"
-  //                  :padding "6px 8px"
-  //                  :margin-right "4px"
-  //                  :width "95%"
-  //                  :max-width "380px"
   background: white;
   border: 3px solid rgba(188, 181, 175, 0.3);
   border-radius: 8px;
@@ -238,6 +235,13 @@ li {
   margin-right: 4px;
   width: 95%;
   max-width: 380px;
+}
+
+.editable-input .editable-input {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  border: none;
 }
 
 //////////////////////////////////////////////////
