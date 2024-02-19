@@ -521,7 +521,7 @@ td {
 .ready-for-review {
   position: fixed;
   background: white;
-  border-top: 2px solid rgb(221 216 211);
+  border-top: 2px solid rgb(229, 225, 220);
   background: rgb(235, 232, 229);
   padding: 16px 16px 24px 16px;
   box-shadow: 0 0 8px 0 rgba(255, 255, 255, 1);
@@ -572,6 +572,13 @@ td {
 }
 .welcome-message {
   line-height: 1.8em;
-  padding: 24px 0 8px 0;
-  text-wrap: balance;
+  // text-wrap: balance;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 24px;
+  background: #f6f6f6;
+  background: rgb(235, 232, 229, 0.6);
+  padding: 24px 48px 24px 32px;
+  border-radius: 6px;
 }
