@@ -429,7 +429,9 @@
 
 (defn profile-tab []
   (let [filling-out-profile? (= "filling out profile"
-                                (mc.util/get-field @profile "Include in gallery?"))]
+                                (mc.util/get-field @profile "Include in gallery?"))
+        waiting-for-review? (= "not yet reviewed"
+                               (mc.util/get-field @profile "Include in gallery?"))]
     [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
 
      [saved-toast]
@@ -440,7 +442,16 @@
      (when filling-out-profile? ; only show this when the user's status is 'not yet reviewed '
        [:div {:style {:padding "12px 0 0 12px"}}
         [:div.welcome-message
-         [:p "Hey there, welcome to MeetCute! We're so excited to intro you to some cuties. Once you add some info about yourself, you can submit your profile for review."]]])
+         [:p {:style {:font-size "1.8em"}} "👋"]
+         [:p "Hi there, welcome to MeetCute! We can't wait to intro you to some cuties. Once you fill in your profile, you can submit it for review. "
+          "— " [:a {:href "https://twitter.com/devonzuegel" :target "_blank"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg" :target "_blank"} "Erik"]]]])
+
+     (when waiting-for-review?
+       [:div {:style {:padding "12px 0 0 12px"}}
+        [:div.welcome-message
+         [:p {:style {:font-size "1.8em"}} "🍊"]
+         [:p "Thanks for submitting your profile! We're reviewing it now. You'll start getting Cuties of the Day in your email inbox when it's live. "
+          "— " [:a {:href "https://twitter.com/devonzuegel" :target "_blank"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg" :target "_blank"} "Erik"]]]])
 
      (let [key-values [["Basic details"
                         {:open true}
@@ -568,14 +579,23 @@
                              "You're missing a few required fields")
                     :on-click (fn []
                                 (when (empty? errors)
-                                  (println "on-click succeeded")))}
+                                  (reset! profile (assoc @profile (keyword "Include in gallery?") "not yet reviewed"))
+                                  (println (merge (select-keys @profile (map #(keyword %)
+                                                                             (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                                     ["Phone"])))
+                                                  {(keyword "Include in gallery?") "not yet reviewed"}))
+                                  (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
+                                                                                                                         (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                                                                                 ["Phone"])))
+                                                                                              {(keyword "Include in gallery?") "not yet reviewed"}))
+                                  #_(update-profile!)))}
            "Submit for review"]
 
           [:div.errors-list
            [:p
             (if (seq errors)
-              "Once you fill out all of the required fields, you can submit your profile for review"
-              "Now THAT'S a cute profile! We'll start sending you Cuties of the Day once we review it")]]
+              "Once you fill out all required fields, you can submit your profile for review"
+              "Now THAT'S a cute profile! You can keep updating it while we review it")]]
 
           #_(if (seq errors)
               [:div.errors-list
