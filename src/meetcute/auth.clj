@@ -418,10 +418,9 @@
       (if-let [code (some-> (:code params) str/trim)]
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
-                           (when-not (sms/check-code! {:phone phone :code code})
-                             {:error "Wrong code"})
-                           (catch Exception _e
-                             {:error "We encountered an error while trying to verify your code. Please try later"})))]
+                           (when-not (re-matches #"^\d{4}$" code)                {:error "Hmm that doesn't match the format of the code"})
+                           (when-not (sms/check-code! {:phone phone :code code}) {:error "Hmm that's the wrong code..."})
+                           (catch Exception _e                                   {:error "Hmm that didn't work! Please try again"})))]
           (if-let [error-msg (:error verify-r)]
             (error-response error-msg)
             ;; redirect to the home page with the cookie set
@@ -442,10 +441,9 @@
       (if-let [code (some-> (:code params) str/trim)]
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
-                           (when-not (sms/check-code! {:phone phone :code code})
-                             {:error "Wrong code"})
-                           (catch Exception _e
-                             {:error "We encountered an error while trying to verify your code. Please try later"})))]
+                           (when-not (re-matches #"^\d{4}$" code)                {:error "Hmm that doesn't match the format of the code"})
+                           (when-not (sms/check-code! {:phone phone :code code}) {:error "Hmm that's the wrong code..."})
+                           (catch Exception _e                                   {:error "Hmm that didn't work! Please try again"})))]
           (if-let [error-msg (:error verify-r)]
             (error-response error-msg)
             ;; create the new user, then

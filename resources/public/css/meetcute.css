@@ -83,10 +83,19 @@ input {
   color: #220b01;
   transition: color 200ms ease-in-out;
   font-family: 'Roboto Mono', monospace;
+  accent-color: #054921e0;
 }
 input:focus {
   color: #000000;
   transition: color 200ms ease-in-out;
+}
+input[type='radio'] {
+  width: 20px;
+  height: 20px;
+}
+input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
 }
 /* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
 body {
@@ -103,7 +112,6 @@ ul {
 li {
   padding-left: 4px;
 }
-
 .loading-container {
   position: fixed;
   top: 40%;
@@ -118,7 +126,6 @@ li {
   background-image: url('/orange-favicon.png');
   background-size: contain;
 }
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -127,12 +134,40 @@ li {
     transform: rotate(360deg);
   }
 }
-.bio-row {
+.bio-row .title {
   width: fit-content;
+  padding: 16px 12px 0 12px;
+  opacity: 0.75;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-style: italic;
+  color: #a19890;
+  font-size: 0.8em;
 }
-.required {
-  background-color: pink;
-  border: 1px solid red;
+.bio-row .required-note {
+  color: rgb(255 106 0);
+  font-size: 1.3em;
+  text-transform: lowercase;
+  margin: 0 4px;
+}
+.bio-row textarea {
+  background: white;
+  border: 3px solid rgba(188, 181, 175, 0.3);
+  border-radius: 8px;
+  resize: vertical;
+  padding: 16px 20px;
+  margin-right: 12px;
+  min-height: 140px;
+  color: #333;
+  font-size: 0.9em;
+  width: 98%;
+  transition: all 0.2s ease-in-out;
+}
+.required textarea:empty:not(:focus),
+.required .editable-input[value='']:not(:focus) {
+  background-color: rgb(255, 248, 243);
+  border: 3px solid rgb(255, 181, 128);
+  transition: all 0.2s ease-in-out;
 }
 .bio-row-locations .bio-row {
   width: 100%;
@@ -144,6 +179,29 @@ li {
 .bio-row-value input:focus {
   border: 3px solid rgba(188, 181, 175, 0.6) !important;
   transition: all 0.2s ease-in-out;
+}
+@media screen and (min-width: 600px) {
+  .bio-row-value {
+    min-width: 370px;
+  }
+}
+.editable-input {
+  // :background "white"
+  //                  :border "3px solid rgb(188, 181, 175, .3)"
+  //                 ;;  :background "#66666620"
+  //                 ;;  :border "1px solid #66666622"
+  //                  :border-radius "8px"
+  //                  :padding "6px 8px"
+  //                  :margin-right "4px"
+  //                  :width "95%"
+  //                  :max-width "380px"
+  background: white;
+  border: 3px solid rgba(188, 181, 175, 0.3);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin-right: 4px;
+  width: 95%;
+  max-width: 380px;
 }
 
 //////////////////////////////////////////////////
@@ -206,11 +264,13 @@ details {
 
 details span.title {
   margin-left: 8px;
+  font-size: 1.5em;
 }
 
 details > summary {
-  width: 100%;
-  border-top: 1px solid #e0e0e0;
+  // width: 100%;
+  width: fit-content;
+  // border-top: 1px solid #e0e0e0;
   padding: 32px 6px 6px 6px;
   cursor: pointer;
   font-weight: bold;
@@ -224,6 +284,8 @@ details[open] > summary::marker,
 details > summary::marker,
 details summary::-webkit-details-marker,
 details summary::marker {
+  font-size: 1.4em;
+  display: inline-block;
 }
 
 //////////////////////////////////////////////////
@@ -365,6 +427,10 @@ td {
   padding: 10px;
 }
 
+.add-location-btn.empty {
+  border-color: rgb(255, 181, 128) !important;
+}
+
 .location-field .delete-location-btn {
   align-self: end;
   margin: 4px;
@@ -386,6 +452,11 @@ td {
   border: 3px solid rgba(188, 181, 175, 0.3) !important;
   transition: all 0.2s ease-in-out;
   border-radius: 8px;
+}
+.location-field .location-input[value='']:not(:focus) {
+  background-color: rgb(255, 248, 243);
+  border: 3px solid rgb(255, 181, 128) !important;
+  transition: all 0.2s ease-in-out;
 }
 .location-field .location-input:focus {
   border: 3px solid rgba(188, 181, 175, 0.5) !important;
@@ -449,18 +520,19 @@ td {
 .ready-for-review {
   position: fixed;
   background: white;
-  border-top: 1px solid rgb(189, 171, 153);
+  border-top: 2px solid rgb(221 216 211);
   background: rgb(235, 232, 229);
-  padding: 16px;
+  padding: 16px 16px 24px 16px;
+  box-shadow: 0 0 8px 0 rgba(255, 255, 255, 1);
   left: 0;
   right: 0;
   bottom: 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: column-reverse;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap-reverse;
-  gap: 24px;
+  gap: 12px;
 }
 .ready-for-review button {
   color: white;
@@ -478,15 +550,15 @@ td {
   transition: all 0.2s ease-in-out;
 }
 .ready-for-review button.disabled {
-  background: #ccc;
-  color: #888;
+  background: rgba(160, 160, 160, 0.3);
+  color: rgba(160, 160, 160, 0.9);
   cursor: not-allowed;
 }
 .ready-for-review .errors-list {
-  width: 336px;
+  // width: 336px;
   text-wrap: balance;
-  line-height: 1.3em;
-  font-size: 0.95em;
+  line-height: 1.6em;
+  font-size: 1em;
   text-align: center;
 }
 @media (min-width: 570px) {
@@ -496,4 +568,9 @@ td {
 }
 .ready-for-review .errors-list ul {
   margin-top: 6px;
+}
+.welcome-message {
+  line-height: 1.8em;
+  padding: 24px 0 8px 0;
+  text-wrap: balance;
 }
