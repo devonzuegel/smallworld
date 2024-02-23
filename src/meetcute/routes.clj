@@ -34,6 +34,13 @@
        (some-> (resp/resource-response (str root "/" resource-path))
                (add-mime-type resource-path options))))))
 
+(defn tmp-upload-handler [request]
+  ; TODO: handle edge cases and errors
+  (let [file (-> request :params :file)]
+    (when file
+      (io/copy (:tempfile file) (io/file (str "tmp/" (:filename file))))))
+  (resp/response "File uploaded successfully!"))
+
 (defroutes open-routes
   (ANY  "/"         []  (io/resource "public/meetcute.html"))
   (ANY  "/admin"    []  (io/resource "public/meetcute.html"))
@@ -50,6 +57,7 @@
 (defroutes authenticated-routes
   (GET  "/api/matchmaking/bios"    req (json/generate-string (logic/get-needed-bios req)))
   (POST "/api/matchmaking/profile" req (logic/update-profile req))
+  (POST "/tmp-upload"              req (tmp-upload-handler req))
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
   (POST "/api/matchmaking/me"      req (let [phone (some-> (mc.auth/req->parsed-jwt req)
                                                            :auth/phone

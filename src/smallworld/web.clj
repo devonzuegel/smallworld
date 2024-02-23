@@ -9,6 +9,7 @@
             [compojure.core :as compo :refer [ANY defroutes GET POST]]
             [compojure.handler :as compojure-handler]
             [compojure.route :as route]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [oauth.twitter :as oauth]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.session.cookie :as cookie]
@@ -719,11 +720,11 @@
         (handler request)
         (ring-response/redirect clean-uri)))))
 
-
 (def one-year-in-seconds (* 60 #_seconds 60 #_minutes 24 #_hours 365 #_days))
 
 (def app-handler
   (-> smallworld-routes       ; takes a request, returns response
+      wrap-multipart-params   ; middleware: takes a handler, returns a handler
       ssl-redirect            ; middleware: takes a handler, returns a handler
       www-redirect            ; middleware: takes a handler, returns a handler
       trim-trailing-slash     ; middleware: takes a handler, returns a handler
