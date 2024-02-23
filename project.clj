@@ -21,6 +21,8 @@
                  [cljsjs/mapbox "0.46.0-0"]
                  [ring/ring-jetty-adapter "1.9.5"]
                  [ring/ring-ssl "0.3.0"]
+                 [ring/ring-core "1.11.0"]
+                 [ring/ring-defaults "0.4.0"]
                  [yesql "0.5.3"]
                  [factual/timely "0.0.3"]
                  [ring-cors "0.1.13"]
