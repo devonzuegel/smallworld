@@ -451,6 +451,14 @@
             ;; this session is now authenticated
             (do
               (println "🐣 Creating new user in airtable with phone: " phone)
+              ; send email to admin notifying them that a new user has signed up:
+              (email/send-email {:to        "hello@smallworld.kiwi"
+                                 :from-name "MeetCute logs"
+                                 :subject   (str "🐣 New user signed up: " phone)
+                                 :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                                 "View list of users who have not yet been reviewed: "
+                                                 "<a href='https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwNrg3C6HulVYNMh?blocks=hide'>https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwNrg3C6HulVYNMh</a>."
+                                                 "</div>")})
               (airtable/create-in-base logic/airtable-base
                                        [@logic/airtable-cuties-db-name]
                                        {:fields {:Phone phone}})
