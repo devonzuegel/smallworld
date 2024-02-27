@@ -273,6 +273,7 @@ We use:
   - [x] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
 
 #### before we launch the public beta:
+- [x] security improvements
 - [ ] allow users to filter cuties by city
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [ ] backfill the locations for the people who signed up before this feature was added
@@ -284,7 +285,7 @@ We use:
     - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
     - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
     - [ ] send an email to everyone to let them know about the new feature!
-- [ ] security improvements
+- [ ] add a way to filter by life stage
 - [ ] landing page
 - [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] show past cuties that the user has missed
