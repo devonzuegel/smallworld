@@ -35,6 +35,22 @@
 (def fetch-all-bios-memoized
   (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
+(defn find-cutie [cutie-id bios]
+  (let [result (first (filter #(= (mc.util/get-field % "id")
+                                  cutie-id)
+                              bios))]
+    (if (nil? result)
+      :no-cutie
+      result)))
+
+(defn req->parsed-jwt [req]
+  (:auth/parsed-jwt req))
+
+(defn find-first-match [match-fn items]
+  (some (fn [item]
+          ;; (println "looking at: " item) ; confirm that the function only checks items until it finds a match, and then stops
+          (when (match-fn item) item)) items))
+
 (defn get-all-bios [& {:keys [force-refresh?] :or {force-refresh? false}}]
   ;; (println (str "force-refresh?  " (if force-refresh? "🔴 " "🟢 ") (str force-refresh?)))
   (let [all-bios-raw  (if force-refresh? (fetch-all-bios!) (fetch-all-bios-memoized))
@@ -42,6 +58,53 @@
                                             {:id (:id bio)}))
                            all-bios-raw)]
     all-bios-flat))
+
+
+(defn get-needed-bios [req]
+  (let [all-bios (get-all-bios :force-refresh? false)
+
+        phone (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)
+        cutie-me (find-first-match (fn [bio]
+                                     (= (mc.util/clean-phone phone)
+                                        (mc.util/clean-phone (get-in bio ["Phone"]))))
+                                   all-bios)
+        my-id (mc.util/get-field cutie-me "id")
+        todays-cutie-id (first (get-in cutie-me ["todays-cutie"]))
+        todays-cutie (find-cutie todays-cutie-id all-bios)
+        todays-cutie-abridged (select-keys todays-cutie [:id
+                                                         "Anything else you'd like your potential matches to know?"
+                                                         "First name"
+                                                         "Gender"
+                                                         "Home base city"
+                                                         "I'm interested in..."
+                                                         "If 'Other', who invited you?"
+                                                         "Include in gallery?"
+                                                         "Other cities where you spend time"
+                                                         "Pictures"
+                                                         "Social media links"
+                                                         "What makes this person awesome?"
+                                                        ;;  "Birthday"
+                                                        ;;  "Transcribed from original Google Docs from mid Oct"
+                                                        ;;  "Who invited you to this matchmaking experiment?"
+                                                        ;;  "Email"
+                                                        ;;  "Their email"
+                                                        ;;  "matches-live-data-1"
+                                                        ;;  "todays-cutie"
+                                                        ;;  "matches-live-data-1--count"
+                                                        ;;  "rejected-cuties"
+                                                        ;;  "Created By"
+                                                        ;;  "Who is another person we should invite to this experiment?"
+                                                        ;;  "matches"
+                                                        ;;  "cuties-last-refreshed"
+                                                        ;;  "Last name"
+                                                        ;;  "Phone"
+                                                        ;;  "matches-live-data-2--count"
+                                                        ;;  "Anything you'd like the organizers to know?"
+                                                        ;;  "unseen-cuties"
+                                                        ;;  "selected-cuties"
+                                                        ;;  "Yes / Maybe / No"
+                                                         ])]
+    (vec [cutie-me todays-cutie-abridged])))
 
 (defn get-all-phones []
   (let [all-bios  (get-all-bios)]
@@ -55,11 +118,6 @@
   (let [phone (mc.util/clean-phone phone)
         all-phones (get-all-phones)]
     (contains? all-phones phone)))
-
-(defn find-first-match [match-fn items]
-  (some (fn [item]
-          ;; (println "looking at: " item) ; confirm that the function only checks items until it finds a match, and then stops
-          (when (match-fn item) item)) items))
 
 (defn find-profile [id & {:keys [force-refresh?] :or {force-refresh? false}}]
   (let [all-bios (get-all-bios :force-refresh? force-refresh?)
@@ -391,9 +449,6 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn req->parsed-jwt [req]
-  (:auth/parsed-jwt req))
 
 (defn cutie-profile-rendered-for-email [cutie]
   (str "<pre>"

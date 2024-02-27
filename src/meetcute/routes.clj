@@ -46,7 +46,7 @@
 
 ;; Routes under this can only be accessed by authenticated clients
 (defroutes authenticated-routes
-  (GET  "/api/matchmaking/bios"    _   (json/generate-string (logic/get-all-bios)))
+  (GET  "/api/matchmaking/bios"    req (json/generate-string (logic/get-needed-bios req)))
   (POST "/api/matchmaking/profile" req (logic/update-profile req))
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
   (POST "/api/matchmaking/me"      req (let [phone (some-> (mc.auth/req->parsed-jwt req)
