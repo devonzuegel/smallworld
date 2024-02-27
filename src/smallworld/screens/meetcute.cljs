@@ -593,7 +593,6 @@
     (swap! bios (fn [_] [{:id "2"
                           (keyword "First name") "Alice"}]))
     (util/fetch "/meetcute/api/matchmaking/bios" (fn [result]
-                                                  ;; TODO: if success, then navigate to profile
                                                    (swap! bios (fn [_] result))))))
 
 (defn profile-section [contents]
@@ -888,7 +887,7 @@
                      (mc.util/get-field @profile "selected-cuties")
                      (mc.util/get-field @profile "rejected-cuties")]]]]))
 
-
+            ;;  [:p "count of included-bios: " (count included-bios)]
 
              #_(if (= 0 (count new-bios))
                  [:<>
