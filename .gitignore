@@ -23,3 +23,5 @@ bin/set-env-variables.sh
 # IntelliJ files
 .idea/*
 *.iml
+
+/tmp-img-uploads/
