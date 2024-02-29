@@ -297,6 +297,17 @@
                            [@airtable-cuties-db-name cutie-id]
                            {:fields {:Pictures [{:url picture-url}]}}))
 
+(defn add-pictures-to-cutie-airtable [cutie-id picture-urls]
+  (let [cutie (find-cutie cutie-id (get-all-bios))
+        old-pictures (get-in cutie ["Pictures"])]
+    (println "      :Pictures – " (:Pictures cutie))
+    (println "get-in Pictures – " (get-in cutie ["Pictures"]))
+    (airtable/update-in-base airtable-base
+                             [@airtable-cuties-db-name cutie-id]
+                             {:fields {:Pictures (concat old-pictures
+                                                         (map (fn [url] {:url url})
+                                                              picture-urls))}})))
+
 (defn refresh-todays-cutie [profile bios]
   (let [bios                     (clojure.walk/keywordize-keys bios)
         profile                  (clojure.walk/keywordize-keys profile)

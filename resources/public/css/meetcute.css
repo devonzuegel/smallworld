@@ -676,3 +676,8 @@ td {
 .img-upload input[type='submit']:hover {
   background-color: #45a049;
 }
+
+.bio-row img {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
