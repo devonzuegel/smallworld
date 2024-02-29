@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [cheshire.core :as json]
             [meetcute.logic :as logic]
+            [smallworld.util :as sw-util]
             [meetcute.auth :as mc.auth]
             [meetcute.util :as mc.util]
             [ring.util.mime-type :as mime]
@@ -50,6 +51,11 @@
         (resp/redirect "/meetcute/settings"))
       (resp/response "No file provided")))
 
+(defn tmp-file-path [file]
+  (if (= (:prod sw-util/ENVIRONMENTS) (sw-util/get-env-var "ENVIRONMENT"))
+    (str "https://smallworld.kiwi/tmp-img-uploads/"                    (:filename file))
+    (str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename file))))
+
 (defn tmp-upload-handler [request]
   (try
     (let [files (-> request :params :file)
@@ -72,7 +78,7 @@
                      (io/file (str "resources/public/tmp-img-uploads/" (:filename file)))))
 
           ; add all files to the cutie's airtable record
-          (logic/add-pictures-to-cutie-airtable (:id cutie) (map #(str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename %))
+          (logic/add-pictures-to-cutie-airtable (:id cutie) (map #(tmp-file-path %)
                                                                  files))
           (resp/redirect "/meetcute/settings"))
         (resp/response "No file provided")))

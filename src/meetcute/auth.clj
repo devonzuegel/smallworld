@@ -240,7 +240,7 @@
      "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
     (when started?
       [:div {:class "resend" :style {:margin-top "2rem"}}
-       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]]])
+       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Try again"]]])
     (embed-js-script (io/resource "public/signin.js"))]])
 
 (defn signup-route [_]
@@ -315,7 +315,7 @@
 
      (when started?
        [:div {:class "resend" :style {:margin-top "2rem"}}
-        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Start over"]] ; TODO: have this resend the code, instead of starting over entirely
+        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Try again"]] ; TODO: have this resend the code, instead of starting over entirely
         ])
      (embed-js-script (io/resource "public/signin.js"))]]])
 
