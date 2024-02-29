@@ -275,28 +275,28 @@ We use:
 #### before we launch the public beta:
 - [x] **security improvements** — 2 hours
   - [x] when done, respond to Aaron & _____
-- [ ] **photos:** add a way to upload photos via the custom form — 5 hours
+- [x] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
+  - [x] add the custom location field input to the signup form
+  - [x] add fields for all of the data collected in the original form: https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwiUzsTUarShMVDN?blocks=hide
+    - [x] first name
+    - [x] last name
+    - [x] who invited you? (skipped for now, because the following question captures it, albeit in an unstructured way)
+    - [x] if other, who invited you?
+    - [x] I'm interested in... [men/women]
+    - [x] my gender is... [man/woman]
+    - [x] social media links
+    - [x] pictures – add a way to upload – this is a big project in and of itself, so I'm adding it as its own task below
+    - [x] home base city
+    - [x] other cities
+    - [x] birthday
+    - [x] phone
+    - [x] email
+  - [x] add a way to mark the profile as "ready for review", but only once they've completed all the required fields
+  - [x] give users a way to make their profile public/private
+- [x] **photos:** add a way to upload photos via the custom form — 5 hours
 - [ ] **allow users to filter cuties by city**
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [x] mobile styles for the profile editing page
-  - [x] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
-    - [x] add the custom location field input to the signup form
-    - [x] add fields for all of the data collected in the original form: https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwiUzsTUarShMVDN?blocks=hide
-      - [x] first name
-      - [x] last name
-      - [x] who invited you? (skipped for now, because the following question captures it, albeit in an unstructured way)
-      - [x] if other, who invited you?
-      - [x] I'm interested in... [men/women]
-      - [x] my gender is... [man/woman]
-      - [x] social media links
-      - [x] pictures – add a way to upload – this is a big project in and of itself, so I'm adding it as its own task below
-      - [x] home base city
-      - [x] other cities
-      - [x] birthday
-      - [x] phone
-      - [x] email
-    - [x] add a way to mark the profile as "ready for review", but only once they've completed all the required fields
-    - [x] give users a way to make their profile public/private
   - [ ] backfill the locations for the people who signed up before this feature was added — 2 hours
   - [ ] add option to filter by locations — once this is done, update these people: — 2 hours
       - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
