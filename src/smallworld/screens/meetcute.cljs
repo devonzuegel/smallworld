@@ -450,9 +450,10 @@
      [:br]]))
 
 (defn upload-photos-form []
-  [:form {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"}
-   [:input {:type "file" :name "file" :accept "image/*"}]
-   [:input {:type "submit" :value "Upload image"}]])
+  [:form.img-upload {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"}
+   [:label {:for "file-upload" :class "custom-file-upload"}
+    [:input {:id "file-upload" :type "file" :multiple true :name "file" :accept "image/*" :title "upload a photo"}]]
+   [:input {:type "submit" :value "Upload"}]])
 
 (defn profile-tab []
   (let [filling-out-profile? (= "filling out profile"

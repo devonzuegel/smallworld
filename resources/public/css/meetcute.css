@@ -638,3 +638,41 @@ td {
   padding: 24px 48px 24px 32px;
   border-radius: 6px;
 }
+
+// image upload form:
+
+.img-upload input[type='file'] {
+  display: block;
+  width: 100%;
+  min-height: 200px;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  margin: 20px 0;
+  padding: 20px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.img-upload input[type='file'] {
+  border: 3px solid rgba(188, 181, 175, 0.3);
+  width: 80%;
+  padding: 48px;
+  margin: 16px 0;
+  border-radius: 8px;
+}
+
+.img-upload input[type='submit'] {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.img-upload input[type='submit']:hover {
+  background-color: #45a049;
+}
