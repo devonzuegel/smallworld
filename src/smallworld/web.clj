@@ -605,6 +605,37 @@
     (generate-string (ring-response/bad-request {:message "you don't have access to this page"}))
     (email-update-worker)))
 
+;; (defn serve-file [request]
+;;   (let [filename "favicon.png"
+;;         file-path (str "/tmp/" filename)
+;;         file-content (slurp file-path)]
+;;     {:status 200
+;;      :headers {"Content-Type" "img/*"}
+;;      :body file-content}))
+
+(defn serve-image-from-tmp [file-name]
+  (let [file-path (str "/tmp/" file-name)]
+    (if (.exists (java.io.File. file-path))
+      (let [file-bytes (java.nio.file.Files/readAllBytes (java.nio.file.Paths/get file-path (into-array String [])))]
+        {:status 200
+         :headers {"Content-Type" "img/*"}
+         :body file-bytes})
+      {:status 404 :body "File not found"})))
+
+
+;; (let [file-path (str "/tmp/" file-name)]
+;;   (ring-response/response (ring-io/piped-input-stream
+;;                            (fn [input-stream]
+;;                              (let [writer (io/make-writer input-stream {})]
+;;                                (io/copy (io/file file-path) writer))))))
+
+
+;; (let [file-path (str "/tmp/" file-name)]
+;;   (if (.exists (java.io.File. file-path))
+;;     {:status 200
+;;      :headers {"Content-Type" "img/*"}
+;;      :body (slurp file-path :encoding "ISO-8859-1")}
+;;     {:status 404 :body "File not found"}))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app core ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -648,6 +679,16 @@
                                                    settings    (first (db/select-by-col db/settings-table :screen_name screen-name))]
                                                (refresh-friends-from-twitter settings nil nil))) ; TODO: keep refactoring
   (GET "/api/v1/worker" req (worker-endpoint req))
+
+  (GET "/tmp/:file-name" req (let [file-name (get-in req [:params :file-name])]
+                               (println)
+                               (println)
+                               (println)
+                               (println "serving file: " file-name)
+                               (println)
+                               (println)
+                               (println)
+                               (serve-image-from-tmp file-name)))
 
   (compo/context "/ketchup" []
     ketchup.routes/app)
