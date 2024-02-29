@@ -273,11 +273,12 @@ We use:
   - [x] backfill the emails for the people who matched on 2024.02.13, i.e. send them manually
 
 #### before we launch the public beta:
-- [x] security improvements
-- [ ] allow users to filter cuties by city
+- [x] **security improvements** — 2 hours
+  - [x] when done, respond to Aaron & _____
+- [ ] **photos:** add a way to upload photos via the custom form — 5 hours
+- [ ] **allow users to filter cuties by city**
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
-  - [ ] mobile styles for the profile editing page
-  - [ ] backfill the locations for the people who signed up before this feature was added
+  - [x] mobile styles for the profile editing page
   - [x] replace the airtable signup form with the custom signup form (important, because right now people can put in poorly-formed phone numbers, which will break the app! though luckily I ask them for the country code very insistently so hopefully that will prevent most issues)
     - [x] add the custom location field input to the signup form
     - [x] add fields for all of the data collected in the original form: https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwiUzsTUarShMVDN?blocks=hide
@@ -288,7 +289,7 @@ We use:
       - [x] I'm interested in... [men/women]
       - [x] my gender is... [man/woman]
       - [x] social media links
-      - [ ] pictures – add a way to upload (!!!!!!!!!!!!!!!!!!!!!!)
+      - [x] pictures – add a way to upload – this is a big project in and of itself, so I'm adding it as its own task below
       - [x] home base city
       - [x] other cities
       - [x] birthday
@@ -296,21 +297,32 @@ We use:
       - [x] email
     - [x] add a way to mark the profile as "ready for review", but only once they've completed all the required fields
     - [x] give users a way to make their profile public/private
-  - [ ] add option to filter by locations
-  - [ ] once this is done, update these people:
-    - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
-    - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
-    - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
-    - [ ] send an email to everyone to let them know about the new feature!
+  - [ ] backfill the locations for the people who signed up before this feature was added — 2 hours
+  - [ ] add option to filter by locations — once this is done, update these people: — 2 hours
+      - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
+      - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
+      - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
+      - [ ] send an email to everyone to let them know about the new feature!
 - [ ] add a way to filter by life stage
-- [ ] landing page
 - [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
   - [ ] update mariah when this is done
-- [ ] consider adding a way for users to include info about religion, politics, age, what they're looking for, etc
+- [ ] **landing page** — 3 hours
+  - [ ] draft copy explaining how MeetCute works
+  - [ ] design the landing page – keep it simple, with a big orange button to sign up
+  - [ ] implement it!
 
 #### nice to have later on:
+- [ ] **filters:** add a way for users to include info about religion, politics, life stage, what they're lookinsg for, etc
+- [ ] **fix:** when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
+- [ ] if someone hasn't selected/rejected a cutie in 10 days, send them an email saying "We're going to mark your account as inactive and stop showing you to cuties. If you want to keep using the app, just log in and we'll start showing you cuties again"
+- [ ] Asher: "these emails send out exactly ten minutes later every day for me"
+  - [ ] fix it
+  - [ ] email Asher when it's fixed
+- [ ] show past cuties that the user has missed
+  - [ ] update Gillian when this is done (via SMS)
+  - [ ] update Mariah when this is done
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
   - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
 - [ ] profile page improvements:
