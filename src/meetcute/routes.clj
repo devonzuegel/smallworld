@@ -35,11 +35,19 @@
                (add-mime-type resource-path options))))))
 
 (defn tmp-upload-handler [request]
-  ; TODO: handle edge cases and errors
-  (let [file (-> request :params :file)]
-    (when file
-      (io/copy (:tempfile file) (io/file (str "tmp/" (:filename file))))))
-  (resp/response "File uploaded successfully!"))
+  (if-let [file (-> request :params :file)]
+    (let [phone (some-> (mc.auth/req->parsed-jwt request) :auth/phone mc.util/clean-phone)
+          cutie (logic/my-profile phone :force-refresh? true)]
+      (println "cutie id: " (:id cutie))
+      (println "   phone: " phone)
+      (println     "file: " file)
+      (println "filename: " (:filename file))
+      (io/copy (:tempfile file)
+               (io/file (str "resources/public/tmp-img-uploads/" (:filename file))))
+      (logic/update-cutie-picture (:id cutie)
+                                  (str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename file)))
+      (resp/redirect "/meetcute/settings"))
+    (resp/response "No file provided")))
 
 (defroutes open-routes
   (ANY  "/"         []  (io/resource "public/meetcute.html"))

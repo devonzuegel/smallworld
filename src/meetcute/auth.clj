@@ -7,6 +7,7 @@
             [net.cgrand.enlive-html :as enlive]
             [meetcute.sms :as sms]
             [meetcute.util :as mc.util]
+            [smallworld.email :as email]
             [meetcute.env :as env]
             [meetcute.screens.styles :as mc.styles]
             [meetcute.logic :as logic]
