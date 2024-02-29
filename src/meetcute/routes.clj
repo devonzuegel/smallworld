@@ -10,7 +10,8 @@
             [ring.util.request]
             [ring.util.response :as resp]
             [cheshire.core :refer [generate-string]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [smallworld.airtable :as airtable]))
 
 (defn parse-body-params [body]
   (json/parse-string body true))
@@ -61,14 +62,18 @@
               cutie (logic/my-profile phone :force-refresh? true)]
           (println "cutie id: " (:id cutie))
           (println "   phone: " phone)
+
+          ; for each file, copy it to the tmp-img-uploads directory
           (doseq [file files]
             (println "file: " file)
             (println "filename: " (:filename file))
             (println "")
             (io/copy (:tempfile file)
-                     (io/file (str "resources/public/tmp-img-uploads/" (:filename file))))
-            (logic/update-cutie-picture (:id cutie)
-                                        (str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename file))))
+                     (io/file (str "resources/public/tmp-img-uploads/" (:filename file)))))
+
+          ; add all files to the cutie's airtable record
+          (logic/add-pictures-to-cutie-airtable (:id cutie) (map #(str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename %))
+                                                                 files))
           (resp/redirect "/meetcute/settings"))
         (resp/response "No file provided")))
 
