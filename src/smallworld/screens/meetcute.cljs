@@ -302,23 +302,26 @@
               :on-change (change-profile-field field-name)}])
 
 (defn editable-date-input [field-name]
-  [:div.editable-input {:style {:width "95%"}}
-   [:div.input-date-overlay
-    (let [date (mc.util/get-field @profile field-name)]
+  (let [date (mc.util/get-field @profile field-name)]
+    [:div {:style {:width "95%"}
+           :className (if (str/blank? date)
+                        "editable-input required-but-empty"
+                        "editable-input required-not-empty")}
+     [:div.input-date-overlay
       (if (str/blank? date)
         "YYYY-MM-DD"
-        date))]
+        date)]
 
-   [:input.editable-input.input-container
-    {:type "date"
+     [:input.editable-input.input-container
+      {:type "date"
     ; TODO: format it so that it displays the date like February 14, 2021
-     :value (or (mc.util/get-field @profile field-name) "")
-     :on-change  (fn [event]
-                   (let [new-value (-> event .-target .-value)]
-                     (reset! profile (assoc @profile (keyword field-name) new-value))
-                     (if (str/blank? new-value)
-                       (println "not updating the date in airtable because it's blank")
-                       (update-profile-debounced!))))}]])
+       :value (or (mc.util/get-field @profile field-name) "")
+       :on-change  (fn [event]
+                     (let [new-value (-> event .-target .-value)]
+                       (reset! profile (assoc @profile (keyword field-name) new-value))
+                       (if (str/blank? new-value)
+                         (println "not updating the date in airtable because it's blank")
+                         (update-profile-debounced!))))}]]))
 
 (defn fa-icon [icon-name & {:keys [outlined style] :or {outlined false}}]
   [:i {:className (str/join " " [(if outlined "far" "fas")
@@ -481,17 +484,24 @@
                         {:open true}
                         [["First name" (editable-input "First name") {:required? true}]
                          ["Last name"      (editable-input "Last name")]
-                         ["My gender"  (radio-btns-component ["Man" "Woman"]
-                                                             (mc.util/get-field @profile "Gender")
-                                                             (fn [foobar]
-                                                               (reset! profile (assoc @profile (keyword "Gender") foobar))
-                                                               (update-profile-debounced!)))
+                         ["My gender"  [:div {:className (if (str/blank? (mc.util/get-field @profile "Gender"))
+                                                           "required-but-empty"
+                                                           "required-not-empty")}
+                                        (radio-btns-component ["Man" "Woman"]
+                                                              (mc.util/get-field @profile "Gender")
+                                                              (fn [foobar]
+                                                                (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                                (update-profile-debounced!)))]
                           {:required? true}]
-                         ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                       (mc.util/get-field @profile "I'm interested in...")
-                                                                       (fn [foobar]
-                                                                         (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
-                                                                         (update-profile-debounced!)))
+                         ["I'm interested in..." [:div {:className (if (or (str/blank? (mc.util/get-field @profile "I'm interested in..."))
+                                                                           (empty?     (mc.util/get-field @profile "I'm interested in...")))
+                                                                     "required-but-empty"
+                                                                     "required-not-empty")}
+                                                  (checkboxes-component ["Men" "Women"]
+                                                                        (mc.util/get-field @profile "I'm interested in...")
+                                                                        (fn [foobar]
+                                                                          (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
+                                                                          (update-profile-debounced!)))]
                           {:required? true}]
                          ["Phone" [:div {:style {:max-width "380px"}}
                                    [:div {:style {:background "rgb(188, 181, 175, .1)"
