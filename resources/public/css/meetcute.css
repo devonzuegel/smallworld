@@ -206,11 +206,17 @@ li {
   transition: all 0.2s ease-in-out;
 }
 .required textarea:empty:not(:focus),
-.required .editable-input[value='']:not(:focus) {
+.required .editable-input.required-but-empty,
+.required .editable-input[value='']:not([type='date']):not(:focus) {
   background-color: rgb(255, 248, 243);
   border: 3px solid rgb(255, 181, 128);
   transition: all 0.2s ease-in-out;
 }
+
+.required .editable-input.required-but-empty input {
+  background-color: rgb(255, 248, 243);
+}
+
 .bio-row-locations .bio-row {
   width: 100%;
 }
@@ -218,7 +224,7 @@ li {
   max-width: 78vw;
   display: flex;
 }
-.bio-row-value input:focus {
+.bio-row-value input:focus:not([type='date']) {
   border: 3px solid rgba(188, 181, 175, 0.6) !important;
   transition: all 0.2s ease-in-out;
 }
@@ -226,6 +232,16 @@ li {
   .bio-row-value {
     min-width: 370px;
   }
+}
+.required-but-empty,
+.required-not-empty {
+  padding: 6px 8px 8px 8px;
+  border: 3px solid transparent;
+}
+.required-but-empty {
+  background-color: rgb(255, 248, 243);
+  border: 3px solid rgb(255, 181, 128);
+  border-radius: 8px;
 }
 .editable-input {
   background: white;
@@ -469,6 +485,7 @@ td {
 
 .add-location-btn.empty {
   border-color: rgb(255, 181, 128) !important;
+  background-color: rgb(255, 248, 243);
 }
 
 .location-field .delete-location-btn {
