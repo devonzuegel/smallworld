@@ -446,222 +446,222 @@
 
      [:br]]))
 
-(defn upload-form []
+(defn upload-photos-form []
   [:form {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"}
    [:input {:type "file" :name "file" :accept "image/*"}]
    [:input {:type "submit" :value "Upload image"}]])
 
 (defn profile-tab []
-  (upload-form)
-  #_(let [filling-out-profile? (= "filling out profile"
-                                  (mc.util/get-field @profile "Include in gallery?"))
-          waiting-for-review? (= "not yet reviewed"
-                                 (mc.util/get-field @profile "Include in gallery?"))]
-      [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
+  (let [filling-out-profile? (= "filling out profile"
+                                (mc.util/get-field @profile "Include in gallery?"))
+        waiting-for-review? (= "not yet reviewed"
+                               (mc.util/get-field @profile "Include in gallery?"))]
+    [:div {:style {:border-radius "8px" :padding "12px" :margin-left "auto" :margin-right "auto" :width "90%" :max-width "850px"}}
 
-       [saved-toast]
+     [saved-toast]
 
-       [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
-       [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
+     [:style "@media screen and (max-width: 1300px) { .your-profile { margin-top: 24px; } }"]
+     [:h1 {:style {:font-size 36 :line-height "1.3em" :padding "0 12px"} :className "your-profile"} "Your profile"]
 
-       (when filling-out-profile? ; only show this when the user's status is 'not yet reviewed '
-         [:div {:style {:padding "12px 0 0 12px"}}
-          [:div.welcome-message
-           [:p {:style {:font-size "1.8em"}} "👋"]
-           [:p "Hi there, welcome to MeetCute! We can't wait to intro you to some cuties. Once you fill in your profile, you can submit it for review. "
-            "— " [:a {:href "https://twitter.com/devonzuegel" :target "_blank"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg" :target "_blank"} "Erik"]]]])
+     (when filling-out-profile? ; only show this when the user's status is 'not yet reviewed '
+       [:div {:style {:padding "12px 0 0 12px"}}
+        [:div.welcome-message
+         [:p {:style {:font-size "1.8em"}} "👋"]
+         [:p "Hi there, welcome to MeetCute! We can't wait to intro you to some cuties. Once you fill in your profile, you can submit it for review. "
+          "— " [:a {:href "https://twitter.com/devonzuegel" :target "_blank"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg" :target "_blank"} "Erik"]]]])
 
-       (when waiting-for-review?
-         [:div {:style {:padding "12px 0 0 12px"}}
-          [:div.welcome-message
-           [:p {:style {:font-size "1.8em"}} "🍊"]
-           [:p "Thanks for submitting your profile! We're reviewing it now. You'll start getting Cuties of the Day in your email inbox when it's live. "
-            "— " [:a {:href "https://twitter.com/devonzuegel" :target "_blank"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg" :target "_blank"} "Erik"]]]])
+     (when waiting-for-review?
+       [:div {:style {:padding "12px 0 0 12px"}}
+        [:div.welcome-message
+         [:p {:style {:font-size "1.8em"}} "🍊"]
+         [:p "Thanks for submitting your profile! We're reviewing it now. You'll start getting Cuties of the Day in your email inbox when it's live. "
+          "— " [:a {:href "https://twitter.com/devonzuegel" :target "_blank"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg" :target "_blank"} "Erik"]]]])
 
-       (let [key-values [["Basic details"
-                          {:open true}
-                          [["First name" (editable-input "First name") {:required? true}]
-                           ["Last name"      (editable-input "Last name")]
-                           ["My gender"  (radio-btns-component ["Man" "Woman"]
-                                                               (mc.util/get-field @profile "Gender")
-                                                               (fn [foobar]
-                                                                 (reset! profile (assoc @profile (keyword "Gender") foobar))
-                                                                 (update-profile-debounced!)))
-                            {:required? true}]
-                           ["I'm interested in..." (checkboxes-component ["Men" "Women"]
-                                                                         (mc.util/get-field @profile "I'm interested in...")
-                                                                         (fn [foobar]
-                                                                           (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
-                                                                           (update-profile-debounced!)))
-                            {:required? true}]
-                           ["Phone" [:div {:style {:max-width "380px"}}
-                                     [:div {:style {:background "rgb(188, 181, 175, .1)"
-                                                    :border "3px solid rgb(188, 181, 175, .3)"
-                                                    :cursor "not-allowed"
-                                                    :border-radius "8px"
-                                                    :padding "6px 8px"
-                                                    :margin-right "4px"
-                                                    :width "95%"
-                                                    :max-width "380px"}}
+     (let [key-values [["Basic details"
+                        {:open true}
+                        [["First name" (editable-input "First name") {:required? true}]
+                         ["Last name"      (editable-input "Last name")]
+                         ["My gender"  (radio-btns-component ["Man" "Woman"]
+                                                             (mc.util/get-field @profile "Gender")
+                                                             (fn [foobar]
+                                                               (reset! profile (assoc @profile (keyword "Gender") foobar))
+                                                               (update-profile-debounced!)))
+                          {:required? true}]
+                         ["I'm interested in..." (checkboxes-component ["Men" "Women"]
+                                                                       (mc.util/get-field @profile "I'm interested in...")
+                                                                       (fn [foobar]
+                                                                         (reset! profile (assoc @profile (keyword "I'm interested in...") foobar))
+                                                                         (update-profile-debounced!)))
+                          {:required? true}]
+                         ["Phone" [:div {:style {:max-width "380px"}}
+                                   [:div {:style {:background "rgb(188, 181, 175, .1)"
+                                                  :border "3px solid rgb(188, 181, 175, .3)"
+                                                  :cursor "not-allowed"
+                                                  :border-radius "8px"
+                                                  :padding "6px 8px"
+                                                  :margin-right "4px"
+                                                  :width "95%"
+                                                  :max-width "380px"}}
                                                               ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                      (format-phone (mc.util/get-field @profile "Phone"))]
-                                     [small-text [:span "If you'd like to change your phone number, email "
-                                                  [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]
-                            {:required? true}]
-                           ["Email" [:div {:style {:max-width "380px"}}
-                                     (editable-input "Email")
-                                     [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
-                            {:required? true}]
-                           ["Who invited you to MeetCute?" (editable-input "If 'Other', who invited you?") {:required? true}]
-                           ["What's your birthday?" (editable-date-input "Birthday") {:required? true}]
+                                    (format-phone (mc.util/get-field @profile "Phone"))]
+                                   [small-text [:span "If you'd like to change your phone number, email "
+                                                [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]
+                          {:required? true}]
+                         ["Email" [:div {:style {:max-width "380px"}}
+                                   (editable-input "Email")
+                                   [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
+                          {:required? true}]
+                         ["Who invited you to MeetCute?" (editable-input "If 'Other', who invited you?") {:required? true}]
+                         ["What's your birthday?" (editable-date-input "Birthday") {:required? true}]
 
-                           (let [include-in-gallery-status? (mc.util/get-field @profile "Include in gallery?")]
-                             (when (or (= include-in-gallery-status? "include in gallery")
-                                       (= include-in-gallery-status? "they asked to be removed"))
-                               ["Profile visibility" [:div.profile-visibility
-                                                      [:div {:style {:display "flex" :align-items "center" :text-align "left" :padding "4px 0"}}
-                                                       [:input {:type "radio"
-                                                                :id "include-in-gallery-yes"
-                                                                :checked (not= "they asked to be removed" include-in-gallery-status?) ; there are other states, but we're only showing two options here
-                                                                :style {:margin-right "10px"}
-                                                                :on-change (fn []
-                                                                             (reset! profile (assoc @profile (keyword "Include in gallery?") "include in gallery"))
-                                                                             (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
-                                                                                                                                                                    (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
-                                                                                                                                                                            ["Phone"])))
-                                                                                                                                         {(keyword "Include in gallery?") "include in gallery"})))}]
-                                                       [:label {:for "include-in-gallery-yes"} "Show my profile to other cuties"]]
-                                                      [:div {:style {:display "flex" :align-items "center" :padding "4px 0"}}
-                                                       [:input {:type "radio"
-                                                                :id "include-in-gallery-no"
-                                                                :checked (= "they asked to be removed" include-in-gallery-status?)
-                                                                :style {:margin-right "10px"}
-                                                                :on-change (fn []
-                                                                             (reset! profile (assoc @profile (keyword "Include in gallery?") "they asked to be removed")) ; reset to "not yet reviewed" so that the user can submit it for review again
-                                                                             (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
-                                                                                                                                                                    (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
-                                                                                                                                                                            ["Phone"])))
-                                                                                                                                         {(keyword "Include in gallery?") "they asked to be removed"})))}]
-                                                       [:label {:for "include-in-gallery-no"} "Make my profile private"]]]]))]]
-                         ["Locations"
-                          {:open true
-                           :className "bio-row-locations"}
-                          [["Where would you like to meet cuties? (ALPHA FEATURE)"
-                            [:<>
-                             (if (= @*locations-new :loading)
-                               [:p "Loading locations..."]
-                               [:div.location-fields
-                                (for [[index location] (map-indexed vector @*locations-new)]
-                                  (location-field {:index       index
-                                                   :label       ""
-                                                   :placeholder "Place"
-                                                   :value       (:name location)
-                                                   :location-type (:location-type location)
-                                                   :coords      (:coords location)
-                                                   :update!     (fn [new-value]
-                                                                  (swap! *locations-new update index assoc :name new-value)
-                                                                  (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
-                                                                  (update-profile-debounced!))}))
-                                [:button
-                                 {:className (if (zero? (count @*locations-new)) "add-location-btn empty" "add-location-btn")
-                                  :on-click (fn []
-                                              (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
-                                              (js/setTimeout (fn []
-                                                               (.scrollIntoView
-                                                                (last (array-seq (goog.dom/getElementsByClass "location-field")))
-                                                                #js{:behavior "smooth" :block "center" :inline "center"})
+                         (let [include-in-gallery-status? (mc.util/get-field @profile "Include in gallery?")]
+                           (when (or (= include-in-gallery-status? "include in gallery")
+                                     (= include-in-gallery-status? "they asked to be removed"))
+                             ["Profile visibility" [:div.profile-visibility
+                                                    [:div {:style {:display "flex" :align-items "center" :text-align "left" :padding "4px 0"}}
+                                                     [:input {:type "radio"
+                                                              :id "include-in-gallery-yes"
+                                                              :checked (not= "they asked to be removed" include-in-gallery-status?) ; there are other states, but we're only showing two options here
+                                                              :style {:margin-right "10px"}
+                                                              :on-change (fn []
+                                                                           (reset! profile (assoc @profile (keyword "Include in gallery?") "include in gallery"))
+                                                                           (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
+                                                                                                                                                                  (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                                                                                                                          ["Phone"])))
+                                                                                                                                       {(keyword "Include in gallery?") "include in gallery"})))}]
+                                                     [:label {:for "include-in-gallery-yes"} "Show my profile to other cuties"]]
+                                                    [:div {:style {:display "flex" :align-items "center" :padding "4px 0"}}
+                                                     [:input {:type "radio"
+                                                              :id "include-in-gallery-no"
+                                                              :checked (= "they asked to be removed" include-in-gallery-status?)
+                                                              :style {:margin-right "10px"}
+                                                              :on-change (fn []
+                                                                           (reset! profile (assoc @profile (keyword "Include in gallery?") "they asked to be removed")) ; reset to "not yet reviewed" so that the user can submit it for review again
+                                                                           (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
+                                                                                                                                                                  (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                                                                                                                          ["Phone"])))
+                                                                                                                                       {(keyword "Include in gallery?") "they asked to be removed"})))}]
+                                                     [:label {:for "include-in-gallery-no"} "Make my profile private"]]]]))]]
+                       ["Locations"
+                        {:open true
+                         :className "bio-row-locations"}
+                        [["Where would you like to meet cuties? (ALPHA FEATURE)"
+                          [:<>
+                           (if (= @*locations-new :loading)
+                             [:p "Loading locations..."]
+                             [:div.location-fields
+                              (for [[index location] (map-indexed vector @*locations-new)]
+                                (location-field {:index       index
+                                                 :label       ""
+                                                 :placeholder "Place"
+                                                 :value       (:name location)
+                                                 :location-type (:location-type location)
+                                                 :coords      (:coords location)
+                                                 :update!     (fn [new-value]
+                                                                (swap! *locations-new update index assoc :name new-value)
+                                                                (fetch-coordinates-debounced! (str "minimap--location-" index) new-value index)
+                                                                (update-profile-debounced!))}))
+                              [:button
+                               {:className (if (zero? (count @*locations-new)) "add-location-btn empty" "add-location-btn")
+                                :on-click (fn []
+                                            (swap! *locations-new conj {:location-type (if (zero? (count @*locations-new)) "home-base" "visit-often")})
+                                            (js/setTimeout (fn []
+                                                             (.scrollIntoView
+                                                              (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                                              #js{:behavior "smooth" :block "center" :inline "center"})
 
                                                                                                                  ; focus on the input inside of that last location-field:
-                                                               (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
-                                                                   (.querySelector "input.location-input")
-                                                                   (.focus)))
-                                                             50))}
-                                 [:span.inner
-                                  "+ New location"]]])]
-                            {:required? true}]
-                           ["Home base" (editable-input "Home base city")]
-                           ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
+                                                             (-> (last (array-seq (goog.dom/getElementsByClass "location-field")))
+                                                                 (.querySelector "input.location-input")
+                                                                 (.focus)))
+                                                           50))}
+                               [:span.inner
+                                "+ New location"]]])]
+                          {:required? true}]
+                         ["Home base" (editable-input "Home base city")]
+                         ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
 
-                         ["Other"
-                          {:open true}
-                          [["About me"                        (editable-textbox "Anything else you'd like your potential matches to know?")  {:required? true}]
-                           ["Social media links"              (editable-textbox "Social media links")]
-                           ["What makes this person awesome?" [:div
-                                                               [:div {:style {:margin-bottom "4px"}}
-                                                                [small-text (md->hiccup "Ask a friend to write a few sentences about you. <a href='https://bit.ly/matchmaking-vouch-examples' target='_blank'>Here are some examples.</a>")]]
-                                                               (editable-textbox "What makes this person awesome?")
-                                                               [:div {:style {:margin-top "8px"}}] ; spacer
-                                                               [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
-                                                               [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
-                                                                [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
-                                                                                             "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\" ***"))
-                                                                 {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
+                       ["Other"
+                        {:open true}
+                        [["About me"                        (editable-textbox "Anything else you'd like your potential matches to know?")  {:required? true}]
+                         ["Social media links"              (editable-textbox "Social media links")]
+                         ["What makes this person awesome?" [:div
+                                                             [:div {:style {:margin-bottom "4px"}}
+                                                              [small-text (md->hiccup "Ask a friend to write a few sentences about you. <a href='https://bit.ly/matchmaking-vouch-examples' target='_blank'>Here are some examples.</a>")]]
+                                                             (editable-textbox "What makes this person awesome?")
+                                                             [:div {:style {:margin-top "8px"}}] ; spacer
+                                                             [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
+                                                             [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
+                                                              [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                           "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\" ***"))
+                                                               {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
-                           ["Pictures" [:div
-                                        [small-text [:span "If you'd like to add or remove pictures, email "
-                                                     [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
-                                        (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
-                                                     (mc.util/get-field @profile "Pictures"))]]]]]]
-         (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
-                                                     [:summary [:span.title title]]
-                                                     [:div {:style {:margin "0"
-                                                                    :border-radius "8px"
-                                                                    :padding "6px"
-                                                                    :vertical-align "top"
-                                                                    :line-height "1.2em"
-                                                                    :display "flex"
-                                                                    :justify-content "space-between"
-                                                                    :flex-wrap "wrap"
-                                                                    :width "100%"}}
-                                                      (map-indexed bio-row items)]])
-                      key-values))
+                         ["Pictures" [:div
+                                      [small-text [:span "If you'd like to add or remove pictures, email "
+                                                   [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
+                                      (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
+                                                   (mc.util/get-field @profile "Pictures"))
+                                      (upload-photos-form)]]]]]]
+       (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
+                                                   [:summary [:span.title title]]
+                                                   [:div {:style {:margin "0"
+                                                                  :border-radius "8px"
+                                                                  :padding "6px"
+                                                                  :vertical-align "top"
+                                                                  :line-height "1.2em"
+                                                                  :display "flex"
+                                                                  :justify-content "space-between"
+                                                                  :flex-wrap "wrap"
+                                                                  :width "100%"}}
+                                                    (map-indexed bio-row items)]])
+                    key-values))
 
-       (when filling-out-profile?
-         (let [errors (remove nil? [(when (str/blank? (mc.util/get-field @profile "First name"))                                               "First name")
-                                    (when (str/blank? (mc.util/get-field @profile "Gender"))                                                   "Gender")
-                                    (when (empty?     (mc.util/get-field @profile "I'm interested in..."))                                     "Sexual orientation")
-                                    (when (str/blank? (mc.util/get-field @profile "Phone"))                                                    "Phone")
-                                    (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
-                                    (when (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")) "About me")
-                                    (when (or (empty? @*locations-new)
+     (when filling-out-profile?
+       (let [errors (remove nil? [(when (str/blank? (mc.util/get-field @profile "First name"))                                               "First name")
+                                  (when (str/blank? (mc.util/get-field @profile "Gender"))                                                   "Gender")
+                                  (when (empty?     (mc.util/get-field @profile "I'm interested in..."))                                     "Sexual orientation")
+                                  (when (str/blank? (mc.util/get-field @profile "Phone"))                                                    "Phone")
+                                  (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
+                                  (when (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")) "About me")
+                                  (when (or (empty? @*locations-new)
                                           ; return true all of the location names are non-blank:
-                                              (not (every? (comp not str/blank?) (map :name @*locations-new))))
-                                      "At least 1 location")])]
-           [:div.ready-for-review
+                                            (not (every? (comp not str/blank?) (map :name @*locations-new))))
+                                    "At least 1 location")])]
+         [:div.ready-for-review
 
-            [:button {:className (if (empty? errors) "enabled" "disabled")
-                      :title (if (empty? errors)
-                               "Submit your profile for review"
-                               "You're missing a few required fields")
-                      :on-click (fn []
-                                  (when (empty? errors)
-                                    (reset! profile (assoc @profile (keyword "Include in gallery?") "not yet reviewed"))
-                                    (println (merge (select-keys @profile (map #(keyword %)
-                                                                               (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
-                                                                                       ["Phone"])))
-                                                    {(keyword "Include in gallery?") "not yet reviewed"}))
-                                    (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
-                                                                                                                           (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
-                                                                                                                                   ["Phone"])))
-                                                                                                {(keyword "Include in gallery?") "not yet reviewed"}))
-                                    #_(update-profile!)))}
-             "Submit for review"]
+          [:button {:className (if (empty? errors) "enabled" "disabled")
+                    :title (if (empty? errors)
+                             "Submit your profile for review"
+                             "You're missing a few required fields")
+                    :on-click (fn []
+                                (when (empty? errors)
+                                  (reset! profile (assoc @profile (keyword "Include in gallery?") "not yet reviewed"))
+                                  (println (merge (select-keys @profile (map #(keyword %)
+                                                                             (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                                     ["Phone"])))
+                                                  {(keyword "Include in gallery?") "not yet reviewed"}))
+                                  (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
+                                                                                                                         (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
+                                                                                                                                 ["Phone"])))
+                                                                                              {(keyword "Include in gallery?") "not yet reviewed"}))
+                                  #_(update-profile!)))}
+           "Submit for review"]
 
-            [:div.errors-list
-             [:p
-              (if (seq errors)
-                "Hold up, we need a bit more info before you submit your profile for review"
-                "🍊 Now THAT'S a cute profile! Submit it & we'll start sending you cuties once we review it 🍊")]]
+          [:div.errors-list
+           [:p
+            (if (seq errors)
+              "Hold up, we need a bit more info before you submit your profile for review"
+              "🍊 Now THAT'S a cute profile! Submit it & we'll start sending you cuties once we review it 🍊")]]
 
-            #_(if (seq errors)
-                [:div.errors-list
-                 [:p "Once you fill out all the required fields, you can submit your profile for review"]]
-                [:p.errors-list "Once your profile is reviewed, we'll start sending you Cuties of the Day!"])]))
+          #_(if (seq errors)
+              [:div.errors-list
+               [:p "Once you fill out all the required fields, you can submit your profile for review"]]
+              [:p.errors-list "Once your profile is reviewed, we'll start sending you Cuties of the Day!"])]))
 
 
-       [:br] [:br] [:br]
-       [:br] [:br] [:br]
-       [:br]]))
+     [:br] [:br] [:br]
+     [:br] [:br] [:br]
+     [:br]]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

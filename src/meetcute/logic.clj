@@ -292,6 +292,11 @@
           formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss zz")]
       (.format local-time formatter))))
 
+(defn update-cutie-picture [cutie-id picture-url]
+  (airtable/update-in-base airtable-base
+                           [@airtable-cuties-db-name cutie-id]
+                           {:fields {:Pictures [{:url picture-url}]}}))
+
 (defn refresh-todays-cutie [profile bios]
   (let [bios                     (clojure.walk/keywordize-keys bios)
         profile                  (clojure.walk/keywordize-keys profile)
@@ -581,7 +586,6 @@
 
 ; TODO: remove this route
 (defn refresh-todays-cutie-route-mine [req]
-
   (let [phone (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)
         cutie (my-profile phone :force-refresh? true)]
     (println "refresh-todays-cutie for JUST ME")
