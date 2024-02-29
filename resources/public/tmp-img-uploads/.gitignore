@@ -1,6 +1,0 @@
-# Ignore all files in this directory except this gitignore file.
-# The reason for this is so that the directory gets included in the git repo, but the files in the directory do not get included.
-# This is because we want production to be able to create the files in the directory, but we don't want to include files created locally in the git repo.
-*
-*/
-!.gitignore
