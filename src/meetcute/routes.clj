@@ -34,20 +34,47 @@
        (some-> (resp/resource-response (str root "/" resource-path))
                (add-mime-type resource-path options))))))
 
+#_(defn tmp-upload-handler [request]
+    (if-let [file (-> request :params :file)]
+      (let [phone (some-> (mc.auth/req->parsed-jwt request) :auth/phone mc.util/clean-phone)
+            cutie (logic/my-profile phone :force-refresh? true)]
+        (println     "file: " file)
+        (println "filename: " (:filename file))
+        (println "cutie id: " (:id cutie))
+        (println "   phone: " phone)
+        (io/copy (:tempfile file)
+                 (io/file (str "resources/public/tmp-img-uploads/" (:filename file))))
+        (logic/update-cutie-picture (:id cutie)
+                                    (str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename file)))
+        (resp/redirect "/meetcute/settings"))
+      (resp/response "No file provided")))
+
 (defn tmp-upload-handler [request]
-  (if-let [file (-> request :params :file)]
-    (let [phone (some-> (mc.auth/req->parsed-jwt request) :auth/phone mc.util/clean-phone)
-          cutie (logic/my-profile phone :force-refresh? true)]
-      (println "cutie id: " (:id cutie))
-      (println "   phone: " phone)
-      (println     "file: " file)
-      (println "filename: " (:filename file))
-      (io/copy (:tempfile file)
-               (io/file (str "resources/public/tmp-img-uploads/" (:filename file))))
-      (logic/update-cutie-picture (:id cutie)
-                                  (str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename file)))
-      (resp/redirect "/meetcute/settings"))
-    (resp/response "No file provided")))
+  (try
+    (let [files (-> request :params :file)
+            ; make sure files is a list, even if we're just given one file. make it a seq: 
+          files (if (map? files) (list files) files)]
+      (println "files: ")
+      (println files)
+      (if (seq files)
+        (let [phone (some-> (mc.auth/req->parsed-jwt request) :auth/phone mc.util/clean-phone)
+              cutie (logic/my-profile phone :force-refresh? true)]
+          (println "cutie id: " (:id cutie))
+          (println "   phone: " phone)
+          (doseq [file files]
+            (println "file: " file)
+            (println "filename: " (:filename file))
+            (println "")
+            (io/copy (:tempfile file)
+                     (io/file (str "resources/public/tmp-img-uploads/" (:filename file))))
+            (logic/update-cutie-picture (:id cutie)
+                                        (str "https://7138-186-177-83-218.ngrok-free.app/tmp-img-uploads/" (:filename file))))
+          (resp/redirect "/meetcute/settings"))
+        (resp/response "No file provided")))
+
+    (catch Exception _e
+      (resp/response "Error while processing file upload."))))
+
 
 (defroutes open-routes
   (ANY  "/"         []  (io/resource "public/meetcute.html"))
