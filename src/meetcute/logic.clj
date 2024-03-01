@@ -172,6 +172,16 @@
                           (str "🗳️ " name " has updated their selections/rejections")
                           (str "📝 " name " has updated these fields in their profile"))]
         (util/log (str log-message ": " changed-keys))
+
+        ; if the user updated their status to "not yet reviewed" from "filling out profile", then that means they just submitted their profile for the first time
+        (when (and (some #{:status} changed-keys)
+                   (= (get old-bio "Status") "filling out profile")
+                   (= (get new-bio "Status") "not yet reviewed"))
+          (email/send-email {:to        "hello@smalworld.kiwi"
+                             :from-name "MeetCute"
+                             :subject   "Thanks for submitting your profile for review!"
+                             :body      "We'll review your profile shortly. Once we make it live, you'll start receiving your daily cutie emails! 🍊"}))
+
         (when (= (util/get-env-var "ENVIRONMENT")
                  (:prod util/ENVIRONMENTS))
           (email/send-email {:to        "hello@smallworld.kiwi"
