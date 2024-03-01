@@ -466,7 +466,7 @@
               :className "btn primary"
               :style {:margin-left 0}
               :disabled (zero? @num-images)
-              :value (str "Upload " @num-images " images")}])])
+              :value (str "Upload " @num-images " image" (if (= 1 @num-images) "" "s"))}])])
 
 (defn profile-tab []
   (let [filling-out-profile? (= "filling out profile"

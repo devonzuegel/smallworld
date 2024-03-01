@@ -643,12 +643,7 @@ td {
 
 .img-upload input[type='file'] {
   display: block;
-  width: 100%;
-  min-height: 200px;
   border: 2px dashed #ccc;
-  border-radius: 10px;
-  margin: 20px 0;
-  padding: 20px;
   text-align: center;
   transition: border-color 0.3s ease;
   cursor: pointer;
