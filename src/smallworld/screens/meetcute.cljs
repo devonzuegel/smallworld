@@ -449,11 +449,24 @@
 
      [:br]]))
 
+(def num-images (r/atom 0))
+
 (defn upload-photos-form []
   [:form.img-upload {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"}
-   [:label {:for "file-upload" :class "custom-file-upload"}
-    [:input {:id "file-upload" :type "file" :multiple true :name "file" :accept "image/*" :title "upload a photo"}]]
-   [:input {:type "submit" :value "Upload"}]])
+   [:input {:id "file-upload"
+            :type "file"
+            :required true
+            :multiple true
+            :name "file"
+            :accept "image/*"
+            :on-change #(reset! num-images (.-length (.. % -target -files)))
+            :title "upload a photo"}]
+   (when-not (zero? @num-images)
+     [:input {:type "submit"
+              :className "btn primary"
+              :style {:margin-left 0}
+              :disabled (zero? @num-images)
+              :value (str "Upload " @num-images " images")}])])
 
 (defn profile-tab []
   (let [filling-out-profile? (= "filling out profile"
@@ -608,7 +621,7 @@
                                                                {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                          ["Pictures" [:div
-                                      [small-text [:span "If you'd like to add or remove pictures, email "
+                                      [small-text [:span "If you'd like to remove pictures, email "
                                                    [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
                                       (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
                                                    (mc.util/get-field @profile "Pictures"))

@@ -651,33 +651,35 @@ td {
   padding: 20px;
   text-align: center;
   transition: border-color 0.3s ease;
+  cursor: pointer;
 }
 
 .img-upload input[type='file'] {
-  border: 3px solid rgba(188, 181, 175, 0.3);
+  // border: 3px solid rgba(188, 181, 175, 0.3);
+  background: rgba(188, 181, 175, 0.2);
   width: 80%;
   padding: 48px;
-  margin: 16px 0;
+  margin: 16px 0 8px 0;
   border-radius: 8px;
 }
 
-.img-upload input[type='submit'] {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-}
+// .img-upload input[type='submit'] {
+//   display: block;
+//   width: 100%;
+//   padding: 10px;
+//   background-color: #4caf50;
+//   color: white;
+//   border: none;
+//   border-radius: 8px;
+//   cursor: pointer;
+//   font-size: 16px;
+// }
 
-.img-upload input[type='submit']:hover {
-  background-color: #45a049;
-}
+// .img-upload input[type='submit']:hover {
+//   background-color: #45a049;
+// }
 
 .bio-row img {
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 8px;
 }
