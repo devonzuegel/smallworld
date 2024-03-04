@@ -484,7 +484,7 @@ td {
 }
 
 .add-location-btn.empty {
-  border-color: rgb(255, 181, 128) !important;
+  border: 3px dashed rgb(255, 181, 128) !important;
   background-color: rgb(255, 248, 243);
 }
 
@@ -656,6 +656,11 @@ td {
   padding: 48px;
   margin: 16px 0 8px 0;
   border-radius: 8px;
+}
+
+.img-upload.empty input[type='file'] {
+  border: 3px dashed rgb(255, 181, 128) !important;
+  background-color: rgb(255, 248, 243);
 }
 
 // .img-upload input[type='submit'] {
