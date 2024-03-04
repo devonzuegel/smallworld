@@ -294,6 +294,8 @@ We use:
   - [x] add a way to mark the profile as "ready for review", but only once they've completed all the required fields
   - [x] give users a way to make their profile public/private
 - [x] **photos:** add a way to upload photos via the custom form — 5 hours
+  - [ ] make it required to have at least 1 photo
+  - [ ] allow user to remove images from the list
 - [ ] **allow users to filter cuties by city**
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [x] mobile styles for the profile editing page

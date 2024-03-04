@@ -452,7 +452,10 @@
 (def num-images (r/atom 0))
 
 (defn upload-photos-form []
-  [:form.img-upload {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"}
+  [:form {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"
+          :className (if (empty? (mc.util/get-field @profile "Pictures"))
+                       "img-upload empty"
+                       "img-upload")}
    [:input {:id "file-upload"
             :type "file"
             :required true
@@ -647,10 +650,8 @@
                                   (when (str/blank? (mc.util/get-field @profile "Phone"))                                                    "Phone")
                                   (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
                                   (when (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")) "About me")
-                                  (when (or (empty? @*locations-new)
-                                          ; return true all of the location names are non-blank:
-                                            (not (every? (comp not str/blank?) (map :name @*locations-new))))
-                                    "At least 1 location")])]
+                                  (when (empty?     (mc.util/get-field @profile "Pictures"))                                                 "Pictures")
+                                  (when (or (empty? @*locations-new) (not (every? (comp not str/blank?) (map :name @*locations-new))))       "At least 1 location")])]
          [:div.ready-for-review
 
           [:button {:className (if (empty? errors) "enabled" "disabled")
