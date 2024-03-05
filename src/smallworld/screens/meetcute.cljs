@@ -1,7 +1,7 @@
 (ns smallworld.screens.meetcute
   (:require [cljs.pprint            :as pp]
             [clojure.string         :as str]
-            [clojure.walk :as walk]
+            [clojure.walk           :as walk]
             [goog.dom               :as dom]
             [markdown.core          :as md]
             [meetcute.util          :as mc.util]
@@ -449,7 +449,7 @@
 
      [:br]]))
 
-(def num-images (r/atom 0))
+(def num-files (r/atom 0))
 
 (defn upload-photos-form []
   [:form {:method "post" :enctype "multipart/form-data" :action "/meetcute/tmp-upload"
@@ -462,14 +462,15 @@
             :multiple true
             :name "file"
             :accept "image/*"
-            :on-change #(reset! num-images (.-length (.. % -target -files)))
+            :on-change #(reset! num-files (.-length (.. % -target -files)))
             :title "upload a photo"}]
-   (when-not (zero? @num-images)
+   (when (empty? (mc.util/get-field @profile "Pictures")) [:p.error "Please upload at least 1 photo"])
+   (when-not (zero? @num-files)
      [:input {:type "submit"
               :className "btn primary"
               :style {:margin-left 0}
-              :disabled (zero? @num-images)
-              :value (str "Upload " @num-images " image" (if (= 1 @num-images) "" "s"))}])])
+              :disabled (zero? @num-files)
+              :value (str "Upload " @num-files " file" (if (= 1 @num-files) "" "s"))}])])
 
 (defn profile-tab []
   (let [filling-out-profile? (= "filling out profile"
@@ -626,8 +627,19 @@
                          ["Pictures" [:div
                                       [small-text [:span "If you'd like to remove pictures, email "
                                                    [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
-                                      (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}])
-                                                   (mc.util/get-field @profile "Pictures"))
+                                      [:div.pictures
+                                       (map-indexed (fn [k2 v2] [:div.picture {:key k2}
+                                                                 [:span.cancel-btn {:on-click #(when (js/confirm "Are you sure you want to delete this picture?")
+                                                                                                 (let [old-pictures (mc.util/get-field @profile "Pictures")]
+                                                                                                   (reset! profile (assoc @profile :Pictures (mc.util/remove-nth old-pictures k2)))
+                                                                                                   (update-profile!)))}
+                                                                  (decorations/cancel-icon)]
+                                                                 [:img {:src (:url v2)}]])
+                                                    (mc.util/get-field @profile "Pictures"))]
+                                      #_(map-indexed (fn [k2 v2] [:div.picture
+                                                                  (decorations/cancel-icon)
+                                                                  [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}]])
+                                                     (mc.util/get-field @profile "Pictures"))
                                       (upload-photos-form)]]]]]]
        (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
                                                    [:summary [:span.title title]]

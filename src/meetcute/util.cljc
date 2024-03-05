@@ -2,6 +2,10 @@
   (:require [clojure.string :as str]
             [clojure.walk :refer [keywordize-keys]]))
 
+(defn remove-nth [lst n]
+  (println "remove-nth: " n)
+  (concat (take n lst) (drop (inc n) lst)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; phone utils
 
