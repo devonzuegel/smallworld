@@ -129,14 +129,12 @@ input[type='date']::-webkit-calendar-picker-indicator {
   margin-bottom: -38px;
   margin-left: 36px;
   top: 0px;
-  z-index: 1;
   padding: 6px 0px;
   font-size: 16px;
   display: block;
   margin-bottom: -28px;
   margin-left: 36px;
   position: relative;
-  z-index: 100000;
   pointer-events: none;
 }
 /* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
@@ -639,14 +637,14 @@ td {
   border-radius: 6px;
 }
 
-// image upload form:
+/**** image upload form ****************************************************************************/
 
 .img-upload input[type='file'] {
   display: block;
   border: 2px dashed #ccc;
   text-align: center;
   transition: border-color 0.3s ease;
-  cursor: pointer;
+  cursor: pointer !important;
 }
 
 .img-upload input[type='file'] {
