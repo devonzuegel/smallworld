@@ -652,3 +652,18 @@
     (update-matches-in-airtable)
 
     (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))
+
+#_(defn backfill-locations []
+    (doseq [cutie (get-all-bios :force-refresh? true)]
+  ;    if they do NOT have json locations in the "Locations" field:
+  ;        split the names of the locations in their "Home Base" & "Other Cities" fields
+  ;        for each of those locations, fetch the coordinates of those locations
+  ;        create an object with this structure & save it to "Locations" field in Airtable:
+  ;            [{"location-type":"home-base",
+  ;              "name":"Miami",
+  ;              "coords":{"lat": 25.775083541870117,
+  ;                        "lng": -80.1947021484375}}])
+      ))
+
+
+

@@ -663,6 +663,59 @@ td {
   background-color: rgb(255, 248, 243);
 }
 
+.img-upload p.error {
+  color: rgb(255, 106, 0);
+  margin-bottom: 8px;
+}
+
+// TODO: hmm this isn't working...
+#file-upload-button {
+  margin-right: 8px;
+  border-radius: 8px;
+  font-family: 'Roboto Mono', monospace;
+  border: 3px solid green;
+}
+
+.bio-row .picture {
+  display: inline-block !important;
+}
+
+.bio-row .picture img {
+  // height: 200px;
+  // width: 100px;
+  // background: pink;
+  max-height: 200px;
+  max-width: 100%;
+  margin: 8px 8px 0 0;
+  border-radius: 8px;
+  background: #ccc;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.bio-row .picture .cancel-btn {
+  margin-left: -22px;
+  margin-top: 4px;
+  float: right;
+  cursor: pointer;
+}
+
+.bio-row .picture svg.cancel-icon {
+  transform: scale(1.1);
+  border-radius: 8px;
+  transition: all 100ms ease-in-out;
+  fill: #718371;
+  background: white;
+  border: 1px solid white;
+  margin-left: -20px;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+.bio-row .picture svg.cancel-icon:hover {
+  fill: #3b5f46;
+  transition: all 100ms ease-in-out;
+  transform: scale(1.18);
+}
+
 // .img-upload input[type='submit'] {
 //   display: block;
 //   width: 100%;
@@ -678,8 +731,3 @@ td {
 // .img-upload input[type='submit']:hover {
 //   background-color: #45a049;
 // }
-
-.bio-row img {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
