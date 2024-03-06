@@ -466,9 +466,6 @@ td {
   border: 3px solid rgba(188, 181, 175, 0.15) !important;
   border-radius: 8px;
   margin: 0;
-  // width: fit-content;
-  // max-width: calc(100% - 24px);
-  // max-width: 190px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -541,18 +538,6 @@ td {
   color: #013917e0;
   transition: color 0.1s ease-in-out;
 }
-// .location-field .location-type-radio input:checked + label,
-// .location-field .location-type-radio input:checked {
-//   background-color: #013917c0;
-//   color: white;
-//   transition: background-color 0.1s ease-in-out;
-// }
-// .location-field .location-type-radio input:checked:hover + label,
-// .location-field .location-type-radio input:checked:hover {
-//   background-color: #013917e0;
-//   color: white;
-//   transition: background-color 0.1s ease-in-out;
-// }
 .add-location-btn {
   padding: 24px 10px;
   min-height: 264px;
