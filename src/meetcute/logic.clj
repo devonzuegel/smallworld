@@ -591,7 +591,7 @@
         (< mins-ago N)))))
 
 (defn updated-in-last-24h? [cutie]
-  (updated-in-last-N-mins? cutie (* 60 24)))
+  (updated-in-last-N-mins? cutie (+ (* 60 24) 10))) ; the +10 is to account for the fact the job runs every 10 minutes
 
 (defn refresh-todays-cutie-from-id [id]
   (let [cutie-profile (find-profile id :force-refresh? true)
