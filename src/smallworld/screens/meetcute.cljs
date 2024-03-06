@@ -625,8 +625,6 @@
                                                                {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                          ["Pictures" [:div
-                                      [small-text [:span "If you'd like to remove pictures, email "
-                                                   [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] ". (In the future, we'll add a way to do this yourself!)"]]
                                       [:div.pictures
                                        (map-indexed (fn [k2 v2] [:div.picture {:key k2}
                                                                  [:span.cancel-btn {:on-click #(when (js/confirm "Are you sure you want to delete this picture?")
@@ -636,10 +634,6 @@
                                                                   (decorations/cancel-icon)]
                                                                  [:img {:src (:url v2)}]])
                                                     (mc.util/get-field @profile "Pictures"))]
-                                      #_(map-indexed (fn [k2 v2] [:div.picture
-                                                                  (decorations/cancel-icon)
-                                                                  [:img {:src (:url v2) :key k2 :style {:height "200px" :margin "8px 8px 0 0" :border-radius "8px" :border "1px solid #ffffff33"}}]])
-                                                     (mc.util/get-field @profile "Pictures"))
                                       (upload-photos-form)]]]]]]
        (map-indexed (fn [i [title options items]] [:details (merge options {:key i})
                                                    [:summary [:span.title title]]
