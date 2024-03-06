@@ -4,12 +4,13 @@
             [clojure.data         :as data]
             [clojure.data.json    :as json]
             [clojure.pprint       :as pp]
-            [markdown.core        :as md]
             [clojure.string       :as str]
             [clojure.test         :refer [deftest is]]
             [clojure.walk         :refer [keywordize-keys]]
+            [markdown.core        :as md]
             [meetcute.util        :as mc.util]
             [smallworld.airtable  :as airtable]
+            [smallworld.coordinates :as coordinates]
             [smallworld.email     :as email]
             [smallworld.util      :as util]))
 
@@ -33,7 +34,7 @@
   (airtable/get-in-base airtable-base [@airtable-cuties-db-name]))
 
 (def fetch-all-bios-memoized
-  (memoize/ttl fetch-all-bios! {} :ttl/threshold 1 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
+  (memoize/ttl fetch-all-bios! {} :ttl/threshold 30 #_(minutes 1 #_(* 60 24 7)))) ; TODO: set to 1 week just for testing
 
 (defn find-cutie [cutie-id bios]
   (let [result (first (filter #(= (mc.util/get-field % "id")
@@ -75,11 +76,13 @@
                                                          "Anything else you'd like your potential matches to know?"
                                                          "First name"
                                                          "Gender"
-                                                         "Home base city"
+                                                        ;;  "Home base city"
+                                                        ;;  "Other cities where you spend time"
+                                                         "locations-json"
+                                                         "locations-notes"
                                                          "I'm interested in..."
                                                          "If 'Other', who invited you?"
                                                          "Include in gallery?"
-                                                         "Other cities where you spend time"
                                                          "Pictures"
                                                          "Social media links"
                                                          "What makes this person awesome?"
@@ -653,17 +656,16 @@
 
     (generate-string {:success true :message "Successfully refreshed todays-cutie for " (count all-cuties) " cuties"})))
 
-#_(defn backfill-locations []
-    (doseq [cutie (get-all-bios :force-refresh? true)]
-  ;    if they do NOT have json locations in the "Locations" field:
-  ;        split the names of the locations in their "Home Base" & "Other Cities" fields
-  ;        for each of those locations, fetch the coordinates of those locations
-  ;        create an object with this structure & save it to "Locations" field in Airtable:
-  ;            [{"location-type":"home-base",
-  ;              "name":"Miami",
-  ;              "coords":{"lat": 25.775083541870117,
-  ;                        "lng": -80.1947021484375}}])
-      ))
-
-
+;; this is meant to be run only in the REPL
+#_(defn backfill-locations [cuties] ; TODO: (get-all-bios :force-refresh? false)
+    (doseq [cutie cuties]
+      (let [home-base (get-in cutie ["Home base city"])
+            other-cities-str (get-in cutie ["Other cities normalized"])
+            other-cities-list (if (empty? other-cities-str) [] (clojure.string/split other-cities-str #"[,|]"))
+            locations (concat (if (str/blank? home-base) [] [{:location-type "home-base"   :name home-base       :coords (coordinates/memoized home-base)}])
+                              (map (fn [city]                {:location-type "visit-often" :name (str/trim city) :coords (coordinates/memoized (str/trim city))})
+                                   other-cities-list))]
+        (airtable/update-in-base airtable-base
+                                 [@airtable-cuties-db-name (:id cutie)]
+                                 {:fields {:locations-json (json/write-str locations)}}))))
 
