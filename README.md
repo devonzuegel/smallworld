@@ -296,17 +296,17 @@ We use:
 - [x] **photos:** add a way to upload photos via the custom form — 5 hours
   - [x] make it required to have at least 1 photo
   - [x] allow user to remove images from the list
+  - [x] let Amit know that it's been updated
 - [ ] **allow users to filter cuties by city**
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [x] mobile styles for the profile editing page
-  - [ ] backfill the locations for the people who signed up before this feature was added — 2 hours
-  - [ ] add option to filter by locations — once this is done, update these people: — 2 hours
+  - [x] backfill the locations for the people who signed up before this feature was added — 2 hours
+  - [ ] add option to filter by locations + radius — once this is done, update these people: — 2 hours
       - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
       - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
       - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
       - [ ] send an email to everyone to let them know about the new feature!
-- [ ] add a way to filter by life stage
-- [ ] fix: when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
+- [ ] decide how to filter by life stage – ask the users what they want in the email first
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
   - [ ] update mariah when this is done
@@ -318,20 +318,22 @@ We use:
 #### nice to have later on:
 - [ ] **filters:** add a way for users to include info about religion, politics, life stage, what they're lookinsg for, etc
 - [ ] **fix:** when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
-- [ ] use the nice location element from the settings page in the profile display page
 - [ ] if someone hasn't selected/rejected a cutie in 10 days, send them an email saying "We're going to mark your account as inactive and stop showing you to cuties. If you want to keep using the app, just log in and we'll start showing you cuties again"
 - [ ] Asher: "these emails send out exactly ten minutes later every day for me"
   - [ ] fix it
   - [ ] email Asher when it's fixed
-- [ ] show past cuties that the user has missed
-  - [ ] update Gillian when this is done (via SMS)
-  - [ ] update Mariah when this is done
+- [ ] use the nice location element from the settings page in the profile display page
+- [ ] improve the photo upload form
+  - [ ] don't force a refresh of the page when the user uploads a photo
+  - [ ] show the photo that the user is uploading before they upload it
+  - [ ] show a loading spinner when the photo is uploading
+  - [ ] show a success message when the photo has uploaded
+- [ ] give users a way to view their profile as others see it
 - [ ] track who has selected who and when, include in some sort of stats, so that we can see if people are using it
   - one way this will be used is so that Erik can see when the mutual selections happened so that he knows if it's a new connection
 - [ ] profile page improvements:
   - [x] fix the profile editing feature – bug report with video in email on 2024.01.29
   - [ ] give users a way to turn off the daily emails
-  - [ ] enable users to add/remove photos – then let Amit know that it's been updated
 - [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] don't expose the /bios endpoint to the public
   - [ ] validate that the phone number is unique
