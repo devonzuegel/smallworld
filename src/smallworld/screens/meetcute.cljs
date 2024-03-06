@@ -620,8 +620,8 @@
                                                              [:div {:style {:margin-top "8px"}}] ; spacer
                                                              [small-text (md->hiccup "Here's a template for asking a friend to write you a vouch:")]
                                                              [:div {:style {:border-left "5px solid rgb(188, 181, 175, .3)" :background "rgb(188, 181, 175, .1)"  :max-width "90%"}}
-                                                              [small-text (md->hiccup (str "*\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
-                                                                                           "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\" ***"))
+                                                              [small-text (md->hiccup (str "\"Hey `FRIEND NAME`, some friends invited me to a small matchmaking experiment, and I need a friend to write a blurb recommending me. <br/><br/>"
+                                                                                           "Would you write one today or tomorrow? It can be short (2-3 paragraphs), should take just a few mins. Here are some examples: [https://bit.ly/matchmaking-vouch-examples](https://bit.ly/matchmaking-vouch-examples)\""))
                                                                {:background "#ffffff10" :margin-top "2px" :padding "8px 12px 14px 12px"}]]]]
 
                          ["Pictures" [:div
