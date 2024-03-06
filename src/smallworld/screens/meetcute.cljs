@@ -606,8 +606,11 @@
                                [:span.inner
                                 "+ New location"]]])]
                           {:required? true}]
-                         ["Home base" (editable-input "Home base city")]
-                         ["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
+                         ["Any notes about location?" [:div {:style {:width "100%"}}
+                                                       (small-text "e.g. \"I'm open to long-distance\" or \"I'm moving from X to Y soon\"")
+                                                       (editable-textbox "locations-notes")]]
+                         #_["Home base" (editable-input "Home base city")]
+                         #_["Other cities where you spend time" (editable-input "Other cities where you spend time")]]]
 
                        ["Other"
                         {:open true}
@@ -750,7 +753,17 @@
     (when (mc.util/get-field bio "Anything else you'd like your potential matches to know?")
       [profile-item (str "About " (mc.util/get-field bio "First name"))  (md->hiccup (mc.util/get-field bio "Anything else you'd like your potential matches to know?"))])
 
-    [profile-item "Home base"                                    (mc.util/get-field bio "Home base city")]
+    ;; [profile-item "Home base"                                    (mc.util/get-field bio "Home base city")]
+    ; for each location in locations-json, render it:
+    (let [locations (walk/keywordize-keys (js->clj (js/JSON.parse (mc.util/get-field bio "locations-json"))))
+          home-base (str/join ", " (map :name (filter #(= (:location-type %) "home-base") locations)))
+          places-i-visit-often (filter #(= (:location-type %) "visit-often") locations)]
+      [:<>
+       [profile-item "Home base" home-base]
+       (when-not (empty? places-i-visit-often)
+         [profile-item "Other places where I spend time" [:ul (map-indexed (fn [k2 v2] [:li {:key k2} (:name v2)]) places-i-visit-often)]])])
+    (when-not (empty? (mc.util/get-field bio "locations-notes"))
+      [profile-item "Location notes" (mc.util/get-field bio "locations-notes")])
 
     (when (mc.util/get-field bio "Other cities where you spend time")
       [profile-item "Frequently visits"                           (mc.util/get-field bio "Other cities where you spend time")])
@@ -763,7 +776,7 @@
 
     [profile-item "Pictures" (if (empty? (mc.util/get-field bio "Pictures"))
                                [:p "No pictures yet :)"]
-                               (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "150px" :margin "8px 8px 0 0" :border-radius "4px"}}])
+                               (map-indexed (fn [k2 v2] [:img {:src (:url v2) :key k2 :style {:height "160px" :margin "8px 8px 0 0" :border-radius "4px"}}])
                                             (mc.util/get-field bio "Pictures")))]]])
 
 (def how-it-works-dismissed? (r/atom false))
@@ -961,13 +974,21 @@
 
              [how-it-works]
 
-             (if (not= "include in gallery" (mc.util/get-field @profile "Include in gallery?"))
+             (if (not (or (= "include in gallery" (mc.util/get-field @profile "Include in gallery?"))
+                          (:admin? @profile)))
+
                [:<>
                 [:p {:style {:padding "8px" :text-align "center" :font-size "1.2em" :text-wrap "balance" :max-width "700px" :margin "auto" :line-height "1.6em" :margin-top "36px"}}
                  "Your profile isn't active, so we can't send you cuties yet"]
                 [:p {:style {:padding "8px" :text-align "center" :font-size "1.2em" :text-wrap "balance" :max-width "700px" :margin "auto" :line-height "1.6em" :margin-bottom "12px"}}
                  "Go to your " [:a {:href "/meetcute/settings"} "settings"] " to activate your profile!"]]
+
                [:<> [:h1 {:style {:font-size "36px" :line-height "1.3em" :padding "8px" :text-align "center"}} "Today's cutie"]
+                (when (and (:admin? @profile)
+                           (not= "include in gallery" (mc.util/get-field @profile "Include in gallery?")))
+                  [:div {:style {:padding "8px" :text-align "center" :font-size "1.2em" :text-wrap "balance" :max-width "700px" :line-height "1.6em" :margin "36px auto" :border "2px solid #ff00ff11" :border-radius "8px" :background "#ff00ff11" :color "#ff00ff"}}
+                   "NOTE: You're an admin, so you can see a cutie of the day even though your profile isn't active"])
+
                 [:style "@media screen and (min-width: 600px) { .profile-column { min-width: 500px } }"]
 
                 (if (= :no-cutie todays-cutie)
@@ -1087,7 +1108,8 @@
 
 (defn nav-btns []
   [:div {:style {:margin "12px" :margin-bottom "0"}}
-   (when (= "include in gallery" (mc.util/get-field @profile "Include in gallery?"))
+   (when (or (= "include in gallery" (mc.util/get-field @profile "Include in gallery?"))
+             (:admin? @profile))
      [:a {:href "/meetcute"
           :className (if (= "/meetcute" (.-pathname js/location))
                        "btn primary"

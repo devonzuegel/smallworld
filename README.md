@@ -318,6 +318,7 @@ We use:
 #### nice to have later on:
 - [ ] **filters:** add a way for users to include info about religion, politics, life stage, what they're lookinsg for, etc
 - [ ] **fix:** when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
+- [ ] use the nice location element from the settings page in the profile display page
 - [ ] if someone hasn't selected/rejected a cutie in 10 days, send them an email saying "We're going to mark your account as inactive and stop showing you to cuties. If you want to keep using the app, just log in and we'll start showing you cuties again"
 - [ ] Asher: "these emails send out exactly ten minutes later every day for me"
   - [ ] fix it
