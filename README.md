@@ -306,10 +306,11 @@ We use:
       - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
       - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
       - [ ] send an email to everyone to let them know about the new feature!
+- [ ] if someone's state is "filling out profile" for more than 24h hours, send them an email to remind them to finish their profile; resend it 2 days later also; and then resend 7 days later; then stop sending emails because they're probably not interested
 - [ ] decide how to filter by life stage – ask the users what they want in the email first
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
-  - [ ] update mariah when this is done
+  - [ ] update Mariah when this is done
 - [ ] **landing page** — 3 hours
   - [ ] draft copy explaining how MeetCute works
   - [ ] design the landing page – keep it simple, with a big orange button to sign up
@@ -320,7 +321,8 @@ We use:
 - [ ] **fix:** when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] if someone hasn't selected/rejected a cutie in 10 days, send them an email saying "We're going to mark your account as inactive and stop showing you to cuties. If you want to keep using the app, just log in and we'll start showing you cuties again"
 - [ ] Asher: "these emails send out exactly ten minutes later every day for me"
-  - [ ] fix it
+  - [x] fix it
+  - [ ] confirm that it's fixed after a few days
   - [ ] email Asher when it's fixed
 - [ ] use the nice location element from the settings page in the profile display page
 - [ ] improve the photo upload form
