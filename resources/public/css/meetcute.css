@@ -258,14 +258,12 @@ li {
   border: none;
 }
 
-//////////////////////////////////////////////////
-// Phone input for signin page:
-
-#display-phone {
-  background-color: #c2bbb833;
+input#display-phone,
+.iti--separate-dial-code .iti__selected-flag {
+  background: rgba(35, 81, 49, 0.08) !important;
 }
 #display-phone::placeholder {
-  color: #cbc4c1;
+  color: rgba(25, 56, 34, 0.4);
 }
 .iti__country-list {
   max-width: 330px;
