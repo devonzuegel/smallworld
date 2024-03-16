@@ -550,26 +550,29 @@
                                                      [:input {:type "radio"
                                                               :id "include-in-gallery-yes"
                                                               :checked (not= "they asked to be removed" include-in-gallery-status?) ; there are other states, but we're only showing two options here
-                                                              :style {:margin-right "10px"}
+                                                              :style {:margin-right "10px" :cursor "pointer"}
                                                               :on-change (fn []
                                                                            (reset! profile (assoc @profile (keyword "Include in gallery?") "include in gallery"))
                                                                            (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
                                                                                                                                                                   (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                                                                                                                                           ["Phone"])))
                                                                                                                                        {(keyword "Include in gallery?") "include in gallery"})))}]
-                                                     [:label {:for "include-in-gallery-yes"} "Show my profile to other cuties"]]
+                                                     [:label {:for "include-in-gallery-yes" :style {:cursor "pointer"}}
+                                                      "Show my profile to other cuties & send me Cuties of the Day"]]
+
                                                     [:div {:style {:display "flex" :align-items "center" :padding "4px 0"}}
                                                      [:input {:type "radio"
                                                               :id "include-in-gallery-no"
                                                               :checked (= "they asked to be removed" include-in-gallery-status?)
-                                                              :style {:margin-right "10px"}
+                                                              :style {:margin-right "10px" :cursor "pointer"}
                                                               :on-change (fn []
                                                                            (reset! profile (assoc @profile (keyword "Include in gallery?") "they asked to be removed")) ; reset to "not yet reviewed" so that the user can submit it for review again
                                                                            (util/fetch-post "/meetcute/api/matchmaking/profile" (merge (select-keys @profile (map #(keyword %)
                                                                                                                                                                   (concat mc.util/fields-changeable-by-user ; Phone is not editable, but it's needed as the key to find the record to update
                                                                                                                                                                           ["Phone"])))
                                                                                                                                        {(keyword "Include in gallery?") "they asked to be removed"})))}]
-                                                     [:label {:for "include-in-gallery-no"} "Make my profile private"]]]]))]]
+                                                     [:label {:for "include-in-gallery-no" :style {:cursor "pointer"}}
+                                                      "Make my profile private & stop sending me Cuties of the Day"]]]]))]]
                        ["Locations"
                         {:open true
                          :className "bio-row-locations"}
