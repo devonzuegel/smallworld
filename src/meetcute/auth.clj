@@ -203,7 +203,7 @@
              :type "tel"
              :name "display-phone"
              :value phone
-             :style {:background "#66666620"
+             :style {:background "rgb(42, 98, 59, 0.1)"
                      :border-radius "8px"
                      :width "13em"
                      :padding "6px 8px"
@@ -280,8 +280,7 @@
               :type "tel"
               :name "display-phone"
               :value phone
-              :style {:background "#66666620"
-                      :border-radius "8px"
+              :style {:border-radius "8px"
                       :width "13em"
                       :padding "6px 8px"
                       :margin-right "4px"

@@ -297,6 +297,7 @@ We use:
   - [x] make it required to have at least 1 photo
   - [x] allow user to remove images from the list
   - [x] let Amit know that it's been updated
+- [x] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] **allow users to filter cuties by city**
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [x] mobile styles for the profile editing page
@@ -307,6 +308,7 @@ We use:
       - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
       - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
       - [ ] send an email to everyone to let them know about the new feature!
+- [ ] use the same styles on the signup form as the signin form
 - [ ] if someone's state is "filling out profile" for more than 24h hours, send them an email to remind them to finish their profile; resend it 2 days later also; and then resend 7 days later; then stop sending emails because they're probably not interested
 - [ ] decide how to filter by life stage – ask the users what they want in the email first
 - [ ] show past cuties that the user has missed
@@ -337,7 +339,6 @@ We use:
 - [ ] profile page improvements:
   - [x] fix the profile editing feature – bug report with video in email on 2024.01.29
   - [ ] give users a way to turn off the daily emails
-- [ ] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
 - [ ] don't expose the /bios endpoint to the public
   - [ ] validate that the phone number is unique
   - [ ] sign up page with validation – replace the Airtable iframe form with a custom form
