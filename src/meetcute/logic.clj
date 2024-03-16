@@ -234,7 +234,13 @@
         locations2 (keywordize-keys (json/read-str locations2))
         distances (for [loc1 locations1
                         loc2 locations2]
-                    (coordinates/distance-btwn (:coords loc1) (:coords loc2)))
+                    ; prioritize cuties who are closest to the user's HOME BASE, rather than weighting all locations equally:
+                    ; if the locations are not both "home-base", penalize them by multiplying by 2
+                    (let [distance (coordinates/distance-btwn (:coords loc1) (:coords loc2))]
+                      (if-not (and (= "home-base" (:location-type loc1))
+                                   (= "home-base" (:location-type loc2)))
+                        (when-not (nil? distance) (* distance 2))
+                        distance)))
         distances (remove nil? distances)]
     ;; (println "distances: ")
     ;; (pp/pprint distances)
@@ -242,13 +248,26 @@
       9999999999 ; if there are no distances, then the cutie is very far away
       (apply min distances))))
 
-; TODO: consider prioritizing the cuties who are closest to the user's HOME BASE, rather than weighting all locations equally
-(defn sort-by-distance-by-nearest-location [bios profile]
+(defn sort-by-distance-nearest-location [bios profile]
   (fn [id] (let [cutie (find-cutie id bios)
                  cutie-locations (mc.util/get-field cutie "locations-json")
                  my-locations (mc.util/get-field profile "locations-json")]
              (min-distance-between-locations my-locations
                                              cutie-locations))))
+
+;; (defn sort-by-distance-home-base [bios profile]
+;;   (fn [id] (let [cutie (find-cutie id bios)
+;;                  cutie-locations (keywordize-keys (json/read-str (mc.util/get-field cutie   "locations-json"))) ; e.g.: [{"location-type":"home-base","name":"Luxembourg","coords":{"lat":49.776824951171875,"lng":6.092391014099121}},{"location-type":"visit-often","name":"London (UK)","coords":{"lat":51.50682449,"lng":-0.12611847}},{"location-type":"visit-often","name":"Amsterdam (NL)","coords":{"lat":52.37316513,"lng":4.89065981}},{"location-type":"visit-often","name":"Brussels (Belgium)","coords":{"lat":50.84553528,"lng":4.3557024}},{"location-type":"visit-often","name":"Frankfurt (Germany)","coords":{"lat":50.11088562,"lng":8.679492}},{"location-type":"visit-often","name":"Paris (France)","coords":{"lat":48.85689545,"lng":2.35084867}}]
+;;                  my-locations    (keywordize-keys (json/read-str (mc.util/get-field profile "locations-json")))
+;;                  cutie-home-base (first (filter #(= "home-base" (:location-type %)) cutie-locations))
+;;                  my-home-base    (first (filter #(= "home-base" (:location-type %)) my-locations))]
+;;              (println cutie-locations)
+;;              (println my-locations)
+;;              (println cutie-home-base)
+;;              (println my-home-base)
+;;              (println)
+;;              0
+;;              #_(coordinates/distance-btwn (:coords cutie-home-base) (:coords my-home-base)))))
 
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
@@ -261,8 +280,9 @@
                                                                (:rejected-cuties profile))) ; the shuffle is so that each user gets a different order of cuties, so that the same cutie doesn't get shown to everyone on the same day
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
                                                unseen-ids--added-recently)))
-        unseen-ids--tmp (sort-by (sort-by-distance-by-nearest-location bios profile) unseen-ids--tmp)
-        unseen-ids--tmp (sort-by (sort-by-selected-rejected            bios profile) unseen-ids--tmp)
+        unseen-ids--tmp (sort-by (sort-by-distance-nearest-location bios profile) unseen-ids--tmp)
+        ;; unseen-ids--tmp (sort-by (sort-by-distance-home-base        bios profile) unseen-ids--tmp)
+        unseen-ids--tmp (sort-by (sort-by-selected-rejected         bios profile) unseen-ids--tmp)
         todays-id--old       (first (:todays-cutie profile))
         todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
