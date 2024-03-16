@@ -219,6 +219,37 @@
                      cutie-id)
                  bios)))
 
+(defn sort-by-selected-rejected [bios profile]
+  (fn [id] (let [cutie (find-cutie id bios)]
+             (if (some #(= (mc.util/get-field profile "id") %)
+                       (:selected-cuties cutie))
+               0
+               (if (some #(= (mc.util/get-field profile "id") %)
+                         (:rejected-cuties cutie))
+                 2
+                 1)))))
+
+(defn min-distance-between-locations [locations1 locations2]
+  (let [locations1 (keywordize-keys (json/read-str locations1))
+        locations2 (keywordize-keys (json/read-str locations2))
+        distances (for [loc1 locations1
+                        loc2 locations2]
+                    (coordinates/distance-btwn (:coords loc1) (:coords loc2)))
+        distances (remove nil? distances)]
+    ;; (println "distances: ")
+    ;; (pp/pprint distances)
+    (if (empty? distances)
+      9999999999 ; if there are no distances, then the cutie is very far away
+      (apply min distances))))
+
+; TODO: consider prioritizing the cuties who are closest to the user's HOME BASE, rather than weighting all locations equally
+(defn sort-by-distance-by-nearest-location [bios profile]
+  (fn [id] (let [cutie (find-cutie id bios)
+                 cutie-locations (mc.util/get-field cutie "locations-json")
+                 my-locations (mc.util/get-field profile "locations-json")]
+             (min-distance-between-locations my-locations
+                                             cutie-locations))))
+
 (defn compute-todays-cutie [profile bios]
   (let [profile         (keywordize-keys profile)
         included-bios   (keywordize-keys (mc.util/included-bios profile bios))
@@ -230,19 +261,8 @@
                                                                (:rejected-cuties profile))) ; the shuffle is so that each user gets a different order of cuties, so that the same cutie doesn't get shown to everyone on the same day
         unseen-ids--tmp (vec (distinct (concat unseen-ids--old
                                                unseen-ids--added-recently)))
-        ; sort unseen-ids--tmp so that:
-        ;  - if a cutie has this user in their selected-cuties, they will be shown earlier
-        ;  - if a cutie has this user in their rejected-cuties, they will be shown later
-        unseen-ids--tmp (sort-by (fn [id]
-                                   (let [cutie (find-cutie id bios)]
-                                     (if (some #(= (mc.util/get-field profile "id") %)
-                                               (:selected-cuties cutie))
-                                       0
-                                       (if (some #(= (mc.util/get-field profile "id") %)
-                                                 (:rejected-cuties cutie))
-                                         2
-                                         1))))
-                                 unseen-ids--tmp)
+        unseen-ids--tmp (sort-by (sort-by-distance-by-nearest-location bios profile) unseen-ids--tmp)
+        unseen-ids--tmp (sort-by (sort-by-selected-rejected            bios profile) unseen-ids--tmp)
         todays-id--old       (first (:todays-cutie profile))
         todays-cutie-still-unseen? (some #(= todays-id--old %) unseen-ids--old)
 
