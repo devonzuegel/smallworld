@@ -301,6 +301,7 @@ We use:
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [x] mobile styles for the profile editing page
   - [x] backfill the locations for the people who signed up before this feature was added — 2 hours
+  - [x] sort cuties by distance from the user
   - [ ] add option to filter by locations + radius — once this is done, update these people: — 2 hours
       - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
       - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
