@@ -303,12 +303,13 @@ We use:
   - [x] mobile styles for the profile editing page
   - [x] backfill the locations for the people who signed up before this feature was added — 2 hours
   - [x] sort cuties by distance from the user
-  - [ ] add option to filter by locations + radius — once this is done, update these people: — 2 hours
-      - [ ] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
-      - [ ] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
-      - [ ] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
-      - [ ] send an email to everyone to let them know about the new feature!
-- [ ] use the same styles on the signup form as the signin form
+  - [x] ~~add option to filter by locations + radius~~ – decided to just do sorting instead
+  - [x] once this is done, update these people: — 2 hours
+      - [x] Campbell: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d5784c37614cf0#app
+      - [x] Meia: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d75e336f838941#app
+      - [x] Asher: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
+      - [x] send an email to everyone to let them know about the new feature!
+- [x] use the same styles on the signup form as the signin form
 - [ ] if someone's state is "filling out profile" for more than 24h hours, send them an email to remind them to finish their profile; resend it 2 days later also; and then resend 7 days later; then stop sending emails because they're probably not interested
 - [ ] decide how to filter by life stage – ask the users what they want in the email first
 - [ ] show past cuties that the user has missed
