@@ -175,73 +175,70 @@
       (embed-js-script (io/resource "public/signup.js"))]])
 
 (defn signup-screen [{:keys [phone phone-input-error code-error started?]}]
-  [:form {:method "post" :action (if started?
-                                   "/meetcute/verify-signup"
-                                   "/meetcute/signup")}
-   [:div {:style {:margin-left "auto"
-                  :margin-right "auto"
-                  :width "90%"
-                  :padding-top "48px"
-                  :text-align "center"}}
+  [:div.oranges-wallpaper
+   [:form {:method "post" :action (if started?
+                                    "/meetcute/verify-signup"
+                                    "/meetcute/signup")}
+    [:div.signin-form-background
     ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
-    [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "24px"}} "Sign up"]
-    (when (or phone-input-error code-error)
-      [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
-       (or phone-input-error code-error)])
-    [:label {:for "phone"}
-     [:p {:style {:font-weight "bold"
-                  :margin "24px 4px 4px 4px"
-                  :text-transform "uppercase"
-                  :font-style "italic"
-                  :color "#bcb5af"
-                  :font-size ".8em"}} "Your phone number:"]]
-    [:input {:id "phone"
-             :name "phone"
-             :value phone
-             :type "hidden"}]
-    [:input {:id "display-phone"
-             :type "tel"
-             :name "display-phone"
-             :value phone
-             :style {:background "rgb(42, 98, 59, 0.1)"
-                     :border-radius "8px"
-                     :width "13em"
-                     :padding "6px 8px"
-                     :margin-right "4px"
-                     :padding-left "50px"}}]
-    (if-not started?
-
-      [:p {:style {:margin-top "8px"
-                   :color "#9e958d"
-                   :font-size ".8em"}}
-       "We will text you a code via SMS"]
-
-      [:div
-       [:label {:for "code"}
-        [:p {:style {:font-weight "bold"
+     [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "24px"}} "Sign up"]
+     (when (or phone-input-error code-error)
+       [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px" :text-wrap "balance"}}
+        (or phone-input-error code-error)])
+     [:label {:for "phone"}
+      #_[:p {:style {:font-weight "bold"
                      :margin "24px 4px 4px 4px"
                      :text-transform "uppercase"
                      :font-style "italic"
                      :color "#bcb5af"
-                     :font-size ".8em"}} "SMS code:"]]
-       [:input {:type "text"
-                :autocomplete "one-time-code"
-                :name "code"
-                :style {:background "#66666620"
-                        :border-radius "8px"
-                        :padding "6px 8px"
-                        :margin-right "4px"}}]])
-    [:div {:style {:margin-bottom "12px"}}]
-    [:button {:class "btn primary"
-              :type "submit"}
-     "Sign up"]
-    [:p {:style {:font-size ".8em"
-                 :margin-top "24px"}}
-     "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
-    (when started?
-      [:div {:class "resend" :style {:margin-top "2rem"}}
-       [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Try again"]]])
-    (embed-js-script (io/resource "public/signin.js"))]])
+                     :font-size ".8em"}} "Your phone number:"]]
+     [:input {:id "phone"
+              :name "phone"
+              :value phone
+              :type "hidden"}]
+     [:input {:id "display-phone"
+              :type "tel"
+              :name "display-phone"
+              :value phone
+              :style {:background "rgb(42, 98, 59, 0.1)"
+                      :border-radius "8px"
+                      :width "13em"
+                      :padding "6px 8px"
+                      :margin-right "4px"
+                      :padding-left "50px"}}]
+     (if-not started?
+
+       [:br] #_[:p {:style {:margin-top "6px"
+                            :color "rgba(25, 56, 34, 0.5);"
+                            :font-size ".8em"}}
+                "We will text you a code via SMS"]
+
+       [:div
+        [:label {:for "code"}
+         [:p {:style {:font-weight "bold"
+                      :margin "24px 4px 4px 4px"
+                      :text-transform "uppercase"
+                      :font-style "italic"
+                      :color "#bcb5af"
+                      :font-size ".8em"}} "SMS code:"]]
+        [:input {:type "text"
+                 :autocomplete "one-time-code"
+                 :name "code"
+                 :style {:background "#66666620"
+                         :border-radius "8px"
+                         :padding "6px 8px"
+                         :margin-right "4px"}}]])
+     [:div {:style {:margin-bottom "12px"}}]
+     [:button.btn.primary.green {:class "btn primary"
+                                 :type "submit"}
+      "Send SMS code"]
+     [:p {:style {:font-size ".8em"
+                  :margin-top "24px"}}
+      "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+     (when started?
+       [:div {:class "resend" :style {:margin-top "2rem"}}
+        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Try again"]]])
+     (embed-js-script (io/resource "public/signin.js"))]]])
 
 (defn signup-route [_]
   (html-response
@@ -259,7 +256,7 @@
                                     "/meetcute/signin")}
     [:div.signin-form-background
     ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
-     [:h2 {:style {:font-size "24px" :line-height "1.4em"}} "Sign in"]
+     [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin-top "12px"}} "Sign in"]
      [:p {:style {:margin "28px 0 12px 0" :font-size ".88em"}} "Hello from " [:a {:href "https://twitter.com/devonzuegel"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg"} "Erik"] "!"]
      [:p {:style {:margin "0    0 32px 0" :font-size ".88em"}} "This is our a little experiment to introduce single friends to each other, & we're excited you're part of it"]
      (when (or phone-input-error code-error)
@@ -286,10 +283,10 @@
                       :margin-right "4px"
                       :padding-left "50px"}}]
      (if-not started?
-       [:p {:style {:margin-top "8px"
-                    :color "#9e958d"
-                    :font-size ".8em"}}
-        "We will text you a code via SMS"]
+       [:br] #_[:p {:style {:margin-top "6px"
+                            :color "rgba(25, 56, 34, 0.5);"
+                            :font-size ".8em"}}
+                "We will text you a code via SMS"]
        [:div
         [:label {:for "code"}
          [:p {:style {:font-weight "bold"
@@ -307,7 +304,7 @@
                          :margin-right "4px"}}]])
      [:div {:style {:margin-bottom "12px"}}]
      [:button.btn.primary.green {:type "submit"}
-      "Sign in →"]
+      "Send SMS code"]
      [:p {:style {:font-size ".8em"
                   :margin-top "24px"}}
       "No account yet? " [:a {:href "/meetcute/signup"} "Sign up →"]]
@@ -356,7 +353,7 @@
       (if-not (logic/existing-phone-number? phone)
         (html-response
          (signin-screen {:phone (or (:phone params) "")
-                         :phone-input-error "No account associated to this phone number. Sign up first."}))
+                         :phone-input-error "Hmmm we couldn't find an account with that phone number"}))
 
         (let [verification-id
               (if (= TEST_PHONE_NUMBER phone)
@@ -388,7 +385,7 @@
       (if (logic/existing-phone-number? phone)
         (html-response
          (signup-screen {:phone (or (:phone params) "")
-                         :phone-input-error "This phone number is already associated to an account. Sign in instead."}))
+                         :phone-input-error "Looks like you already have an account!"}))
 
         (let [verification-id
               (if (= TEST_PHONE_NUMBER phone)
