@@ -168,10 +168,11 @@
                       (mc.util/get-field old-bio-printable "Last name"))
             [old new no-change] (data/diff old-bio-printable new-data-printable)
             changed-keys (keys (merge old new))
-            log-message (if (and (some #{:selected-cuties :rejected-cuties :unseen-cuties} changed-keys)
-                                         ; at least one of them is not nil or an empty list:
-                                 (some (fn [key] (not (empty? (get new-data key))))
-                                       [:selected-cuties :rejected-cuties :unseen-cuties]))
+            updated-selections-rejections (and (some #{:selected-cuties :rejected-cuties :unseen-cuties} changed-keys)
+                                                                                   ; at least one of them is not nil or an empty list:
+                                               (some (fn [key] (not (empty? (get new-data key))))
+                                                     [:selected-cuties :rejected-cuties :unseen-cuties]))
+            log-message (if updated-selections-rejections
                           (str "🗳️ " name " has updated their selections/rejections")
                           (str "📝 " name " has updated these fields in their profile"))]
         (util/log (str log-message ": " changed-keys))
@@ -185,8 +186,9 @@
                              :subject   "Thanks for submitting your profile for review!"
                              :body      "We'll review your profile shortly. Once we make it live, you'll start receiving your daily cutie emails! 🍊"}))
 
-        (when (= (util/get-env-var "ENVIRONMENT")
-                 (:prod util/ENVIRONMENTS))
+        (when (and updated-selections-rejections ; TODO: for now, we're only sending emails when the user updates their selections/rejections because it was getting too noisy
+                   (= (util/get-env-var "ENVIRONMENT")
+                      (:prod util/ENVIRONMENTS)))
           (email/send-email {:to        "hello@smallworld.kiwi"
                              :from-name "MeetCute logs"
                              :subject   log-message
