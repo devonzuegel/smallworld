@@ -311,12 +311,15 @@ We use:
       - [x] send an email to everyone to let them know about the new feature!
 - [x] use the same styles on the signup form as the signin form
 - [ ] if someone's state is "filling out profile" for more than 24h hours, send them an email to remind them to finish their profile; resend it 2 days later also; and then resend 7 days later; then stop sending emails because they're probably not interested
+  - [ ] reminder email that’s like “hey looks like you started your profile, remember to submit it to us when it’s finished!” if it’s been stuck in `filling out profile` for >24h
+- [ ] when their profile has been approved, send them an email to let them know
 - [ ] decide how to filter by life stage – ask the users what they want in the email first
 - [ ] show past cuties that the user has missed
   - [ ] update Gillian when this is done (via SMS)
   - [ ] update Mariah when this is done
 - [ ] **landing page** — 3 hours
   - [ ] draft copy explaining how MeetCute works
+  - [ ] include a page about the dinner club
   - [ ] design the landing page – keep it simple, with a big orange button to sign up
   - [ ] implement it!
 - [ ] Max T. found this bug on iOS: ![image](https://github.com/devonzuegel/smallworld/assets/6979755/6111c554-2899-4ee7-81f9-681f83b10eb2)
@@ -325,6 +328,7 @@ We use:
 
 #### nice to have later on:
 - [ ] **filters:** add a way for users to include info about religion, politics, life stage, what they're lookinsg for, etc
+  - [ ] tell Asher once we've done religion: https://mail.superhuman.com/hello.at.smallworld@gmail.com/thread/18d8098a9ba42533#app
 - [ ] **fix:** when a user opens their cutie of the day from the email, there's a moment where the page says "no cutie today" before the cutie actually loads
 - [ ] if someone hasn't selected/rejected a cutie in 10 days, send them an email saying "We're going to mark your account as inactive and stop showing you to cuties. If you want to keep using the app, just log in and we'll start showing you cuties again"
 - [ ] Asher: "these emails send out exactly ten minutes later every day for me"
