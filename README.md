@@ -298,7 +298,7 @@ We use:
   - [x] allow user to remove images from the list
   - [x] let Amit know that it's been updated
 - [x] if cutie A has selected cutie B, then cutie B should have cutie A at the front of their `selected-cuties` list
-- [ ] **allow users to filter cuties by city**
+- [x] **allow users to ~~filter~~ sort cuties by city**
   - [x] for adding the locations to a profile, you can use the `fetch-coordinates!` and Mapbox functions from Small World!
   - [x] mobile styles for the profile editing page
   - [x] backfill the locations for the people who signed up before this feature was added — 2 hours
@@ -312,6 +312,7 @@ We use:
 - [x] use the same styles on the signup form as the signin form
 - [ ] if someone's state is "filling out profile" for more than 24h hours, send them an email to remind them to finish their profile; resend it 2 days later also; and then resend 7 days later; then stop sending emails because they're probably not interested
   - [ ] reminder email that’s like “hey looks like you started your profile, remember to submit it to us when it’s finished!” if it’s been stuck in `filling out profile` for >24h
+- [ ] if a user hasn't interacted with the app in 7 days, send them an email to tell them we're going to disable their profile in 3 days if they don't log in so that we don't show them to cuties who are interested in them, which is unfair to those
 - [ ] when their profile has been approved, send them an email to let them know
 - [ ] decide how to filter by life stage – ask the users what they want in the email first
 - [ ] show past cuties that the user has missed
