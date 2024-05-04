@@ -319,6 +319,9 @@ We use:
   - [ ] draft copy explaining how MeetCute works
   - [ ] design the landing page – keep it simple, with a big orange button to sign up
   - [ ] implement it!
+- [ ] Max T. found this bug on iOS: ![image](https://github.com/devonzuegel/smallworld/assets/6979755/6111c554-2899-4ee7-81f9-681f83b10eb2)
+- [ ] Max T. said that this field did not auto-save. When he refreshed, it was cleared: ![image](https://github.com/devonzuegel/smallworld/assets/6979755/c3a350a2-02c4-4c92-9861-aa33c2202dac)
+
 
 #### nice to have later on:
 - [ ] **filters:** add a way for users to include info about religion, politics, life stage, what they're lookinsg for, etc
