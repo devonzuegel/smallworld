@@ -321,7 +321,7 @@ We use:
   - [ ] implement it!
 - [ ] Max T. found this bug on iOS: ![image](https://github.com/devonzuegel/smallworld/assets/6979755/6111c554-2899-4ee7-81f9-681f83b10eb2)
 - [ ] Max T. said that this field did not auto-save. When he refreshed, it was cleared: ![image](https://github.com/devonzuegel/smallworld/assets/6979755/c3a350a2-02c4-4c92-9861-aa33c2202dac)
-
+- [ ] Via email, we got this feedback: "I indicated interest in XYZ back on Feb 23, and I think we matched this last weekend. In the months since, I've started seeing someone; while it's still super early days (non-exclusive, etc), I think it's best for me not to go on new first dates right now. Have let Neha know this directly, but also wanted to raise it with you! I haven't swiped on MeetCute recently, and so it was slightly unexpected to get a match out of the blue. Maybe some time limit on how long a match can happen after someone swipes?"
 
 #### nice to have later on:
 - [ ] **filters:** add a way for users to include info about religion, politics, life stage, what they're lookinsg for, etc
