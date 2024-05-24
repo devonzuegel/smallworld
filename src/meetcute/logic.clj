@@ -186,18 +186,18 @@
                              :subject   "Thanks for submitting your profile for review!"
                              :body      "We'll review your profile shortly. Once we make it live, you'll start receiving your daily cutie emails! 🍊"}))
 
-        (when (and updated-selections-rejections ; TODO: for now, we're only sending emails when the user updates their selections/rejections because it was getting too noisy
-                   (= (util/get-env-var "ENVIRONMENT")
-                      (:prod util/ENVIRONMENTS)))
-          (email/send-email {:to        "hello@smallworld.kiwi"
-                             :from-name "MeetCute logs"
-                             :subject   log-message
-                             :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
-                                             "<b><u>Here's what's changed:</u></b><br><br>"
-                                             "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
-                                             "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
-                                             "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
-                                             "</div>")}))
+        #_(when (and updated-selections-rejections ; TODO: for now, we're only sending emails when the user updates their selections/rejections because it was getting too noisy
+                     (= (util/get-env-var "ENVIRONMENT")
+                        (:prod util/ENVIRONMENTS)))
+            (email/send-email {:to        "hello@smallworld.kiwi"
+                               :from-name "MeetCute logs"
+                               :subject   log-message
+                               :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                               "<b><u>Here's what's changed:</u></b><br><br>"
+                                               "OLD:      <br><pre>" (with-out-str (pp/pprint old))       "</pre><br>"
+                                               "NEW:      <br><pre>" (with-out-str (pp/pprint new))       "</pre><br>"
+                                               "NO CHANGE:<br><pre>" (with-out-str (pp/pprint no-change)) "</pre><br>"
+                                               "</div>")}))
         (generate-string (airtable/kwdize new-bio))))))
 
 (defn index-of [e coll] (first (keep-indexed #(if (= e %2)
