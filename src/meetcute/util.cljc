@@ -6,6 +6,18 @@
   (println "remove-nth: " n)
   (concat (take n lst) (drop (inc n) lst)))
 
+(defn clean-email
+  [email]
+  (str/lower-case (str/trim email)))
+
+(defn valid-email? [email]
+  (and (string? email)
+       (not (empty? email))))
+
+(defn valid-code? [code]
+  (and (string? code)
+       (re-matches #"^\d{6}$" code)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; phone utils
 
