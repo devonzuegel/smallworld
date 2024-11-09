@@ -2,6 +2,7 @@
   (:require [compojure.core :as compo :refer [defroutes GET POST ANY]]
             [compojure.route :as route]
             [clojure.java.io :as io]
+            [clojure.string :as str]
             [cheshire.core :as json]
             [meetcute.logic :as logic]
             [smallworld.util :as sw-util]
@@ -9,10 +10,7 @@
             [meetcute.util :as mc.util]
             [ring.util.mime-type :as mime]
             [ring.util.request]
-            [ring.util.response :as resp]
-            [cheshire.core :refer [generate-string]]
-            [clojure.string :as str]
-            [smallworld.airtable :as airtable]))
+            [ring.util.response :as resp]))
 
 (defn parse-body-params [body]
   (json/parse-string body true))
@@ -53,21 +51,27 @@
 
 (defn tmp-file-path [file]
   (if (= (:prod sw-util/ENVIRONMENTS) (sw-util/get-env-var "ENVIRONMENT"))
-    (str "https://smallworld.kiwi/tmp/"                    (:filename file))
-    (str "https://7138-186-177-83-218.ngrok-free.app/tmp/" (:filename file))))
+    (str "https://smallworld.kiwi/tmp/" (:filename file))
+    (do
+      (println "<NGROK> you are using ngrok to upload files. Have you changed the ngrok URL? </NGROK>")
+      (str " https://b15f-137-103-250-209.ngrok-free.app/tmp/" (:filename file)))))
 
 (defn tmp-upload-handler [request]
   (try
     (let [files (-> request :params :file)
             ; make sure files is a list, even if we're just given one file. make it a seq: 
-          files (if (map? files) (list files) files)]
+          files (if (map? files) (list files) files)
+          files (->> files
+                     (map (fn [file]
+                            (if-let [extension (last (str/split (:filename file) #"\."))]
+                              (assoc file :filename (str (random-uuid) "." extension))
+                              (assoc file :filename (str (random-uuid)))))))]
       (println "files: ")
       (println files)
       (if (seq files)
-        (let [phone (some-> (mc.auth/req->parsed-jwt request) :auth/phone mc.util/clean-phone)
-              cutie (logic/my-profile phone :force-refresh? true)]
+        (let [parsed-jwt (mc.auth/req->parsed-jwt request)
+              cutie (logic/my-profile parsed-jwt :force-refresh? true)]
           (println "cutie id: " (:id cutie))
-          (println "   phone: " phone)
 
           ; for each file, copy it to the tmp-img-uploads directory
           (doseq [file files]
@@ -105,11 +109,9 @@
   (POST "/api/matchmaking/profile" req (logic/update-profile req))
   (POST "/tmp-upload"              req (tmp-upload-handler req))
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
-  (POST "/api/matchmaking/me"      req (let [phone (some-> (mc.auth/req->parsed-jwt req)
-                                                           :auth/phone
-                                                           mc.util/clean-phone)]
-                                         (assert phone)
-                                         (generate-string {:fields (logic/my-profile phone)})))
+  (POST "/api/matchmaking/me"      req (let [parsed-jwt (mc.auth/req->parsed-jwt req)]
+                                         (assert parsed-jwt)
+                                         (json/generate-string {:fields (logic/my-profile parsed-jwt)})))
   (GET  "/api/get-airtable-db-name"        _  (json/generate-string (logic/get-airtable-db-name)))
   (POST "/api/admin/update-airtable-db"   req (logic/update-airtable-db req))
   (POST "/api/refresh-todays-cutie"       req (let [parsed-body (:params req)

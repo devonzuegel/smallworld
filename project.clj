@@ -7,7 +7,7 @@
   :min-lein-version "2.5.3"
   :repl-options {:init-ns dev.repl
                  :timeout 380000}
-  :dependencies [[org.clojure/clojure "1.10.3"]
+  :dependencies [[org.clojure/clojure "1.12.0"]
                  [org.clojure/clojurescript "1.10.520"]
                  [reagent "0.9.0-rc1"]
                  [compojure "1.6.2"]
