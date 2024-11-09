@@ -157,18 +157,21 @@
 
 (defn update-profile [req]
   (let [new-data (:params req)
+        {:auth/keys [email phone]} (req->parsed-jwt req)
         all-bios (get-all-bios)
-        bio-id (mc.util/get-field new-data "id")
-        phone  (mc.util/get-field new-data "Phone")
+        ;; bio-id (mc.util/get-field new-data "id")
+        ;; phone  (mc.util/get-field new-data "Phone")
         old-bio (first (filter (fn [this-bio]
-                                 (or (= bio-id
-                                        (mc.util/get-field this-bio "id"))
-                                     (= (mc.util/clean-phone phone)
-                                        (mc.util/clean-phone (get-in this-bio ["Phone"])))))
+                                 (or (and email
+                                          (= email (some-> (get-in this-bio ["Email"])
+                                                           mc.util/clean-email)))
+                                     (and phone
+                                          (=  phone (some-> (get-in this-bio ["Phone"])
+                                                            mc.util/clean-phone)))))
                                all-bios))
         fields-to-change  (util/exclude-keys new-data [:id])]
     (if (nil? old-bio)
-      (generate-string {:error "We couldn't find a profile with that phone number. You probably need to sign up!"})
+      (generate-string {:error "We couldn't find a profile with that email. You probably need to sign up!"})
       (let [new-bio (-> (airtable/update-in-base airtable-base
                                                  [@airtable-cuties-db-name (:id old-bio)]
                                                  {:fields fields-to-change})
