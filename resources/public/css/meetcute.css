@@ -6,6 +6,7 @@
   vertical-align: baseline;
   background: transparent;
 }
+
 html {
   color: #2b2017;
   // color: #013917;
@@ -15,9 +16,11 @@ html {
   // color: #ccc;
   font-family: 'Roboto Mono', monospace;
 }
+
 pre {
   text-wrap: wrap;
 }
+
 a {
   color: rgb(46, 103, 63);
   font-weight: 700;
@@ -28,16 +31,19 @@ a {
   border-bottom: 2px solid rgb(42, 98, 59, 0.2);
   transition: border-bottom 0.1s ease-in-out;
 }
+
 a:hover {
   // text-decoration: underline;
   border-bottom: 2px solid rgb(42, 98, 59, 0.3);
   transition: border-bottom 0.1s ease-in-out;
 }
+
 button,
 a,
 textarea {
   font-family: 'Roboto Mono', monospace;
 }
+
 .btn {
   color: rgb(188, 181, 175, 1);
   border: 3px solid rgb(188, 181, 175, 0);
@@ -50,54 +56,66 @@ textarea {
   text-decoration: none;
   font-weight: bold;
 }
+
 .btn:hover {
   color: rgb(108, 98, 90);
   transition: all 0.1s ease-in-out;
   border: 3px solid rgb(188, 181, 175, 0);
 }
+
 .btn.primary {
   border: 3px solid rgb(188, 181, 175, 0.4);
 }
+
 .btn.primary:hover {
   border: 3px solid rgb(188, 181, 175, 0.7);
 }
+
 .btn.primary.green {
   background: rgb(42, 98, 59, 0.08);
   border: 3px solid rgb(42, 98, 59, 0.8);
   color: rgb(42, 98, 59, 0.8);
   transition: all 0.1s ease-in-out;
 }
+
 .btn.primary.green:hover {
   background: rgb(42, 98, 59, 0.1);
   border: 3px solid rgb(42, 98, 59, 0.9);
   color: rgb(42, 98, 59, 1);
   transition: all 0.1s ease-in-out;
 }
+
 body {
   margin: 0;
 }
+
 html,
 body {
   height: 100%;
 }
+
 input {
   color: #220b01;
   transition: color 200ms ease-in-out;
   font-family: 'Roboto Mono', monospace;
   accent-color: #054921e0;
 }
+
 input:focus {
   color: #000000;
   transition: color 200ms ease-in-out;
 }
+
 input[type='radio'] {
   width: 20px;
   height: 20px;
 }
+
 input[type='checkbox'] {
   width: 16px;
   height: 16px;
 }
+
 .input-container input {
   border: none;
   box-sizing: border-box;
@@ -110,6 +128,7 @@ input[type='checkbox'] {
 input[type='date'] {
   cursor: pointer;
 }
+
 input[type='date']::-webkit-calendar-picker-indicator {
   width: 100%;
   height: 22px;
@@ -124,6 +143,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   // bottom: 0;
   // visibility: hidden;
 }
+
 .input-date-overlay {
   display: block;
   margin-bottom: -38px;
@@ -137,27 +157,33 @@ input[type='date']::-webkit-calendar-picker-indicator {
   position: relative;
   pointer-events: none;
 }
+
 /* keep form inputs from zooming on mobile: https://www.warrenchandler.com/2019/04/02/stop-iphones-from-zooming-in-on-form-fields */
 body {
   line-height: 1.3em;
   font-size: 14px;
 }
+
 input,
 select {
   font-size: 16px;
 }
+
 ul {
   padding-inline-start: 20px;
 }
+
 li {
   padding-left: 4px;
 }
+
 .loading-container {
   position: fixed;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
 .loading-container .spinner {
   width: 120px;
   height: 120px;
@@ -166,14 +192,17 @@ li {
   background-image: url('/orange-favicon.png');
   background-size: contain;
 }
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
+
 .bio-row .title {
   width: fit-content;
   padding: 16px 12px 0 12px;
@@ -184,12 +213,14 @@ li {
   color: #a19890;
   font-size: 0.8em;
 }
+
 .bio-row .required-note {
   color: rgb(255 106 0);
   font-size: 1.3em;
   text-transform: lowercase;
   margin: 0 4px;
 }
+
 .bio-row textarea {
   background: white;
   border: 3px solid rgba(188, 181, 175, 0.3);
@@ -203,6 +234,7 @@ li {
   width: 98%;
   transition: all 0.2s ease-in-out;
 }
+
 .required textarea:empty:not(:focus),
 .required .editable-input.required-but-empty,
 .required .editable-input[value='']:not([type='date']):not(:focus) {
@@ -218,29 +250,35 @@ li {
 .bio-row-locations .bio-row {
   width: 100%;
 }
+
 .bio-row-value {
   max-width: 78vw;
   display: flex;
 }
+
 .bio-row-value input:focus:not([type='date']) {
   border: 3px solid rgba(188, 181, 175, 0.6) !important;
   transition: all 0.2s ease-in-out;
 }
+
 @media screen and (min-width: 600px) {
   .bio-row-value {
     min-width: 370px;
   }
 }
+
 .required-but-empty,
 .required-not-empty {
   padding: 6px 8px 8px 8px;
   border: 3px solid transparent;
 }
+
 .required-but-empty {
   background-color: rgb(255, 248, 243);
   border: 3px solid rgb(255, 181, 128);
   border-radius: 8px;
 }
+
 .editable-input {
   background: white;
   border: 3px solid rgba(188, 181, 175, 0.3);
@@ -262,14 +300,26 @@ input#display-phone,
 .iti--separate-dial-code .iti__selected-flag {
   background: rgba(35, 81, 49, 0.08) !important;
 }
+
 #display-phone::placeholder {
   color: rgba(25, 56, 34, 0.4);
 }
+
+input#email,
+.iti--separate-dial-code .iti__selected-flag {
+  background: rgba(35, 81, 49, 0.08) !important;
+}
+
+#email::placeholder {
+  color: rgba(25, 56, 34, 0.4);
+}
+
 .iti__country-list {
   max-width: 330px;
   overflow-x: hidden;
   font-size: 0.8em;
 }
+
 .oranges-wallpaper {
   background-color: #ffe2c0;
   background-image: url('../oranges-tile-repeat.jpg');
@@ -287,9 +337,11 @@ input#display-phone,
   align-items: center;
   padding-top: 15vh;
 }
+
 .oranges-wallpaper form {
   padding-top: 48px;
 }
+
 .signin-form-background {
   box-shadow: 0 0 2px 0 rgba(255, 255, 255, 1);
   border: 4px solid rgb(42, 98, 59, 1);
@@ -319,7 +371,7 @@ details span.title {
   font-size: 1.5em;
 }
 
-details > summary {
+details>summary {
   // width: 100%;
   width: fit-content;
   // border-top: 1px solid #e0e0e0;
@@ -327,13 +379,14 @@ details > summary {
   cursor: pointer;
   font-weight: bold;
 }
-details > summary:first-of-type {
+
+details>summary:first-of-type {
   border-top: none;
   margin-top: 8px;
 }
 
-details[open] > summary::marker,
-details > summary::marker,
+details[open]>summary::marker,
+details>summary::marker,
 details summary::-webkit-details-marker,
 details summary::marker {
   font-size: 1.4em;
@@ -349,28 +402,35 @@ table {
   width: 100%;
   border: 1px solid #ddd;
 }
+
 th,
 td {
   text-align: left;
   padding: 4px;
 }
+
 .invisible {
   opacity: 0;
 }
 
 .location-field:focus-within,
 .email-options:focus-within,
-.email-options:focus /* the radio btns field is different */
+.email-options:focus
+
+/* the radio btns field is different */
 .email-address:focus,
 .email-address:focus-within {
   border: 1px solid #ffffff55;
 }
+
 .you-signed-in-as .friend {
   width: fit-content;
 }
+
 .you-signed-in-as {
   display: inline-flex;
 }
+
 .field .edit-icon {
   fill: white;
   height: 13px;
@@ -379,6 +439,7 @@ td {
   position: absolute;
   opacity: 0.5;
 }
+
 .field {
   font-size: 0.95em;
 }
@@ -394,13 +455,16 @@ td {
   background: #9dc7d9;
   border-radius: 100px;
 }
+
 .mapbox-container .mapboxgl-canvas-container,
 .mapbox-container .mapboxgl-canvas-container canvas {
   border-radius: 100px;
 }
+
 .mapboxgl-canvas {
   position: relative !important;
 }
+
 .mapbox-container .mapboxgl-map {
   height: 100% !important;
 }
@@ -410,30 +474,36 @@ td {
   0% {
     background-color: #1d7a42;
   }
+
   50% {
     background-color: #013917;
   }
+
   100% {
     background-color: #1d7a42;
   }
 }
+
 @keyframes pulsingSize {
   0% {
     transform: scale(1);
     // font-size: 1em;
     // transform: translateX(0) translateY(0);
   }
+
   50% {
     transform: scale(1.2);
     // font-size: 1.2em;
     // transform: translateX(-10px) translateY(-10px);
   }
+
   100% {
     transform: scale(1);
     // font-size: 1em;
     // transform: translateX(0) translateY(0);
   }
 }
+
 .mapbox-container .center-point,
 .mapbox-container .center-point {
   width: 20px;
@@ -451,6 +521,7 @@ td {
   animation-duration: 3s;
   animation-iteration-count: infinite;
 }
+
 .location-fields {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -458,6 +529,7 @@ td {
   margin: 12px 0;
   width: 100%;
 }
+
 .location-field,
 .add-location-btn {
   background: #f6f6f6;
@@ -470,7 +542,8 @@ td {
   padding: 8px;
   border-radius: 8px;
   flex: 1;
-  min-width: 200px; /* Adjust minimum width as needed */
+  min-width: 200px;
+  /* Adjust minimum width as needed */
   text-align: center;
   border: 1px solid #000;
   padding: 10px;
@@ -491,9 +564,11 @@ td {
 .location-field .location-field-top {
   margin: -12px 0 0 0;
 }
+
 .location-field .location-field-bottom {
   margin: 16px 12px 0 12px;
 }
+
 .location-field .location-input {
   background: white;
   margin: 4px 0 8px 0;
@@ -503,25 +578,30 @@ td {
   transition: all 0.2s ease-in-out;
   border-radius: 8px;
 }
+
 .location-field .location-input[value='']:not(:focus) {
   background-color: rgb(255, 248, 243);
   border: 3px solid rgb(255, 181, 128) !important;
   transition: all 0.2s ease-in-out;
 }
+
 .location-field .location-input:focus {
   border: 3px solid rgba(188, 181, 175, 0.5) !important;
   transition: all 0.2s ease-in-out;
   border-radius: 8px;
 }
+
 .location-field .location-type-radio {
   width: 100%;
   text-align: left;
 }
+
 .location-field .location-type-radio input {
   margin: 6px;
   cursor: pointer;
   // display: none;
 }
+
 .location-field .location-type-radio label {
   margin: 3px;
   padding: 4px 8px;
@@ -531,11 +611,13 @@ td {
   color: #013917c0;
   transition: color 0.1s ease-in-out;
 }
+
 .location-field .location-type-radio label:hover,
-.location-field .location-type-radio input:hover + label {
+.location-field .location-type-radio input:hover+label {
   color: #013917e0;
   transition: color 0.1s ease-in-out;
 }
+
 .add-location-btn {
   padding: 24px 10px;
   min-height: 264px;
@@ -550,11 +632,13 @@ td {
   align-items: center;
   justify-content: center;
 }
+
 .add-location-btn:hover {
   color: #013917;
   border: 3px dashed rgba(188, 181, 175, 0.8) !important;
   transition: all 0.2s ease-in-out;
 }
+
 .ready-for-review {
   position: fixed;
   background: white;
@@ -572,6 +656,7 @@ td {
   flex-wrap: wrap-reverse;
   gap: 12px;
 }
+
 .ready-for-review button {
   color: white;
   background: #013917e0;
@@ -583,15 +668,18 @@ td {
   width: fit-content;
   min-width: 200px;
 }
+
 .ready-for-review button:hover {
   background: #013917;
   transition: all 0.2s ease-in-out;
 }
+
 .ready-for-review button.disabled {
   background: rgba(160, 160, 160, 0.3);
   color: rgba(160, 160, 160, 0.9);
   cursor: not-allowed;
 }
+
 .ready-for-review .errors-list {
   // width: 336px;
   text-wrap: balance;
@@ -599,14 +687,17 @@ td {
   font-size: 0.9em;
   text-align: center;
 }
+
 @media (min-width: 570px) {
   .ready-for-review .errors-list {
     text-align: left;
   }
 }
+
 .ready-for-review .errors-list ul {
   margin-top: 6px;
 }
+
 .welcome-message {
   line-height: 1.8em;
   // text-wrap: balance;
@@ -691,6 +782,7 @@ td {
   margin-left: -20px;
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.3);
 }
+
 .bio-row .picture svg.cancel-icon:hover {
   fill: #3b5f46;
   transition: all 100ms ease-in-out;
