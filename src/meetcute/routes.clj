@@ -51,7 +51,7 @@
 
 (defn tmp-file-path [file]
   (if (= (:prod sw-util/ENVIRONMENTS) (sw-util/get-env-var "ENVIRONMENT"))
-    (str "https://smallworld.kiwi/tmp/"                    (:filename file))
+    (str "https://smallworld.kiwi/tmp/" (:filename file))
     (do
       (println "<NGROK> you are using ngrok to upload files. Have you changed the ngrok URL? </NGROK>")
       (str " https://b15f-137-103-250-209.ngrok-free.app/tmp/" (:filename file)))))
@@ -60,7 +60,12 @@
   (try
     (let [files (-> request :params :file)
             ; make sure files is a list, even if we're just given one file. make it a seq: 
-          files (if (map? files) (list files) files)]
+          files (if (map? files) (list files) files)
+          files (->> files
+                     (map (fn [file]
+                            (if-let [extension (last (str/split (:filename file) #"\."))]
+                              (assoc file :filename (str (random-uuid) "." extension))
+                              (assoc file :filename (str (random-uuid)))))))]
       (println "files: ")
       (println files)
       (if (seq files)
