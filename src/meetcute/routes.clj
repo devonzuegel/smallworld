@@ -2,6 +2,7 @@
   (:require [compojure.core :as compo :refer [defroutes GET POST ANY]]
             [compojure.route :as route]
             [clojure.java.io :as io]
+            [clojure.string :as str]
             [cheshire.core :as json]
             [meetcute.logic :as logic]
             [smallworld.util :as sw-util]
@@ -9,10 +10,7 @@
             [meetcute.util :as mc.util]
             [ring.util.mime-type :as mime]
             [ring.util.request]
-            [ring.util.response :as resp]
-            [cheshire.core :refer [generate-string]]
-            [clojure.string :as str]
-            [smallworld.airtable :as airtable]))
+            [ring.util.response :as resp]))
 
 (defn parse-body-params [body]
   (json/parse-string body true))
@@ -54,7 +52,9 @@
 (defn tmp-file-path [file]
   (if (= (:prod sw-util/ENVIRONMENTS) (sw-util/get-env-var "ENVIRONMENT"))
     (str "https://smallworld.kiwi/tmp/"                    (:filename file))
-    (str "https://7138-186-177-83-218.ngrok-free.app/tmp/" (:filename file))))
+    (do
+      (println "<NGROK> you are using ngrok to upload files. Have you changed the ngrok URL? </NGROK>")
+      (str " https://b15f-137-103-250-209.ngrok-free.app/tmp/" (:filename file)))))
 
 (defn tmp-upload-handler [request]
   (try
@@ -106,7 +106,7 @@
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
   (POST "/api/matchmaking/me"      req (let [parsed-jwt (mc.auth/req->parsed-jwt req)]
                                          (assert parsed-jwt)
-                                         (generate-string {:fields (logic/my-profile parsed-jwt)})))
+                                         (json/generate-string {:fields (logic/my-profile parsed-jwt)})))
   (GET  "/api/get-airtable-db-name"        _  (json/generate-string (logic/get-airtable-db-name)))
   (POST "/api/admin/update-airtable-db"   req (logic/update-airtable-db req))
   (POST "/api/refresh-todays-cutie"       req (let [parsed-body (:params req)
