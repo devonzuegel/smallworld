@@ -64,10 +64,9 @@
       (println "files: ")
       (println files)
       (if (seq files)
-        (let [phone (some-> (mc.auth/req->parsed-jwt request) :auth/phone mc.util/clean-phone)
-              cutie (logic/my-profile phone :force-refresh? true)]
+        (let [parsed-jwt (mc.auth/req->parsed-jwt request)
+              cutie (logic/my-profile parsed-jwt :force-refresh? true)]
           (println "cutie id: " (:id cutie))
-          (println "   phone: " phone)
 
           ; for each file, copy it to the tmp-img-uploads directory
           (doseq [file files]
@@ -105,11 +104,9 @@
   (POST "/api/matchmaking/profile" req (logic/update-profile req))
   (POST "/tmp-upload"              req (tmp-upload-handler req))
   (ANY  "/api/echo"                req (resp/response (pr-str req)))
-  (POST "/api/matchmaking/me"      req (let [phone (some-> (mc.auth/req->parsed-jwt req)
-                                                           :auth/phone
-                                                           mc.util/clean-phone)]
-                                         (assert phone)
-                                         (generate-string {:fields (logic/my-profile phone)})))
+  (POST "/api/matchmaking/me"      req (let [parsed-jwt (mc.auth/req->parsed-jwt req)]
+                                         (assert parsed-jwt)
+                                         (generate-string {:fields (logic/my-profile parsed-jwt)})))
   (GET  "/api/get-airtable-db-name"        _  (json/generate-string (logic/get-airtable-db-name)))
   (POST "/api/admin/update-airtable-db"   req (logic/update-airtable-db req))
   (POST "/api/refresh-todays-cutie"       req (let [parsed-body (:params req)

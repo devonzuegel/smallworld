@@ -29,10 +29,12 @@
          :style {:line-height "1.4"}}])
 
 (defn format-phone [phone] ; TODO: replace this with google-libphonenumber fn, which is probably more robust
-  (if (re-matches #"\+\d{11}" phone)
-    (let [digits-only (str/replace phone #"[^0-9]" "")]
-      (str "+" (subs digits-only 0 1) " (" (subs digits-only 1 4) ") " (subs digits-only 4 7) "-" (subs digits-only 7 11)))
-    phone))
+  (if phone
+    (if (re-matches #"\+\d{11}" phone)
+      (let [digits-only (str/replace phone #"[^0-9]" "")]
+        (str "+" (subs digits-only 0 1) " (" (subs digits-only 1 4) ") " (subs digits-only 4 7) "-" (subs digits-only 7 11)))
+      phone)
+    ""))
 
 (defn checkbox-component [value-name selected-values update-selected-values]
   (let [checked? (boolean (mc.util/in? selected-values value-name))]
@@ -284,7 +286,9 @@
 
 (defn change-profile-field [field-name]
   (fn [event]
-    (reset! profile (assoc @profile (keyword field-name) (-> event .-target .-value)))
+    (let [value (-> event .-target .-value)]
+      (swap! profile assoc (keyword field-name) value))
+    (println @profile)
     (update-profile-debounced!)))
 
 (defn trim-trailing-whitespace [str]
@@ -522,6 +526,11 @@
                                                                           (update-profile-debounced!)))]
                           {:required? true}]
                          ["Phone" [:div {:style {:max-width "380px"}}
+                                   (editable-input "Phone")
+                                   [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
+                          {:required? true}]
+                         ["Email" [:div {:style {:max-width "380px"}}
+                                   ;; don't make this editable, because it's the key to finding the record to update. in the future, we can use the ID instead if we do want to make the phone editable
                                    [:div {:style {:background "rgb(188, 181, 175, .1)"
                                                   :border "3px solid rgb(188, 181, 175, .3)"
                                                   :cursor "not-allowed"
@@ -530,14 +539,9 @@
                                                   :margin-right "4px"
                                                   :width "95%"
                                                   :max-width "380px"}}
-                                                              ;; (format-phone (mc.util/get-field @profile "Phone")) ; don't make this editable, because it's the key to find the record to update. in the future, we can use the ID instead if we do want to make the phone editable
-                                    (format-phone (mc.util/get-field @profile "Phone"))]
-                                   [small-text [:span "If you'd like to change your phone number, email "
+                                    (mc.util/get-field @profile "Email")]
+                                   [small-text [:span "If you'd like to change your email address, contact "
                                                 [:a {:href "mailto:hello@smallworld.kiwi"} "hello@smallworld.kiwi"] "."]]]
-                          {:required? true}]
-                         ["Email" [:div {:style {:max-width "380px"}}
-                                   (editable-input "Email")
-                                   [small-text "We will only share your contact info when you match with someone. It will not be shown on your profile."]]
                           {:required? true}]
                          ["Who invited you to MeetCute?" (editable-input "If 'Other', who invited you?") {:required? true}]
                          ["What's your birthday?" (editable-date-input "Birthday") {:required? true}]
@@ -660,10 +664,12 @@
                                   (when (str/blank? (mc.util/get-field @profile "Gender"))                                                   "Gender")
                                   (when (empty?     (mc.util/get-field @profile "I'm interested in..."))                                     "Sexual orientation")
                                   (when (str/blank? (mc.util/get-field @profile "Phone"))                                                    "Phone")
-                                  (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
+                                  ;; (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
+                                  ;; (when (str/blank? (mc.util/get-field @profile "Email"))                                                    "Email")
                                   (when (str/blank? (mc.util/get-field @profile "Anything else you'd like your potential matches to know?")) "About me")
                                   (when (empty?     (mc.util/get-field @profile "Pictures"))                                                 "Pictures")
                                   (when (or (empty? @*locations-new) (not (every? (comp not str/blank?) (map :name @*locations-new))))       "At least 1 location")])]
+         (println errors)
          [:div.ready-for-review
 
           [:button {:className (if (empty? errors) "enabled" "disabled")

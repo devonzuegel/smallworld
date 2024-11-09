@@ -109,8 +109,22 @@
                                                          ])]
     (vec [cutie-me todays-cutie-abridged])))
 
+(defn get-all-emails []
+  (let [all-bios (get-all-bios)]
+    (->> all-bios
+    ;; Email can be nullable
+         (keep (fn [bio]
+                 (get-in bio ["Email"])))
+         (map mc.util/clean-email)
+         set)))
+
+(defn existing-email? [email]
+  (let [email (mc.util/clean-email email)
+        all-emails (get-all-emails)]
+    (contains? all-emails email)))
+
 (defn get-all-phones []
-  (let [all-bios  (get-all-bios)]
+  (let [all-bios (get-all-bios)]
     (->> all-bios
          (map (fn [bio]
                 (get-in bio ["Phone"])))
@@ -128,11 +142,16 @@
                                  all-bios)]
     (airtable/kwdize my-bio)))
 
-(defn my-profile [phone & {:keys [force-refresh?] :or {force-refresh? false}}]
-  (let [all-bios (get-all-bios :force-refresh? force-refresh?)
+(defn my-profile [parsed-jwt & {:keys [force-refresh?] :or {force-refresh? false}}]
+  (let [{:auth/keys [phone email]} parsed-jwt
+        all-bios (get-all-bios :force-refresh? force-refresh?)
         my-bio (find-first-match (fn [bio]
-                                   (= (mc.util/clean-phone phone)
-                                      (mc.util/clean-phone (get-in bio ["Phone"]))))
+                                   (or (and phone
+                                            (= (some-> phone mc.util/clean-phone)
+                                               (some-> (get-in bio ["Phone"]) mc.util/clean-phone)))
+                                       (and email
+                                            (= (some-> email mc.util/clean-email)
+                                               (some-> (get-in bio ["Email"]) mc.util/clean-email)))))
                                  all-bios)]
     (airtable/kwdize my-bio)))
 
@@ -652,15 +671,16 @@
 
 ; TODO: remove this route
 (defn refresh-todays-cutie-route-mine [req]
-  (let [phone (some-> (req->parsed-jwt req) :auth/phone mc.util/clean-phone)
-        cutie (my-profile phone :force-refresh? true)]
+  (let [parsed-jwt (req->parsed-jwt req)
+        cutie (my-profile parsed-jwt :force-refresh? true)]
     (println "refresh-todays-cutie for JUST ME")
     (refresh-todays-cutie cutie (get-all-bios :force-refresh? true))
-    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " phone)})))
+    (generate-string {:success true :message (str "Successfully refreshed todays-cutie for " parsed-jwt)})))
 
-(defn refresh-todays-cutie-route-all [_req]
+(defn refresh-todays-cutie-route-all [req]
   ; TODO: only an admin should be able to hit this route
-  (let [actually-do-the-refresh true ; toggle me to turn off the refresh/email
+  (let [parsed-jwt (req->parsed-jwt req)
+        actually-do-the-refresh true ; toggle me to turn off the refresh/email
         bios (get-all-bios :force-refresh? true)
         all-cuties (filter #(or (get-in % ["admin?"])
                                 (= (get-in % ["Include in gallery?"]) "include in gallery"))
@@ -684,7 +704,7 @@
 
           (when actually-do-the-refresh
             (when-not (updated-in-last-24h? cutie) ; don't need to refresh again because we just did it above
-              (refresh-todays-cutie (my-profile phone :force-refresh? false)
+              (refresh-todays-cutie (my-profile parsed-jwt :force-refresh? false)
                                     (get-all-bios :force-refresh? false)))))))
     (when-not actually-do-the-refresh
       (println)
