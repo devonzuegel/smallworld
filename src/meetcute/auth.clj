@@ -13,7 +13,10 @@
             [meetcute.logic :as logic]
             [clojure.java.io :as io]
             [cljs.pprint :as pp]
-            [smallworld.airtable :as airtable]))
+            [smallworld.airtable :as airtable])
+  (:import [java.util Date]))
+
+(def email-auth? true)
 
 ;; Adding authentication to some of the pages
 ;; She wants everything to be stateless if possible
@@ -21,8 +24,10 @@
 (defn- jwt-secret []
   (env/get-env-var "JWT_SECRET_KEY"))
 
-(defn create-auth-token [phone]
-  (jwt/sign {:auth/phone phone} (jwt-secret)))
+(defn create-auth-token [{:keys [phone email]}]
+  (jwt/sign {:auth/phone (some-> phone mc.util/clean-phone)
+             :auth/email (some-> email mc.util/clean-email)}
+            (jwt-secret)))
 
 (defn verify-auth-token [auth-token]
   (try
@@ -31,10 +36,10 @@
       nil)))
 
 (defn req->auth-token [req]
-  (or
-   (some-> (get-in req [:headers "authorization"])
-           (str/split #"\s+")
-           (second)))
+  #_(or
+     (some-> (get-in req [:headers "authorization"])
+             (str/split #"\s+")
+             (second)))
   (get-in req [:session :auth/jwt]))
 
 (defn req->parsed-jwt [req]
@@ -72,55 +77,71 @@
       (unauthorized-response request))))
 
 ;; ====================================================================== 
-;; (deprecated for Twilio verify) SMS verification flow
+;; Codes flow
 
 (comment
-  {"phone" {:code "123456"
-            :attempts [{:time 123 :code "1234" :result :success}]}})
+  {"email" {:id #uuid "5d14438d-47e3-4a95-845b-5141bdc98ec8"
+            :code "123456"
+            :started_at #inst "2024-01-01"
+            :success? false
+            :attempts [{:time #inst "2024-01-01" :code "1234" :result :success}]}})
 
-(defonce sms-sessions (atom {}))
+(defonce auth-sessions-state (atom {}))
 
 (defn reset-sms-sessions! []
-  (reset! sms-sessions {}))
+  (reset! auth-sessions-state {}))
 
 (defn random-code []
   (str (+ 100000 (rand-int 900000))))
 
-(defn add-new-code [sms-sessions phone code]
-  {:pre [(string? phone) (string? code)]}
-  (if (get sms-sessions phone)
-    (update sms-sessions phone assoc :code code)
-    (assoc sms-sessions phone {:code code
-                               :attempts []})))
+(defn now []
+  (Date.))
 
-(defn now [] (java.util.Date.))
+(defn add-new-code [auth-sessions email code]
+  {:pre [(string? email) (string? code)]}
+  (if (get auth-sessions email)
+    (-> auth-sessions
+        (assoc-in [email :code] code)
+        (assoc-in [email :success?] nil))
+    (assoc auth-sessions email {:id (random-uuid)
+                                :code code
+                                :started_at (now)
+                                :success? nil
+                                :attempts []})))
 
 (def MAX_ATTEMPTS_PER_HOUR 6)
 
 (defn in-last-hour? [now time]
-  (< (- (.getTime now) (.getTime time)) (* 60 60 1000)))
+  (and time
+       (< (- (.getTime now) (.getTime time))
+          (* 60 60 1000))))
 
-(defn new-attempt [sms-sessions phone attempted-code]
-  (let [{:keys [attempts code]} (get sms-sessions phone)
-        last-hour-attempts (->> attempts
-                                (map :time)
-                                (filter (partial in-last-hour? (now)))
-                                count)
-        r (cond
-            (nil? attempted-code) :error
-            (< MAX_ATTEMPTS_PER_HOUR last-hour-attempts) :error
-            (= code attempted-code) :success
-            :else :error)
-        attempt {:code attempted-code
-                 :time (now)
-                 :result r}]
-    (update-in sms-sessions [phone :attempts] conj attempt)))
-
-(defn last-attempt [attempts]
+(defn count-recent-attempts [attempts now]
   (->> attempts
-       (sort-by (fn [{:keys [time]}]
-                  (- (.getTime time))))
-       first))
+       (map :time)
+       (filter (partial in-last-hour? now))
+       count))
+
+(defn new-attempt [auth-sessions email attempted-code]
+  (if-let [session (get auth-sessions email)]
+    (let [{:keys [attempts code]} session
+          current-time (now)
+          last-hour-attempts (count-recent-attempts attempts current-time)
+          r (cond
+              (nil? attempted-code) :error
+              (>= last-hour-attempts MAX_ATTEMPTS_PER_HOUR) :error
+              (= code attempted-code) :success
+              :else :error)
+          attempt {:code attempted-code
+                   :time current-time
+                   :result r}
+          success? (= :success r)]
+      (-> auth-sessions
+          (update-in [email :attempts] conj attempt)
+          (assoc-in [email :success?] success?)))
+    auth-sessions))
+
+(defn last-attempt [attempts] (last attempts))
 
 ;; ================================================================================ 
 ;; HTML
@@ -174,7 +195,65 @@
       (airtable-iframe "https://airtable.com/embed/appF2K8ThWvtrC6Hs/shrZJIaP3ZbuXmiW1")
       (embed-js-script (io/resource "public/signup.js"))]])
 
-(defn signup-screen [{:keys [phone phone-input-error code-error started?]}]
+(defn email-signup-screen [{:keys [email email-input-error code-error started?]}]
+  [:div.oranges-wallpaper
+   [:form {:method "post" :action (if started?
+                                    "/meetcute/verify-signup"
+                                    "/meetcute/signup")}
+    [:div.signin-form-background
+    ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
+     [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin "24px"}}
+      "Sign up"]
+     (when (or email-input-error code-error)
+       [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px" :text-wrap "balance"}}
+        (or email-input-error code-error)])
+     [:input {:id "email"
+              :type "email"
+              :name "email"
+              :value email
+              :placeholder "Email address"
+              :style {:background "rgb(42, 98, 59, 0.1)"
+                      :border-radius "8px"
+                      :width "13em"
+                      :padding "6px 8px"
+                      :margin-right "4px"
+                      :padding-left "8px"}}]
+     (if-not started?
+
+       [:br] #_[:p {:style {:margin-top "6px"
+                            :color "rgba(25, 56, 34, 0.5);"
+                            :font-size ".8em"}}
+                "We will text you a code via SMS"]
+
+       [:div
+        [:label {:for "code"}
+         [:p {:style {:font-weight "bold"
+                      :margin "24px 4px 4px 4px"
+                      :text-transform "uppercase"
+                      :font-style "italic"
+                      :color "#bcb5af"
+                      :font-size ".8em"}} "Email code:"]]
+        [:input {:type "text"
+                 :autocomplete "one-time-code"
+                 :name "code"
+                 :style {:background "#66666620"
+                         :border-radius "8px"
+                         :padding "6px 8px"
+                         :margin-right "4px"}}]])
+     [:div {:style {:margin-bottom "12px"}}]
+     [:button.btn.primary.green {:class "btn primary"
+                                 :type "submit"}
+      "Send code"]
+     [:p {:style {:font-size ".8em"
+                  :margin-top "24px"}}
+      "Already have an account? " [:a {:href "/meetcute/signin"} "Sign in"]]
+     (when started?
+       [:div {:class "resend" :style {:margin-top "2rem"}}
+        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Try again"]]])
+     (embed-js-script (io/resource "public/signin.js"))]]])
+
+
+(defn sms-signup-screen [{:keys [phone phone-input-error code-error started?]}]
   [:div.oranges-wallpaper
    [:form {:method "post" :action (if started?
                                     "/meetcute/verify-signup"
@@ -241,15 +320,87 @@
      (embed-js-script (io/resource "public/signin.js"))]]])
 
 (defn signup-route [_]
-  (html-response
-   (signup-screen {:phone ""
-                   :started? false
-                   :phone-input-error nil})))
+  (if email-auth?
+    (html-response
+     (email-signup-screen {:email ""
+                           :started? false
+                           :email-input-error nil}))
+    (html-response
+     (sms-signup-screen {:phone ""
+                         :started? false
+                         :phone-input-error nil}))))
 
 ;; ====================================================================== 
 ;; Sign In
 
-(defn signin-screen [{:keys [phone phone-input-error code-error started?]}]
+(defn email-signin-screen
+
+  [{:keys [email email-input-error code-error started?] :as opts}]
+
+  [:div.oranges-wallpaper
+   [:form {:method "post" :action (if started?
+                                    "/meetcute/verify"
+                                    "/meetcute/signin")}
+    [:div.signin-form-background
+    ;; [:h1 {:style {:font-size "36px" :line-height "1.4em" :margin-bottom "60px" :margin-top "12px"}} "Welcome to" [:br] "MeetCute!"]
+     [:h2 {:style {:font-size "24px" :line-height "1.4em" :margin-top "12px"}} "Sign in"]
+     [:p {:style {:margin "28px 0 12px 0" :font-size ".88em"}} "Hello from " [:a {:href "https://twitter.com/devonzuegel"} "Devon"] " & " [:a {:href "https://twitter.com/eriktorenberg"} "Erik"] "!"]
+     [:p {:style {:margin "0    0 32px 0" :font-size ".88em"}} "This is our a little experiment to introduce single friends to each other, & we're excited you're part of it"]
+     (when (or email-input-error code-error)
+       [:div {:style {:color "red" :min-height "1.4em" :margin-bottom "8px"}}
+        (or email-input-error code-error)])
+     #_[:label {:for "phone"}
+        [:p {:style {:font-weight "bold"
+                     :margin "24px 4px 4px 4px"
+                     :text-transform "uppercase"
+                     :font-style "italic"
+                     :color "#bcb5af"
+                     :font-size ".8em"}} "Your phone number:"]]
+     [:input {:id "email"
+              :type "email"
+              :name "email"
+              :value email
+              :placeholder "Email address"
+              :style {:border-radius "8px"
+                      :width "13em"
+                      :padding "6px 8px"
+                      :margin-right "4px"
+                      :padding-left "8x"}}]
+     (if-not started?
+       [:br] #_[:p {:style {:margin-top "6px"
+                            :color "rgba(25, 56, 34, 0.5);"
+                            :font-size ".8em"}}
+                "We will text you a code via SMS"]
+       [:div
+        [:label {:for "code"}
+         [:p {:style {:font-weight "bold"
+                      :margin "24px 4px 4px 4px"
+                      :text-transform "uppercase"
+                      :font-style "italic"
+                      :color "#bcb5af"
+                      :font-size ".8em"}} "Code:"]]
+        [:input {:type "text"
+                 :autocomplete "one-time-code"
+                 :name "code"
+                 :style {:background "#66666620"
+                         :border-radius "8px"
+                         :padding "6px 8px"
+                         :margin-right "4px"}}]])
+     [:div {:style {:margin-bottom "12px"}}]
+     [:button.btn.primary.green {:type "submit"}
+      "Send code"]
+     [:p {:style {:font-size ".8em"
+                  :margin-top "24px"}}
+      "No account yet? " [:a {:href "/meetcute/signup"} "Sign up →"]]
+
+     (when started?
+       [:div {:class "resend" :style {:margin-top "2rem"}}
+        [:p "Didn't get the code?  " [:a {:href "/meetcute/signin"} "Try again"]] ; TODO: have this resend the code, instead of starting over entirely
+        ])
+     (embed-js-script (io/resource "public/signin.js"))]]])
+
+
+(defn sms-signin-screen [{:keys [phone phone-input-error code-error started?]}]
   [:div.oranges-wallpaper
    [:form {:method "post" :action (if started?
                                     "/meetcute/verify"
@@ -327,18 +478,25 @@
    :body (base-index (str (hiccup/html hiccup-body)))})
 
 (defn signin-route [_]
-  (html-response
-   (signin-screen {:phone ""
-                   :started? false
-                   :phone-input-error nil})))
+  (if email-auth?
+    (html-response
+     (email-signin-screen {:email ""
+                           :started? false
+                           :email-input-error nil}))
+    (html-response
+     (sms-signin-screen {:phone ""
+                         :started? false
+                         :phone-input-error nil}))))
 
 (comment
   (def TEST_SMS_CODE "123456"))
 
+
+(def TEST_EMAIL (mc.util/clean-email "test@test.com"))
 (def TEST_PHONE_NUMBER (mc.util/clean-phone "111-111-1111"))
 (def TEST_VERIFICATION_ID "VE478b3f02238dee0544e9062cfc16c1ff")
 
-(defn start-signin-route [req]
+(defn sms-start-signin-route [req]
   (let [params (:params req)
         phone (some-> (:phone params) mc.util/clean-phone)]
 
@@ -347,13 +505,13 @@
 
     (if-not (mc.util/valid-phone? phone)
       (html-response
-       (signin-screen {:phone (or (:phone params) "")
-                       :phone-input-error "Invalid phone number"}))
+       (sms-signin-screen {:phone (or (:phone params) "")
+                           :phone-input-error "Invalid phone number"}))
 
       (if-not (logic/existing-phone-number? phone)
         (html-response
-         (signin-screen {:phone (or (:phone params) "")
-                         :phone-input-error "Hmmm we couldn't find an account with that phone number"}))
+         (sms-signin-screen {:phone (or (:phone params) "")
+                             :phone-input-error "Hmmm we couldn't find an account with that phone number"}))
 
         (let [verification-id
               (if (= TEST_PHONE_NUMBER phone)
@@ -364,13 +522,66 @@
                     :error)))]
           (if (= :error verification-id)
             (html-response
-             (signin-screen {:phone (or (:phone params) "")
-                             :phone-input-error "Error sending SMS. Try again later."}))
+             (sms-signin-screen {:phone (or (:phone params) "")
+                                 :phone-input-error "Error sending SMS. Try again later."}))
             (html-response
-             (signin-screen {:phone (or (:phone params) "")
-                             :started? true}))))))))
+             (sms-signin-screen {:phone (or (:phone params) "")
+                                 :started? true}))))))))
 
-(defn start-signup-route [req]
+(defn start-verification! [{:keys [email]}]
+  (let [code (random-code)
+        auth-sessions (swap! auth-sessions-state (fn [auth-sessions]
+                                                   (add-new-code auth-sessions email code)))]
+    (email/send-email {:to email
+                       :from-name "MeetCute"
+                       :subject "Sign in to MeetCute"
+                       :body (format "%s is your email code" code)})
+    (str (get-in auth-sessions [email :id]))))
+
+(defn check-code! [{:keys [email code]}]
+  (let [auth-sessions (swap! auth-sessions-state (fn [auth-sessions]
+                                                   (new-attempt auth-sessions email code)))]
+    (get-in auth-sessions [email :success?])))
+
+(defn email-start-signin-route [req]
+  (def -req req)
+  (let [params (:params req)
+        email (some-> (:email params) mc.util/clean-email)]
+
+    (println)
+    (println "Attempting login with email address: " email)
+
+    (if-not (mc.util/valid-email? email)
+      (html-response
+       (email-signin-screen {:email (or (:email params) "")
+                             :email-input-error "Invalid email address"}))
+
+      (if-not (logic/existing-email? email)
+        (html-response
+         (email-signin-screen {:email (or (:email params) "")
+                               :email-input-error "Hmmm we couldn't find an account with that email"}))
+
+        (let [verification-id
+              (if (= TEST_EMAIL email)
+                TEST_VERIFICATION_ID
+                (try
+                  (start-verification! {:email email})
+                  (catch Exception _e
+                    :error)))]
+          (if (= :error verification-id)
+            (html-response
+             (email-signin-screen {:email (or (:email params) "")
+                                   :email-input-error "Error sending email code. Try again later."}))
+            (html-response
+             (email-signin-screen {:email (or (:email params) "")
+                                   :started? true}))))))))
+
+(defn start-signin-route [req]
+  (if email-auth?
+    (email-start-signin-route req)
+    (sms-start-signin-route req)))
+
+(defn sms-start-signup-route [req]
   (let [params (:params req)
         phone (some-> (:phone params) mc.util/clean-phone)]
 
@@ -379,13 +590,13 @@
 
     (if-not (mc.util/valid-phone? phone)
       (html-response
-       (signup-screen {:phone (or (:phone params) "")
-                       :phone-input-error "Invalid phone number"}))
+       (sms-signup-screen {:phone (or (:phone params) "")
+                           :phone-input-error "Invalid phone number"}))
 
       (if (logic/existing-phone-number? phone)
         (html-response
-         (signup-screen {:phone (or (:phone params) "")
-                         :phone-input-error "Looks like you already have an account!"}))
+         (sms-signup-screen {:phone (or (:phone params) "")
+                             :phone-input-error "Looks like you already have an account!"}))
 
         (let [verification-id
               (if (= TEST_PHONE_NUMBER phone)
@@ -396,28 +607,72 @@
                     :error)))]
           (if (= :error verification-id)
             (html-response
-             (signup-screen {:phone (or (:phone params) "")
-                             :phone-input-error "Error sending SMS. Try again later."}))
+             (sms-signup-screen {:phone (or (:phone params) "")
+                                 :phone-input-error "Error sending SMS. Try again later."}))
             (html-response
-             (signup-screen {:phone (or (:phone params) "")
-                             :started? true}))))))))
+             (sms-signup-screen {:phone (or (:phone params) "")
+                                 :started? true}))))))))
 
-(defn verify-route [req]
+(defn email-start-signup-route [req]
+  (let [params (:params req)
+        email (some-> (:email params) mc.util/clean-email)]
+
+    (println)
+    (println "Attempting signup with email: " email)
+
+    (if-not (mc.util/valid-email? email)
+      (html-response
+       (email-signup-screen {:email (or (:phone params) "")
+                             :email-input-error "Invalid email"}))
+
+      (if (logic/existing-email? email)
+        (html-response
+         (email-signup-screen {:email (or (:email params) "")
+                               :email-input-error "Looks like you already have an account!"}))
+
+        (let [verification-id
+              (if (= TEST_EMAIL email)
+                TEST_VERIFICATION_ID
+                (try
+                  (start-verification! {:email email})
+                  (catch Exception _e
+                    :error)))]
+          (if (= :error verification-id)
+            (html-response
+             (email-signup-screen {:email (or (:email params) "")
+                                   :email-input-error "Error sending email. Try again later."}))
+            (html-response
+             (email-signup-screen {:email (or (:email params) "")
+                                   :started? true}))))))))
+
+(defn start-signup-route [req]
+  (if email-auth?
+    (email-start-signup-route req)
+    (sms-start-signup-route req)))
+
+(defn sms-verify-route [req]
   (println "made it to verify-route!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
   (println "params: " (:params req))
   (let [params (:params req)
         error-response (fn [msg]
                          (html-response
-                          (signin-screen {:phone (:phone params)
-                                          :started? true
-                                          :code-error msg})))]
+                          (sms-signin-screen {:phone (:phone params)
+                                              :started? true
+                                              :code-error msg})))]
     (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
       (if-let [code (some-> (:code params) str/trim)]
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
-                           (when-not (re-matches #"^\d{4}$" code)                {:error "Hmm that doesn't match the format of the code"})
-                           (when-not (sms/check-code! {:phone phone :code code}) {:error "Hmm that's the wrong code..."})
-                           (catch Exception _e                                   {:error "Hmm that didn't work! Please try again"})))]
+                           (cond
+                             (not (mc.util/valid-code? code))
+                             {:error "Hmm that doesn't match the format of the code"}
+
+                             (sms/check-code! {:phone phone :code code})
+                             {:success? true}
+
+                             :else {:error "Hmm that's the wrong code..."})
+                           (catch Exception _e
+                             {:error "Hmm that didn't work! Please try again"})))]
           (if-let [error-msg (:error verify-r)]
             (error-response error-msg)
             ;; redirect to the home page with the cookie set
@@ -427,20 +682,61 @@
         (error-response "Missing code"))
       (error-response "Missing phone"))))
 
-(defn verify-signup-route [req]
+(defn email-verify-route [req]
+  (println "made it to verify-route!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  (println "params: " (:params req))
   (let [params (:params req)
         error-response (fn [msg]
                          (html-response
-                          (signup-screen {:phone (:phone params)
-                                          :started? true
-                                          :code-error msg})))]
+                          (email-signin-screen {:email (:email params)
+                                                :started? true
+                                                :code-error msg})))]
+    (if-let [email (some-> (:email params) mc.util/clean-email)]
+      (if-let [code (some-> (:code params) str/trim)]
+        (let [verify-r (try
+                         (cond
+                           (= TEST_EMAIL email) {:success? true}
+
+                           (not (mc.util/valid-code? code))
+                           {:error "Hmm that doesn't match the format of the code"}
+
+                           (check-code! {:email email :code code})
+                           {:success? true}
+
+                           :else {:error "Hmm that's the wrong code..."})
+                         (catch Exception _e
+                           {:error "Hmm that didn't work! Please try again"}))]
+          (if-let [error-msg (:error verify-r)]
+            (error-response error-msg)
+            ;; redirect to the home page with the cookie set
+            ;; this session is now authenticated
+            (-> (resp/redirect "/meetcute")
+                (assoc :session {:auth/jwt (create-auth-token {:email email})}))))
+        (error-response "Missing code"))
+      (error-response "Missing email"))))
+
+(defn verify-route [req]
+  (if email-auth?
+    (email-verify-route req)
+    (sms-verify-route req)))
+
+(defn sms-verify-signup-route [req]
+  (let [params (:params req)
+        error-response (fn [msg]
+                         (html-response
+                          (sms-signup-screen {:phone (:phone params)
+                                              :started? true
+                                              :code-error msg})))]
     (if-let [phone (some-> (:phone params) mc.util/clean-phone)]
       (if-let [code (some-> (:code params) str/trim)]
         (let [verify-r (when-not (= TEST_PHONE_NUMBER phone)
                          (try
-                           (when-not (re-matches #"^\d{4}$" code)                {:error "Hmm that doesn't match the format of the code"})
-                           (when-not (sms/check-code! {:phone phone :code code}) {:error "Hmm that's the wrong code..."})
-                           (catch Exception _e                                   {:error "Hmm that didn't work! Please try again"})))]
+                           (when-not (mc.util/valid-code? code)
+                             {:error "Hmm that doesn't match the format of the code"})
+                           (when-not (sms/check-code! {:phone phone :code code})
+                             {:error "Hmm that's the wrong code..."})
+                           (catch Exception _e
+                             {:error "Hmm that didn't work! Please try again"})))]
           (if-let [error-msg (:error verify-r)]
             (error-response error-msg)
             ;; create the new user, then
@@ -463,6 +759,57 @@
                   (assoc :session {:auth/jwt (create-auth-token {:phone phone})})))))
         (error-response "Missing code"))
       (error-response "Missing phone"))))
+
+(defn email-verify-signup-route [req]
+  (def -req req)
+  (let [params (:params req)
+        error-response (fn [msg]
+                         (html-response
+                          (email-signup-screen {:email (:email params)
+                                                :started? true
+                                                :code-error msg})))]
+    (if-let [email (some-> (:email params) mc.util/clean-email)]
+      (if-let [code (some-> (:code params) str/trim)]
+        (let [verify-r (try
+                         (cond
+                           (= TEST_EMAIL email) {:success? true}
+
+                           (not (mc.util/valid-code? code))
+                           {:error "Hmm that doesn't match the format of the code"}
+
+                           (check-code! {:email email :code code})
+                           {:success? true}
+
+                           :else {:error "Hmm that's the wrong code..."})
+                         (catch Exception _e
+                           {:error "Hmm that didn't work! Please try again"}))]
+          (if-let [error-msg (:error verify-r)]
+            (error-response error-msg)
+            ;; create the new user, then
+            ;; redirect to the home page with the cookie set
+            ;; this session is now authenticated
+            (do
+              (println "🐣 Creating new user in airtable with email: " email)
+              ; send email to admin notifying them that a new user has signed up:
+              (email/send-email {:to        "hello@smallworld.kiwi"
+                                 :from-name "MeetCute logs"
+                                 :subject   (str "🐣 New user signed up: " email)
+                                 :body      (str "<div style='line-height: 1.6em; font-family: Roboto Mono, monospace !important; margin: 24px 0'>"
+                                                 "View list of users who have not yet been reviewed: "
+                                                 "<a href='https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwNrg3C6HulVYNMh?blocks=hide'>https://airtable.com/appF2K8ThWvtrC6Hs/tbl0MIb6C4uOFmNAb/viwNrg3C6HulVYNMh</a>."
+                                                 "</div>")})
+              (airtable/create-in-base logic/airtable-base
+                                       [@logic/airtable-cuties-db-name]
+                                       {:fields {:Email email}})
+              (-> (resp/redirect "/meetcute/settings")
+                  (assoc :session {:auth/jwt (create-auth-token {:email email})})))))
+        (error-response "Missing code"))
+      (error-response "Missing email"))))
+
+(defn verify-signup-route [req]
+  (if email-auth?
+    (email-verify-signup-route req)
+    (sms-verify-signup-route req)))
 
 (defn logout-route [_req]
   (-> (resp/redirect "/meetcute/signin")
