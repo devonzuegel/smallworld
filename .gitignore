@@ -23,3 +23,7 @@ bin/set-env-variables.sh
 # IntelliJ files
 .idea/*
 *.iml
+
+# Database dumps (contain sensitive data)
+*.dump
+latest.dump
