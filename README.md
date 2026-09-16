@@ -12,6 +12,7 @@ https://smallworld.kiwi
 - [initial designs](#initial-designs)
 - [emails](#emails)
 - [Monitoring](#monitoring)
+- [Database Backup](#database-backup)
 - [sql cheatsheet](#sql-cheatsheet)
 - [misc commands cheatsheet](#misc-commands-cheatsheet)
 - [how the matchmaking algorithm works](#how-the-matchmaking-algorithm-works)
@@ -105,6 +106,31 @@ We use:
 - https://analytics.google.com to view website traffic
 - https://tryretool.com as a dashboard to view the database and other metrics
 - https://my.papertrailapp.com to view server logs
+
+## Database Backup
+
+A full Postgres dump was taken on **2026-09-15** before the Heroku `postgresql-fluffy-56995` add-on (Essential 1) was shut down.
+
+**Backup file:** `small-world-friends-2026-09-15.dump` (2.2 GB, pg_dump custom format)
+
+**Stored in two places:**
+- `~/Backups/small-world-friends/` on Devon's Mac on Sept 15, 2026
+- Google Drive: `My Drive/Backups/small-world-friends/`
+
+**To restore to a new Heroku Postgres database:**
+```bash
+# 1. Provision a new database and wait for it
+heroku addons:create heroku-postgresql:essential-0 -a small-world-friends
+heroku pg:wait -a small-world-friends
+
+# 2. Restore from the local dump file
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+pg_restore --no-acl --no-owner \
+  -d "$(heroku config:get DATABASE_URL -a small-world-friends)" \
+  ~/Backups/small-world-friends/small-world-friends-2026-09-15.dump
+```
+
+The config vars (API keys, DB password, etc.) are saved alongside the dump on Devon's Mac only — **do not commit them to the repo**.
 
 ## sql cheatsheet
 
